@@ -1,0 +1,82 @@
+package com.devvalor.howyoudoing.chat.presentation.conversation.components
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.Reply
+import androidx.compose.material.icons.rounded.ContentCopy
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.devvalor.howyoudoing.chat.presentation.model.MessageUi
+import com.devvalor.howyoudoing.core.designsystem.theme.HowYouDoinSpacing
+
+/** Quick reactions, as in WhatsApp and Messenger. */
+val QuickReactions = listOf("👍", "❤️", "😂", "😮", "😢", "🙏")
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MessageActionsSheet(
+    message: MessageUi,
+    onReaction: (String) -> Unit,
+    onReply: () -> Unit,
+    onCopy: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    ModalBottomSheet(onDismissRequest = onDismiss) {
+        Column(Modifier.navigationBarsPadding().padding(bottom = HowYouDoinSpacing.md)) {
+            Row(
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                modifier = Modifier.fillMaxWidth().padding(horizontal = HowYouDoinSpacing.md, vertical = HowYouDoinSpacing.sm),
+            ) {
+                QuickReactions.forEach { emoji ->
+                    val isOwn = message.reactions.any { it.key == emoji && it.isOwn }
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .size(48.dp)
+                            .background(if (isOwn) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh, CircleShape)
+                            .clickable { onReaction(emoji) },
+                    ) {
+                        Text(emoji, fontSize = 24.sp)
+                    }
+                }
+            }
+            ActionRow(Icons.AutoMirrored.Rounded.Reply, "Reply", onReply)
+            if (message.text.isNotBlank() && message.media == null) {
+                ActionRow(Icons.Rounded.ContentCopy, "Copy text", onCopy)
+            }
+        }
+    }
+}
+
+@Composable
+private fun ActionRow(icon: ImageVector, label: String, onClick: () -> Unit) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(horizontal = HowYouDoinSpacing.lg, vertical = 14.dp),
+    ) {
+        Icon(icon, contentDescription = null)
+        Spacer(Modifier.width(HowYouDoinSpacing.md))
+        Text(label, style = MaterialTheme.typography.bodyLarge)
+    }
+}

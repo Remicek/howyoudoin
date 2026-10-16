@@ -49,7 +49,6 @@ data class SendEventResponseDto(
 )
 
 @Serializable
-data class TextMessageContentDto(
-    val msgtype: String = "m.text",
-    val body: String
+data class ContentUriDto(
+    @SerialName("content_uri") val contentUri: String
 )

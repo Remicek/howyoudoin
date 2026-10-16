@@ -3,13 +3,15 @@ package com.devvalor.howyoudoing.chat.data.matrix
 import com.devvalor.howyoudoing.chat.data.matrix.dto.MessagesResponseDto
 import com.devvalor.howyoudoing.chat.data.matrix.dto.SendEventResponseDto
 import com.devvalor.howyoudoing.chat.data.matrix.dto.SyncResponseDto
-import com.devvalor.howyoudoing.chat.data.matrix.dto.TextMessageContentDto
+import com.devvalor.howyoudoing.chat.data.matrix.dto.ContentUriDto
 import com.devvalor.howyoudoing.core.data.networking.safeCall
 import com.devvalor.howyoudoing.core.domain.auth.AuthInfo
 import com.devvalor.howyoudoing.core.domain.util.DataError
 import com.devvalor.howyoudoing.core.domain.util.Result
 import io.ktor.client.HttpClient
+import io.ktor.client.call.body
 import io.ktor.client.request.HttpRequestBuilder
+import io.ktor.client.request.header
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
@@ -18,7 +20,11 @@ import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.http.appendPathSegments
 import io.ktor.http.takeFrom
+import io.ktor.http.ContentType
+import io.ktor.http.contentType
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 
 /** Thin wrapper over the Matrix client-server API endpoints HowYouDoin needs. */
 class MatrixApi(
@@ -53,15 +59,62 @@ class MatrixApi(
         }
     }
 
-    suspend fun sendText(
+    /** Sends any message-like event, e.g. `m.room.message` or `m.reaction`. */
+    suspend fun sendEvent(
         session: AuthInfo,
         roomId: String,
+        type: String,
         transactionId: String,
-        body: String
+        content: JsonObject
     ): Result<SendEventResponseDto, DataError.Remote> = safeCall {
         httpClient.put {
-            endpoint(session, "rooms", roomId, "send", "m.room.message", transactionId)
-            setBody(TextMessageContentDto(body = body))
+            endpoint(session, "rooms", roomId, "send", type, transactionId)
+            setBody(content)
+        }
+    }
+
+    suspend fun redact(
+        session: AuthInfo,
+        roomId: String,
+        eventId: String,
+        transactionId: String
+    ): Result<SendEventResponseDto, DataError.Remote> = safeCall {
+        httpClient.put {
+            endpoint(session, "rooms", roomId, "redact", eventId, transactionId)
+            setBody(JsonObject(emptyMap()))
+        }
+    }
+
+    suspend fun setTyping(
+        session: AuthInfo,
+        roomId: String,
+        isTyping: Boolean,
+        timeoutMillis: Long
+    ): Result<JsonObject, DataError.Remote> = safeCall {
+        httpClient.put {
+            endpoint(session, "rooms", roomId, "typing", session.userId)
+            setBody(buildJsonObject {
+                put("typing", isTyping)
+                if (isTyping) put("timeout", timeoutMillis)
+            })
+        }
+    }
+
+    suspend fun upload(
+        session: AuthInfo,
+        bytes: ByteArray,
+        contentType: String,
+        fileName: String
+    ): Result<ContentUriDto, DataError.Remote> = safeCall {
+        httpClient.post {
+            url {
+                takeFrom(session.homeserverUrl)
+                appendPathSegments("_matrix", "media", "v3", "upload")
+                parameters.append("filename", fileName)
+            }
+            bearerAuth(session.accessToken)
+            contentType(ContentType.parse(contentType))
+            setBody(bytes)
         }
     }
 
@@ -85,6 +138,11 @@ class MatrixApi(
             setBody(JsonObject(emptyMap()))
         }
     }
+
+    suspend fun download(url: String, headers: Map<String, String>): ByteArray? = runCatching {
+        val response = httpClient.get(url) { headers.forEach { (name, value) -> header(name, value) } }
+        if (response.status.value in 200..299) response.body<ByteArray>() else null
+    }.getOrNull()
 
     private fun HttpRequestBuilder.endpoint(session: AuthInfo, vararg path: String) {
         url {

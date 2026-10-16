@@ -272,9 +272,13 @@ private fun ChatRow(chat: ChatUi, onClick: () -> Unit) {
             Spacer(Modifier.height(2.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    chat.preview,
+                    chat.typingText ?: chat.preview,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = if (isUnread) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = when {
+                        chat.typingText != null -> MaterialTheme.colorScheme.primary
+                        isUnread -> MaterialTheme.colorScheme.onSurface
+                        else -> MaterialTheme.colorScheme.onSurfaceVariant
+                    },
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f),

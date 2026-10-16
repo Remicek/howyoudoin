@@ -22,7 +22,20 @@ data class JoinedRoomDto(
     val state: EventListDto? = null,
     val timeline: TimelineDto? = null,
     val summary: RoomSummaryDto? = null,
-    @SerialName("unread_notifications") val unreadNotifications: UnreadNotificationsDto? = null
+    @SerialName("unread_notifications") val unreadNotifications: UnreadNotificationsDto? = null,
+    val ephemeral: EphemeralListDto? = null
+)
+
+/** Receipts (`m.receipt`) and typing (`m.typing`); latest values, not timeline events. */
+@Serializable
+data class EphemeralListDto(
+    val events: List<EphemeralEventDto> = emptyList()
+)
+
+@Serializable
+data class EphemeralEventDto(
+    val type: String,
+    val content: JsonObject = JsonObject(emptyMap())
 )
 
 @Serializable

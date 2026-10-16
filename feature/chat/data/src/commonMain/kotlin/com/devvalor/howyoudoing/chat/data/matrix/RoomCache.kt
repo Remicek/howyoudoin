@@ -2,7 +2,13 @@ package com.devvalor.howyoudoing.chat.data.matrix
 
 import com.devvalor.howyoudoing.chat.data.matrix.dto.JoinedRoomDto
 import com.devvalor.howyoudoing.chat.data.matrix.dto.MatrixEventDto
+import com.devvalor.howyoudoing.chat.data.matrix.dto.EphemeralEventDto
 import com.devvalor.howyoudoing.chat.data.matrix.dto.MessagesResponseDto
+import com.devvalor.howyoudoing.chat.data.matrix.dto.obj
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonPrimitive
 
 /** In-memory state of one joined room, built up from /sync and /messages responses. */
 data class RoomCache(
@@ -14,7 +20,10 @@ data class RoomCache(
     val joinedMemberCount: Int = 0,
     val unreadCount: Int = 0,
     val prevBatch: String? = null,
-    val hasMoreHistory: Boolean = true
+    val hasMoreHistory: Boolean = true,
+    /** Latest read receipt per user: user ID → event ID. */
+    val receipts: Map<String, String> = emptyMap(),
+    val typingUserIds: List<String> = emptyList()
 ) {
     fun stateEvent(type: String, stateKey: String = ""): MatrixEventDto? =
         state[MatrixEventDto.stateCacheKey(type, stateKey)]
@@ -40,7 +49,23 @@ data class RoomCache(
             unreadCount = dto.unreadNotifications?.notificationCount ?: unreadCount,
             prevBatch = if (isGap || prevBatch == null) dto.timeline?.prevBatch ?: prevBatch else prevBatch,
             hasMoreHistory = if (isGap) true else hasMoreHistory
-        )
+        ).withEphemeral(dto.ephemeral?.events.orEmpty())
+    }
+
+    private fun withEphemeral(events: List<EphemeralEventDto>): RoomCache {
+        var receipts = receipts
+        var typing = typingUserIds
+        events.forEach { event ->
+            when (event.type) {
+                // content: { "$event": { "m.read": { "@user": { "ts": 123 } } } }
+                "m.receipt" -> event.content.forEach { (eventId, byType) ->
+                    val readers = (byType as? JsonObject)?.obj("m.read")?.keys.orEmpty()
+                    receipts = receipts + readers.associateWith { eventId }
+                }
+                "m.typing" -> typing = event.content["user_ids"]?.jsonArray?.mapNotNull { it.jsonPrimitive.contentOrNull }.orEmpty()
+            }
+        }
+        return copy(receipts = receipts, typingUserIds = typing)
     }
 
     fun prependHistory(response: MessagesResponseDto): RoomCache {
@@ -64,5 +89,8 @@ data class PendingMessage(
     val body: String,
     val timestamp: Long,
     val eventId: String? = null,
-    val isFailed: Boolean = false
+    val isFailed: Boolean = false,
+    val replyToId: String? = null,
+    /** Set while an attachment uploads; shown as a placeholder bubble. */
+    val attachmentMimeType: String? = null
 )

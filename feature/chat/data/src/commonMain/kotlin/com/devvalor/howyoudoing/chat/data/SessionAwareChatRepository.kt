@@ -1,7 +1,9 @@
 package com.devvalor.howyoudoing.chat.data
 
 import com.devvalor.howyoudoing.chat.data.demo.DemoChatRepository
+import com.devvalor.howyoudoing.chat.domain.Attachment
 import com.devvalor.howyoudoing.chat.domain.Chat
+import com.devvalor.howyoudoing.chat.domain.MediaRequest
 import com.devvalor.howyoudoing.chat.domain.ChatRepository
 import com.devvalor.howyoudoing.chat.domain.Message
 import com.devvalor.howyoudoing.chat.domain.SyncState
@@ -38,9 +40,23 @@ class SessionAwareChatRepository(
     override suspend fun loadOlderMessages(chatId: String): EmptyResult<DataError.Remote> =
         current().loadOlderMessages(chatId)
 
-    override suspend fun sendMessage(chatId: String, body: String): EmptyResult<DataError.Remote> =
-        current().sendMessage(chatId, body)
+    override suspend fun sendMessage(chatId: String, body: String, replyToId: String?): EmptyResult<DataError.Remote> =
+        current().sendMessage(chatId, body, replyToId)
+
+    override suspend fun sendAttachment(chatId: String, attachment: Attachment, caption: String?): EmptyResult<DataError.Remote> =
+        current().sendAttachment(chatId, attachment, caption)
+
+    override suspend fun toggleReaction(chatId: String, messageId: String, key: String): EmptyResult<DataError.Remote> =
+        current().toggleReaction(chatId, messageId, key)
+
+    override suspend fun setTyping(chatId: String, isTyping: Boolean): EmptyResult<DataError.Remote> =
+        current().setTyping(chatId, isTyping)
+
+    override suspend fun resolveMedia(mxcUrl: String, thumbnail: Boolean): MediaRequest? =
+        current().resolveMedia(mxcUrl, thumbnail)
 
     override suspend fun markAsRead(chatId: String): EmptyResult<DataError.Remote> =
         current().markAsRead(chatId)
+
+    override suspend fun downloadMedia(mxcUrl: String): ByteArray? = current().downloadMedia(mxcUrl)
 }

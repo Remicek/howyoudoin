@@ -1,9 +1,12 @@
 package com.devvalor.howyoudoing.chat.presentation.model
 
 import com.devvalor.howyoudoing.chat.domain.Chat
+import com.devvalor.howyoudoing.chat.domain.MediaInfo
 import com.devvalor.howyoudoing.chat.domain.Message
 import com.devvalor.howyoudoing.chat.domain.MessageStatus
 import com.devvalor.howyoudoing.chat.domain.MessageType
+import com.devvalor.howyoudoing.chat.domain.Reaction
+import com.devvalor.howyoudoing.chat.domain.ReplyPreview
 import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
 import com.devvalor.howyoudoing.core.presentation.util.TimestampFormatter
 
@@ -15,7 +18,9 @@ data class ChatUi(
     val timestamp: String,
     val unreadCount: Int,
     val isGroup: Boolean,
-    val isEncrypted: Boolean = false
+    val isEncrypted: Boolean = false,
+    /** "Anna is typing…" replaces the preview while someone types. */
+    val typingText: String? = null
 )
 
 data class MessageUi(
@@ -27,8 +32,21 @@ data class MessageUi(
     val status: MessageStatus,
     val type: MessageType,
     /** Set on the first message of each day, e.g. "Yesterday". */
-    val dayHeader: String? = null
+    val dayHeader: String? = null,
+    /** Plain text for copying / quoting (no media placeholders). */
+    val text: String = body,
+    val replyTo: ReplyPreview? = null,
+    val reactions: List<Reaction> = emptyList(),
+    val media: MediaInfo? = null,
+    val isReadByOthers: Boolean = false
 )
+
+fun typingText(names: List<String>, isGroup: Boolean): String? = when {
+    names.isEmpty() -> null
+    !isGroup -> "typing…"
+    names.size == 1 -> "${names.first().substringBefore(" ")} is typing…"
+    else -> "${names.size} people are typing…"
+}
 
 fun Chat.toChatUi(): ChatUi = ChatUi(
     id = id,
@@ -39,7 +57,8 @@ fun Chat.toChatUi(): ChatUi = ChatUi(
     timestamp = lastMessage?.let { TimestampFormatter.formatChatTimestamp(it.timestamp) }.orEmpty(),
     unreadCount = unreadCount,
     isGroup = isGroup,
-    isEncrypted = isEncrypted
+    isEncrypted = isEncrypted,
+    typingText = typingText(typingNames, isGroup)
 )
 
 /**
@@ -59,7 +78,12 @@ fun List<Message>.toMessageUis(showSenderNames: Boolean): List<MessageUi> =
             type = message.type,
             dayHeader = if (previous == null || !TimestampFormatter.isSameDay(previous.timestamp, message.timestamp)) {
                 TimestampFormatter.formatDayHeader(message.timestamp)
-            } else null
+            } else null,
+            text = message.body,
+            replyTo = message.replyTo,
+            reactions = message.reactions,
+            media = message.media,
+            isReadByOthers = message.isReadByOthers
         )
     }
 

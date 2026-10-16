@@ -1,6 +1,13 @@
 package com.devvalor.howyoudoing.chat.data.matrix
 
 import com.devvalor.howyoudoing.chat.data.matrix.dto.InvitedRoomDto
+import com.devvalor.howyoudoing.chat.data.matrix.dto.SendEventResponseDto
+import com.devvalor.howyoudoing.chat.domain.Attachment
+import com.devvalor.howyoudoing.chat.domain.MediaRequest
+import kotlinx.serialization.json.JsonObjectBuilder
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
+import kotlinx.serialization.json.putJsonObject
 import com.devvalor.howyoudoing.chat.data.matrix.dto.SyncResponseDto
 import com.devvalor.howyoudoing.chat.data.matrix.dto.string
 import com.devvalor.howyoudoing.chat.domain.SyncState
@@ -152,32 +159,116 @@ class MatrixSyncEngine(
             .asEmptyResult()
     }
 
-    suspend fun sendText(roomId: String, body: String): EmptyResult<DataError.Remote> {
-        val session = _session.value ?: return Result.Failure(DataError.Remote.UNAUTHORIZED)
-        val now = Clock.System.now().toEpochMilliseconds()
-        val transactionId = "howyoudoin-$now-${Random.nextInt(0, Int.MAX_VALUE)}"
-        updateRoom(roomId) {
-            it.copy(pending = it.pending + PendingMessage(transactionId, body, now))
+    suspend fun sendText(roomId: String, body: String, replyToId: String? = null): EmptyResult<DataError.Remote> {
+        val content = buildJsonObject {
+            put("msgtype", "m.text")
+            put("body", body)
+            replyToId?.let { inReplyTo(it) }
         }
-        return api.sendText(session, roomId, transactionId, body)
-            .onSuccess { response ->
-                updatePending(roomId, transactionId) { it.copy(eventId = response.eventId) }
-            }
-            .onFailure {
-                updatePending(roomId, transactionId) { it.copy(isFailed = true) }
-            }
-            .asEmptyResult()
+        return sendWithLocalEcho(roomId, PendingMessage(newTransactionId(), body, now(), replyToId = replyToId)) { session, txn ->
+            api.sendEvent(session, roomId, "m.room.message", txn, content)
+        }
     }
 
+    /** Uploads the file to the media repository, then sends it as m.image / m.video / m.audio / m.file. */
+    suspend fun sendAttachment(roomId: String, attachment: Attachment, caption: String?): EmptyResult<DataError.Remote> {
+        val placeholder = PendingMessage(newTransactionId(), caption ?: attachment.fileName, now(), attachmentMimeType = attachment.mimeType)
+        return sendWithLocalEcho(roomId, placeholder) { session, txn ->
+            when (val upload = api.upload(session, attachment.bytes, attachment.mimeType, attachment.fileName)) {
+                is Result.Failure -> upload
+                is Result.Success -> api.sendEvent(session, roomId, "m.room.message", txn, buildJsonObject {
+                    put("msgtype", msgTypeFor(attachment.mimeType))
+                    // Caption goes in body with the file name separately (spec v1.10 media captions)
+                    put("body", caption ?: attachment.fileName)
+                    if (caption != null) put("filename", attachment.fileName)
+                    put("url", upload.data.contentUri)
+                    putJsonObject("info") {
+                        put("mimetype", attachment.mimeType)
+                        put("size", attachment.bytes.size)
+                        attachment.width?.let { put("w", it) }
+                        attachment.height?.let { put("h", it) }
+                    }
+                })
+            }
+        }
+    }
+
+    /** Adds an `m.annotation` reaction, or redacts the user's existing one with the same key. */
+    suspend fun toggleReaction(roomId: String, messageId: String, key: String, ownReactionId: String?): EmptyResult<DataError.Remote> {
+        val session = _session.value ?: return Result.Failure(DataError.Remote.UNAUTHORIZED)
+        return if (ownReactionId != null) {
+            api.redact(session, roomId, ownReactionId, newTransactionId()).asEmptyResult()
+        } else {
+            api.sendEvent(session, roomId, "m.reaction", newTransactionId(), buildJsonObject {
+                putJsonObject("m.relates_to") {
+                    put("rel_type", "m.annotation")
+                    put("event_id", messageId)
+                    put("key", key)
+                }
+            }).asEmptyResult()
+        }
+    }
+
+    suspend fun setTyping(roomId: String, isTyping: Boolean): EmptyResult<DataError.Remote> {
+        val session = _session.value ?: return Result.Failure(DataError.Remote.UNAUTHORIZED)
+        return api.setTyping(session, roomId, isTyping, TYPING_TIMEOUT_MILLIS).asEmptyResult()
+    }
+
+    /** Sends a read receipt for the latest event, unless our receipt is already there. */
     suspend fun markAsRead(roomId: String): EmptyResult<DataError.Remote> {
         val session = _session.value ?: return Result.Failure(DataError.Remote.UNAUTHORIZED)
         val room = _rooms.value[roomId] ?: return Result.Success(Unit)
-        if (room.unreadCount == 0) return Result.Success(Unit)
-        val lastEventId = room.timeline.lastOrNull { it.eventId != null }?.eventId
+        val lastEventId = room.timeline.lastOrNull { it.eventId != null && it.stateKey == null }?.eventId
             ?: return Result.Success(Unit)
-        updateRoom(roomId) { it.copy(unreadCount = 0) }
+        if (room.receipts[session.userId] == lastEventId && room.unreadCount == 0) return Result.Success(Unit)
+        updateRoom(roomId) { it.copy(unreadCount = 0, receipts = it.receipts + (session.userId to lastEventId)) }
         return api.sendReadReceipt(session, roomId, lastEventId).asEmptyResult()
     }
+
+    /** Authenticated media download (spec v1.11): `mxc://server/id` → HTTP URL + bearer header. */
+    fun mediaRequest(mxcUrl: String, thumbnail: Boolean): MediaRequest? {
+        val session = _session.value ?: return null
+        val (server, mediaId) = mxcUrl.removePrefix("mxc://").split("/", limit = 2).takeIf { it.size == 2 } ?: return null
+        val path = if (thumbnail) "thumbnail/$server/$mediaId?width=800&height=800&method=scale" else "download/$server/$mediaId"
+        return MediaRequest(
+            url = "${session.homeserverUrl}/_matrix/client/v1/media/$path",
+            headers = mapOf("Authorization" to "Bearer ${session.accessToken}")
+        )
+    }
+
+    suspend fun downloadMedia(mxcUrl: String): ByteArray? {
+        val request = mediaRequest(mxcUrl, thumbnail = false) ?: return null
+        return api.download(request.url, request.headers)
+    }
+
+    private suspend fun sendWithLocalEcho(
+        roomId: String,
+        pending: PendingMessage,
+        send: suspend (AuthInfo, String) -> Result<SendEventResponseDto, DataError.Remote>
+    ): EmptyResult<DataError.Remote> {
+        val session = _session.value ?: return Result.Failure(DataError.Remote.UNAUTHORIZED)
+        updateRoom(roomId) { it.copy(pending = it.pending + pending) }
+        return send(session, pending.transactionId)
+            .onSuccess { response -> updatePending(roomId, pending.transactionId) { it.copy(eventId = response.eventId) } }
+            .onFailure { updatePending(roomId, pending.transactionId) { it.copy(isFailed = true) } }
+            .asEmptyResult()
+    }
+
+    private fun JsonObjectBuilder.inReplyTo(eventId: String) {
+        putJsonObject("m.relates_to") {
+            putJsonObject("m.in_reply_to") { put("event_id", eventId) }
+        }
+    }
+
+    private fun msgTypeFor(mimeType: String) = when {
+        mimeType.startsWith("image/") -> "m.image"
+        mimeType.startsWith("video/") -> "m.video"
+        mimeType.startsWith("audio/") -> "m.audio"
+        else -> "m.file"
+    }
+
+    private fun now() = Clock.System.now().toEpochMilliseconds()
+    private fun newTransactionId() = "howyoudoin-${now()}-${Random.nextInt(0, Int.MAX_VALUE)}"
 
     private fun updateRoom(roomId: String, transform: (RoomCache) -> RoomCache) {
         _rooms.update { rooms ->
@@ -196,5 +287,6 @@ class MatrixSyncEngine(
         const val LONG_POLL_MILLIS = 30_000L
         const val INITIAL_BACKOFF_MILLIS = 1_000L
         const val MAX_BACKOFF_MILLIS = 30_000L
+        const val TYPING_TIMEOUT_MILLIS = 10_000L
     }
 }

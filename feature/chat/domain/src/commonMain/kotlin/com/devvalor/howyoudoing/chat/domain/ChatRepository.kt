@@ -15,6 +15,24 @@ interface ChatRepository {
     suspend fun loadOlderMessages(chatId: String): EmptyResult<DataError.Remote>
     fun hasMoreHistory(chatId: String): Flow<Boolean>
 
-    suspend fun sendMessage(chatId: String, body: String): EmptyResult<DataError.Remote>
+    /** @param replyToId message being replied to, if any */
+    suspend fun sendMessage(chatId: String, body: String, replyToId: String? = null): EmptyResult<DataError.Remote>
+    suspend fun sendAttachment(chatId: String, attachment: Attachment, caption: String? = null): EmptyResult<DataError.Remote>
+
+    /** Adds the reaction, or removes it if the user already reacted with [key]. */
+    suspend fun toggleReaction(chatId: String, messageId: String, key: String): EmptyResult<DataError.Remote>
+
+    suspend fun setTyping(chatId: String, isTyping: Boolean): EmptyResult<DataError.Remote>
     suspend fun markAsRead(chatId: String): EmptyResult<DataError.Remote>
+
+    /** HTTP URL + headers to load an `mxc://` media URI (e.g. for an image loader); null if not resolvable. */
+    suspend fun resolveMedia(mxcUrl: String, thumbnail: Boolean = false): MediaRequest?
+
+    /** Downloads the full file, e.g. to hand it to another app. */
+    suspend fun downloadMedia(mxcUrl: String): ByteArray?
 }
+
+data class MediaRequest(
+    val url: String,
+    val headers: Map<String, String>
+)

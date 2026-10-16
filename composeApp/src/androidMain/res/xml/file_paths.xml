@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Files handed to other apps (open attachment); see Attachments.android.kt -->
+<paths>
+    <cache-path name="shared" path="shared/" />
+</paths>

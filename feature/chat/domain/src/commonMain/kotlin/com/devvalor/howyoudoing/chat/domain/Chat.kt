@@ -11,7 +11,9 @@ data class Chat(
     val isGroup: Boolean,
     val avatarUrl: String? = null,
     /** End-to-end encrypted on the remote network (e.g. Messenger's encrypted chats). */
-    val isEncrypted: Boolean = false
+    val isEncrypted: Boolean = false,
+    /** Display names of people typing right now. */
+    val typingNames: List<String> = emptyList()
 ) {
     /** Sort key for the inbox, newest activity first. */
     val lastActivity: Long get() = lastMessage?.timestamp ?: 0L

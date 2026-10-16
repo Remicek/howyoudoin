@@ -6,9 +6,12 @@ import com.devvalor.howyoudoing.chat.data.matrix.dto.MatrixEventDto
 import com.devvalor.howyoudoing.chat.data.matrix.dto.obj
 import com.devvalor.howyoudoing.chat.data.matrix.dto.string
 import com.devvalor.howyoudoing.chat.domain.Chat
+import com.devvalor.howyoudoing.chat.domain.MediaInfo
 import com.devvalor.howyoudoing.chat.domain.Message
 import com.devvalor.howyoudoing.chat.domain.MessageStatus
 import com.devvalor.howyoudoing.chat.domain.MessageType
+import com.devvalor.howyoudoing.chat.domain.Reaction
+import com.devvalor.howyoudoing.chat.domain.ReplyPreview
 import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
 
 private const val TYPE_MEMBER = "m.room.member"
@@ -24,13 +27,18 @@ fun RoomCache.toChat(myUserId: String): Chat {
         unreadCount = unreadCount,
         isGroup = memberCount() > 2,
         isEncrypted = isRemoteEncrypted(),
-        avatarUrl = stateEvent("m.room.avatar")?.content?.string("url")
+        avatarUrl = stateEvent("m.room.avatar")?.content?.string("url"),
+        typingNames = typingUserIds.filter { it != myUserId }.map { memberName(it) }
     )
 }
 
 fun RoomCache.toMessages(myUserId: String): List<Message> {
+    val redacted = timeline
+        .filter { it.type == "m.room.redaction" }
+        .mapNotNullTo(HashSet()) { it.content.string("redacts") }
+
     val edits = timeline
-        .filter { it.relationType() == "m.replace" }
+        .filter { it.relationType() == "m.replace" && it.eventId !in redacted }
         .mapNotNull { edit ->
             val targetId = edit.content.obj("m.relates_to")?.string("event_id") ?: return@mapNotNull null
             val newBody = edit.content.obj("m.new_content")?.string("body") ?: return@mapNotNull null
@@ -38,15 +46,63 @@ fun RoomCache.toMessages(myUserId: String): List<Message> {
         }
         .toMap()
 
+    val reactions = timeline
+        .filter { it.type == "m.reaction" && it.eventId !in redacted && it.relationType() == "m.annotation" }
+        .groupBy { it.content.obj("m.relates_to")?.string("event_id").orEmpty() }
+        .mapValues { (_, events) ->
+            events.groupBy { it.content.obj("m.relates_to")?.string("key").orEmpty() }
+                .filterKeys { it.isNotEmpty() }
+                .map { (key, byKey) ->
+                    Reaction(
+                        key = key,
+                        count = byKey.distinctBy { it.sender }.size,
+                        ownReactionId = byKey.firstOrNull { it.sender == myUserId }?.eventId
+                    )
+                }
+        }
+
     val confirmed = timeline
-        .filter { it.relationType() != "m.replace" }
+        .filter { it.relationType() != "m.replace" && it.eventId !in redacted }
         .mapNotNull { it.toMessage(roomId, myUserId, edits) }
-    val confirmedIds = confirmed.mapTo(HashSet()) { it.id }
+    val byId = confirmed.associateBy { it.id }
+
+    // Read state: the furthest timeline position anyone else (people, not bridge bots) has read
+    val positions = timeline.mapIndexedNotNull { index, event -> event.eventId?.let { it to index } }.toMap()
+    val bots = bridgeBots()
+    val furthestReadByOthers = receipts
+        .filterKeys { it != myUserId && it !in bots }
+        .values.mapNotNull { positions[it] }.maxOrNull() ?: -1
+
+    val withRelations = confirmed.map { message ->
+        val replyToId = timeline.firstOrNull { it.eventId == message.id }?.replyToId()
+        message.copy(
+            reactions = reactions[message.id].orEmpty(),
+            replyTo = replyToId?.let { id -> replyPreview(id, byId[id]) },
+            isReadByOthers = message.isOutgoing && (positions[message.id] ?: Int.MAX_VALUE) <= furthestReadByOthers
+        )
+    }
+
+    val confirmedIds = byId.keys
     val pendingMessages = pending
         .filterNot { it.eventId != null && it.eventId in confirmedIds }
-        .map { it.toMessage(roomId, myUserId) }
+        .map { pending -> pending.toMessage(roomId, myUserId).copy(replyTo = pending.replyToId?.let { replyPreview(it, byId[it]) }) }
 
-    return confirmed + pendingMessages
+    return withRelations + pendingMessages
+}
+
+private fun RoomCache.replyPreview(eventId: String, target: Message?) = ReplyPreview(
+    messageId = eventId,
+    senderName = target?.senderId?.let { memberName(it) } ?: "",
+    body = target?.let { previewText(it) } ?: "Original message"
+)
+
+private fun previewText(message: Message): String = when (message.type) {
+    MessageType.IMAGE -> "📷 Photo"
+    MessageType.VIDEO -> "🎬 Video"
+    MessageType.AUDIO -> "🎤 Audio"
+    MessageType.FILE -> "📎 ${message.media?.fileName ?: message.body}"
+    MessageType.STICKER -> "Sticker"
+    else -> message.body
 }
 
 private fun MatrixEventDto.toMessage(
@@ -66,16 +122,47 @@ private fun MatrixEventDto.toMessage(
             else -> return null
         }
     }
+    val rawBody = edits[id] ?: content.string("body").orEmpty()
     return Message(
         id = id,
         chatId = roomId,
         senderId = sender,
         senderName = "",
-        body = edits[id] ?: content.string("body").orEmpty(),
+        body = if (replyToId() != null) stripReplyFallback(rawBody) else rawBody,
         timestamp = originServerTs ?: 0L,
         isOutgoing = sender == myUserId,
-        type = messageType
+        type = messageType,
+        media = mediaInfo(messageType)
     )
+}
+
+private fun MatrixEventDto.mediaInfo(type: MessageType): MediaInfo? {
+    if (type !in MEDIA_TYPES) return null
+    val url = content.string("url") ?: return null
+    val info = content.obj("info")
+    return MediaInfo(
+        url = url,
+        mimeType = info?.string("mimetype"),
+        // With a caption, the file name moves to "filename" and body holds the caption
+        fileName = content.string("filename") ?: content.string("body"),
+        sizeBytes = info?.string("size")?.toLongOrNull(),
+        width = info?.string("w")?.toIntOrNull(),
+        height = info?.string("h")?.toIntOrNull(),
+        durationMillis = info?.string("duration")?.toLongOrNull()
+    )
+}
+
+private val MEDIA_TYPES = setOf(MessageType.IMAGE, MessageType.VIDEO, MessageType.AUDIO, MessageType.FILE, MessageType.STICKER)
+
+private fun MatrixEventDto.replyToId(): String? =
+    content.obj("m.relates_to")?.obj("m.in_reply_to")?.string("event_id")
+
+/** Older clients quote the original as "> <@user> text" lines before the reply (MSC2781 removed it). */
+private fun stripReplyFallback(body: String): String {
+    if (!body.startsWith("> ")) return body
+    val lines = body.lines()
+    val firstNonQuote = lines.indexOfFirst { !it.startsWith(">") }
+    return if (firstNonQuote < 0) body else lines.drop(firstNonQuote).dropWhile { it.isBlank() }.joinToString("\n")
 }
 
 private fun PendingMessage.toMessage(roomId: String, myUserId: String) = Message(
@@ -86,7 +173,13 @@ private fun PendingMessage.toMessage(roomId: String, myUserId: String) = Message
     body = body,
     timestamp = timestamp,
     isOutgoing = true,
-    type = MessageType.TEXT,
+    type = when {
+        attachmentMimeType == null -> MessageType.TEXT
+        attachmentMimeType.startsWith("image/") -> MessageType.IMAGE
+        attachmentMimeType.startsWith("video/") -> MessageType.VIDEO
+        attachmentMimeType.startsWith("audio/") -> MessageType.AUDIO
+        else -> MessageType.FILE
+    },
     status = if (isFailed) MessageStatus.FAILED else MessageStatus.SENDING
 )
 

@@ -32,6 +32,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.ScaffoldDefaults
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.only
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
@@ -60,6 +63,16 @@ import com.devvalor.howyoudoing.core.designsystem.components.ChatAvatar
 import com.devvalor.howyoudoing.core.designsystem.theme.HowYouDoinSpacing
 import com.devvalor.howyoudoing.core.designsystem.theme.brandColor
 import com.devvalor.howyoudoing.core.presentation.util.ObserveAsEvents
+import com.devvalor.howyoudoing.chat.presentation.conversation.components.Composer
+import com.devvalor.howyoudoing.chat.presentation.conversation.components.ImageViewer
+import com.devvalor.howyoudoing.chat.presentation.conversation.components.MediaResolver
+import com.devvalor.howyoudoing.chat.presentation.conversation.components.MessageActionsSheet
+import com.devvalor.howyoudoing.chat.presentation.conversation.components.MessageBubble
+import com.devvalor.howyoudoing.chat.presentation.platform.isAttachmentPickerSupported
+import com.devvalor.howyoudoing.chat.presentation.platform.rememberAttachmentPicker
+import com.devvalor.howyoudoing.chat.presentation.platform.rememberFileOpener
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.AnnotatedString
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -69,16 +82,30 @@ fun ConversationRoot(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
+    val clipboard = LocalClipboardManager.current
+    val openFile = rememberFileOpener()
+    val pickAttachment = rememberAttachmentPicker(
+        onPicked = { viewModel.onAction(ConversationAction.OnAttachmentPicked(it)) },
+        onError = { viewModel.onAction(ConversationAction.OnAttachmentError(it)) },
+    )
 
     ObserveAsEvents(viewModel.events) { event ->
         when (event) {
             is ConversationEvent.Error -> snackbarHostState.showSnackbar(event.message.asStringAsync())
+            is ConversationEvent.CopyToClipboard -> {
+                clipboard.setText(AnnotatedString(event.text))
+                snackbarHostState.showSnackbar("Copied")
+            }
+            is ConversationEvent.OpenFile -> openFile(event.bytes, event.fileName, event.mimeType)
         }
     }
 
     ConversationScreen(
         state = state,
         snackbarHostState = snackbarHostState,
+        resolver = viewModel::resolveMedia,
+        canAttach = isAttachmentPickerSupported,
+        onAttach = pickAttachment,
         onAction = { action ->
             when (action) {
                 ConversationAction.OnBackClick -> onBack()
@@ -94,6 +121,9 @@ fun ConversationScreen(
     state: ConversationState,
     onAction: (ConversationAction) -> Unit,
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
+    resolver: MediaResolver = { _, _ -> null },
+    canAttach: Boolean = false,
+    onAttach: () -> Unit = {},
 ) {
     Scaffold(
         topBar = {
@@ -109,7 +139,13 @@ fun ConversationScreen(
                         Spacer(Modifier.width(HowYouDoinSpacing.sm))
                         Column {
                             Text(state.chatName, style = MaterialTheme.typography.titleMedium, maxLines = 1)
-                            state.network?.let { network ->
+                            if (state.typingText != null) {
+                                Text(
+                                    state.typingText,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.primary,
+                                )
+                            } else state.network?.let { network ->
                                 Text(
                                     if (state.isEncrypted) "${network.displayName} · end-to-end encrypted" else network.displayName,
                                     style = MaterialTheme.typography.labelSmall,
@@ -122,6 +158,8 @@ fun ConversationScreen(
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
+        // The composer handles the bottom (navigation bar / keyboard) inset itself
+        contentWindowInsets = ScaffoldDefaults.contentWindowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
         containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
     ) { padding ->
         Column(
@@ -132,23 +170,43 @@ fun ConversationScreen(
         ) {
             MessageList(
                 state = state,
-                onLoadOlder = { onAction(ConversationAction.OnLoadOlder) },
+                resolver = resolver,
+                onAction = onAction,
                 modifier = Modifier.weight(1f),
             )
             Composer(
                 draft = state.draft,
                 canSend = state.canSend,
+                replyingTo = state.replyingTo,
+                isSendingAttachment = state.isSendingAttachment,
+                canAttach = canAttach,
                 onDraftChange = { onAction(ConversationAction.OnDraftChange(it)) },
                 onSend = { onAction(ConversationAction.OnSendClick) },
+                onAttach = onAttach,
+                onCancelReply = { onAction(ConversationAction.OnCancelReply) },
             )
         }
+    }
+
+    state.actionsFor?.let { message ->
+        MessageActionsSheet(
+            message = message,
+            onReaction = { onAction(ConversationAction.OnReactionClick(message.id, it)) },
+            onReply = { onAction(ConversationAction.OnReplyClick(message.id)) },
+            onCopy = { onAction(ConversationAction.OnCopyClick(message.id)) },
+            onDismiss = { onAction(ConversationAction.OnDismissActions) },
+        )
+    }
+    state.viewingImage?.media?.let { media ->
+        ImageViewer(media = media, resolver = resolver, onClose = { onAction(ConversationAction.OnCloseImage) })
     }
 }
 
 @Composable
 private fun MessageList(
     state: ConversationState,
-    onLoadOlder: () -> Unit,
+    resolver: MediaResolver,
+    onAction: (ConversationAction) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val listState = rememberLazyListState()
@@ -162,7 +220,7 @@ private fun MessageList(
         }
     }
     LaunchedEffect(isNearTop, state.hasMoreHistory, state.messages.size) {
-        if (isNearTop && state.hasMoreHistory) onLoadOlder()
+        if (isNearTop && state.hasMoreHistory) onAction(ConversationAction.OnLoadOlder)
     }
     LaunchedEffect(state.messages.lastOrNull()?.id) {
         if (listState.firstVisibleItemIndex <= 1) listState.animateScrollToItem(0)
@@ -178,7 +236,13 @@ private fun MessageList(
         items(reversed, key = { it.id }) { message ->
             Column {
                 message.dayHeader?.let { DayHeader(it) }
-                MessageBubble(message)
+                MessageBubble(
+                    message = message,
+                    resolver = resolver,
+                    onLongPress = { onAction(ConversationAction.OnMessageLongPress(message.id)) },
+                    onMediaClick = { onAction(ConversationAction.OnMediaClick(message.id)) },
+                    onReactionClick = { onAction(ConversationAction.OnReactionClick(message.id, it)) },
+                )
             }
         }
         if (!state.hasMoreHistory && !state.isLoadingOlder) {
@@ -226,112 +290,5 @@ private fun DayHeader(label: String) {
                 .background(MaterialTheme.colorScheme.surfaceContainerHigh, RoundedCornerShape(12.dp))
                 .padding(horizontal = 12.dp, vertical = 4.dp),
         )
-    }
-}
-
-@Composable
-private fun MessageBubble(message: MessageUi) {
-    val isOutgoing = message.isOutgoing
-    val bubbleColor = if (isOutgoing) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface
-    val textColor = if (isOutgoing) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
-    val shape = RoundedCornerShape(
-        topStart = 18.dp,
-        topEnd = 18.dp,
-        bottomStart = if (isOutgoing) 18.dp else 4.dp,
-        bottomEnd = if (isOutgoing) 4.dp else 18.dp,
-    )
-
-    Column(
-        horizontalAlignment = if (isOutgoing) Alignment.End else Alignment.Start,
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        message.senderName?.let { name ->
-            Text(
-                name,
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(start = HowYouDoinSpacing.sm, top = HowYouDoinSpacing.xs, bottom = 2.dp),
-            )
-        }
-        Column(
-            modifier = Modifier
-                .widthIn(max = 300.dp)
-                .background(bubbleColor, shape)
-                .padding(horizontal = 14.dp, vertical = HowYouDoinSpacing.sm),
-        ) {
-            Text(
-                message.body,
-                style = MaterialTheme.typography.bodyLarge,
-                color = textColor,
-                fontStyle = if (message.type in setOf(MessageType.ENCRYPTED, MessageType.EMOTE, MessageType.UNSUPPORTED)) {
-                    FontStyle.Italic
-                } else {
-                    FontStyle.Normal
-                },
-            )
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.align(Alignment.End),
-            ) {
-                Text(
-                    message.time,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = textColor.copy(alpha = 0.7f),
-                )
-                when (message.status) {
-                    MessageStatus.SENDING -> StatusIcon(Icons.Rounded.Schedule, "Sending", textColor.copy(alpha = 0.7f))
-                    MessageStatus.FAILED -> StatusIcon(Icons.Rounded.ErrorOutline, "Failed to send", MaterialTheme.colorScheme.error)
-                    MessageStatus.SENT -> Unit
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun StatusIcon(icon: ImageVector, description: String, tint: Color) {
-    Spacer(Modifier.width(HowYouDoinSpacing.xs))
-    Icon(icon, contentDescription = description, tint = tint, modifier = Modifier.size(12.dp))
-}
-
-@Composable
-private fun Composer(
-    draft: String,
-    canSend: Boolean,
-    onDraftChange: (String) -> Unit,
-    onSend: () -> Unit,
-) {
-    Surface(color = MaterialTheme.colorScheme.surface, tonalElevation = 2.dp) {
-        Row(
-            verticalAlignment = Alignment.Bottom,
-            modifier = Modifier
-                .fillMaxWidth()
-                .navigationBarsPadding()
-                .padding(horizontal = HowYouDoinSpacing.sm, vertical = HowYouDoinSpacing.sm),
-        ) {
-            TextField(
-                value = draft,
-                onValueChange = onDraftChange,
-                placeholder = { Text("Message") },
-                maxLines = 5,
-                shape = RoundedCornerShape(24.dp),
-                colors = TextFieldDefaults.colors(
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                    focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                ),
-                modifier = Modifier.weight(1f),
-            )
-            Spacer(Modifier.width(HowYouDoinSpacing.sm))
-            FilledIconButton(
-                onClick = onSend,
-                enabled = canSend,
-                shape = CircleShape,
-                modifier = Modifier.size(52.dp),
-            ) {
-                Icon(Icons.AutoMirrored.Rounded.Send, contentDescription = "Send")
-            }
-        }
     }
 }

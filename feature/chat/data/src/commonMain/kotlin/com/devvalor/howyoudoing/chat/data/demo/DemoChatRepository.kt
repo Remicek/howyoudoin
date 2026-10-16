@@ -1,6 +1,10 @@
 package com.devvalor.howyoudoing.chat.data.demo
 
+import com.devvalor.howyoudoing.chat.domain.Attachment
 import com.devvalor.howyoudoing.chat.domain.Chat
+import com.devvalor.howyoudoing.chat.domain.MediaRequest
+import com.devvalor.howyoudoing.chat.domain.Reaction
+import com.devvalor.howyoudoing.chat.domain.ReplyPreview
 import com.devvalor.howyoudoing.chat.domain.ChatRepository
 import com.devvalor.howyoudoing.chat.domain.Message
 import com.devvalor.howyoudoing.chat.domain.MessageStatus
@@ -58,10 +62,38 @@ class DemoChatRepository(
     override suspend fun loadOlderMessages(chatId: String): EmptyResult<DataError.Remote> =
         Result.Success(Unit)
 
-    override suspend fun sendMessage(chatId: String, body: String): EmptyResult<DataError.Remote> {
+    override suspend fun sendAttachment(chatId: String, attachment: Attachment, caption: String?): EmptyResult<DataError.Remote> =
+        sendMessage(chatId, caption ?: "📎 ${attachment.fileName}")
+
+    override suspend fun toggleReaction(chatId: String, messageId: String, key: String): EmptyResult<DataError.Remote> {
+        chats.update { all ->
+            val target = all[chatId] ?: return@update all
+            all + (chatId to target.copy(messages = target.messages.map { message ->
+                if (message.id != messageId) return@map message
+                val existing = message.reactions.firstOrNull { it.key == key }
+                val reactions = when {
+                    existing?.isOwn == true -> message.reactions.mapNotNull {
+                        if (it.key == key) it.copy(count = it.count - 1, ownReactionId = null).takeIf { r -> r.count > 0 } else it
+                    }
+                    existing != null -> message.reactions.map { if (it.key == key) it.copy(count = it.count + 1, ownReactionId = "demo") else it }
+                    else -> message.reactions + Reaction(key, 1, "demo")
+                }
+                message.copy(reactions = reactions)
+            }))
+        }
+        return Result.Success(Unit)
+    }
+
+    override suspend fun setTyping(chatId: String, isTyping: Boolean): EmptyResult<DataError.Remote> = Result.Success(Unit)
+
+    override suspend fun resolveMedia(mxcUrl: String, thumbnail: Boolean): MediaRequest? = null
+
+    override suspend fun sendMessage(chatId: String, body: String, replyToId: String?): EmptyResult<DataError.Remote> {
         val demo = chats.value[chatId] ?: return Result.Failure(DataError.Remote.NOT_FOUND)
         val id = "demo-${now()}"
-        append(chatId, message(chatId, id, myUserId, "You", body, now(), MessageStatus.SENDING))
+        val replyTo = replyToId?.let { rid -> demo.messages.firstOrNull { it.id == rid } }
+            ?.let { ReplyPreview(it.id, it.senderName, it.body) }
+        append(chatId, message(chatId, id, myUserId, "You", body, now(), MessageStatus.SENDING).copy(replyTo = replyTo))
         applicationScope.launch {
             delay(500)
             updateMessage(chatId, id) { it.copy(status = MessageStatus.SENT) }
@@ -192,4 +224,6 @@ class DemoChatRepository(
             ),
         )
     }
+
+    override suspend fun downloadMedia(mxcUrl: String): ByteArray? = null
 }
