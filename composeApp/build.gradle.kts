@@ -10,7 +10,6 @@ kotlin {
             implementation(libs.koin.android)
             // On-device Messenger bridge, built by bridge-mobile/scripts/build-android.sh (not in git)
             implementation(files("libs/hydbridge.aar"))
-            implementation(libs.kotlinx.serialization.json)
         }
         commonMain.dependencies {
             implementation(projects.core.data)
@@ -40,6 +39,25 @@ kotlin {
             implementation(compose.components.uiToolingPreview)
             implementation(libs.jetbrains.compose.viewmodel)
             implementation(libs.jetbrains.lifecycle.compose)
+            implementation(libs.kotlinx.serialization.json)
+        }
+    }
+}
+
+// On-device Messenger bridge for iOS: static C libraries from bridge-mobile/scripts/build-ios.sh (not in git),
+// linked into the app through the cinterop klib.
+kotlin {
+    targets.withType<org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget>().configureEach {
+        val slice = when (konanTarget) {
+            org.jetbrains.kotlin.konan.target.KonanTarget.IOS_ARM64 -> "ios-arm64"
+            org.jetbrains.kotlin.konan.target.KonanTarget.IOS_SIMULATOR_ARM64 -> "ios-simulator-arm64"
+            else -> "ios-simulator-x64"
+        }
+        val libDir = file("libs/ios/$slice")
+        compilations.getByName("main").cinterops.create("hydbridge") {
+            definitionFile.set(file("src/nativeInterop/cinterop/hydbridge.def"))
+            compilerOpts("-I$libDir")
+            extraOpts("-libraryPath", libDir.absolutePath)
         }
     }
 }

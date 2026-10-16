@@ -1,0 +1,4 @@
+package = hydbridge
+headers = libhydbridge.h
+staticLibraries = libhydbridge.a
+linkerOpts = -lresolv -framework Security -framework CoreFoundation -framework Foundation
