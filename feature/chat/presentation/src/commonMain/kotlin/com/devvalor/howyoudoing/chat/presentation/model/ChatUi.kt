@@ -24,7 +24,9 @@ data class MessageUi(
     val isOutgoing: Boolean,
     val senderName: String?,
     val status: MessageStatus,
-    val type: MessageType
+    val type: MessageType,
+    /** Set on the first message of each day, e.g. "Yesterday". */
+    val dayHeader: String? = null
 )
 
 fun Chat.toChatUi(): ChatUi = ChatUi(
@@ -51,7 +53,10 @@ fun List<Message>.toMessageUis(showSenderNames: Boolean): List<MessageUi> =
             isOutgoing = message.isOutgoing,
             senderName = message.senderName.takeIf { showSenderNames && startsRun && !message.isOutgoing },
             status = message.status,
-            type = message.type
+            type = message.type,
+            dayHeader = if (previous == null || !TimestampFormatter.isSameDay(previous.timestamp, message.timestamp)) {
+                TimestampFormatter.formatDayHeader(message.timestamp)
+            } else null
         )
     }
 

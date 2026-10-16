@@ -51,6 +51,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
+import androidx.compose.ui.text.style.TextAlign
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.devvalor.howyoudoing.chat.domain.MessageStatus
 import com.devvalor.howyoudoing.chat.domain.MessageType
@@ -175,7 +177,13 @@ private fun MessageList(
         modifier = modifier.fillMaxWidth(),
     ) {
         items(reversed, key = { it.id }) { message ->
-            MessageBubble(message)
+            Column {
+                message.dayHeader?.let { DayHeader(it) }
+                MessageBubble(message)
+            }
+        }
+        if (!state.hasMoreHistory && !state.isLoadingOlder) {
+            item(key = "history-start") { HistoryStartNote(state) }
         }
         if (state.isLoadingOlder) {
             item(key = "loading") {
@@ -184,6 +192,41 @@ private fun MessageList(
                 }
             }
         }
+    }
+}
+
+/**
+ * Shown above the oldest message we have. Messenger's end-to-end encrypted 1:1 chats only keep their
+ * history on the user's own devices, so a newly linked bridge can't fetch it; new messages do arrive.
+ */
+@Composable
+private fun HistoryStartNote(state: ConversationState) {
+    val text = if (state.network == ChatNetwork.MESSENGER && !state.isGroup) {
+        "Older messages in end-to-end encrypted Messenger chats stay on your other devices and can't be " +
+            "transferred. New messages will appear here."
+    } else {
+        "This is the start of the history available in HowYouDoin."
+    }
+    Text(
+        text,
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        textAlign = TextAlign.Center,
+        modifier = Modifier.fillMaxWidth().padding(horizontal = HowYouDoinSpacing.lg, vertical = HowYouDoinSpacing.md),
+    )
+}
+
+@Composable
+private fun DayHeader(label: String) {
+    Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxWidth().padding(vertical = HowYouDoinSpacing.sm)) {
+        Text(
+            label,
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier
+                .background(MaterialTheme.colorScheme.surfaceContainerHigh, RoundedCornerShape(12.dp))
+                .padding(horizontal = 12.dp, vertical = 4.dp),
+        )
     }
 }
 
