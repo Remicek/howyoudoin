@@ -24,6 +24,9 @@ enum class MessageType {
 
     /** E2EE event HowYouDoin can't decrypt yet. */
     ENCRYPTED,
+
+    /** Something the bridge couldn't convert (e.g. a Messenger-only attachment type). */
+    UNSUPPORTED,
     OTHER
 }
 

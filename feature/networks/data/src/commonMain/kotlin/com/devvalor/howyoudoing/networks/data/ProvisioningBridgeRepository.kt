@@ -24,7 +24,9 @@ import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.appendPathSegments
 import io.ktor.http.takeFrom
+import com.devvalor.howyoudoing.core.domain.config.BackendConfig
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.json.JsonObject
 
@@ -40,9 +42,14 @@ class ProvisioningBridgeRepository(
 ) : BridgeRepository {
 
     override fun observeIsConfigured(network: ChatNetwork): Flow<Boolean> =
-        endpointStorage.observe(network).map { !it.isNullOrBlank() }
+        observeBridgeUrl(network).map { !it.isNullOrBlank() }
 
-    override fun observeBridgeUrl(network: ChatNetwork): Flow<String?> = endpointStorage.observe(network)
+    /** A URL saved by the user wins, otherwise the bridge is assumed to live next to the homeserver. */
+    override fun observeBridgeUrl(network: ChatNetwork): Flow<String?> =
+        combine(endpointStorage.observe(network), sessionStorage.observeAuthInfo()) { saved, session ->
+            saved?.takeIf { it.isNotBlank() }
+                ?: session?.homeserverUrl?.let { BackendConfig.defaultBridgeUrl(it, network) }
+        }
 
     override suspend fun setBridgeUrl(network: ChatNetwork, url: String) = endpointStorage.set(network, url)
 
@@ -110,7 +117,8 @@ class ProvisioningBridgeRepository(
         block: suspend (session: AuthInfo, baseUrl: String) -> Result<T, DataError.Remote>
     ): Result<T, DataError.Remote> {
         val session = sessionStorage.get() ?: return Result.Failure(DataError.Remote.UNAUTHORIZED)
-        val baseUrl = endpointStorage.get(network) ?: return Result.Failure(DataError.Remote.NOT_FOUND)
+        val baseUrl = endpointStorage.get(network)?.takeIf { it.isNotBlank() }
+            ?: BackendConfig.defaultBridgeUrl(session.homeserverUrl, network)
         return block(session, baseUrl)
     }
 

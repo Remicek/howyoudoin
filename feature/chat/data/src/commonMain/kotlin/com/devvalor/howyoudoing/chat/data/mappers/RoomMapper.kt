@@ -55,11 +55,15 @@ private fun MatrixEventDto.toMessage(
 ): Message? {
     val id = eventId ?: return null
     val sender = sender ?: return null
-    val messageType = when (type) {
-        "m.room.message" -> msgType() ?: return null // no msgtype means redacted
-        "m.sticker" -> MessageType.STICKER
-        "m.room.encrypted" -> MessageType.ENCRYPTED
-        else -> return null
+    val messageType = when {
+        // mautrix bridges flag messages they couldn't convert; the body is a technical notice
+        content["fi.mau.unsupported"]?.toString() == "true" -> MessageType.UNSUPPORTED
+        else -> when (type) {
+            "m.room.message" -> msgType() ?: return null // no msgtype means redacted
+            "m.sticker" -> MessageType.STICKER
+            "m.room.encrypted" -> MessageType.ENCRYPTED
+            else -> return null
+        }
     }
     return Message(
         id = id,
@@ -113,13 +117,27 @@ private fun RoomCache.joinedMembers(): List<String> =
         .filter { it.type == TYPE_MEMBER && it.content.string("membership") == "join" }
         .mapNotNull { it.stateKey }
 
-private fun RoomCache.memberCount(): Int =
-    joinedMemberCount.takeIf { it > 0 } ?: joinedMembers().size
+/**
+ * Bridge bots announced in `m.bridge` (`bridgebot`). They sit in portal rooms for bookkeeping
+ * but aren't people you're chatting with, so they're left out of names and member counts.
+ */
+private fun RoomCache.bridgeBots(): Set<String> =
+    state.values
+        .filter { it.type in BRIDGE_STATE_TYPES }
+        .mapNotNullTo(HashSet()) { it.content.string("bridgebot") }
+
+/** People in the room, not counting bridge bots. */
+private fun RoomCache.memberCount(): Int {
+    val bots = bridgeBots()
+    val joinedBots = joinedMembers().count { it in bots }
+    return (joinedMemberCount.takeIf { it > 0 } ?: joinedMembers().size) - joinedBots
+}
 
 private fun RoomCache.displayName(myUserId: String): String {
     stateEvent("m.room.name")?.content?.string("name")?.takeIf { it.isNotBlank() }?.let { return it }
     stateEvent("m.room.canonical_alias")?.content?.string("alias")?.takeIf { it.isNotBlank() }?.let { return it }
-    val others = heroes.ifEmpty { joinedMembers() }.filter { it != myUserId }
+    val bots = bridgeBots()
+    val others = heroes.ifEmpty { joinedMembers() }.filter { it != myUserId && it !in bots }
     return others.take(4).joinToString(", ") { memberName(it) }.ifBlank { "Empty chat" }
 }
 

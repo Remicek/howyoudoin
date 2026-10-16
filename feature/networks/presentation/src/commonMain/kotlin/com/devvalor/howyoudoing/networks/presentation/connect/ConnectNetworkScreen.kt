@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -52,13 +53,16 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.devvalor.howyoudoing.core.designsystem.components.NetworkBadge
 import com.devvalor.howyoudoing.core.designsystem.theme.HowYouDoinSpacing
+import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
 import com.devvalor.howyoudoing.networks.domain.BridgeLoginFlow
 import com.devvalor.howyoudoing.networks.domain.BridgeLoginStep
 import com.devvalor.howyoudoing.networks.domain.DisplayType
 import com.devvalor.howyoudoing.networks.domain.InputFieldType
 import com.devvalor.howyoudoing.networks.domain.LoginInputField
 import com.devvalor.howyoudoing.networks.presentation.components.CookieCaptureWebView
+import com.devvalor.howyoudoing.networks.presentation.components.PairingCode
 import com.devvalor.howyoudoing.networks.presentation.components.QrCode
+import com.devvalor.howyoudoing.networks.presentation.components.phone.PhoneNumberInput
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -103,7 +107,7 @@ fun ConnectNetworkScreen(
                     }
                 },
                 actions = {
-                    if (state.phase is ConnectPhase.ChooseFlow) {
+                    if (state.phase is ConnectPhase.ChooseFlow && state.canEditBridgeUrl) {
                         IconButton(onClick = { onAction(ConnectNetworkAction.OnEditBridgeUrlClick) }) {
                             Icon(Icons.Rounded.Settings, contentDescription = "Bridge settings")
                         }
@@ -119,7 +123,7 @@ fun ConnectNetworkScreen(
             val phase = state.phase
             if (phase is ConnectPhase.Step && phase.step is BridgeLoginStep.Cookies) {
                 // The web view needs the full height and handles its own scrolling.
-                CookiesStep(step = phase.step, isSubmitting = state.isSubmitting, error = state.error?.asString(), onAction = onAction)
+                CookiesStep(step = phase.step, network = state.network, isSubmitting = state.isSubmitting, error = state.error?.asString(), onAction = onAction)
             } else {
                 Column(
                     modifier = Modifier
@@ -132,9 +136,9 @@ fun ConnectNetworkScreen(
                             CircularProgressIndicator()
                         }
                         ConnectPhase.ConfigureBridge -> ConfigureBridge(state = state, onAction = onAction)
-                        is ConnectPhase.ChooseFlow -> ChooseFlow(flows = phase.flows, onAction = onAction)
+                        is ConnectPhase.ChooseFlow -> ChooseFlow(network = state.network, flows = phase.flows, onAction = onAction)
                         is ConnectPhase.Step -> when (val step = phase.step) {
-                            is BridgeLoginStep.DisplayAndWait -> DisplayStep(step)
+                            is BridgeLoginStep.DisplayAndWait -> DisplayStep(step, state.network)
                             is BridgeLoginStep.UserInput -> UserInputStep(step = step, state = state, onAction = onAction)
                             is BridgeLoginStep.Cookies, is BridgeLoginStep.Complete -> Unit
                         }
@@ -186,21 +190,38 @@ private fun ConfigureBridge(state: ConnectNetworkState, onAction: (ConnectNetwor
 }
 
 @Composable
-private fun ChooseFlow(flows: List<BridgeLoginFlow>, onAction: (ConnectNetworkAction) -> Unit) {
+private fun ChooseFlow(network: ChatNetwork, flows: List<BridgeLoginFlow>, onAction: (ConnectNetworkAction) -> Unit) {
     if (flows.isEmpty()) return
     Text("How do you want to log in?", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
     Spacer(Modifier.height(HowYouDoinSpacing.md))
     Column(verticalArrangement = Arrangement.spacedBy(HowYouDoinSpacing.sm)) {
-        flows.forEach { flow ->
+        LoginFlowLabels.present(network, flows).forEach { label ->
             Card(
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
-                modifier = Modifier.fillMaxWidth().clickable { onAction(ConnectNetworkAction.OnFlowClick(flow.id)) },
+                onClick = { onAction(ConnectNetworkAction.OnFlowClick(label.flowId)) },
+                colors = CardDefaults.cardColors(
+                    containerColor = if (label.isRecommended) MaterialTheme.colorScheme.primaryContainer
+                    else MaterialTheme.colorScheme.surfaceContainerLow
+                ),
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(HowYouDoinSpacing.md)) {
                     Column(modifier = Modifier.weight(1f)) {
-                        Text(flow.name, style = MaterialTheme.typography.titleMedium)
-                        if (flow.description.isNotBlank()) {
-                            Text(flow.description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(label.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                            if (label.isRecommended) {
+                                Spacer(Modifier.width(HowYouDoinSpacing.sm))
+                                Text(
+                                    "Recommended",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onPrimary,
+                                    modifier = Modifier
+                                        .background(MaterialTheme.colorScheme.primary, CircleShape)
+                                        .padding(horizontal = 8.dp, vertical = 2.dp),
+                                )
+                            }
+                        }
+                        if (label.description.isNotBlank()) {
+                            Text(label.description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
                     Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = null)
@@ -211,7 +232,7 @@ private fun ChooseFlow(flows: List<BridgeLoginFlow>, onAction: (ConnectNetworkAc
 }
 
 @Composable
-private fun DisplayStep(step: BridgeLoginStep.DisplayAndWait) {
+private fun DisplayStep(step: BridgeLoginStep.DisplayAndWait, network: ChatNetwork) {
     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
         Instructions(step.instructions)
         Spacer(Modifier.height(HowYouDoinSpacing.lg))
@@ -219,6 +240,19 @@ private fun DisplayStep(step: BridgeLoginStep.DisplayAndWait) {
         when {
             data == null -> Unit
             step.displayType == DisplayType.QR -> QrCode(data = data)
+            step.displayType == DisplayType.CODE -> {
+                PairingCode(code = data)
+                if (network == ChatNetwork.WHATSAPP) {
+                    Spacer(Modifier.height(HowYouDoinSpacing.lg))
+                    Text(
+                        "In WhatsApp, open Settings → Linked devices → Link a device, then tap " +
+                            "\"Link with phone number instead\" and enter or paste this code.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                    )
+                }
+            }
             else -> Text(
                 data,
                 fontFamily = FontFamily.Monospace,
@@ -246,14 +280,38 @@ private fun UserInputStep(
     state: ConnectNetworkState,
     onAction: (ConnectNetworkAction) -> Unit,
 ) {
-    Instructions(step.instructions)
-    Spacer(Modifier.height(HowYouDoinSpacing.md))
-    step.fields.forEach { field ->
-        InputField(
-            field = field,
-            value = state.inputValues[field.id].orEmpty(),
-            onValueChange = { onAction(ConnectNetworkAction.OnInputChange(field.id, it)) },
+    val asksForPhone = step.fields.any { it.type == InputFieldType.PHONE_NUMBER }
+    if (step.instructions.isBlank() && asksForPhone) {
+        Text("Link with your phone number", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+        Spacer(Modifier.height(HowYouDoinSpacing.sm))
+        Text(
+            "Enter the number of your ${state.network.displayName} account. You'll get a code to type into " +
+                "${state.network.displayName} on your phone, under Linked devices.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
+    } else {
+        Instructions(step.instructions)
+    }
+    Spacer(Modifier.height(HowYouDoinSpacing.lg))
+    step.fields.forEach { field ->
+        if (field.type == InputFieldType.PHONE_NUMBER) {
+            PhoneNumberInput(
+                country = state.countryFor(field.id),
+                number = state.inputValues[field.id].orEmpty(),
+                onCountryChange = { onAction(ConnectNetworkAction.OnCountrySelect(field.id, it.isoCode)) },
+                onNumberChange = { onAction(ConnectNetworkAction.OnInputChange(field.id, it)) },
+                label = field.name,
+                isValid = state.isValid(field),
+                onDone = { if (state.canSubmitInput) onAction(ConnectNetworkAction.OnSubmitInputClick) },
+            )
+        } else {
+            InputField(
+                field = field,
+                value = state.inputValues[field.id].orEmpty(),
+                onValueChange = { onAction(ConnectNetworkAction.OnInputChange(field.id, it)) },
+            )
+        }
         Spacer(Modifier.height(HowYouDoinSpacing.sm))
     }
     Spacer(Modifier.height(HowYouDoinSpacing.sm))
@@ -291,13 +349,17 @@ private fun InputField(field: LoginInputField, value: String, onValueChange: (St
 @Composable
 private fun CookiesStep(
     step: BridgeLoginStep.Cookies,
+    network: ChatNetwork,
     isSubmitting: Boolean,
     error: String?,
     onAction: (ConnectNetworkAction) -> Unit,
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
+        // The bridge's own instructions are for clients that paste cookies by hand
+        // ("Enter a JSON object with your cookies…"); here the web view collects them.
         Text(
-            step.instructions.ifBlank { "Log in below. HowYouDoin hands the session to your bridge once you're in." },
+            "Log in to ${network.displayName} below. If it asks you to confirm it's you, finish those steps " +
+                "here too. HowYouDoin continues automatically once you're logged in.",
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.padding(HowYouDoinSpacing.md),
         )
@@ -328,7 +390,10 @@ private fun Connected(
         Text("${state.network.displayName} connected", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(HowYouDoinSpacing.sm))
         Text(
-            "Your chats will appear in the inbox as the bridge syncs them${accountName?.let { " ($it)" }.orEmpty()}.",
+            buildString {
+                accountName?.let { append("Logged in as $it. ") }
+                append("Your ${state.network.displayName} chats will show up in the inbox over the next few minutes.")
+            },
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,

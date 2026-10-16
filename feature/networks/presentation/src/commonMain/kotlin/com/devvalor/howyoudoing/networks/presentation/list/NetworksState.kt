@@ -5,13 +5,23 @@ import com.devvalor.howyoudoing.core.presentation.util.UiText
 import com.devvalor.howyoudoing.networks.domain.NetworkLogin
 
 data class NetworksState(
+    /** Networks whose how-to-connect tutorial the user chose not to see again. */
+    val dismissedTutorials: Set<ChatNetwork> = emptySet(),
     val items: List<NetworkItemUi> = ChatNetwork.bridged.map { network ->
         NetworkItemUi(
             network = network,
             status = if (network.isSupported) NetworkStatus.Loading else NetworkStatus.ComingSoon
         )
     }
-)
+) {
+    fun shouldShowTutorial(network: ChatNetwork): Boolean =
+        network in TUTORIAL_NETWORKS && network !in dismissedTutorials
+
+    companion object {
+        /** Networks that have a tutorial. TODO: Messenger, once its login steps are settled. */
+        val TUTORIAL_NETWORKS = setOf(ChatNetwork.WHATSAPP)
+    }
+}
 
 data class NetworkItemUi(
     val network: ChatNetwork,

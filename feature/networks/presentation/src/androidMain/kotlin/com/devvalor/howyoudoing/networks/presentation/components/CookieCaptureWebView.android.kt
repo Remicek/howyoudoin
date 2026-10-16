@@ -28,6 +28,13 @@ actual fun CookieCaptureWebView(
             WebView(context).apply {
                 settings.javaScriptEnabled = true
                 settings.domStorageEnabled = true
+                // Bridges ask for a desktop user agent (the session is reused with it), so the site
+                // serves its desktop layout: zoom out to fit the screen and allow pinch-zoom.
+                settings.useWideViewPort = true
+                settings.loadWithOverviewMode = true
+                settings.setSupportZoom(true)
+                settings.builtInZoomControls = true
+                settings.displayZoomControls = false
                 userAgent?.let { settings.userAgentString = it }
                 CookieManager.getInstance().setAcceptCookie(true)
                 CookieManager.getInstance().setAcceptThirdPartyCookies(this, true)

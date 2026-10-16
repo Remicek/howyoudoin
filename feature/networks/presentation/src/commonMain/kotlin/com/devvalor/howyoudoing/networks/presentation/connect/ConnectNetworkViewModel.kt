@@ -10,6 +10,11 @@ import com.devvalor.howyoudoing.core.domain.util.Result
 import com.devvalor.howyoudoing.core.presentation.util.toUiText
 import com.devvalor.howyoudoing.networks.domain.BridgeLoginStep
 import com.devvalor.howyoudoing.networks.domain.BridgeRepository
+import com.devvalor.howyoudoing.networks.domain.InputFieldType
+import com.devvalor.howyoudoing.networks.presentation.components.DeveloperOptions
+import com.devvalor.howyoudoing.networks.presentation.components.phone.Country
+import com.devvalor.howyoudoing.networks.presentation.components.phone.DeviceRegionProvider
+import com.devvalor.howyoudoing.networks.presentation.components.phone.PhoneNumbers
 import com.devvalor.howyoudoing.networks.presentation.navigation.NetworksRoutes
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,15 +27,22 @@ import kotlinx.coroutines.launch
 
 class ConnectNetworkViewModel(
     savedStateHandle: SavedStateHandle,
-    private val bridgeRepository: BridgeRepository
+    private val bridgeRepository: BridgeRepository,
+    private val deviceRegion: DeviceRegionProvider,
+    developerOptions: DeveloperOptions
 ) : ViewModel() {
 
-    private val network = ChatNetwork.valueOf(savedStateHandle.toRoute<NetworksRoutes.Connect>().network)
+    private val route = savedStateHandle.toRoute<NetworksRoutes.Connect>()
+    private val network = ChatNetwork.valueOf(route.network)
+
+    /** Flow chosen in the tutorial; consumed once so "Try again" shows the chooser. */
+    private var preselectedFlowId: String? = route.flowId
 
     private var hasLoadedInitialData = false
     private var stepJob: Job? = null
 
-    private val _state = MutableStateFlow(ConnectNetworkState(network = network))
+    private val initialState = ConnectNetworkState(network = network, canEditBridgeUrl = developerOptions.isEnabled())
+    private val _state = MutableStateFlow(initialState)
     val state = _state
         .onStart {
             if (!hasLoadedInitialData) {
@@ -41,7 +53,7 @@ class ConnectNetworkViewModel(
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000L),
-            initialValue = ConnectNetworkState(network = network)
+            initialValue = initialState
         )
 
     fun onAction(action: ConnectNetworkAction) {
@@ -53,8 +65,9 @@ class ConnectNetworkViewModel(
                 _state.update { it.copy(phase = ConnectPhase.ConfigureBridge, error = null) }
             }
             is ConnectNetworkAction.OnFlowClick -> runStep { bridgeRepository.startLogin(network, action.flowId) }
-            is ConnectNetworkAction.OnInputChange -> {
-                _state.update { it.copy(inputValues = it.inputValues + (action.fieldId to action.value)) }
+            is ConnectNetworkAction.OnInputChange -> onInputChange(action.fieldId, action.value)
+            is ConnectNetworkAction.OnCountrySelect -> {
+                _state.update { it.copy(phoneCountries = it.phoneCountries + (action.fieldId to action.isoCode)) }
             }
             ConnectNetworkAction.OnSubmitInputClick -> submitInput()
             is ConnectNetworkAction.OnCookiesCaptured -> submitCookies(action.cookies)
@@ -73,7 +86,12 @@ class ConnectNetworkViewModel(
                 return@launch
             }
             when (val result = bridgeRepository.getStatus(network)) {
-                is Result.Success -> _state.update { it.copy(phase = ConnectPhase.ChooseFlow(result.data.flows)) }
+                is Result.Success -> {
+                    _state.update { it.copy(phase = ConnectPhase.ChooseFlow(result.data.flows)) }
+                    val preselected = preselectedFlowId?.takeIf { id -> result.data.flows.any { it.id == id } }
+                    preselectedFlowId = null
+                    if (preselected != null) advance(bridgeRepository.startLogin(network, preselected))
+                }
                 is Result.Failure -> _state.update {
                     it.copy(phase = ConnectPhase.ChooseFlow(emptyList()), error = result.error.toUiText())
                 }
@@ -93,7 +111,7 @@ class ConnectNetworkViewModel(
     private fun submitInput() {
         val step = (state.value.phase as? ConnectPhase.Step)?.step as? BridgeLoginStep.UserInput ?: return
         if (!state.value.canSubmitInput) return
-        val values = step.fields.associate { it.id to state.value.inputValues[it.id].orEmpty().trim() }
+        val values = step.fields.associate { it.id to state.value.submittedValue(it) }
         runStep { bridgeRepository.submitUserInput(network, step, values) }
     }
 
@@ -111,37 +129,82 @@ class ConnectNetworkViewModel(
         stepJob?.cancel()
         stepJob = viewModelScope.launch {
             _state.update { it.copy(isSubmitting = true, error = null) }
-            var result = request()
-            while (true) {
-                val step = when (val current = result) {
-                    is Result.Failure -> {
-                        _state.update { it.copy(isSubmitting = false, error = current.error.toUiText()) }
-                        return@launch
-                    }
-                    is Result.Success -> current.data
-                }
-                showStep(step)
-                if (step !is BridgeLoginStep.DisplayAndWait) return@launch
+            advance(request())
+        }
+    }
 
-                // The bridge answers once the user scanned / entered the code, or with a refreshed QR.
+    /** Shows [first] and keeps going through display-and-wait steps until input or completion. */
+    private suspend fun advance(first: Result<BridgeLoginStep, DataError.Remote>) {
+        var result = first
+        while (true) {
+            val step = when (val current = result) {
+                is Result.Failure -> {
+                    _state.update { it.copy(isSubmitting = false, error = current.error.toUiText()) }
+                    return
+                }
+                is Result.Success -> current.data
+            }
+            showStep(step)
+            if (step !is BridgeLoginStep.DisplayAndWait) return
+
+            // The bridge answers once the user scanned / entered the code, or with a refreshed QR.
+            result = bridgeRepository.waitForStep(network, step)
+            while (result is Result.Failure && result.error == DataError.Remote.REQUEST_TIMEOUT) {
                 result = bridgeRepository.waitForStep(network, step)
-                while (result is Result.Failure && result.error == DataError.Remote.REQUEST_TIMEOUT) {
-                    result = bridgeRepository.waitForStep(network, step)
+            }
+        }
+    }
+
+    /** A pasted "+48 600 …" selects Poland and keeps only the national part in the field. */
+    private fun onInputChange(fieldId: String, value: String) {
+        val step = (state.value.phase as? ConnectPhase.Step)?.step as? BridgeLoginStep.UserInput
+        val isPhone = step?.fields?.firstOrNull { it.id == fieldId }?.type == InputFieldType.PHONE_NUMBER
+        val international = if (isPhone) PhoneNumbers.parseInternational(value) else null
+        _state.update { state ->
+            if (international == null) {
+                state.copy(inputValues = state.inputValues + (fieldId to value))
+            } else {
+                val (country, national) = international
+                state.copy(
+                    inputValues = state.inputValues + (fieldId to national),
+                    phoneCountries = state.phoneCountries + (fieldId to country.isoCode)
+                )
+            }
+        }
+    }
+
+    /** SIM / network country where available, e.g. PL for a Polish SIM even if the UI language is en-US. */
+    private fun defaultCountry(): Country =
+        Country.forIso(deviceRegion.countryIso()) ?: Country.forIso("US")!!
+
+    /** Replaces the login ID with the account's display name ("+48 600…", "Remik Kowalski"). */
+    private fun loadConnectedAccountName(loginId: String?) {
+        viewModelScope.launch {
+            val logins = (bridgeRepository.getStatus(network) as? Result.Success)?.data?.logins.orEmpty()
+            val name = logins.firstOrNull { it.id == loginId }?.name ?: logins.singleOrNull()?.name
+            if (name != null && name != loginId) {
+                _state.update { state ->
+                    if (state.phase is ConnectPhase.Connected) state.copy(phase = ConnectPhase.Connected(name)) else state
                 }
             }
         }
     }
 
     private fun showStep(step: BridgeLoginStep) {
+        if (step is BridgeLoginStep.Complete) loadConnectedAccountName(step.userLoginId)
         _state.update { state ->
             when (step) {
+                // The login ID is an internal number (e.g. a Facebook user ID); the name is looked up below
                 is BridgeLoginStep.Complete -> state.copy(
-                    phase = ConnectPhase.Connected(step.userLoginId),
+                    phase = ConnectPhase.Connected(accountName = null),
                     isSubmitting = false
                 )
                 is BridgeLoginStep.UserInput -> state.copy(
                     phase = ConnectPhase.Step(step),
                     inputValues = step.fields.mapNotNull { field -> field.defaultValue?.let { field.id to it } }.toMap(),
+                    phoneCountries = step.fields
+                        .filter { it.type == InputFieldType.PHONE_NUMBER }
+                        .associate { it.id to defaultCountry().isoCode },
                     isSubmitting = false
                 )
                 else -> state.copy(phase = ConnectPhase.Step(step), isSubmitting = false)

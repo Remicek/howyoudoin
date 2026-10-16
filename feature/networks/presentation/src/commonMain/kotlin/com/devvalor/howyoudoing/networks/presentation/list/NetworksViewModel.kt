@@ -8,6 +8,9 @@ import com.devvalor.howyoudoing.core.domain.util.onFailure
 import com.devvalor.howyoudoing.core.domain.util.onSuccess
 import com.devvalor.howyoudoing.core.presentation.util.toUiText
 import com.devvalor.howyoudoing.networks.domain.BridgeRepository
+import com.devvalor.howyoudoing.networks.domain.OnboardingRepository
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -17,7 +20,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class NetworksViewModel(
-    private val bridgeRepository: BridgeRepository
+    private val bridgeRepository: BridgeRepository,
+    onboardingRepository: OnboardingRepository
 ) : ViewModel() {
 
     private val eventChannel = Channel<NetworksEvent>()
@@ -25,6 +29,12 @@ class NetworksViewModel(
 
     private val _state = MutableStateFlow(NetworksState())
     val state = _state.asStateFlow()
+
+    init {
+        onboardingRepository.observeDismissedTutorials()
+            .onEach { dismissed -> _state.update { it.copy(dismissedTutorials = dismissed) } }
+            .launchIn(viewModelScope)
+    }
 
     fun onAction(action: NetworksAction) {
         when (action) {

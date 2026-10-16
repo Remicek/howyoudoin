@@ -6,6 +6,12 @@ sealed interface NetworksRoutes {
     @Serializable data object Graph : NetworksRoutes
     @Serializable data object List : NetworksRoutes
 
-    /** @param network [com.devvalor.howyoudoing.core.domain.network.ChatNetwork] name */
-    @Serializable data class Connect(val network: String) : NetworksRoutes
+    /**
+     * @param network [com.devvalor.howyoudoing.core.domain.network.ChatNetwork] name
+     * @param flowId login flow to start right away (e.g. picked in the tutorial), null shows the chooser
+     */
+    @Serializable data class Connect(val network: String, val flowId: String? = null) : NetworksRoutes
+
+    /** How-to-connect onboarding shown before the first connection to [network]. */
+    @Serializable data class Tutorial(val network: String) : NetworksRoutes
 }

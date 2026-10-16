@@ -221,7 +221,7 @@ private fun MessageBubble(message: MessageUi) {
                 message.body,
                 style = MaterialTheme.typography.bodyLarge,
                 color = textColor,
-                fontStyle = if (message.type == MessageType.ENCRYPTED || message.type == MessageType.EMOTE) {
+                fontStyle = if (message.type in setOf(MessageType.ENCRYPTED, MessageType.EMOTE, MessageType.UNSUPPORTED)) {
                     FontStyle.Italic
                 } else {
                     FontStyle.Normal

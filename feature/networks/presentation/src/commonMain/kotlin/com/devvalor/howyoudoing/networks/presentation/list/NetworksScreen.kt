@@ -51,6 +51,7 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun NetworksRoot(
     onConnectClick: (ChatNetwork) -> Unit,
+    onTutorialClick: (ChatNetwork) -> Unit,
     onBack: () -> Unit,
     viewModel: NetworksViewModel = koinViewModel()
 ) {
@@ -71,7 +72,8 @@ fun NetworksRoot(
         snackbarHostState = snackbarHostState,
         onAction = { action ->
             when (action) {
-                is NetworksAction.OnConnectClick -> onConnectClick(action.network)
+                is NetworksAction.OnConnectClick ->
+                    if (state.shouldShowTutorial(action.network)) onTutorialClick(action.network) else onConnectClick(action.network)
                 NetworksAction.OnBackClick -> onBack()
                 else -> viewModel.onAction(action)
             }

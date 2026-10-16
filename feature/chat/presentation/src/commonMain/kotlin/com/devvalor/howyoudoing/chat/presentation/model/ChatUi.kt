@@ -73,5 +73,6 @@ private fun Message.displayBody(): String = when (type) {
     MessageType.FILE -> "📎 ${body.ifBlank { "File" }}"
     MessageType.STICKER -> "Sticker"
     MessageType.ENCRYPTED -> "🔒 Encrypted message"
+    MessageType.UNSUPPORTED -> "⚠️ This message type isn't supported yet"
     MessageType.OTHER -> body.ifBlank { "Unsupported message" }
 }
