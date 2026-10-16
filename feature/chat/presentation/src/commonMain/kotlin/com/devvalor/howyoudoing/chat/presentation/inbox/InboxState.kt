@@ -9,6 +9,8 @@ data class InboxState(
     val query: String = "",
     val filter: InboxFilter = InboxFilter.All,
     val networksInInbox: List<ChatNetwork> = emptyList(),
+    /** Networks with at least one end-to-end encrypted chat (regardless of search / filter). */
+    val encryptedNetworks: Set<ChatNetwork> = emptySet(),
     val syncState: SyncState = SyncState.IDLE,
     val isLoading: Boolean = true
 ) {

@@ -35,4 +35,10 @@ interface BridgeRepository {
     ): Result<BridgeLoginStep, DataError.Remote>
 
     suspend fun logout(network: ChatNetwork, loginId: String): EmptyResult<DataError.Remote>
+
+    /** Only Messenger has a PIN-protected history backup; other networks report nothing to restore. */
+    suspend fun getEncryptedHistoryStatus(network: ChatNetwork): Result<EncryptedHistoryStatus, DataError.Remote>
+
+    /** Unlocks the backup with [pin]; the bridge then rebuilds encrypted chats with their history. */
+    suspend fun restoreEncryptedHistory(network: ChatNetwork, pin: String): EmptyResult<HistoryRestoreError>
 }

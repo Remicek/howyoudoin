@@ -8,6 +8,8 @@ sealed interface ConnectNetworkAction {
     data class OnInputChange(val fieldId: String, val value: String) : ConnectNetworkAction
     data class OnCountrySelect(val fieldId: String, val isoCode: String) : ConnectNetworkAction
     data object OnSubmitInputClick : ConnectNetworkAction
+    /** Submits a step whose fields are all optional with nothing filled in. */
+    data object OnSkipInputClick : ConnectNetworkAction
     data class OnCookiesCaptured(val cookies: Map<String, String>) : ConnectNetworkAction
     data object OnRetryClick : ConnectNetworkAction
     data object OnDoneClick : ConnectNetworkAction

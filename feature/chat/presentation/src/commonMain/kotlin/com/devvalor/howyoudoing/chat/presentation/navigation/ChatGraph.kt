@@ -1,6 +1,8 @@
 package com.devvalor.howyoudoing.chat.presentation.navigation
 
+import androidx.compose.runtime.Composable
 import androidx.navigation.NavController
+import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
@@ -10,6 +12,7 @@ import com.devvalor.howyoudoing.chat.presentation.inbox.InboxRoot
 fun NavGraphBuilder.chatGraph(
     navController: NavController,
     onNetworksClick: () -> Unit,
+    inboxBanner: @Composable (encryptedNetworks: Set<ChatNetwork>) -> Unit = {},
 ) {
     navigation<ChatRoutes.Graph>(startDestination = ChatRoutes.Inbox) {
         composable<ChatRoutes.Inbox> {
@@ -18,6 +21,7 @@ fun NavGraphBuilder.chatGraph(
                     navController.navigate(ChatRoutes.Conversation(chatId)) { launchSingleTop = true }
                 },
                 onNetworksClick = onNetworksClick,
+                banner = inboxBanner,
             )
         }
         composable<ChatRoutes.Conversation> {

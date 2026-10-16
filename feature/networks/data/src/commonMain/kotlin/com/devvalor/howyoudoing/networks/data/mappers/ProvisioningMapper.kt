@@ -81,7 +81,10 @@ private fun InputFieldDto.toDomain() = LoginInputField(
         else -> InputFieldType.OTHER
     },
     pattern = pattern,
-    defaultValue = defaultValue
+    defaultValue = defaultValue,
+    isOptional = optional,
+    minLength = minLength,
+    maxLength = maxLength
 )
 
 /**

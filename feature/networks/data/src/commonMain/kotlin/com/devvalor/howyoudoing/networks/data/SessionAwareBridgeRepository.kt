@@ -8,6 +8,8 @@ import com.devvalor.howyoudoing.core.domain.util.Result
 import com.devvalor.howyoudoing.networks.data.demo.DemoBridgeRepository
 import com.devvalor.howyoudoing.networks.domain.BridgeLoginStep
 import com.devvalor.howyoudoing.networks.domain.BridgeRepository
+import com.devvalor.howyoudoing.networks.domain.EncryptedHistoryStatus
+import com.devvalor.howyoudoing.networks.domain.HistoryRestoreError
 import com.devvalor.howyoudoing.networks.domain.BridgeStatus
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -59,4 +61,10 @@ class SessionAwareBridgeRepository(
 
     override suspend fun logout(network: ChatNetwork, loginId: String): EmptyResult<DataError.Remote> =
         current().logout(network, loginId)
+
+    override suspend fun getEncryptedHistoryStatus(network: ChatNetwork): Result<EncryptedHistoryStatus, DataError.Remote> =
+        current().getEncryptedHistoryStatus(network)
+
+    override suspend fun restoreEncryptedHistory(network: ChatNetwork, pin: String): EmptyResult<HistoryRestoreError> =
+        current().restoreEncryptedHistory(network, pin)
 }

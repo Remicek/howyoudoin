@@ -65,7 +65,10 @@ data class InputFieldDto(
     val name: String = "",
     val description: String = "",
     val pattern: String? = null,
-    @SerialName("default_value") val defaultValue: String? = null
+    @SerialName("default_value") val defaultValue: String? = null,
+    val optional: Boolean = false,
+    @SerialName("min_length") val minLength: Int? = null,
+    @SerialName("max_length") val maxLength: Int? = null
 )
 
 @Serializable
@@ -97,4 +100,18 @@ data class CookieSourceDto(
 @Serializable
 data class CompleteDto(
     @SerialName("user_login_id") val userLoginId: String? = null
+)
+
+/** HowYouDoin's mautrix-meta extension: `GET /v3/messenger/history`. */
+@Serializable
+data class HistoryStatusDto(
+    val restored: Boolean = false,
+    @SerialName("backup_available") val backupAvailable: Boolean = false
+)
+
+@Serializable
+data class HistoryErrorDto(
+    val errcode: String? = null,
+    val error: String? = null,
+    @SerialName("attempts_remaining") val attemptsRemaining: Int? = null
 )

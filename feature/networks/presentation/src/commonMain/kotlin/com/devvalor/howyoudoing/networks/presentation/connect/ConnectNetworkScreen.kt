@@ -36,6 +36,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -281,7 +282,9 @@ private fun UserInputStep(
     onAction: (ConnectNetworkAction) -> Unit,
 ) {
     val asksForPhone = step.fields.any { it.type == InputFieldType.PHONE_NUMBER }
-    if (step.instructions.isBlank() && asksForPhone) {
+    if (step.isMessengerHistoryPin) {
+        HistoryPinHeader(step.instructions)
+    } else if (step.instructions.isBlank() && asksForPhone) {
         Text("Link with your phone number", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
         Spacer(Modifier.height(HowYouDoinSpacing.sm))
         Text(
@@ -310,6 +313,7 @@ private fun UserInputStep(
                 field = field,
                 value = state.inputValues[field.id].orEmpty(),
                 onValueChange = { onAction(ConnectNetworkAction.OnInputChange(field.id, it)) },
+                isNumericPin = step.isMessengerHistoryPin,
             )
         }
         Spacer(Modifier.height(HowYouDoinSpacing.sm))
@@ -317,16 +321,60 @@ private fun UserInputStep(
     Spacer(Modifier.height(HowYouDoinSpacing.sm))
     Button(
         onClick = { onAction(ConnectNetworkAction.OnSubmitInputClick) },
-        enabled = state.canSubmitInput,
+        enabled = state.canSubmitInput && (!step.canSkip || step.fields.any { state.inputValues[it.id].orEmpty().isNotBlank() }),
         modifier = Modifier.fillMaxWidth(),
     ) {
-        Text("Continue")
+        Text(if (step.isMessengerHistoryPin) "Restore history" else "Continue")
+    }
+    if (step.canSkip) {
+        TextButton(
+            onClick = { onAction(ConnectNetworkAction.OnSkipInputClick) },
+            enabled = !state.isSubmitting,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text("Skip for now")
+        }
+    }
+}
+
+/**
+ * Messenger keeps end-to-end encrypted history in a backup unlocked by the PIN set in the Messenger app.
+ * The bridge prefixes the standard instructions with what went wrong (e.g. attempts remaining), so that part is
+ * shown as an error.
+ */
+@Composable
+private fun HistoryPinHeader(instructions: String) {
+    val problem = instructions.substringBefore("\n\n", missingDelimiterValue = "")
+        .takeIf { instructions.contains("\n\n") && it.isNotBlank() }
+    Text("Restore encrypted chats", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+    Spacer(Modifier.height(HowYouDoinSpacing.sm))
+    Text(
+        "Enter the 6-digit PIN you set in Messenger for end-to-end encrypted chats. It unlocks your saved message " +
+            "history so older encrypted messages appear here too.",
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+    Spacer(Modifier.height(HowYouDoinSpacing.sm))
+    Text(
+        "Messenger allows only a limited number of wrong attempts. If you're not sure of your PIN, skip this; new " +
+            "messages arrive either way.",
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+    problem?.let {
+        Spacer(Modifier.height(HowYouDoinSpacing.sm))
+        Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
     }
 }
 
 @Composable
-private fun InputField(field: LoginInputField, value: String, onValueChange: (String) -> Unit) {
-    val keyboardType = when (field.type) {
+private fun InputField(
+    field: LoginInputField,
+    value: String,
+    onValueChange: (String) -> Unit,
+    isNumericPin: Boolean = false,
+) {
+    val keyboardType = if (isNumericPin) KeyboardType.NumberPassword else when (field.type) {
         InputFieldType.PASSWORD -> KeyboardType.Password
         InputFieldType.PHONE_NUMBER -> KeyboardType.Phone
         InputFieldType.EMAIL -> KeyboardType.Email
@@ -336,7 +384,9 @@ private fun InputField(field: LoginInputField, value: String, onValueChange: (St
     }
     OutlinedTextField(
         value = value,
-        onValueChange = onValueChange,
+        onValueChange = { input ->
+            onValueChange(if (isNumericPin) input.filter(Char::isDigit).take(field.maxLength ?: 6) else input)
+        },
         label = { Text(field.name) },
         supportingText = field.description.takeIf { it.isNotBlank() }?.let { { Text(it) } },
         singleLine = true,

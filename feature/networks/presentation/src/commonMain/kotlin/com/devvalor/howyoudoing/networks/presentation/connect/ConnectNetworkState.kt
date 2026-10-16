@@ -39,7 +39,15 @@ data class ConnectNetworkState(
         val raw = inputValues[field.id].orEmpty()
         return when (field.type) {
             InputFieldType.PHONE_NUMBER -> PhoneNumbers.isPlausible(countryFor(field.id), raw, field.pattern)
-            else -> raw.isNotBlank()
+            else -> when {
+                raw.isBlank() -> field.isOptional
+                raw.length < (field.minLength ?: 0) -> false
+                raw.length > (field.maxLength ?: Int.MAX_VALUE) -> false
+                // Bridges send Go regexes; ignore ones Kotlin can't parse rather than block the user
+                else -> field.pattern.let { pattern ->
+                    pattern.isNullOrBlank() || runCatching { Regex(pattern).matches(raw) }.getOrDefault(true)
+                }
+            }
         }
     }
 }

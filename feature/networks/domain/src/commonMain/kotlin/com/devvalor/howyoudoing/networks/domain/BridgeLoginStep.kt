@@ -24,7 +24,16 @@ sealed interface BridgeLoginStep {
         override val stepId: String,
         override val instructions: String,
         val fields: List<LoginInputField>
-    ) : BridgeLoginStep
+    ) : BridgeLoginStep {
+        /** Messenger asks for its secure storage PIN after login to restore end-to-end encrypted history. */
+        val isMessengerHistoryPin: Boolean get() = stepId == MESSENGER_HISTORY_PIN_STEP
+
+        val canSkip: Boolean get() = fields.isNotEmpty() && fields.all { it.isOptional }
+
+        companion object {
+            const val MESSENGER_HISTORY_PIN_STEP = "fi.mau.meta.history_pin"
+        }
+    }
 
     /** Log in on the network's website inside a web view, then hand the session cookies to the bridge. */
     data class Cookies(
@@ -57,7 +66,11 @@ data class LoginInputField(
     val description: String,
     val type: InputFieldType,
     val pattern: String? = null,
-    val defaultValue: String? = null
+    val defaultValue: String? = null,
+    /** Can be left empty; bridges use this for "skip" (e.g. Messenger's history PIN). */
+    val isOptional: Boolean = false,
+    val minLength: Int? = null,
+    val maxLength: Int? = null
 )
 
 enum class InputFieldType {

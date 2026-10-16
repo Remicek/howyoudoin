@@ -62,18 +62,21 @@ import com.devvalor.howyoudoing.chat.presentation.model.ChatUi
 import com.devvalor.howyoudoing.core.designsystem.components.ChatAvatar
 import com.devvalor.howyoudoing.core.designsystem.components.NetworkBadge
 import com.devvalor.howyoudoing.core.designsystem.theme.HowYouDoinSpacing
+import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun InboxRoot(
     onChatClick: (chatId: String) -> Unit,
     onNetworksClick: () -> Unit,
+    banner: @Composable (encryptedNetworks: Set<ChatNetwork>) -> Unit = {},
     viewModel: InboxViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     InboxScreen(
         state = state,
+        banner = { banner(state.encryptedNetworks) },
         onAction = { action ->
             when (action) {
                 is InboxAction.OnChatClick -> onChatClick(action.chatId)
@@ -89,6 +92,8 @@ fun InboxRoot(
 fun InboxScreen(
     state: InboxState,
     onAction: (InboxAction) -> Unit,
+    /** Slot for other features' prompts (e.g. restoring encrypted history). */
+    banner: @Composable () -> Unit = {},
 ) {
     var isMenuOpen by remember { mutableStateOf(false) }
 
@@ -132,6 +137,7 @@ fun InboxScreen(
                 onQueryChange = { onAction(InboxAction.OnQueryChange(it)) },
             )
             FilterRow(state = state, onAction = onAction)
+            banner()
 
             when {
                 state.isLoading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {

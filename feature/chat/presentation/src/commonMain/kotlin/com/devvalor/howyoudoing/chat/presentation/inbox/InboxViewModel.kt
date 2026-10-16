@@ -63,11 +63,12 @@ class InboxViewModel(
                 .filter { chat -> query.isBlank() || chat.name.contains(query.trim(), ignoreCase = true) }
                 .map { it.toChatUi() }
             val networks = chats.map { it.network }.distinct().sortedBy { it.ordinal }
-            visible to networks
+            val encrypted = chats.filter { it.isEncrypted }.mapTo(HashSet()) { it.network }
+            Triple(visible, networks, encrypted)
         }
-            .onEach { (visible, networks) ->
+            .onEach { (visible, networks, encrypted) ->
                 _state.update {
-                    it.copy(chats = visible, networksInInbox = networks, isLoading = false)
+                    it.copy(chats = visible, networksInInbox = networks, encryptedNetworks = encrypted, isLoading = false)
                 }
             }
             .launchIn(viewModelScope)

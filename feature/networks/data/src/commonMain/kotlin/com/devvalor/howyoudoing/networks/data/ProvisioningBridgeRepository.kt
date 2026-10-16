@@ -9,7 +9,15 @@ import com.devvalor.howyoudoing.core.domain.util.EmptyResult
 import com.devvalor.howyoudoing.core.domain.util.Result
 import com.devvalor.howyoudoing.core.domain.util.asEmptyResult
 import com.devvalor.howyoudoing.core.domain.util.map
+import com.devvalor.howyoudoing.core.data.networking.responseToResult
+import com.devvalor.howyoudoing.networks.data.dto.HistoryErrorDto
+import com.devvalor.howyoudoing.networks.data.dto.HistoryStatusDto
 import com.devvalor.howyoudoing.networks.data.dto.LoginStepDto
+import com.devvalor.howyoudoing.networks.domain.EncryptedHistoryStatus
+import com.devvalor.howyoudoing.networks.domain.HistoryRestoreError
+import io.ktor.client.call.body
+import io.ktor.http.isSuccess
+import kotlinx.coroutines.CancellationException
 import com.devvalor.howyoudoing.networks.data.dto.WhoamiResponseDto
 import com.devvalor.howyoudoing.networks.data.mappers.toBridgeStatus
 import com.devvalor.howyoudoing.networks.data.mappers.toDomain
@@ -97,6 +105,44 @@ class ProvisioningBridgeRepository(
             }.asEmptyResult()
         }
 
+    override suspend fun getEncryptedHistoryStatus(network: ChatNetwork): Result<EncryptedHistoryStatus, DataError.Remote> {
+        if (network != ChatNetwork.MESSENGER) return Result.Success(EncryptedHistoryStatus(isRestored = false, isBackupAvailable = false))
+        return request(network) { session, baseUrl ->
+            safeCall<HistoryStatusDto> {
+                httpClient.get { provisioning(session, baseUrl, "messenger", "history") }
+            }.map { EncryptedHistoryStatus(isRestored = it.restored, isBackupAvailable = it.backupAvailable) }
+        }
+    }
+
+    override suspend fun restoreEncryptedHistory(network: ChatNetwork, pin: String): EmptyResult<HistoryRestoreError> {
+        if (network != ChatNetwork.MESSENGER) return Result.Failure(HistoryRestoreError.NoBackup)
+        val session = sessionStorage.get() ?: return Result.Failure(HistoryRestoreError.Remote(DataError.Remote.UNAUTHORIZED))
+        val response = try {
+            httpClient.post {
+                provisioning(session, bridgeUrl(session, network), "messenger", "history", "restore")
+                setBody(mapOf("pin" to pin))
+            }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            return Result.Failure(HistoryRestoreError.Remote(DataError.Remote.UNKNOWN))
+        }
+        if (response.status.isSuccess()) return Result.Success(Unit)
+        // The bridge explains PIN problems in the Matrix-style error body
+        val error = runCatching { response.body<HistoryErrorDto>() }.getOrNull()
+        return Result.Failure(
+            when (error?.errcode) {
+                "FI.MAU.META.HISTORY_WRONG_PIN" -> HistoryRestoreError.WrongPin(error.attemptsRemaining ?: 0)
+                "FI.MAU.META.HISTORY_PIN_LIMIT" -> HistoryRestoreError.NoAttemptsLeft
+                "FI.MAU.META.HISTORY_NO_BACKUP" -> HistoryRestoreError.NoBackup
+                "FI.MAU.META.TOKEN_INVALIDATED" -> HistoryRestoreError.SessionExpired
+                else -> HistoryRestoreError.Remote(
+                    responseToResult<Unit>(response).let { (it as? Result.Failure)?.error ?: DataError.Remote.UNKNOWN }
+                )
+            }
+        )
+    }
+
     private suspend fun submitStep(
         network: ChatNetwork,
         step: BridgeLoginStep,
@@ -117,10 +163,12 @@ class ProvisioningBridgeRepository(
         block: suspend (session: AuthInfo, baseUrl: String) -> Result<T, DataError.Remote>
     ): Result<T, DataError.Remote> {
         val session = sessionStorage.get() ?: return Result.Failure(DataError.Remote.UNAUTHORIZED)
-        val baseUrl = endpointStorage.get(network)?.takeIf { it.isNotBlank() }
-            ?: BackendConfig.defaultBridgeUrl(session.homeserverUrl, network)
-        return block(session, baseUrl)
+        return block(session, bridgeUrl(session, network))
     }
+
+    private suspend fun bridgeUrl(session: AuthInfo, network: ChatNetwork): String =
+        endpointStorage.get(network)?.takeIf { it.isNotBlank() }
+            ?: BackendConfig.defaultBridgeUrl(session.homeserverUrl, network)
 
     private fun HttpRequestBuilder.provisioning(session: AuthInfo, baseUrl: String, vararg path: String) {
         url {

@@ -7,6 +7,8 @@ import com.devvalor.howyoudoing.core.domain.util.Result
 import com.devvalor.howyoudoing.networks.domain.BridgeLoginFlow
 import com.devvalor.howyoudoing.networks.domain.BridgeLoginStep
 import com.devvalor.howyoudoing.networks.domain.BridgeRepository
+import com.devvalor.howyoudoing.networks.domain.EncryptedHistoryStatus
+import com.devvalor.howyoudoing.networks.domain.HistoryRestoreError
 import com.devvalor.howyoudoing.networks.domain.BridgeStatus
 import com.devvalor.howyoudoing.networks.domain.DisplayType
 import com.devvalor.howyoudoing.networks.domain.InputFieldType
@@ -110,6 +112,12 @@ class DemoBridgeRepository : BridgeRepository {
         logins.update { all -> all + (network to all[network].orEmpty().filterNot { it.id == loginId }) }
         return Result.Success(Unit)
     }
+
+    override suspend fun getEncryptedHistoryStatus(network: ChatNetwork): Result<EncryptedHistoryStatus, DataError.Remote> =
+        Result.Success(EncryptedHistoryStatus(isRestored = false, isBackupAvailable = false))
+
+    override suspend fun restoreEncryptedHistory(network: ChatNetwork, pin: String): EmptyResult<HistoryRestoreError> =
+        Result.Failure(HistoryRestoreError.NoBackup)
 
     private fun complete(network: ChatNetwork, loginId: String, name: String? = null): Result<BridgeLoginStep, DataError.Remote> {
         val login = NetworkLogin(loginId, name?.takeIf { it.isNotBlank() } ?: "Demo ${network.displayName} account", "CONNECTED")

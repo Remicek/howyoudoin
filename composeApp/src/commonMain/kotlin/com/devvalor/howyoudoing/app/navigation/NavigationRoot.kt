@@ -7,6 +7,7 @@ import com.devvalor.howyoudoing.auth.presentation.navigation.AuthGraphRoutes
 import com.devvalor.howyoudoing.auth.presentation.navigation.authGraph
 import com.devvalor.howyoudoing.chat.presentation.navigation.ChatRoutes
 import com.devvalor.howyoudoing.chat.presentation.navigation.chatGraph
+import com.devvalor.howyoudoing.networks.presentation.history.EncryptedHistoryBannerRoot
 import com.devvalor.howyoudoing.networks.presentation.navigation.NetworksRoutes
 import com.devvalor.howyoudoing.networks.presentation.navigation.networksGraph
 
@@ -31,6 +32,7 @@ fun NavigationRoot(
             onNetworksClick = {
                 navController.navigate(NetworksRoutes.Graph) { launchSingleTop = true }
             },
+            inboxBanner = { encryptedNetworks -> EncryptedHistoryBannerRoot(encryptedNetworks) },
         )
         networksGraph(navController = navController)
     }

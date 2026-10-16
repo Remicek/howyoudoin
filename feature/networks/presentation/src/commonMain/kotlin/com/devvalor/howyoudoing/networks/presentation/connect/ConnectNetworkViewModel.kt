@@ -70,6 +70,7 @@ class ConnectNetworkViewModel(
                 _state.update { it.copy(phoneCountries = it.phoneCountries + (action.fieldId to action.isoCode)) }
             }
             ConnectNetworkAction.OnSubmitInputClick -> submitInput()
+            ConnectNetworkAction.OnSkipInputClick -> skipInput()
             is ConnectNetworkAction.OnCookiesCaptured -> submitCookies(action.cookies)
             ConnectNetworkAction.OnRetryClick -> loadFlows()
             else -> Unit
@@ -113,6 +114,12 @@ class ConnectNetworkViewModel(
         if (!state.value.canSubmitInput) return
         val values = step.fields.associate { it.id to state.value.submittedValue(it) }
         runStep { bridgeRepository.submitUserInput(network, step, values) }
+    }
+
+    private fun skipInput() {
+        val step = (state.value.phase as? ConnectPhase.Step)?.step as? BridgeLoginStep.UserInput ?: return
+        if (!step.canSkip || state.value.isSubmitting) return
+        runStep { bridgeRepository.submitUserInput(network, step, step.fields.associate { it.id to "" }) }
     }
 
     private fun submitCookies(cookiesByName: Map<String, String>) {
