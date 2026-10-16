@@ -42,7 +42,7 @@ func main() {
 		panic(err)
 	}
 	c := &collector{counts: map[string]int{}, threads: map[string]map[string]any{}}
-	m, err := hydbridge.NewMessenger(string(raw), c)
+	m, err := hydbridge.NewMessenger(string(raw), "", c)
 	if err != nil {
 		panic(err)
 	}

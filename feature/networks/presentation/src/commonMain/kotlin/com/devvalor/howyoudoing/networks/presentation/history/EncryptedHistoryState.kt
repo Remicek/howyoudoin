@@ -8,7 +8,9 @@ data class EncryptedHistoryState(
     val isSubmitting: Boolean = false,
     val error: String? = null,
     /** Restore accepted; encrypted chats are being rebuilt with their history. */
-    val isRestoring: Boolean = false
+    val isRestoring: Boolean = false,
+    /** The offer is for Messenger connected on this phone rather than the server bridge. */
+    val isOnDevice: Boolean = false
 ) {
     val canSubmit: Boolean get() = pin.length == PIN_LENGTH && !isSubmitting
 

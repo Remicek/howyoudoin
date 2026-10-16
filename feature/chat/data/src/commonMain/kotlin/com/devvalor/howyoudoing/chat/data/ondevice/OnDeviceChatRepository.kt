@@ -60,6 +60,8 @@ class OnDeviceChatRepository(
         val key = chatId.threadKey() ?: return server.loadOlderMessages(chatId)
         val oldest = store.oldestMessage(key)
         if (!store.hasMoreBefore(key)) return Result.Success(Unit)
+        val thread = store.thread(key)
+        if (thread?.isEncrypted == true) return loadEncryptedHistory(key, thread.isGroup, oldest?.timestampMs)
         val result = if (oldest == null) {
             // Nothing loaded for this chat yet: fetch the latest page
             messenger.requestOlder(key, Long.MAX_VALUE / 2, "")
@@ -76,6 +78,13 @@ class OnDeviceChatRepository(
         return Result.Success(Unit)
     }
 
+    /** Encrypted history comes from the PIN-protected backup; without a restored backup there's nothing older. */
+    private suspend fun loadEncryptedHistory(key: String, isGroup: Boolean, oldestTimestampMs: Long?): EmptyResult<DataError.Remote> {
+        val before = store.historyCursor(key) ?: oldestTimestampMs ?: 0L
+        if (messenger.fetchEncryptedHistory(key, isGroup, before) is Result.Failure) store.markNoMoreHistory(key)
+        return Result.Success(Unit)
+    }
+
     override fun hasMoreHistory(chatId: String): Flow<Boolean> {
         val key = chatId.threadKey() ?: return server.hasMoreHistory(chatId)
         return store.snapshot.map { store.hasMoreBefore(key) }.distinctUntilChanged()
@@ -85,7 +94,8 @@ class OnDeviceChatRepository(
         val key = chatId.threadKey() ?: return server.sendMessage(chatId, body, replyToId)
         val pendingId = store.newPendingId()
         store.addPending(key, pendingId, body)
-        return when (val result = messenger.sendText(key, body)) {
+        val thread = store.thread(key)
+        return when (val result = messenger.sendText(key, body, thread?.isEncrypted == true, thread?.isGroup == true)) {
             is Result.Success -> {
                 // The server's copy carries this ID and replaces the echo
                 store.rekeyPending(pendingId, result.data)

@@ -3,6 +3,10 @@ package com.devvalor.howyoudoing.networks.presentation.history
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
+import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceHistoryError
+import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceMessenger
+import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceMessengerState
+import com.devvalor.howyoudoing.core.domain.util.DataError
 import com.devvalor.howyoudoing.core.domain.util.Result
 import com.devvalor.howyoudoing.networks.domain.BridgeRepository
 import com.devvalor.howyoudoing.networks.domain.HistoryRestoreError
@@ -18,7 +22,8 @@ import kotlinx.coroutines.launch
  * chats and the account has an unrestored PIN backup.
  */
 class EncryptedHistoryViewModel(
-    private val bridgeRepository: BridgeRepository
+    private val bridgeRepository: BridgeRepository,
+    private val onDeviceMessenger: OnDeviceMessenger
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(EncryptedHistoryState())
@@ -57,13 +62,22 @@ class EncryptedHistoryViewModel(
         checkJob = viewModelScope.launch {
             // The bridge needs a moment after (re)connecting before Messenger answers, so retry a few times
             repeat(CHECK_ATTEMPTS) { attempt ->
-                when (val result = bridgeRepository.getEncryptedHistoryStatus(ChatNetwork.MESSENGER)) {
-                    is Result.Success -> {
-                        _state.update { it.copy(isOffered = result.data.canRestore && !isDismissed) }
-                        return@launch
-                    }
-                    is Result.Failure -> if (attempt < CHECK_ATTEMPTS - 1) delay(RETRY_DELAY_MILLIS)
+                val server = bridgeRepository.getEncryptedHistoryStatus(ChatNetwork.MESSENGER)
+                if (server is Result.Success && server.data.canRestore) {
+                    _state.update { it.copy(isOffered = !isDismissed, isOnDevice = false) }
+                    return@launch
                 }
+                val onDevice = if (onDeviceMessenger.state.value is OnDeviceMessengerState.Connected) {
+                    onDeviceMessenger.historyStatus()
+                } else {
+                    null
+                }
+                if (onDevice is Result.Success) {
+                    _state.update { it.copy(isOffered = onDevice.data.canRestore && !isDismissed, isOnDevice = true) }
+                    return@launch
+                }
+                if (server is Result.Success && onDeviceMessenger.state.value == OnDeviceMessengerState.NotLinked) return@launch
+                if (attempt < CHECK_ATTEMPTS - 1) delay(RETRY_DELAY_MILLIS)
             }
         }
     }
@@ -73,7 +87,15 @@ class EncryptedHistoryViewModel(
         if (!state.value.canSubmit) return
         _state.update { it.copy(isSubmitting = true, error = null) }
         viewModelScope.launch {
-            when (val result = bridgeRepository.restoreEncryptedHistory(ChatNetwork.MESSENGER, pin)) {
+            val result = if (state.value.isOnDevice) {
+                when (val onDevice = onDeviceMessenger.restoreHistory(pin)) {
+                    is Result.Success -> Result.Success(Unit)
+                    is Result.Failure -> Result.Failure(onDevice.error.toHistoryRestoreError())
+                }
+            } else {
+                bridgeRepository.restoreEncryptedHistory(ChatNetwork.MESSENGER, pin)
+            }
+            when (result) {
                 is Result.Success -> _state.update {
                     it.copy(isSubmitting = false, isDialogOpen = false, pin = "", isOffered = false, isRestoring = true)
                 }
@@ -104,5 +126,12 @@ class EncryptedHistoryViewModel(
     private companion object {
         const val CHECK_ATTEMPTS = 4
         const val RETRY_DELAY_MILLIS = 15_000L
+    }
+
+    private fun OnDeviceHistoryError.toHistoryRestoreError(): HistoryRestoreError = when (this) {
+        is OnDeviceHistoryError.WrongPin -> HistoryRestoreError.WrongPin(attemptsRemaining)
+        OnDeviceHistoryError.NoAttemptsLeft -> HistoryRestoreError.NoAttemptsLeft
+        OnDeviceHistoryError.NoBackup -> HistoryRestoreError.NoBackup
+        is OnDeviceHistoryError.Other -> HistoryRestoreError.Remote(DataError.Remote.UNKNOWN)
     }
 }

@@ -59,11 +59,15 @@ fun EncryptedHistoryBanner(
     when {
         state.isRestoring -> BannerCard(
             title = "Restoring encrypted history",
-            body = "Your encrypted Messenger chats will reappear with their older messages in a minute or two.",
+            body = if (state.isOnDevice) {
+                "Older messages load as you scroll up in your encrypted chats on this device."
+            } else {
+                "Your encrypted Messenger chats will reappear with their older messages in a minute or two."
+            },
             primary = "OK" to { onAction(EncryptedHistoryAction.OnDismissRestoring) },
         )
         state.isOffered -> BannerCard(
-            title = "Restore older encrypted messages",
+            title = if (state.isOnDevice) "Restore encrypted messages on this device" else "Restore older encrypted messages",
             body = "Your end-to-end encrypted Messenger chats only show new messages. Enter your Messenger PIN to bring " +
                 "back their history.",
             primary = "Enter PIN" to { onAction(EncryptedHistoryAction.OnEnterPinClick) },

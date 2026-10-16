@@ -4,6 +4,7 @@ import com.devvalor.howyoudoing.chat.domain.Chat
 import com.devvalor.howyoudoing.chat.domain.Message
 import com.devvalor.howyoudoing.chat.domain.MessageStatus
 import com.devvalor.howyoudoing.chat.domain.MessageType
+import com.devvalor.howyoudoing.chat.domain.Reaction
 import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceMessenger
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceMessengerState
@@ -41,8 +42,16 @@ class OnDeviceMessengerStore(
         /** Local echoes by offline threading ID until the server echoes them back. */
         val pending: Map<String, StoredMessage> = emptyMap(),
         /** Thread key → whether Messenger has messages before the oldest one we have (unknown means yes). */
-        val hasMoreBefore: Map<String, Boolean> = emptyMap()
+        val hasMoreBefore: Map<String, Boolean> = emptyMap(),
+        /** Facebook thread key → the encrypted chat that replaced it. */
+        val links: Map<String, Link> = emptyMap(),
+        /** Encrypted thread key → timestamp to continue history paging from. */
+        val historyCursors: Map<String, Long> = emptyMap(),
+        /** Thread key → message ID → sender → emoji. */
+        val reactions: Map<String, Map<String, Map<String, String>>> = emptyMap()
     )
+
+    data class Link(val threadKey: String, val isGroup: Boolean, val lastActivityMs: Long)
 
     data class Contact(val id: String, val name: String, val firstName: String, val avatarUrl: String?)
     data class Thread(
@@ -64,7 +73,8 @@ class OnDeviceMessengerStore(
         val text: String,
         val timestampMs: Long,
         val isUnsent: Boolean,
-        val status: MessageStatus = MessageStatus.SENT
+        val status: MessageStatus = MessageStatus.SENT,
+        val kind: String = "text"
     )
 
     private val _snapshot = MutableStateFlow(Snapshot())
@@ -97,6 +107,7 @@ class OnDeviceMessengerStore(
 
     private fun apply(json: String) {
         val event = runCatching { Json.parseToJsonElement(json).jsonObject }.getOrNull() ?: return
+        if (event.str("type") == "history") return resetEncryptedPaging()
         _snapshot.update { s ->
             when (event.str("type")) {
                 "self" -> s.copy(selfId = event.str("id"))
@@ -118,13 +129,40 @@ class OnDeviceMessengerStore(
                 }
                 "range" -> {
                     val key = event.str("threadKey")
-                    if (key.isEmpty()) s else s.copy(hasMoreBefore = s.hasMoreBefore + (key to event.bool("hasMoreBefore")))
+                    when {
+                        key.isEmpty() -> s
+                        event.bool("isEncrypted") -> s.copy(
+                            hasMoreBefore = s.hasMoreBefore + (key to event.bool("hasMoreBefore")),
+                            historyCursors = s.historyCursors + (key to event.long("minTimestampMs"))
+                        )
+                        else -> s.copy(hasMoreBefore = s.hasMoreBefore + (key to event.bool("hasMoreBefore")))
+                    }
+                }
+                "link" -> {
+                    val fbKey = event.str("fbThreadKey")
+                    val key = event.str("threadKey")
+                    if (fbKey.isEmpty() || key.isEmpty()) s
+                    else s.copy(links = s.links + (fbKey to Link(key, event.bool("isGroup"), event.long("lastActivityMs"))))
+                }
+                "reaction" -> {
+                    val key = event.str("threadKey")
+                    val target = event.str("targetId")
+                    val sender = event.str("senderId")
+                    if (key.isEmpty() || target.isEmpty() || sender.isEmpty()) s
+                    else {
+                        val byMessage = s.reactions[key].orEmpty()
+                        val bySender = byMessage[target].orEmpty().let { current ->
+                            val emoji = event.str("emoji")
+                            if (emoji.isEmpty()) current - sender else current + (sender to emoji)
+                        }
+                        s.copy(reactions = s.reactions + (key to (byMessage + (target to bySender))))
+                    }
                 }
                 "message" -> {
                     val message = StoredMessage(
                         id = event.str("id"), threadKey = event.str("threadKey"), otid = event.str("otid"),
                         senderId = event.str("senderId"), text = event.str("text"), timestampMs = event.long("timestampMs"),
-                        isUnsent = event.bool("isUnsent")
+                        isUnsent = event.bool("isUnsent"), kind = event.str("kind").ifEmpty { "text" }
                     )
                     val thread = s.messages[message.threadKey].orEmpty()
                     s.copy(
@@ -139,10 +177,41 @@ class OnDeviceMessengerStore(
 
     fun chats(): List<Chat> {
         val s = _snapshot.value
-        return s.threads.values
-            // Encrypted threads need the WhatsApp-protocol client, which isn't part of the on-device bridge yet
-            .filterNot { it.isEncrypted }
+        // A Facebook thread that moved to an encrypted chat is shown as that chat
+        val replaced = s.links.filter { (fbKey, link) -> fbKey != link.threadKey }.keys
+        // Encrypted chats announced only by a link have no thread row; build one from the link
+        val linkedOnly = s.links.values
+            .filter { it.threadKey !in s.threads }
+            .associate { link ->
+                link.threadKey to Thread(
+                    key = link.threadKey, name = "", isGroup = link.isGroup, isEncrypted = true,
+                    lastActivityMs = link.lastActivityMs, lastReadMs = link.lastActivityMs, snippet = "", snippetSender = ""
+                )
+            }
+        return (s.threads + linkedOnly).values
+            .filter { it.key !in replaced }
             .map { thread -> thread.toChat(s) }
+    }
+
+    fun thread(threadKey: String): Thread? = chatsByKey()[threadKey]
+
+    private fun chatsByKey(): Map<String, Thread> {
+        val s = _snapshot.value
+        return s.threads + s.links.values.filter { it.threadKey !in s.threads }.associate {
+            it.threadKey to Thread(it.threadKey, "", it.isGroup, true, it.lastActivityMs, it.lastActivityMs, "", "")
+        }
+    }
+
+    fun historyCursor(threadKey: String): Long? = _snapshot.value.historyCursors[threadKey]
+
+    /** After restoring history, encrypted chats can page again. */
+    fun resetEncryptedPaging() = _snapshot.update { s ->
+        val encrypted = chatsByKey().values.filter { it.isEncrypted }.map { it.key }.toSet()
+        s.copy(hasMoreBefore = s.hasMoreBefore - encrypted, historyCursors = s.historyCursors - encrypted)
+    }
+
+    fun markNoMoreHistory(threadKey: String) = _snapshot.update { s ->
+        s.copy(hasMoreBefore = s.hasMoreBefore + (threadKey to false))
     }
 
     fun messages(threadKey: String): List<Message> {
@@ -158,7 +227,9 @@ class OnDeviceMessengerStore(
         _snapshot.value.messages[threadKey].orEmpty().values.minByOrNull { it.timestampMs }
 
     private fun Thread.toChat(s: Snapshot): Chat {
-        val others = s.participants[key].orEmpty() - setOfNotNull(s.selfId)
+        // Encrypted 1:1 chats are keyed by the other person's ID
+        val others = (s.participants[key].orEmpty() + if (isEncrypted && !isGroup) setOf(key) else emptySet()) -
+            setOfNotNull(s.selfId)
         val name = name.ifBlank {
             others.mapNotNull { s.contacts[it] }.let { people ->
                 if (isGroup) people.take(4).joinToString(", ") { it.firstName.ifBlank { it.name } } else people.firstOrNull()?.name.orEmpty()
@@ -178,21 +249,56 @@ class OnDeviceMessengerStore(
             unreadCount = if (lastActivityMs > lastReadMs && lastMessage.isOutgoing.not()) 1 else 0,
             isGroup = isGroup,
             avatarUrl = null,
+            isEncrypted = isEncrypted,
             isOnDevice = true
         )
     }
 
-    private fun StoredMessage.toMessage(s: Snapshot) = Message(
-        id = id,
-        chatId = CHAT_ID_PREFIX + threadKey,
-        senderId = senderId,
-        senderName = s.contacts[senderId]?.name.orEmpty(),
-        body = if (isUnsent) "Message unsent" else text,
-        timestamp = timestampMs,
-        isOutgoing = senderId.isNotEmpty() && senderId == s.selfId,
-        type = if (isUnsent) MessageType.NOTICE else MessageType.TEXT,
-        status = status
-    )
+    private fun StoredMessage.toMessage(s: Snapshot): Message {
+        val type = when {
+            isUnsent -> MessageType.NOTICE
+            kind == "image" -> MessageType.IMAGE
+            kind == "video" -> MessageType.VIDEO
+            kind == "audio" -> MessageType.AUDIO
+            kind == "file" -> MessageType.FILE
+            kind == "sticker" -> MessageType.STICKER
+            kind == "text" -> MessageType.TEXT
+            else -> MessageType.OTHER
+        }
+        // Media isn't downloaded on the device yet, so it's described in text
+        val placeholder = when (type) {
+            MessageType.IMAGE -> "📷 Photo"
+            MessageType.VIDEO -> "🎬 Video"
+            MessageType.AUDIO -> "🎤 Voice message"
+            MessageType.FILE -> "📎 File"
+            MessageType.STICKER -> "Sticker"
+            MessageType.OTHER -> "Unsupported message"
+            else -> ""
+        }
+        val reactions = s.reactions[threadKey]?.get(id).orEmpty()
+            .entries.groupBy({ it.value }, { it.key })
+            .map { (emoji, senders) ->
+                Reaction(key = emoji, count = senders.size, ownReactionId = if (s.selfId in senders) "own-$emoji" else null)
+            }
+        return Message(
+            id = id,
+            chatId = CHAT_ID_PREFIX + threadKey,
+            senderId = senderId,
+            senderName = s.contacts[senderId]?.name.orEmpty(),
+            body = when {
+                isUnsent -> "Message unsent"
+                placeholder.isNotEmpty() && text.isNotBlank() -> "$placeholder · $text"
+                placeholder.isNotEmpty() -> placeholder
+                else -> text
+            },
+            timestamp = timestampMs,
+            isOutgoing = senderId.isNotEmpty() && senderId == s.selfId,
+            // Shown as text bubbles until media is downloaded on the device
+            type = if (type in MEDIA_TYPES) MessageType.TEXT else type,
+            status = status,
+            reactions = reactions
+        )
+    }
 
     private fun JsonObject.str(key: String) = this[key]?.jsonPrimitive?.contentOrNull.orEmpty()
     private fun JsonObject.long(key: String) = this[key]?.jsonPrimitive?.longOrNull ?: 0L
@@ -200,6 +306,7 @@ class OnDeviceMessengerStore(
 
     companion object {
         const val CHAT_ID_PREFIX = "fbdevice:"
+        private val MEDIA_TYPES = setOf(MessageType.IMAGE, MessageType.VIDEO, MessageType.AUDIO, MessageType.FILE, MessageType.STICKER)
         private const val CLOCK_SKEW_MS = 5_000L
     }
 }

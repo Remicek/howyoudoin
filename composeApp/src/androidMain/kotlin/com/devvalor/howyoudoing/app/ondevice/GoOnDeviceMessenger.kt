@@ -2,9 +2,12 @@ package com.devvalor.howyoudoing.app.ondevice
 
 import android.content.Context
 import android.util.Log
+import java.io.File
 import com.devvalor.howyoudoing.bridge.hydbridge.Hydbridge
 import com.devvalor.howyoudoing.bridge.hydbridge.Listener
 import com.devvalor.howyoudoing.bridge.hydbridge.Messenger
+import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceHistoryError
+import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceHistoryStatus
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceMessenger
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceMessengerState
 import com.devvalor.howyoudoing.core.domain.util.DataError
@@ -25,6 +28,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -40,6 +44,9 @@ class GoOnDeviceMessenger(
 ) : OnDeviceMessenger {
 
     private val prefs = context.getSharedPreferences("on_device_messenger", Context.MODE_PRIVATE)
+
+    /** Encrypted-chat keys (whatsmeow store) and the history device; deleted on unlink. */
+    private val dataDir = File(context.noBackupFilesDir, "on_device_messenger").apply { mkdirs() }
     private val lock = Mutex()
     private var messenger: Messenger? = null
 
@@ -81,7 +88,7 @@ class GoOnDeviceMessenger(
             _events.resetReplayCache()
             _state.value = OnDeviceMessengerState.Connecting
             try {
-                val client = Hydbridge.newMessenger(cookiesJson, listener)
+                val client = Hydbridge.newMessenger(cookiesJson, dataDir.absolutePath, listener)
                 client.connect()
                 messenger = client
                 Result.Success(Unit)
@@ -93,13 +100,67 @@ class GoOnDeviceMessenger(
         }
     }
 
-    override suspend fun sendText(threadKey: String, text: String): Result<String, DataError.Remote> {
+    override suspend fun sendText(threadKey: String, text: String, isEncrypted: Boolean, isGroup: Boolean): Result<String, DataError.Remote> {
         val client = messenger ?: return Result.Failure(DataError.Remote.SERVICE_UNAVAILABLE)
         return withContext(Dispatchers.IO) {
             try {
-                Result.Success(client.sendText(threadKey, text))
+                Result.Success(
+                    if (isEncrypted) client.sendEncryptedText(threadKey, isGroup, text) else client.sendText(threadKey, text)
+                )
             } catch (e: Exception) {
                 Log.w(TAG, "Sending on-device Messenger message failed", e)
+                Result.Failure(DataError.Remote.UNKNOWN)
+            }
+        }
+    }
+
+    override suspend fun historyStatus(): Result<OnDeviceHistoryStatus, DataError.Remote> {
+        val client = messenger ?: return Result.Failure(DataError.Remote.SERVICE_UNAVAILABLE)
+        return withContext(Dispatchers.IO) {
+            try {
+                val status = Json.parseToJsonElement(client.historyStatus()).jsonObject
+                Result.Success(
+                    OnDeviceHistoryStatus(
+                        isRestored = status["restored"]?.jsonPrimitive?.booleanOrNull == true,
+                        isBackupAvailable = status["backupAvailable"]?.jsonPrimitive?.booleanOrNull == true
+                    )
+                )
+            } catch (e: Exception) {
+                Log.w(TAG, "Checking on-device Messenger history failed", e)
+                Result.Failure(DataError.Remote.UNKNOWN)
+            }
+        }
+    }
+
+    override suspend fun restoreHistory(pin: String): EmptyResult<OnDeviceHistoryError> {
+        val client = messenger ?: return Result.Failure(OnDeviceHistoryError.Other("Messenger isn't connected"))
+        return withContext(Dispatchers.IO) {
+            try {
+                client.restoreHistory(pin)
+                Result.Success(Unit)
+            } catch (e: Exception) {
+                val message = e.message.orEmpty()
+                Result.Failure(
+                    when {
+                        message.startsWith("wrong_pin:") ->
+                            OnDeviceHistoryError.WrongPin(message.substringAfter(':').toIntOrNull() ?: 0)
+                        message == "pin_limit" -> OnDeviceHistoryError.NoAttemptsLeft
+                        message == "no_backup" -> OnDeviceHistoryError.NoBackup
+                        else -> OnDeviceHistoryError.Other(message)
+                    }
+                )
+            }
+        }
+    }
+
+    override suspend fun fetchEncryptedHistory(threadKey: String, isGroup: Boolean, beforeTimestampMs: Long): EmptyResult<DataError.Remote> {
+        val client = messenger ?: return Result.Failure(DataError.Remote.SERVICE_UNAVAILABLE)
+        return withContext(Dispatchers.IO) {
+            try {
+                client.fetchEncryptedHistory(threadKey, isGroup, beforeTimestampMs, HISTORY_PAGE_SIZE)
+                Result.Success(Unit)
+            } catch (e: Exception) {
+                Log.w(TAG, "Fetching encrypted Messenger history failed", e)
                 Result.Failure(DataError.Remote.UNKNOWN)
             }
         }
@@ -123,6 +184,8 @@ class GoOnDeviceMessenger(
             withContext(Dispatchers.IO) { messenger?.disconnect() }
             messenger = null
             prefs.edit().remove(KEY_COOKIES).apply()
+            dataDir.deleteRecursively()
+            dataDir.mkdirs()
             _events.resetReplayCache()
             _state.value = OnDeviceMessengerState.NotLinked
         }
@@ -144,5 +207,6 @@ class GoOnDeviceMessenger(
         const val TAG = "OnDeviceMessenger"
         const val KEY_COOKIES = "cookies"
         const val EVENT_REPLAY = 5_000
+        const val HISTORY_PAGE_SIZE = 50L
     }
 }

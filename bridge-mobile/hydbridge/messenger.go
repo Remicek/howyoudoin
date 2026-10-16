@@ -13,6 +13,9 @@ import (
 	"time"
 
 	"github.com/rs/zerolog"
+	"go.mau.fi/whatsmeow"
+	"go.mau.fi/whatsmeow/store"
+	"go.mau.fi/whatsmeow/store/sqlstore"
 
 	"go.mau.fi/mautrix-meta/pkg/messagix"
 	"go.mau.fi/mautrix-meta/pkg/messagix/cookies"
@@ -36,11 +39,17 @@ type Messenger struct {
 	lock   sync.Mutex
 	cancel context.CancelFunc
 	selfID int64
+
+	// End-to-end encrypted chats (WhatsApp protocol); see e2ee.go
+	dataDir     string
+	deviceStore *sqlstore.Container
+	device      *store.Device
+	e2ee        *whatsmeow.Client
 }
 
-// NewMessenger takes the messenger.com session cookies as a JSON object (name → value); xs, c_user and datr are
-// required.
-func NewMessenger(cookiesJSON string, listener Listener) (*Messenger, error) {
+// NewMessenger takes the messenger.com session cookies as a JSON object (name → value; xs, c_user and datr are
+// required) and a private directory for the encrypted-chat keys (empty disables encrypted chats).
+func NewMessenger(cookiesJSON string, dataDir string, listener Listener) (*Messenger, error) {
 	values := map[cookies.MetaCookieName]string{}
 	if err := json.Unmarshal([]byte(cookiesJSON), &values); err != nil {
 		return nil, fmt.Errorf("invalid cookies: %w", err)
@@ -51,7 +60,7 @@ func NewMessenger(cookiesJSON string, listener Listener) (*Messenger, error) {
 		return nil, fmt.Errorf("missing cookies: %v", missing)
 	}
 	log := zerolog.New(logWriter{}).With().Timestamp().Str("component", "messagix").Logger().Level(zerolog.InfoLevel)
-	m := &Messenger{listener: listener, log: log}
+	m := &Messenger{listener: listener, log: log, dataDir: dataDir}
 	m.client = messagix.NewClient(jar, log, &messagix.Config{})
 	m.client.SetEventHandler(m.handleEvent)
 	return m, nil
@@ -82,6 +91,12 @@ func (m *Messenger) Connect() error {
 		m.resetCancel()
 		return fmt.Errorf("failed to connect: %w", err)
 	}
+	go func() {
+		if err := m.connectE2EE(ctx); err != nil {
+			m.log.Err(err).Msg("Encrypted chats unavailable")
+			m.emitState("encrypted_error", err.Error())
+		}
+	}()
 	return nil
 }
 
@@ -96,6 +111,10 @@ func (m *Messenger) resetCancel() {
 
 // Disconnect closes the socket; Connect can be called again afterwards.
 func (m *Messenger) Disconnect() {
+	if m.e2ee != nil {
+		m.e2ee.Disconnect()
+		m.e2ee = nil
+	}
 	m.client.Disconnect()
 	m.resetCancel()
 	m.emitState("disconnected", "")
@@ -186,6 +205,15 @@ func (m *Messenger) emitTable(tbl *table.LSTable) {
 	}
 	for _, t := range tbl.LSUpdateOrInsertThread {
 		m.emitThread(t.ThreadKey, t.ThreadName, t.ThreadType, t.LastActivityTimestampMs, t.LastReadWatermarkTimestampMs, t.Snippet, t.SnippetSenderContactId, t.FolderName)
+	}
+	// Facebook thread ↔ encrypted chat: the app shows the encrypted one and hides the old Facebook thread
+	for _, link := range tbl.LSVerifyHybridThreadExists {
+		m.emit(map[string]any{"type": "link", "fbThreadKey": id(link.ThreadKey), "threadKey": id(link.ThreadJID),
+			"isGroup": link.IsGroupThread, "lastActivityMs": link.LastActivityTimestampMS})
+	}
+	for _, link := range tbl.LSCreateOpenToE2EEThreadLink {
+		m.emit(map[string]any{"type": "link", "fbThreadKey": id(link.ThreadKey), "threadKey": id(link.ThreadJID),
+			"isGroup": false, "lastActivityMs": link.LastActivityTimestampMS})
 	}
 	for _, p := range tbl.LSAddParticipantIdToGroupThread {
 		m.emit(map[string]any{"type": "participant", "threadKey": id(p.ThreadKey), "contactId": id(p.ContactId)})
