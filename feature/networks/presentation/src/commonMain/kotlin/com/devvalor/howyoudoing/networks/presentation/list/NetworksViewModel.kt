@@ -3,6 +3,7 @@ package com.devvalor.howyoudoing.networks.presentation.list
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
+import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceMessenger
 import com.devvalor.howyoudoing.core.domain.util.Result
 import com.devvalor.howyoudoing.core.domain.util.onFailure
 import com.devvalor.howyoudoing.core.domain.util.onSuccess
@@ -21,7 +22,8 @@ import kotlinx.coroutines.launch
 
 class NetworksViewModel(
     private val bridgeRepository: BridgeRepository,
-    onboardingRepository: OnboardingRepository
+    onboardingRepository: OnboardingRepository,
+    private val onDeviceMessenger: OnDeviceMessenger
 ) : ViewModel() {
 
     private val eventChannel = Channel<NetworksEvent>()
@@ -34,12 +36,16 @@ class NetworksViewModel(
         onboardingRepository.observeDismissedTutorials()
             .onEach { dismissed -> _state.update { it.copy(dismissedTutorials = dismissed) } }
             .launchIn(viewModelScope)
+        onDeviceMessenger.state
+            .onEach { onDevice -> _state.update { it.copy(onDeviceMessenger = onDevice) } }
+            .launchIn(viewModelScope)
     }
 
     fun onAction(action: NetworksAction) {
         when (action) {
             NetworksAction.OnRefresh -> refresh()
             is NetworksAction.OnDisconnectClick -> disconnect(action.network, action.loginId)
+            NetworksAction.OnDisconnectOnDeviceClick -> viewModelScope.launch { onDeviceMessenger.unlink() }
             else -> Unit
         }
     }

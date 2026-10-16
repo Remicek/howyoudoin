@@ -1,12 +1,15 @@
 package com.devvalor.howyoudoing.networks.presentation.list
 
 import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
+import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceMessengerState
 import com.devvalor.howyoudoing.core.presentation.util.UiText
 import com.devvalor.howyoudoing.networks.domain.NetworkLogin
 
 data class NetworksState(
     /** Networks whose how-to-connect tutorial the user chose not to see again. */
     val dismissedTutorials: Set<ChatNetwork> = emptySet(),
+    /** Messenger connected from this phone (experimental), shown under Messenger. */
+    val onDeviceMessenger: OnDeviceMessengerState = OnDeviceMessengerState.NotLinked,
     val items: List<NetworkItemUi> = ChatNetwork.bridged.map { network ->
         NetworkItemUi(
             network = network,

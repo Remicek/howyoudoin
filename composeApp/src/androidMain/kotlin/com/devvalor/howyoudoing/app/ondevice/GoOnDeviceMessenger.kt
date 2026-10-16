@@ -35,8 +35,7 @@ import kotlinx.serialization.json.jsonPrimitive
 
 /**
  * Runs Messenger in-process through the gomobile-built hydbridge library (bridge-mobile/).
- * Cookies are kept in app-private SharedPreferences.
- * TODO: move them to EncryptedSharedPreferences / Keystore before this leaves the experiment stage.
+ * The session cookies are stored encrypted with a Keystore key; encrypted-chat keys live in [dataDir].
  */
 class GoOnDeviceMessenger(
     context: Context,
@@ -44,6 +43,7 @@ class GoOnDeviceMessenger(
 ) : OnDeviceMessenger {
 
     private val prefs = context.getSharedPreferences("on_device_messenger", Context.MODE_PRIVATE)
+    private val cipher = KeystoreCipher("howyoudoin_on_device_messenger")
 
     /** Encrypted-chat keys (whatsmeow store) and the history device; deleted on unlink. */
     private val dataDir = File(context.noBackupFilesDir, "on_device_messenger").apply { mkdirs() }
@@ -72,13 +72,23 @@ class GoOnDeviceMessenger(
     override suspend fun link(cookies: Map<String, String>): EmptyResult<DataError.Remote> {
         val json = JsonObject(cookies.mapValues { JsonPrimitive(it.value) }).toString()
         val result = connect(json)
-        if (result is Result.Success) prefs.edit().putString(KEY_COOKIES, json).apply()
+        if (result is Result.Success) saveCookies(json)
         return result
     }
 
     override suspend fun connectIfLinked() {
-        val saved = prefs.getString(KEY_COOKIES, null) ?: return
+        val saved = loadCookies() ?: return
         connect(saved)
+    }
+
+    private fun saveCookies(json: String) {
+        prefs.edit().putString(KEY_COOKIES_ENCRYPTED, cipher.encrypt(json)).remove(KEY_COOKIES_PLAIN).apply()
+    }
+
+    private fun loadCookies(): String? {
+        prefs.getString(KEY_COOKIES_ENCRYPTED, null)?.let { return cipher.decrypt(it) }
+        // Early builds of this experiment stored them in plain text; encrypt on first read
+        return prefs.getString(KEY_COOKIES_PLAIN, null)?.also(::saveCookies)
     }
 
     private suspend fun connect(cookiesJson: String): EmptyResult<DataError.Remote> = lock.withLock {
@@ -206,7 +216,7 @@ class GoOnDeviceMessenger(
         lock.withLock {
             withContext(Dispatchers.IO) { messenger?.disconnect() }
             messenger = null
-            prefs.edit().remove(KEY_COOKIES).apply()
+            prefs.edit().remove(KEY_COOKIES_ENCRYPTED).remove(KEY_COOKIES_PLAIN).apply()
             dataDir.deleteRecursively()
             dataDir.mkdirs()
             _events.resetReplayCache()
@@ -228,7 +238,8 @@ class GoOnDeviceMessenger(
 
     private companion object {
         const val TAG = "OnDeviceMessenger"
-        const val KEY_COOKIES = "cookies"
+        const val KEY_COOKIES_PLAIN = "cookies"
+        const val KEY_COOKIES_ENCRYPTED = "cookies_encrypted"
         const val EVENT_REPLAY = 5_000
         const val HISTORY_PAGE_SIZE = 50L
     }
