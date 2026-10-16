@@ -165,7 +165,8 @@ class OnDeviceMessengerStore(
             lastMessage = lastMessage,
             unreadCount = if (lastActivityMs > lastReadMs && lastMessage.isOutgoing.not()) 1 else 0,
             isGroup = isGroup,
-            avatarUrl = null
+            avatarUrl = null,
+            isOnDevice = true
         )
     }
 

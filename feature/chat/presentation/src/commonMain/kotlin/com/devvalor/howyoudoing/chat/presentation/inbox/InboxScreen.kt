@@ -26,6 +26,7 @@ import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Groups
 import androidx.compose.material.icons.rounded.Hub
 import androidx.compose.material.icons.rounded.Lock
+import androidx.compose.material.icons.rounded.PhoneAndroid
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.CircularProgressIndicator
@@ -256,6 +257,15 @@ private fun ChatRow(chat: ChatUi, onClick: () -> Unit) {
                         contentDescription = "Group",
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(16.dp),
+                    )
+                    Spacer(Modifier.width(HowYouDoinSpacing.xs))
+                }
+                if (chat.isOnDevice) {
+                    Icon(
+                        Icons.Rounded.PhoneAndroid,
+                        contentDescription = "Connected on this device",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(14.dp),
                     )
                     Spacer(Modifier.width(HowYouDoinSpacing.xs))
                 }

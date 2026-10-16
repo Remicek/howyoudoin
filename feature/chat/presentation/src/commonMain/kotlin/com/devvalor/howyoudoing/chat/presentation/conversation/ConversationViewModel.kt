@@ -107,6 +107,7 @@ class ConversationViewModel(
                         network = chat?.network ?: it.network,
                         isGroup = chat?.isGroup ?: it.isGroup,
                         isEncrypted = chat?.isEncrypted ?: it.isEncrypted,
+                        isOnDevice = chat?.isOnDevice ?: it.isOnDevice,
                         typingText = chat?.let { c -> typingText(c.typingNames, c.isGroup) },
                         messages = messages.toMessageUis(showSenderNames = chat?.isGroup == true),
                         hasMoreHistory = hasMore

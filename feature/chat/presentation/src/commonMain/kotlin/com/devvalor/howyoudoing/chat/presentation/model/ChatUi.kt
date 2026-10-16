@@ -19,6 +19,7 @@ data class ChatUi(
     val unreadCount: Int,
     val isGroup: Boolean,
     val isEncrypted: Boolean = false,
+    val isOnDevice: Boolean = false,
     /** "Anna is typing…" replaces the preview while someone types. */
     val typingText: String? = null
 )
@@ -58,6 +59,7 @@ fun Chat.toChatUi(): ChatUi = ChatUi(
     unreadCount = unreadCount,
     isGroup = isGroup,
     isEncrypted = isEncrypted,
+    isOnDevice = isOnDevice,
     typingText = typingText(typingNames, isGroup)
 )
 

@@ -8,6 +8,7 @@ data class ConversationState(
     val network: ChatNetwork? = null,
     val isGroup: Boolean = false,
     val isEncrypted: Boolean = false,
+    val isOnDevice: Boolean = false,
     val messages: List<MessageUi> = emptyList(),
     val draft: String = "",
     val isLoadingOlder: Boolean = false,

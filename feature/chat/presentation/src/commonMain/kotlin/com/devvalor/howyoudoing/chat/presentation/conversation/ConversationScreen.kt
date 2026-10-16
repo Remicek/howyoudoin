@@ -147,7 +147,11 @@ fun ConversationScreen(
                                 )
                             } else state.network?.let { network ->
                                 Text(
-                                    if (state.isEncrypted) "${network.displayName} · end-to-end encrypted" else network.displayName,
+                                    when {
+                                        state.isEncrypted -> "${network.displayName} · end-to-end encrypted"
+                                        state.isOnDevice -> "${network.displayName} · on this device"
+                                        else -> network.displayName
+                                    },
                                     style = MaterialTheme.typography.labelSmall,
                                     color = network.brandColor,
                                 )
