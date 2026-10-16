@@ -43,7 +43,11 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.foundation.interaction.DragInteraction
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -226,8 +230,25 @@ private fun MessageList(
     LaunchedEffect(isNearTop, state.hasMoreHistory, state.messages.size) {
         if (isNearTop && state.hasMoreHistory) onAction(ConversationAction.OnLoadOlder)
     }
-    LaunchedEffect(state.messages.lastOrNull()?.id) {
-        if (listState.firstVisibleItemIndex <= 1) listState.animateScrollToItem(0)
+    // Stay on the newest message (a chat opens at the bottom, even while its messages arrive in several batches)
+    // until the user scrolls up themselves; scrolling back down to the newest one turns it on again.
+    var followNewest by remember { mutableStateOf(true) }
+    LaunchedEffect(listState) {
+        listState.interactionSource.interactions.collect { interaction ->
+            if (interaction is DragInteraction.Start) followNewest = false
+        }
+    }
+    LaunchedEffect(listState) {
+        snapshotFlow { listState.firstVisibleItemIndex == 0 && !listState.isScrollInProgress }
+            .collect { atNewest -> if (atNewest) followNewest = true }
+    }
+    var shownCount by remember { mutableStateOf(0) }
+    LaunchedEffect(state.messages.lastOrNull()?.id, state.messages.size) {
+        val previousCount = shownCount
+        shownCount = state.messages.size
+        if (!followNewest || state.messages.isEmpty()) return@LaunchedEffect
+        // One new message slides in; a batch (opening the chat, history arriving) jumps without animation
+        if (state.messages.size - previousCount == 1) listState.animateScrollToItem(0) else listState.scrollToItem(0)
     }
 
     LazyColumn(
