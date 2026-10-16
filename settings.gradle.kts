@@ -1,4 +1,4 @@
-rootProject.name = "Relay"
+rootProject.name = "HowYouDoin"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 pluginManagement {

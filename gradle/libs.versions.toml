@@ -32,7 +32,7 @@ qrose = "1.0.1"
 compose-jetbrains = "1.8.2"
 jetbrains-savedstate = "1.3.1"
 
-projectApplicationId = "com.relay.app"
+projectApplicationId = "com.devvalor.howyoudoing"
 projectVersionName = "1.0"
 projectMinSdkVersion = "26"
 projectTargetSdkVersion = "36"
@@ -109,12 +109,12 @@ jetbrains-savedstate = { module = "org.jetbrains.androidx.savedstate:savedstate"
 jetbrains-bundle = { module = "org.jetbrains.androidx.core:core-bundle", version.ref = "jetbrains-core-bundle" }
 
 [plugins]
-convention-android-application = { id = "com.relay.convention.android.application", version = "unspecified" }
-convention-android-application-compose = { id = "com.relay.convention.android.application.compose", version = "unspecified" }
-convention-cmp-application = { id = "com.relay.convention.cmp.application", version = "unspecified" }
-convention-kmp-library = { id = "com.relay.convention.kmp.library", version = "unspecified" }
-convention-cmp-library = { id = "com.relay.convention.cmp.library", version = "unspecified" }
-convention-cmp-feature = { id = "com.relay.convention.cmp.feature", version = "unspecified" }
+convention-android-application = { id = "com.devvalor.howyoudoing.convention.android.application", version = "unspecified" }
+convention-android-application-compose = { id = "com.devvalor.howyoudoing.convention.android.application.compose", version = "unspecified" }
+convention-cmp-application = { id = "com.devvalor.howyoudoing.convention.cmp.application", version = "unspecified" }
+convention-kmp-library = { id = "com.devvalor.howyoudoing.convention.kmp.library", version = "unspecified" }
+convention-cmp-library = { id = "com.devvalor.howyoudoing.convention.cmp.library", version = "unspecified" }
+convention-cmp-feature = { id = "com.devvalor.howyoudoing.convention.cmp.feature", version = "unspecified" }
 
 # Android
 android-application = { id = "com.android.application", version.ref = "agp" }

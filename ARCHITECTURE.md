@@ -1,6 +1,6 @@
-# Relay — Architecture Guide
+# HowYouDoin — Architecture Guide
 
-Relay is a **Compose Multiplatform** (Android + iOS) unified chat inbox, in the spirit of Beeper.
+HowYouDoin is a **Compose Multiplatform** (Android + iOS) unified chat inbox, in the spirit of Beeper.
 It follows the same Clean Architecture + MVI layout as Matcha: feature-based Gradle modules,
 convention plugins in `build-logic/`, Koin for DI and type-safe Compose Navigation.
 
@@ -8,12 +8,12 @@ convention plugins in `build-logic/`, Koin for DI and type-safe Compose Navigati
 
 ## How the networks are reached
 
-There is no public API for personal WhatsApp or Messenger accounts. Like Beeper, Relay is a
+There is no public API for personal WhatsApp or Messenger accounts. Like Beeper, HowYouDoin is a
 **Matrix client**: it talks to a Matrix homeserver, and **mautrix bridges** running next to it
 log in to WhatsApp / Messenger on the user's behalf and mirror every chat as a Matrix room.
 
 ```
- Relay app ──Matrix C-S API──▶ Homeserver (Synapse / Conduit / ...)
+ HowYouDoin app ──Matrix C-S API──▶ Homeserver (Synapse / Conduit / ...)
      │                              ▲
      └──bridgev2 provisioning API──▶│ mautrix-whatsapp  ──▶ WhatsApp
                                     │ mautrix-meta      ──▶ Messenger
@@ -49,7 +49,7 @@ simulated login flows. No server needed.
    [mautrix-meta](https://docs.mau.fi/bridges/go/meta/) (bridgev2, `network.mode: messenger`).
 2. Expose each bridge's provisioning API (`/_matrix/provision`) over HTTPS, e.g. via a reverse proxy path.
    Keep `provisioning.allow_matrix_auth: true` so the user's Matrix access token is accepted.
-3. Sign in to Relay with your Matrix account, open **Networks** and enter that URL when connecting.
+3. Sign in to HowYouDoin with your Matrix account, open **Networks** and enter that URL when connecting.
 4. Bridge encryption must be **off** for now (see TODO).
 
 ---
@@ -61,7 +61,7 @@ composeApp
  ├── core:domain          Result/DataError, AuthInfo, SessionStorage, ChatNetwork
  ├── core:data            DataStore session, Ktor HttpClientFactory, safeCall
  ├── core:presentation    UiText, ObserveAsEvents, TimestampFormatter
- ├── core:designsystem    RelayTheme, network colours, ChatAvatar, NetworkBadge
+ ├── core:designsystem    HowYouDoinTheme, network colours, ChatAvatar, NetworkBadge
  ├── feature:auth:data          MatrixAuthService, HomeserverResolver
  ├── feature:auth:presentation  Login
  ├── feature:chat:domain        Chat, Message, ChatRepository

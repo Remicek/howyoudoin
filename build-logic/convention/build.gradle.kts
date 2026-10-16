@@ -4,7 +4,7 @@ plugins {
     `kotlin-dsl`
 }
 
-group = "com.relay.convention.buildlogic"
+group = "com.devvalor.howyoudoing.convention.buildlogic"
 
 dependencies {
     compileOnly(libs.android.gradlePlugin)
@@ -34,27 +34,27 @@ tasks {
 gradlePlugin {
     plugins {
         register("androidApplication") {
-            id = "com.relay.convention.android.application"
+            id = "com.devvalor.howyoudoing.convention.android.application"
             implementationClass = "AndroidApplicationConventionPlugin"
         }
         register("androidComposeApplication") {
-            id = "com.relay.convention.android.application.compose"
+            id = "com.devvalor.howyoudoing.convention.android.application.compose"
             implementationClass = "AndroidApplicationComposeConventionPlugin"
         }
         register("cmpApplication") {
-            id = "com.relay.convention.cmp.application"
+            id = "com.devvalor.howyoudoing.convention.cmp.application"
             implementationClass = "CmpApplicationConventionPlugin"
         }
         register("kmpLibrary") {
-            id = "com.relay.convention.kmp.library"
+            id = "com.devvalor.howyoudoing.convention.kmp.library"
             implementationClass = "KmpLibraryConventionPlugin"
         }
         register("cmpLibrary") {
-            id = "com.relay.convention.cmp.library"
+            id = "com.devvalor.howyoudoing.convention.cmp.library"
             implementationClass = "CmpLibraryConventionPlugin"
         }
         register("cmpFeature") {
-            id = "com.relay.convention.cmp.feature"
+            id = "com.devvalor.howyoudoing.convention.cmp.feature"
             implementationClass = "CmpFeatureConventionPlugin"
         }
     }

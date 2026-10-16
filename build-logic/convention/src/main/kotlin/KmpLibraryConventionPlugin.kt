@@ -1,8 +1,8 @@
 import com.android.build.api.dsl.LibraryExtension
-import com.relay.convention.configureKotlinAndroid
-import com.relay.convention.configureKotlinMultiplatform
-import com.relay.convention.libs
-import com.relay.convention.pathToResourcePrefix
+import com.devvalor.howyoudoing.convention.configureKotlinAndroid
+import com.devvalor.howyoudoing.convention.configureKotlinMultiplatform
+import com.devvalor.howyoudoing.convention.libs
+import com.devvalor.howyoudoing.convention.pathToResourcePrefix
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.configure

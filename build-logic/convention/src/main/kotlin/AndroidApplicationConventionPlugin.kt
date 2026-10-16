@@ -1,6 +1,6 @@
 import com.android.build.api.dsl.ApplicationExtension
-import com.relay.convention.configureKotlinAndroid
-import com.relay.convention.libs
+import com.devvalor.howyoudoing.convention.configureKotlinAndroid
+import com.devvalor.howyoudoing.convention.libs
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.configure
@@ -14,7 +14,7 @@ class AndroidApplicationConventionPlugin : Plugin<Project> {
             }
 
             extensions.configure<ApplicationExtension> {
-                namespace = "com.relay.app"
+                namespace = "com.devvalor.howyoudoing.app"
 
                 defaultConfig {
                     applicationId = libs.findVersion("projectApplicationId").get().toString()
