@@ -23,6 +23,7 @@ fun initKoin(config: KoinAppDeclaration? = null) {
             chatPresentationModule,
             networksPresentationModule,
             appModule,
+            platformAppModule,
             corePresentationModule,
         )
     }

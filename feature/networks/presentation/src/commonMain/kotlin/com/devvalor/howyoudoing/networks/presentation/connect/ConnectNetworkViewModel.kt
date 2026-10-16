@@ -8,7 +8,11 @@ import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
 import com.devvalor.howyoudoing.core.domain.util.DataError
 import com.devvalor.howyoudoing.core.domain.util.Result
 import com.devvalor.howyoudoing.core.presentation.util.toUiText
+import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceMessenger
+import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceMessengerState
+import com.devvalor.howyoudoing.networks.domain.BridgeLoginFlow
 import com.devvalor.howyoudoing.networks.domain.BridgeLoginStep
+import com.devvalor.howyoudoing.networks.domain.RequiredCookie
 import com.devvalor.howyoudoing.networks.domain.BridgeRepository
 import com.devvalor.howyoudoing.networks.domain.InputFieldType
 import com.devvalor.howyoudoing.networks.presentation.components.DeveloperOptions
@@ -29,7 +33,8 @@ class ConnectNetworkViewModel(
     savedStateHandle: SavedStateHandle,
     private val bridgeRepository: BridgeRepository,
     private val deviceRegion: DeviceRegionProvider,
-    developerOptions: DeveloperOptions
+    developerOptions: DeveloperOptions,
+    private val onDeviceMessenger: OnDeviceMessenger
 ) : ViewModel() {
 
     private val route = savedStateHandle.toRoute<NetworksRoutes.Connect>()
@@ -64,7 +69,11 @@ class ConnectNetworkViewModel(
                 stepJob?.cancel()
                 _state.update { it.copy(phase = ConnectPhase.ConfigureBridge, error = null) }
             }
-            is ConnectNetworkAction.OnFlowClick -> runStep { bridgeRepository.startLogin(network, action.flowId) }
+            is ConnectNetworkAction.OnFlowClick -> if (action.flowId == ON_DEVICE_FLOW_ID) {
+                showStep(onDeviceCookiesStep())
+            } else {
+                runStep { bridgeRepository.startLogin(network, action.flowId) }
+            }
             is ConnectNetworkAction.OnInputChange -> onInputChange(action.fieldId, action.value)
             is ConnectNetworkAction.OnCountrySelect -> {
                 _state.update { it.copy(phoneCountries = it.phoneCountries + (action.fieldId to action.isoCode)) }
@@ -88,13 +97,14 @@ class ConnectNetworkViewModel(
             }
             when (val result = bridgeRepository.getStatus(network)) {
                 is Result.Success -> {
-                    _state.update { it.copy(phase = ConnectPhase.ChooseFlow(result.data.flows)) }
+                    _state.update { it.copy(phase = ConnectPhase.ChooseFlow(result.data.flows + onDeviceFlows())) }
                     val preselected = preselectedFlowId?.takeIf { id -> result.data.flows.any { it.id == id } }
                     preselectedFlowId = null
                     if (preselected != null) advance(bridgeRepository.startLogin(network, preselected))
                 }
+                // The on-device option doesn't need the server bridge, so offer it even when that's down
                 is Result.Failure -> _state.update {
-                    it.copy(phase = ConnectPhase.ChooseFlow(emptyList()), error = result.error.toUiText())
+                    it.copy(phase = ConnectPhase.ChooseFlow(onDeviceFlows()), error = result.error.toUiText())
                 }
             }
         }
@@ -125,6 +135,7 @@ class ConnectNetworkViewModel(
     private fun submitCookies(cookiesByName: Map<String, String>) {
         val step = (state.value.phase as? ConnectPhase.Step)?.step as? BridgeLoginStep.Cookies ?: return
         if (state.value.isSubmitting) return
+        if (step.loginId == ON_DEVICE_FLOW_ID) return linkOnDevice(step, cookiesByName)
         val values = step.cookies
             .mapNotNull { cookie -> cookiesByName[cookie.cookieName]?.let { cookie.fieldId to it } }
             .toMap()
@@ -217,5 +228,47 @@ class ConnectNetworkViewModel(
                 else -> state.copy(phase = ConnectPhase.Step(step), isSubmitting = false)
             }
         }
+    }
+
+    private fun onDeviceFlows(): List<BridgeLoginFlow> =
+        if (network == ChatNetwork.MESSENGER && onDeviceMessenger.isSupported) {
+            listOf(
+                BridgeLoginFlow(
+                    id = ON_DEVICE_FLOW_ID,
+                    name = "On this device (experimental)",
+                    description = "Connect from your phone, without the server bridge. Regular chats only for now."
+                )
+            )
+        } else {
+            emptyList()
+        }
+
+    /** Same cookie web view as the bridge's flow, but the cookies stay on the phone. */
+    private fun onDeviceCookiesStep() = BridgeLoginStep.Cookies(
+        loginId = ON_DEVICE_FLOW_ID,
+        stepId = "on-device-cookies",
+        instructions = "Log in to Messenger. HowYouDoin then connects from this phone directly.",
+        url = "https://www.messenger.com/",
+        userAgent = null,
+        cookies = listOf("xs", "c_user", "datr").map { RequiredCookie(fieldId = it, cookieName = it, isRequired = true) }
+    )
+
+    private fun linkOnDevice(step: BridgeLoginStep.Cookies, cookiesByName: Map<String, String>) {
+        val cookies = step.cookies.mapNotNull { cookie -> cookiesByName[cookie.cookieName]?.let { cookie.cookieName to it } }.toMap()
+        stepJob?.cancel()
+        stepJob = viewModelScope.launch {
+            _state.update { it.copy(isSubmitting = true, error = null) }
+            when (val result = onDeviceMessenger.link(cookies)) {
+                is Result.Success -> {
+                    val name = (onDeviceMessenger.state.value as? OnDeviceMessengerState.Connected)?.accountName
+                    _state.update { it.copy(phase = ConnectPhase.Connected(name), isSubmitting = false) }
+                }
+                is Result.Failure -> _state.update { it.copy(isSubmitting = false, error = result.error.toUiText()) }
+            }
+        }
+    }
+
+    private companion object {
+        const val ON_DEVICE_FLOW_ID = "howyoudoin-on-device"
     }
 }

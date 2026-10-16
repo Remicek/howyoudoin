@@ -8,6 +8,9 @@ kotlin {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
             implementation(libs.koin.android)
+            // On-device Messenger bridge, built by bridge-mobile/scripts/build-android.sh (not in git)
+            implementation(files("libs/hydbridge.aar"))
+            implementation(libs.kotlinx.serialization.json)
         }
         commonMain.dependencies {
             implementation(projects.core.data)
