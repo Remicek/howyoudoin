@@ -105,6 +105,19 @@ class GoOnDeviceMessenger(
         }
     }
 
+    override suspend fun requestOlder(threadKey: String, beforeTimestampMs: Long, beforeMessageId: String): EmptyResult<DataError.Remote> {
+        val client = messenger ?: return Result.Failure(DataError.Remote.SERVICE_UNAVAILABLE)
+        return withContext(Dispatchers.IO) {
+            try {
+                client.requestOlder(threadKey, beforeTimestampMs, beforeMessageId)
+                Result.Success(Unit)
+            } catch (e: Exception) {
+                Log.w(TAG, "Requesting older on-device Messenger messages failed", e)
+                Result.Failure(DataError.Remote.UNKNOWN)
+            }
+        }
+    }
+
     override suspend fun unlink() {
         lock.withLock {
             withContext(Dispatchers.IO) { messenger?.disconnect() }

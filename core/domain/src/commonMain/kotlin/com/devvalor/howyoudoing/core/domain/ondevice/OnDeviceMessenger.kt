@@ -31,6 +31,9 @@ interface OnDeviceMessenger {
     /** Sends text to a thread; returns the offline threading ID the echoed message will carry. */
     suspend fun sendText(threadKey: String, text: String): Result<String, DataError.Remote>
 
+    /** Asks for messages older than the given one; they arrive as message events plus a range event. */
+    suspend fun requestOlder(threadKey: String, beforeTimestampMs: Long, beforeMessageId: String): EmptyResult<DataError.Remote>
+
     suspend fun unlink()
 }
 
@@ -51,6 +54,8 @@ object UnsupportedOnDeviceMessenger : OnDeviceMessenger {
         Result.Failure(DataError.Remote.UNKNOWN)
     override suspend fun connectIfLinked() = Unit
     override suspend fun sendText(threadKey: String, text: String): Result<String, DataError.Remote> =
+        Result.Failure(DataError.Remote.UNKNOWN)
+    override suspend fun requestOlder(threadKey: String, beforeTimestampMs: Long, beforeMessageId: String): EmptyResult<DataError.Remote> =
         Result.Failure(DataError.Remote.UNKNOWN)
     override suspend fun unlink() = Unit
 }

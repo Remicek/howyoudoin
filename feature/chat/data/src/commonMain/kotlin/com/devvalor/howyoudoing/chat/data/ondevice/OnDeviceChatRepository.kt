@@ -13,7 +13,9 @@ import com.devvalor.howyoudoing.core.domain.util.EmptyResult
 import com.devvalor.howyoudoing.core.domain.util.Result
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.flow.map
 
 /**
@@ -50,12 +52,34 @@ class OnDeviceChatRepository(
         server.refresh()
     }
 
-    // The inbox only delivers recent messages per thread; paging older ones isn't wired up on device yet
-    override suspend fun loadOlderMessages(chatId: String): EmptyResult<DataError.Remote> =
-        if (chatId.threadKey() == null) server.loadOlderMessages(chatId) else Result.Success(Unit)
+    /**
+     * Messenger answers a history request asynchronously over the socket, so this waits until older messages
+     * (or a "no more history" range) arrive.
+     */
+    override suspend fun loadOlderMessages(chatId: String): EmptyResult<DataError.Remote> {
+        val key = chatId.threadKey() ?: return server.loadOlderMessages(chatId)
+        val oldest = store.oldestMessage(key)
+        if (!store.hasMoreBefore(key)) return Result.Success(Unit)
+        val result = if (oldest == null) {
+            // Nothing loaded for this chat yet: fetch the latest page
+            messenger.requestOlder(key, Long.MAX_VALUE / 2, "")
+        } else {
+            messenger.requestOlder(key, oldest.timestampMs, oldest.id)
+        }
+        if (result is Result.Failure) return result
+        withTimeoutOrNull(HISTORY_TIMEOUT_MILLIS) {
+            store.snapshot.first { s ->
+                s.hasMoreBefore[key] == false ||
+                    s.messages[key].orEmpty().values.any { oldest == null || it.timestampMs < oldest.timestampMs }
+            }
+        }
+        return Result.Success(Unit)
+    }
 
-    override fun hasMoreHistory(chatId: String): Flow<Boolean> =
-        if (chatId.threadKey() == null) server.hasMoreHistory(chatId) else flowOf(false)
+    override fun hasMoreHistory(chatId: String): Flow<Boolean> {
+        val key = chatId.threadKey() ?: return server.hasMoreHistory(chatId)
+        return store.snapshot.map { store.hasMoreBefore(key) }.distinctUntilChanged()
+    }
 
     override suspend fun sendMessage(chatId: String, body: String, replyToId: String?): EmptyResult<DataError.Remote> {
         val key = chatId.threadKey() ?: return server.sendMessage(chatId, body, replyToId)
@@ -89,4 +113,8 @@ class OnDeviceChatRepository(
     override suspend fun resolveMedia(mxcUrl: String, thumbnail: Boolean): MediaRequest? = server.resolveMedia(mxcUrl, thumbnail)
 
     override suspend fun downloadMedia(mxcUrl: String): ByteArray? = server.downloadMedia(mxcUrl)
+
+    private companion object {
+        const val HISTORY_TIMEOUT_MILLIS = 15_000L
+    }
 }

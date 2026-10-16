@@ -135,6 +135,28 @@ func (m *Messenger) SendText(threadKey string, text string) (string, error) {
 	return strconv.FormatInt(otid, 10), nil
 }
 
+// RequestOlder asks for messages before the given one (the oldest the app has). They arrive as message events,
+// followed by a range event telling whether even older history exists.
+func (m *Messenger) RequestOlder(threadKey string, beforeTimestampMs int64, beforeMessageID string) error {
+	key, err := strconv.ParseInt(threadKey, 10, 64)
+	if err != nil {
+		return fmt.Errorf("invalid thread key: %w", err)
+	}
+	resp, err := m.client.ExecuteTasks(context.Background(), &socket.FetchMessagesTask{
+		ThreadKey:            key,
+		Direction:            0,
+		ReferenceTimestampMs: beforeTimestampMs,
+		ReferenceMessageId:   beforeMessageID,
+		SyncGroup:            1,
+		Cursor:               m.client.GetCursor(1),
+	})
+	if err != nil {
+		return err
+	}
+	m.emitTable(resp)
+	return nil
+}
+
 func (m *Messenger) handleEvent(_ context.Context, evt any) {
 	switch evt := evt.(type) {
 	case *table.LSTable:
@@ -173,6 +195,18 @@ func (m *Messenger) emitTable(tbl *table.LSTable) {
 	}
 	for _, msg := range tbl.LSUpsertMessage {
 		m.emitMessage(msg.ThreadKey, msg.MessageId, msg.OfflineThreadingId, msg.SenderId, msg.Text, msg.TimestampMs, msg.IsUnsent)
+	}
+	for _, r := range tbl.LSInsertNewMessageRange {
+		m.emit(map[string]any{
+			"type": "range", "threadKey": id(r.ThreadKey), "minTimestampMs": r.MinTimestampMs,
+			"minMessageId": r.MinMessageId, "hasMoreBefore": r.HasMoreBefore,
+		})
+	}
+	for _, r := range tbl.LSUpdateExistingMessageRange {
+		// Same rule as mautrix-meta: (true, false) clears "has more after", anything else "has more before"
+		if !(r.UnknownBool2 && !r.UnknownBool3) {
+			m.emit(map[string]any{"type": "range", "threadKey": id(r.ThreadKey), "minTimestampMs": r.TimestampMS, "hasMoreBefore": false})
+		}
 	}
 }
 

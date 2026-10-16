@@ -39,7 +39,9 @@ class OnDeviceMessengerStore(
         /** Thread key → messages by ID. */
         val messages: Map<String, Map<String, StoredMessage>> = emptyMap(),
         /** Local echoes by offline threading ID until the server echoes them back. */
-        val pending: Map<String, StoredMessage> = emptyMap()
+        val pending: Map<String, StoredMessage> = emptyMap(),
+        /** Thread key → whether Messenger has messages before the oldest one we have (unknown means yes). */
+        val hasMoreBefore: Map<String, Boolean> = emptyMap()
     )
 
     data class Contact(val id: String, val name: String, val firstName: String, val avatarUrl: String?)
@@ -114,6 +116,10 @@ class OnDeviceMessengerStore(
                     if (key.isEmpty() || contact.isEmpty()) s
                     else s.copy(participants = s.participants + (key to (s.participants[key].orEmpty() + contact)))
                 }
+                "range" -> {
+                    val key = event.str("threadKey")
+                    if (key.isEmpty()) s else s.copy(hasMoreBefore = s.hasMoreBefore + (key to event.bool("hasMoreBefore")))
+                }
                 "message" -> {
                     val message = StoredMessage(
                         id = event.str("id"), threadKey = event.str("threadKey"), otid = event.str("otid"),
@@ -144,6 +150,12 @@ class OnDeviceMessengerStore(
         val stored = s.messages[threadKey].orEmpty().values + s.pending.values.filter { it.threadKey == threadKey }
         return stored.sortedBy { it.timestampMs }.map { it.toMessage(s) }
     }
+
+    fun hasMoreBefore(threadKey: String): Boolean = _snapshot.value.hasMoreBefore[threadKey] ?: true
+
+    /** The oldest message received from Messenger (not a local echo), used as the paging anchor. */
+    fun oldestMessage(threadKey: String): StoredMessage? =
+        _snapshot.value.messages[threadKey].orEmpty().values.minByOrNull { it.timestampMs }
 
     private fun Thread.toChat(s: Snapshot): Chat {
         val others = s.participants[key].orEmpty() - setOfNotNull(s.selfId)
