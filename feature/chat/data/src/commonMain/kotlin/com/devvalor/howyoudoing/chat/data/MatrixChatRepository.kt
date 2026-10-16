@@ -78,6 +78,8 @@ class MatrixChatRepository(
     override suspend fun resolveMedia(mxcUrl: String, thumbnail: Boolean): MediaRequest? =
         engine.mediaRequest(mxcUrl, thumbnail)
 
+    override suspend fun refresh() = engine.refresh()
+
     override suspend fun markAsRead(chatId: String): EmptyResult<DataError.Remote> =
         engine.markAsRead(chatId)
 

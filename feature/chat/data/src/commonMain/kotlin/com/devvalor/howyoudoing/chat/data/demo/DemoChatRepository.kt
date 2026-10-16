@@ -109,6 +109,10 @@ class DemoChatRepository(
         return Result.Success(Unit)
     }
 
+    override suspend fun refresh() {
+        delay(500)
+    }
+
     override suspend fun markAsRead(chatId: String): EmptyResult<DataError.Remote> {
         chats.update { all ->
             val target = all[chatId] ?: return@update all

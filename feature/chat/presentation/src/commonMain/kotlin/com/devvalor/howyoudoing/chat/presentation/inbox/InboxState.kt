@@ -12,7 +12,8 @@ data class InboxState(
     /** Networks with at least one end-to-end encrypted chat (regardless of search / filter). */
     val encryptedNetworks: Set<ChatNetwork> = emptySet(),
     val syncState: SyncState = SyncState.IDLE,
-    val isLoading: Boolean = true
+    val isLoading: Boolean = true,
+    val isRefreshing: Boolean = false
 ) {
     val totalUnread: Int get() = chats.sumOf { it.unreadCount }
 }

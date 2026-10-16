@@ -39,6 +39,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -147,12 +148,18 @@ fun InboxScreen(
                     isFiltered = state.query.isNotBlank() || state.filter != InboxFilter.All,
                     onNetworksClick = { onAction(InboxAction.OnNetworksClick) },
                 )
-                else -> LazyColumn(
-                    contentPadding = PaddingValues(bottom = HowYouDoinSpacing.lg),
+                else -> PullToRefreshBox(
+                    isRefreshing = state.isRefreshing,
+                    onRefresh = { onAction(InboxAction.OnRefresh) },
                     modifier = Modifier.fillMaxSize(),
                 ) {
-                    items(state.chats, key = { it.id }) { chat ->
-                        ChatRow(chat = chat, onClick = { onAction(InboxAction.OnChatClick(chat.id)) })
+                    LazyColumn(
+                        contentPadding = PaddingValues(bottom = HowYouDoinSpacing.lg),
+                        modifier = Modifier.fillMaxSize(),
+                    ) {
+                        items(state.chats, key = { it.id }) { chat ->
+                            ChatRow(chat = chat, onClick = { onAction(InboxAction.OnChatClick(chat.id)) })
+                        }
                     }
                 }
             }

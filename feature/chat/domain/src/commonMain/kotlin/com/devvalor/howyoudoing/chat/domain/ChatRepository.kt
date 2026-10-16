@@ -7,6 +7,8 @@ import kotlinx.coroutines.flow.Flow
 interface ChatRepository {
     fun observeSyncState(): Flow<SyncState>
     fun observeChats(): Flow<List<Chat>>
+    /** Re-fetches all chats from the server (pull to refresh); returns when done. */
+    suspend fun refresh()
     fun observeChat(chatId: String): Flow<Chat?>
 
     /** Messages ordered oldest first. */

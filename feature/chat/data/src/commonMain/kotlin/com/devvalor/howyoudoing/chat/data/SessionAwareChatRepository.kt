@@ -55,6 +55,8 @@ class SessionAwareChatRepository(
     override suspend fun resolveMedia(mxcUrl: String, thumbnail: Boolean): MediaRequest? =
         current().resolveMedia(mxcUrl, thumbnail)
 
+    override suspend fun refresh() = current().refresh()
+
     override suspend fun markAsRead(chatId: String): EmptyResult<DataError.Remote> =
         current().markAsRead(chatId)
 

@@ -24,11 +24,14 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.withTimeoutOrNull
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -62,6 +65,10 @@ class MatrixSyncEngine(
 
     private val attemptedInvites = mutableSetOf<String>()
 
+    /** Bumped to restart the sync loop with a fresh initial sync (pull to refresh). */
+    private val refreshRequests = MutableStateFlow(0)
+    private val refreshWaiters = MutableStateFlow<List<CompletableDeferred<Unit>>>(emptyList())
+
     private val syncJob by lazy {
         applicationScope.launch {
             sessionStorage.observeAuthInfo()
@@ -74,7 +81,8 @@ class MatrixSyncEngine(
                     if (session == null) {
                         _syncState.value = SyncState.IDLE
                     } else {
-                        runSyncLoop(session)
+                        // Each refresh request cancels the running long-poll and starts over
+                        refreshRequests.collectLatest { runSyncLoop(session) }
                     }
                 }
         }
@@ -82,6 +90,22 @@ class MatrixSyncEngine(
 
     fun ensureStarted() {
         syncJob
+    }
+
+    /**
+     * Re-fetches everything with an initial sync, replacing the cached rooms; recovers rooms or state an
+     * incremental sync missed. Returns once that sync finished (or failed, or took too long).
+     */
+    suspend fun refresh() {
+        ensureStarted()
+        val done = CompletableDeferred<Unit>()
+        refreshWaiters.update { it + done }
+        refreshRequests.update { it + 1 }
+        withTimeoutOrNull(REFRESH_TIMEOUT_MILLIS) { done.await() }
+    }
+
+    private fun completeRefreshWaiters() {
+        refreshWaiters.getAndUpdate { emptyList() }.forEach { it.complete(Unit) }
     }
 
     private suspend fun runSyncLoop(session: AuthInfo) {
@@ -96,7 +120,8 @@ class MatrixSyncEngine(
             )
             when (result) {
                 is Result.Success -> {
-                    applySync(session, result.data)
+                    applySync(session, result.data, isInitial = since == null)
+                    if (since == null) completeRefreshWaiters()
                     since = result.data.nextBatch
                     backoffMillis = INITIAL_BACKOFF_MILLIS
                     _syncState.value = SyncState.SYNCED
@@ -108,6 +133,7 @@ class MatrixSyncEngine(
                         return
                     }
                     _syncState.value = SyncState.OFFLINE
+                    completeRefreshWaiters()
                     delay(backoffMillis)
                     backoffMillis = (backoffMillis * 2).coerceAtMost(MAX_BACKOFF_MILLIS)
                 }
@@ -115,10 +141,19 @@ class MatrixSyncEngine(
         }
     }
 
-    private suspend fun applySync(session: AuthInfo, sync: SyncResponseDto) {
-        val rooms = sync.rooms ?: return
+    private suspend fun applySync(session: AuthInfo, sync: SyncResponseDto, isInitial: Boolean) {
+        val rooms = sync.rooms ?: run {
+            if (isInitial) _rooms.value = emptyMap()
+            return
+        }
         _rooms.update { current ->
-            val updated = current.toMutableMap()
+            // An initial sync is the full picture: start from scratch, keeping only messages still being sent
+            val updated = if (isInitial) {
+                current.filterKeys { it in rooms.join }.mapValues { (roomId, room) -> RoomCache(roomId, pending = room.pending) }
+                    .toMutableMap()
+            } else {
+                current.toMutableMap()
+            }
             rooms.leave.keys.forEach(updated::remove)
             rooms.join.forEach { (roomId, room) ->
                 updated[roomId] = (updated[roomId] ?: RoomCache(roomId)).merge(room)
@@ -285,6 +320,7 @@ class MatrixSyncEngine(
 
     private companion object {
         const val LONG_POLL_MILLIS = 30_000L
+        const val REFRESH_TIMEOUT_MILLIS = 30_000L
         const val INITIAL_BACKOFF_MILLIS = 1_000L
         const val MAX_BACKOFF_MILLIS = 30_000L
         const val TYPING_TIMEOUT_MILLIS = 10_000L

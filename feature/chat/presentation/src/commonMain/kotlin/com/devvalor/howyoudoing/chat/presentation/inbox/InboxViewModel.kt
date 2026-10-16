@@ -52,6 +52,7 @@ class InboxViewModel(
                 _state.update { it.copy(filter = action.filter) }
             }
             InboxAction.OnLogoutClick -> viewModelScope.launch { authService.logout() }
+            InboxAction.OnRefresh -> refresh()
             else -> Unit
         }
     }
@@ -84,5 +85,14 @@ class InboxViewModel(
         InboxFilter.All -> true
         InboxFilter.Unread -> chat.unreadCount > 0
         is InboxFilter.Network -> chat.network == network
+    }
+
+    private fun refresh() {
+        if (state.value.isRefreshing) return
+        _state.update { it.copy(isRefreshing = true) }
+        viewModelScope.launch {
+            chatRepository.refresh()
+            _state.update { it.copy(isRefreshing = false) }
+        }
     }
 }
