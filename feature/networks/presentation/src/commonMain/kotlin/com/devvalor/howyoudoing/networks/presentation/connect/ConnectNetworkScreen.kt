@@ -393,6 +393,11 @@ private fun Connected(
             buildString {
                 accountName?.let { append("Logged in as $it. ") }
                 append("Your ${state.network.displayName} chats will show up in the inbox over the next few minutes.")
+                if (state.network == ChatNetwork.MESSENGER) {
+                    // New encrypted devices are only picked up once the phone app refreshes its device list
+                    append("\n\nTip: open Messenger on your phone once so it recognises HowYouDoin as one of your " +
+                        "devices. Until then, encrypted messages sent from that phone may not arrive here.")
+                }
             },
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,

@@ -23,6 +23,7 @@ fun RoomCache.toChat(myUserId: String): Chat {
         lastMessage = messages.lastOrNull(),
         unreadCount = unreadCount,
         isGroup = memberCount() > 2,
+        isEncrypted = isRemoteEncrypted(),
         avatarUrl = stateEvent("m.room.avatar")?.content?.string("url")
     )
 }
@@ -125,6 +126,14 @@ private fun RoomCache.bridgeBots(): Set<String> =
     state.values
         .filter { it.type in BRIDGE_STATE_TYPES }
         .mapNotNullTo(HashSet()) { it.content.string("bridgebot") }
+
+/**
+ * mautrix bridges describe a chat's capabilities in `com.beeper.room_features`; Messenger's end-to-end
+ * encrypted chats get an id like "fi.mau.meta.capabilities.2026_07_21+e2e".
+ */
+private fun RoomCache.isRemoteEncrypted(): Boolean =
+    // State key is per bridge (e.g. "howyoudoin.local/messenger"), so match on type only
+    state.values.any { it.type == "com.beeper.room_features" && it.content.string("id")?.contains("+e2e") == true }
 
 /** People in the room, not counting bridge bots. */
 private fun RoomCache.memberCount(): Int {

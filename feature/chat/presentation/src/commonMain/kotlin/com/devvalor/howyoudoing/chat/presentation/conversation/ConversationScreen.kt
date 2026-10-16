@@ -51,7 +51,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
 import androidx.compose.ui.text.style.TextAlign
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.devvalor.howyoudoing.chat.domain.MessageStatus
@@ -112,7 +111,7 @@ fun ConversationScreen(
                             Text(state.chatName, style = MaterialTheme.typography.titleMedium, maxLines = 1)
                             state.network?.let { network ->
                                 Text(
-                                    network.displayName,
+                                    if (state.isEncrypted) "${network.displayName} · end-to-end encrypted" else network.displayName,
                                     style = MaterialTheme.typography.labelSmall,
                                     color = network.brandColor,
                                 )
@@ -201,8 +200,8 @@ private fun MessageList(
  */
 @Composable
 private fun HistoryStartNote(state: ConversationState) {
-    val text = if (state.network == ChatNetwork.MESSENGER && !state.isGroup) {
-        "Older messages in end-to-end encrypted Messenger chats stay on your other devices and can't be " +
+    val text = if (state.isEncrypted) {
+        "Older messages in end-to-end encrypted ${state.network?.displayName ?: ""} chats stay on your other devices and can't be " +
             "transferred. New messages will appear here."
     } else {
         "This is the start of the history available in HowYouDoin."

@@ -14,7 +14,8 @@ data class ChatUi(
     val preview: String,
     val timestamp: String,
     val unreadCount: Int,
-    val isGroup: Boolean
+    val isGroup: Boolean,
+    val isEncrypted: Boolean = false
 )
 
 data class MessageUi(
@@ -33,10 +34,12 @@ fun Chat.toChatUi(): ChatUi = ChatUi(
     id = id,
     name = name,
     network = network,
-    preview = lastMessage?.previewText(isGroup).orEmpty(),
+    preview = lastMessage?.previewText(isGroup)
+        ?: if (isEncrypted) "Encrypted chat · new messages will appear here" else "",
     timestamp = lastMessage?.let { TimestampFormatter.formatChatTimestamp(it.timestamp) }.orEmpty(),
     unreadCount = unreadCount,
-    isGroup = isGroup
+    isGroup = isGroup,
+    isEncrypted = isEncrypted
 )
 
 /**

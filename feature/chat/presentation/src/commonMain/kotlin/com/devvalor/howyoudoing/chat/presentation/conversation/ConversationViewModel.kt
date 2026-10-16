@@ -70,6 +70,7 @@ class ConversationViewModel(
                         chatName = chat?.name ?: it.chatName,
                         network = chat?.network ?: it.network,
                         isGroup = chat?.isGroup ?: it.isGroup,
+                        isEncrypted = chat?.isEncrypted ?: it.isEncrypted,
                         messages = messages.toMessageUis(showSenderNames = chat?.isGroup == true),
                         hasMoreHistory = hasMore
                     )
