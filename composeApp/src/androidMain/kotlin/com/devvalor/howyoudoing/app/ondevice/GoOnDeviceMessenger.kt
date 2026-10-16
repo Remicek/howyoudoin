@@ -179,6 +179,29 @@ class GoOnDeviceMessenger(
         }
     }
 
+    override suspend fun sendReaction(threadKey: String, messageId: String, emoji: String): EmptyResult<DataError.Remote> =
+        call("Sending on-device Messenger reaction") { sendReaction(threadKey, messageId, emoji) }
+
+    override suspend fun markRead(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, lastMessageId: String, senderId: String): EmptyResult<DataError.Remote> =
+        call("Marking on-device Messenger chat read") { markRead(threadKey, isEncrypted, isGroup, lastMessageId, senderId) }
+
+    override suspend fun setTyping(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, isTyping: Boolean): EmptyResult<DataError.Remote> =
+        call("Sending on-device Messenger typing") { setTyping(threadKey, isEncrypted, isGroup, isTyping) }
+
+    /** Runs a native call off the main thread, mapping exceptions to a failure. */
+    private suspend fun call(description: String, block: Messenger.() -> Unit): EmptyResult<DataError.Remote> {
+        val client = messenger ?: return Result.Failure(DataError.Remote.SERVICE_UNAVAILABLE)
+        return withContext(Dispatchers.IO) {
+            try {
+                client.block()
+                Result.Success(Unit)
+            } catch (e: Exception) {
+                Log.w(TAG, "$description failed", e)
+                Result.Failure(DataError.Remote.UNKNOWN)
+            }
+        }
+    }
+
     override suspend fun unlink() {
         lock.withLock {
             withContext(Dispatchers.IO) { messenger?.disconnect() }

@@ -11,6 +11,10 @@ import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceMessenger
 import com.devvalor.howyoudoing.core.domain.util.DataError
 import com.devvalor.howyoudoing.core.domain.util.EmptyResult
 import com.devvalor.howyoudoing.core.domain.util.Result
+import io.ktor.client.HttpClient
+import io.ktor.client.request.get
+import io.ktor.client.statement.readRawBytes
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -25,7 +29,8 @@ import kotlinx.coroutines.flow.map
 class OnDeviceChatRepository(
     private val server: SessionAwareChatRepository,
     private val messenger: OnDeviceMessenger,
-    private val store: OnDeviceMessengerStore
+    private val store: OnDeviceMessengerStore,
+    private val httpClient: HttpClient
 ) : ChatRepository {
 
     private fun String.threadKey(): String? =
@@ -111,18 +116,44 @@ class OnDeviceChatRepository(
     override suspend fun sendAttachment(chatId: String, attachment: Attachment, caption: String?): EmptyResult<DataError.Remote> =
         if (chatId.threadKey() == null) server.sendAttachment(chatId, attachment, caption) else Result.Failure(DataError.Remote.BAD_REQUEST)
 
-    override suspend fun toggleReaction(chatId: String, messageId: String, key: String): EmptyResult<DataError.Remote> =
-        if (chatId.threadKey() == null) server.toggleReaction(chatId, messageId, key) else Result.Failure(DataError.Remote.BAD_REQUEST)
+    override suspend fun toggleReaction(chatId: String, messageId: String, key: String): EmptyResult<DataError.Remote> {
+        val threadKey = chatId.threadKey() ?: return server.toggleReaction(chatId, messageId, key)
+        val thread = store.thread(threadKey)
+        // Reactions in encrypted chats need the WhatsApp-protocol message key; not supported on device yet
+        if (thread?.isEncrypted == true) return Result.Failure(DataError.Remote.BAD_REQUEST)
+        val isOwn = store.messages(threadKey).firstOrNull { it.id == messageId }?.reactions?.any { it.key == key && it.isOwn } == true
+        return messenger.sendReaction(threadKey, messageId, if (isOwn) "" else key)
+    }
 
-    override suspend fun setTyping(chatId: String, isTyping: Boolean): EmptyResult<DataError.Remote> =
-        if (chatId.threadKey() == null) server.setTyping(chatId, isTyping) else Result.Success(Unit)
+    override suspend fun setTyping(chatId: String, isTyping: Boolean): EmptyResult<DataError.Remote> {
+        val key = chatId.threadKey() ?: return server.setTyping(chatId, isTyping)
+        val thread = store.thread(key) ?: return Result.Success(Unit)
+        return messenger.setTyping(key, thread.isEncrypted, thread.isGroup, isTyping)
+    }
 
-    override suspend fun markAsRead(chatId: String): EmptyResult<DataError.Remote> =
-        if (chatId.threadKey() == null) server.markAsRead(chatId) else Result.Success(Unit)
+    override suspend fun markAsRead(chatId: String): EmptyResult<DataError.Remote> {
+        val key = chatId.threadKey() ?: return server.markAsRead(chatId)
+        val thread = store.thread(key) ?: return Result.Success(Unit)
+        val newest = store.messages(key).lastOrNull { !it.isOutgoing }
+        return messenger.markRead(key, thread.isEncrypted, thread.isGroup, newest?.id.orEmpty(), newest?.senderId.orEmpty())
+    }
 
-    override suspend fun resolveMedia(mxcUrl: String, thumbnail: Boolean): MediaRequest? = server.resolveMedia(mxcUrl, thumbnail)
+    // On-device media are Messenger CDN URLs, signed and loadable without extra headers
+    override suspend fun resolveMedia(mxcUrl: String, thumbnail: Boolean): MediaRequest? =
+        if (mxcUrl.isHttp()) MediaRequest(mxcUrl, emptyMap()) else server.resolveMedia(mxcUrl, thumbnail)
 
-    override suspend fun downloadMedia(mxcUrl: String): ByteArray? = server.downloadMedia(mxcUrl)
+    override suspend fun downloadMedia(mxcUrl: String): ByteArray? {
+        if (!mxcUrl.isHttp()) return server.downloadMedia(mxcUrl)
+        return try {
+            httpClient.get(mxcUrl).readRawBytes()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    private fun String.isHttp() = startsWith("https://") || startsWith("http://")
 
     private companion object {
         const val HISTORY_TIMEOUT_MILLIS = 15_000L

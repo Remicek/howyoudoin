@@ -1,6 +1,7 @@
 package com.devvalor.howyoudoing.chat.data.ondevice
 
 import com.devvalor.howyoudoing.chat.domain.Chat
+import com.devvalor.howyoudoing.chat.domain.MediaInfo
 import com.devvalor.howyoudoing.chat.domain.Message
 import com.devvalor.howyoudoing.chat.domain.MessageStatus
 import com.devvalor.howyoudoing.chat.domain.MessageType
@@ -48,10 +49,18 @@ class OnDeviceMessengerStore(
         /** Encrypted thread key → timestamp to continue history paging from. */
         val historyCursors: Map<String, Long> = emptyMap(),
         /** Thread key → message ID → sender → emoji. */
-        val reactions: Map<String, Map<String, Map<String, String>>> = emptyMap()
+        val reactions: Map<String, Map<String, Map<String, String>>> = emptyMap(),
+        /** Message ID → its attachment (the first one; albums show their first photo). */
+        val attachments: Map<String, StoredAttachment> = emptyMap(),
+        /** Thread key → people typing. */
+        val typing: Map<String, Set<String>> = emptyMap(),
+        /** Thread key → contact → read up to (ms). */
+        val readWatermarks: Map<String, Map<String, Long>> = emptyMap()
     )
 
     data class Link(val threadKey: String, val isGroup: Boolean, val lastActivityMs: Long)
+
+    data class StoredAttachment(val kind: String, val media: MediaInfo)
 
     data class Contact(val id: String, val name: String, val firstName: String, val avatarUrl: String?)
     data class Thread(
@@ -136,6 +145,41 @@ class OnDeviceMessengerStore(
                             historyCursors = s.historyCursors + (key to event.long("minTimestampMs"))
                         )
                         else -> s.copy(hasMoreBefore = s.hasMoreBefore + (key to event.bool("hasMoreBefore")))
+                    }
+                }
+                "attachment" -> {
+                    val messageId = event.str("messageId")
+                    if (messageId.isEmpty() || messageId in s.attachments) s
+                    else s.copy(attachments = s.attachments + (messageId to StoredAttachment(
+                        kind = event.str("kind"),
+                        media = MediaInfo(
+                            url = event.str("url"),
+                            mimeType = event.str("mimeType").ifBlank { null },
+                            fileName = event.str("fileName").ifBlank { null },
+                            sizeBytes = null,
+                            width = event.long("width").toInt().takeIf { it > 0 },
+                            height = event.long("height").toInt().takeIf { it > 0 },
+                            durationMillis = null
+                        )
+                    )))
+                }
+                "typing" -> {
+                    val key = event.str("threadKey")
+                    val sender = event.str("senderId")
+                    if (key.isEmpty() || sender.isEmpty() || sender == s.selfId) s
+                    else {
+                        val current = s.typing[key].orEmpty()
+                        s.copy(typing = s.typing + (key to if (event.bool("isTyping")) current + sender else current - sender))
+                    }
+                }
+                "read" -> {
+                    val key = event.str("threadKey")
+                    val contact = event.str("contactId")
+                    if (key.isEmpty() || contact.isEmpty()) s
+                    else {
+                        val current = s.readWatermarks[key].orEmpty()
+                        val watermark = maxOf(current[contact] ?: 0L, event.long("watermarkMs"))
+                        s.copy(readWatermarks = s.readWatermarks + (key to (current + (contact to watermark))))
                     }
                 }
                 "link" -> {
@@ -250,19 +294,22 @@ class OnDeviceMessengerStore(
             isGroup = isGroup,
             avatarUrl = null,
             isEncrypted = isEncrypted,
+            typingNames = s.typing[key].orEmpty().mapNotNull { s.contacts[it]?.name },
             isOnDevice = true
         )
     }
 
     private fun StoredMessage.toMessage(s: Snapshot): Message {
+        val attachment = s.attachments[id]
+        val effectiveKind = attachment?.kind ?: kind
         val type = when {
             isUnsent -> MessageType.NOTICE
-            kind == "image" -> MessageType.IMAGE
-            kind == "video" -> MessageType.VIDEO
-            kind == "audio" -> MessageType.AUDIO
-            kind == "file" -> MessageType.FILE
-            kind == "sticker" -> MessageType.STICKER
-            kind == "text" -> MessageType.TEXT
+            effectiveKind == "image" -> MessageType.IMAGE
+            effectiveKind == "video" -> MessageType.VIDEO
+            effectiveKind == "audio" -> MessageType.AUDIO
+            effectiveKind == "file" -> MessageType.FILE
+            effectiveKind == "sticker" -> MessageType.STICKER
+            effectiveKind == "text" -> MessageType.TEXT
             else -> MessageType.OTHER
         }
         // Media isn't downloaded on the device yet, so it's described in text
@@ -280,6 +327,8 @@ class OnDeviceMessengerStore(
             .map { (emoji, senders) ->
                 Reaction(key = emoji, count = senders.size, ownReactionId = if (s.selfId in senders) "own-$emoji" else null)
             }
+        val isOutgoing = senderId.isNotEmpty() && senderId == s.selfId
+        val media = attachment?.media?.takeIf { it.url.isNotBlank() }
         return Message(
             id = id,
             chatId = CHAT_ID_PREFIX + threadKey,
@@ -287,16 +336,21 @@ class OnDeviceMessengerStore(
             senderName = s.contacts[senderId]?.name.orEmpty(),
             body = when {
                 isUnsent -> "Message unsent"
+                // With media the body is the caption (or the file name the bubble expects)
+                media != null -> text.ifBlank { media.fileName ?: placeholder }
                 placeholder.isNotEmpty() && text.isNotBlank() -> "$placeholder · $text"
                 placeholder.isNotEmpty() -> placeholder
                 else -> text
             },
             timestamp = timestampMs,
-            isOutgoing = senderId.isNotEmpty() && senderId == s.selfId,
-            // Shown as text bubbles until media is downloaded on the device
-            type = if (type in MEDIA_TYPES) MessageType.TEXT else type,
+            isOutgoing = isOutgoing,
+            // Encrypted media isn't downloaded on the device yet; without media it's a text bubble
+            type = if (type in MEDIA_TYPES && media == null) MessageType.TEXT else type,
             status = status,
-            reactions = reactions
+            reactions = reactions,
+            media = media,
+            isReadByOthers = isOutgoing && s.readWatermarks[threadKey].orEmpty()
+                .any { (contact, watermark) -> contact != s.selfId && watermark >= timestampMs }
         )
     }
 

@@ -224,6 +224,7 @@ func (m *Messenger) emitTable(tbl *table.LSTable) {
 	for _, msg := range tbl.LSUpsertMessage {
 		m.emitMessage(msg.ThreadKey, msg.MessageId, msg.OfflineThreadingId, msg.SenderId, msg.Text, msg.TimestampMs, msg.IsUnsent)
 	}
+	m.emitInteractions(tbl)
 	for _, r := range tbl.LSInsertNewMessageRange {
 		m.emit(map[string]any{
 			"type": "range", "threadKey": id(r.ThreadKey), "minTimestampMs": r.MinTimestampMs,

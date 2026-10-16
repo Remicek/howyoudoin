@@ -66,6 +66,14 @@ func (m *Messenger) handleE2EEEvent(rawEvt any) {
 	switch evt := rawEvt.(type) {
 	case *events.FBMessage:
 		m.emitFBMessage(evt.Info.Chat.User, evt.Info.ID, evt.Info.Sender.User, evt.Info.Timestamp.UnixMilli(), evt.GetConsumerApplication())
+	case *events.ChatPresence:
+		m.emit(map[string]any{"type": "typing", "threadKey": evt.Chat.User, "senderId": evt.Sender.User,
+			"isTyping": evt.State == types.ChatPresenceComposing})
+	case *events.Receipt:
+		if evt.Type == types.ReceiptTypeRead || evt.Type == types.ReceiptTypeReadSelf {
+			m.emit(map[string]any{"type": "read", "threadKey": evt.Chat.User, "contactId": evt.Sender.User,
+				"watermarkMs": evt.Timestamp.UnixMilli()})
+		}
 	case *events.Connected:
 		m.emitState("encrypted_connected", "")
 	case *events.Disconnected:
@@ -138,10 +146,7 @@ func (m *Messenger) SendEncryptedText(threadKey string, isGroup bool, text strin
 	if m.e2ee == nil {
 		return "", fmt.Errorf("encrypted chats aren't connected")
 	}
-	server := types.MessengerServer
-	if isGroup {
-		server = types.GroupServer
-	}
+	server := chatServer(isGroup)
 	msg := &waConsumerApplication.ConsumerApplication{
 		Payload: &waConsumerApplication.ConsumerApplication_Payload{
 			Payload: &waConsumerApplication.ConsumerApplication_Payload_Content{

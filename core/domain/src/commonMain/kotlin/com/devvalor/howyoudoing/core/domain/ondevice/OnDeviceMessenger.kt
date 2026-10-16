@@ -46,6 +46,14 @@ interface OnDeviceMessenger {
     /** Asks for messages older than the given one; they arrive as message events plus a range event. */
     suspend fun requestOlder(threadKey: String, beforeTimestampMs: Long, beforeMessageId: String): EmptyResult<DataError.Remote>
 
+    /** Reacts to a message in a regular chat; an empty [emoji] removes the reaction. */
+    suspend fun sendReaction(threadKey: String, messageId: String, emoji: String): EmptyResult<DataError.Remote>
+
+    /** Marks a chat read; encrypted chats need the newest message's ID and sender. */
+    suspend fun markRead(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, lastMessageId: String, senderId: String): EmptyResult<DataError.Remote>
+
+    suspend fun setTyping(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, isTyping: Boolean): EmptyResult<DataError.Remote>
+
     suspend fun unlink()
 }
 
@@ -85,6 +93,12 @@ object UnsupportedOnDeviceMessenger : OnDeviceMessenger {
     override suspend fun fetchEncryptedHistory(threadKey: String, isGroup: Boolean, beforeTimestampMs: Long): EmptyResult<DataError.Remote> =
         Result.Failure(DataError.Remote.UNKNOWN)
     override suspend fun requestOlder(threadKey: String, beforeTimestampMs: Long, beforeMessageId: String): EmptyResult<DataError.Remote> =
+        Result.Failure(DataError.Remote.UNKNOWN)
+    override suspend fun sendReaction(threadKey: String, messageId: String, emoji: String): EmptyResult<DataError.Remote> =
+        Result.Failure(DataError.Remote.UNKNOWN)
+    override suspend fun markRead(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, lastMessageId: String, senderId: String): EmptyResult<DataError.Remote> =
+        Result.Failure(DataError.Remote.UNKNOWN)
+    override suspend fun setTyping(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, isTyping: Boolean): EmptyResult<DataError.Remote> =
         Result.Failure(DataError.Remote.UNKNOWN)
     override suspend fun unlink() = Unit
 }
