@@ -54,10 +54,14 @@ kotlin {
             else -> "ios-simulator-x64"
         }
         val libDir = file("libs/ios/$slice")
-        compilations.getByName("main").cinterops.create("hydbridge") {
+        val interop = compilations.getByName("main").cinterops.create("hydbridge") {
             definitionFile.set(file("src/nativeInterop/cinterop/hydbridge.def"))
             compilerOpts("-I$libDir")
             extraOpts("-libraryPath", libDir.absolutePath)
+        }
+        // Rebuilt libraries must regenerate the bindings
+        project.tasks.named(interop.interopProcessingTaskName).configure {
+            inputs.files(libDir.resolve("libhydbridge.h"), libDir.resolve("libhydbridge.a")).optional()
         }
     }
 }
