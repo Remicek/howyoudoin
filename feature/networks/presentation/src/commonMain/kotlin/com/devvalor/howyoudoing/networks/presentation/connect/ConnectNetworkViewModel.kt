@@ -8,6 +8,7 @@ import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
 import com.devvalor.howyoudoing.core.domain.util.DataError
 import com.devvalor.howyoudoing.core.domain.util.Result
 import com.devvalor.howyoudoing.core.presentation.util.toUiText
+import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceInstagram
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceMessenger
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceMessengerState
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceWhatsApp
@@ -41,7 +42,8 @@ class ConnectNetworkViewModel(
     private val deviceRegion: DeviceRegionProvider,
     developerOptions: DeveloperOptions,
     private val onDeviceMessenger: OnDeviceMessenger,
-    private val onDeviceWhatsApp: OnDeviceWhatsApp
+    private val onDeviceWhatsApp: OnDeviceWhatsApp,
+    private val onDeviceInstagram: OnDeviceInstagram
 ) : ViewModel() {
 
     private var pairingJob: Job? = null
@@ -79,7 +81,7 @@ class ConnectNetworkViewModel(
                 _state.update { it.copy(phase = ConnectPhase.ConfigureBridge, error = null) }
             }
             is ConnectNetworkAction.OnFlowClick -> when (action.flowId) {
-                ON_DEVICE_FLOW_ID -> showStep(onDeviceCookiesStep())
+                ON_DEVICE_FLOW_ID -> showStep(if (network == ChatNetwork.INSTAGRAM) onDeviceInstagramCookiesStep() else onDeviceCookiesStep())
                 ON_DEVICE_WHATSAPP_QR_FLOW_ID -> linkWhatsAppOnDevice(phoneNumber = null)
                 ON_DEVICE_WHATSAPP_CODE_FLOW_ID -> showStep(onDeviceWhatsAppPhoneStep())
                 else -> runStep { bridgeRepository.startLogin(network, action.flowId) }
@@ -100,6 +102,11 @@ class ConnectNetworkViewModel(
         stepJob?.cancel()
         stepJob = viewModelScope.launch {
             _state.update { it.copy(phase = ConnectPhase.Loading, error = null, isSubmitting = false) }
+            // Networks without a server bridge (Instagram) can only be connected on the device
+            if (!network.isSupported) {
+                _state.update { it.copy(phase = ConnectPhase.ChooseFlow(onDeviceFlows())) }
+                return@launch
+            }
             if (!bridgeRepository.observeIsConfigured(network).first()) {
                 val savedUrl = bridgeRepository.observeBridgeUrl(network).first().orEmpty()
                 _state.update { it.copy(phase = ConnectPhase.ConfigureBridge, bridgeUrl = savedUrl) }
@@ -251,6 +258,13 @@ class ConnectNetworkViewModel(
                 description = "Connect from your phone, without the server bridge."
             )
         )
+        network == ChatNetwork.INSTAGRAM && onDeviceInstagram.isSupported -> listOf(
+            BridgeLoginFlow(
+                id = ON_DEVICE_FLOW_ID,
+                name = "On this device (experimental)",
+                description = "Log in on instagram.com; your direct messages connect from this phone."
+            )
+        )
         network == ChatNetwork.WHATSAPP && onDeviceWhatsApp.isSupported -> listOf(
             BridgeLoginFlow(
                 id = ON_DEVICE_WHATSAPP_QR_FLOW_ID,
@@ -340,14 +354,26 @@ class ConnectNetworkViewModel(
         cookies = listOf("xs", "c_user", "datr").map { RequiredCookie(fieldId = it, cookieName = it, isRequired = true) }
     )
 
+    /** Instagram's web session cookies; the optional ones make the session look like a normal browser. */
+    private fun onDeviceInstagramCookiesStep() = BridgeLoginStep.Cookies(
+        loginId = ON_DEVICE_FLOW_ID,
+        stepId = "on-device-instagram-cookies",
+        instructions = "Log in to Instagram. HowYouDoin then connects your direct messages from this phone.",
+        url = "https://www.instagram.com/accounts/login/",
+        userAgent = null,
+        cookies = listOf("sessionid", "csrftoken", "ds_user_id").map { RequiredCookie(it, it, isRequired = true) } +
+            listOf("mid", "ig_did", "rur").map { RequiredCookie(it, it, isRequired = false) }
+    )
+
     private fun linkOnDevice(step: BridgeLoginStep.Cookies, cookiesByName: Map<String, String>) {
         val cookies = step.cookies.mapNotNull { cookie -> cookiesByName[cookie.cookieName]?.let { cookie.cookieName to it } }.toMap()
+        val client = if (network == ChatNetwork.INSTAGRAM) onDeviceInstagram else onDeviceMessenger
         stepJob?.cancel()
         stepJob = viewModelScope.launch {
             _state.update { it.copy(isSubmitting = true, error = null) }
-            when (val result = onDeviceMessenger.link(cookies)) {
+            when (val result = client.link(cookies)) {
                 is Result.Success -> {
-                    val name = (onDeviceMessenger.state.value as? OnDeviceMessengerState.Connected)?.accountName
+                    val name = (client.state.value as? OnDeviceMessengerState.Connected)?.accountName
                     _state.update { it.copy(phase = ConnectPhase.Connected(name), isSubmitting = false) }
                 }
                 is Result.Failure -> _state.update { it.copy(isSubmitting = false, error = result.error.toUiText()) }

@@ -38,9 +38,9 @@ private class AndroidMessengerClient(private val m: Messenger) : NativeMessenger
 }
 
 /** Cookies encrypted with a Keystore key in private SharedPreferences (plain copies from early builds migrate). */
-class KeystoreSecretStore(context: Context) : OnDeviceSecretStore {
-    private val prefs = context.getSharedPreferences("on_device_messenger", Context.MODE_PRIVATE)
-    private val cipher = KeystoreCipher("howyoudoin_on_device_messenger")
+class KeystoreSecretStore(context: Context, name: String = "on_device_messenger") : OnDeviceSecretStore {
+    private val prefs = context.getSharedPreferences(name, Context.MODE_PRIVATE)
+    private val cipher = KeystoreCipher("howyoudoin_$name")
 
     override fun read(): String? {
         prefs.getString(KEY_ENCRYPTED, null)?.let { return cipher.decrypt(it) }
@@ -104,5 +104,32 @@ class AndroidWhatsAppFactory : NativeWhatsAppFactory {
             override fun setTyping(chatJid: String, isTyping: Boolean) = w.setTyping(chatJid, isTyping)
         }
     }
+}
+
+/** hydbridge's Instagram client from the gomobile AAR; only connecting and text are wired so far. */
+class AndroidInstagramFactory : NativeMessengerFactory {
+    override fun create(cookiesJson: String, dataDir: String, onEvent: (String) -> Unit): NativeMessengerClient {
+        val listener = object : Listener {
+            override fun onEvent(json: String) = onEvent(json)
+        }
+        val ig = Hydbridge.newInstagram(cookiesJson, listener)
+        return object : NativeMessengerClient {
+            override fun connect() = ig.connect()
+            override fun disconnect() = ig.disconnect()
+            override fun sendText(threadKey: String, text: String): String = ig.sendText(threadKey, text)
+            override fun sendEncryptedText(threadKey: String, isGroup: Boolean, text: String): String = unsupported()
+            override fun requestOlder(threadKey: String, beforeTimestampMs: Long, beforeMessageId: String) = unsupported()
+            override fun historyStatus(): String = unsupported()
+            override fun restoreHistory(pin: String) = unsupported()
+            override fun fetchEncryptedHistory(threadKey: String, isGroup: Boolean, beforeTimestampMs: Long, count: Long) = unsupported()
+            override fun sendReaction(threadKey: String, messageId: String, emoji: String) = unsupported()
+            override fun sendEncryptedReaction(threadKey: String, isGroup: Boolean, messageId: String, messageSenderId: String, emoji: String) =
+                unsupported()
+            override fun markRead(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, lastMessageId: String, senderId: String) = unsupported()
+            override fun setTyping(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, isTyping: Boolean) = unsupported()
+        }
+    }
+
+    private fun unsupported(): Nothing = throw UnsupportedOperationException("Not supported for Instagram yet")
 }
 

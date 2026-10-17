@@ -145,3 +145,12 @@ object UnsupportedOnDeviceWhatsApp : OnDeviceWhatsApp, OnDeviceMessenger by Unsu
     override suspend fun cancelLinking() = Unit
 }
 
+/** Experimental: Instagram direct messages connected from the phone, logged in with instagram.com cookies. */
+interface OnDeviceInstagram : OnDeviceMessenger {
+    override val network: ChatNetwork get() = ChatNetwork.INSTAGRAM
+}
+
+object UnsupportedOnDeviceInstagram : OnDeviceInstagram, OnDeviceMessenger by UnsupportedOnDeviceMessenger {
+    override val network: ChatNetwork get() = ChatNetwork.INSTAGRAM
+}
+

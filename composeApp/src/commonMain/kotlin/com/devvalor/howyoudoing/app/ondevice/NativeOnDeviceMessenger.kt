@@ -1,6 +1,8 @@
 package com.devvalor.howyoudoing.app.ondevice
 
+import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceHistoryError
+import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceInstagram
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceHistoryStatus
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceMessenger
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceMessengerState
@@ -61,8 +63,8 @@ interface OnDeviceDataDirectory {
     fun clear()
 }
 
-/** Messenger running in-process through hydbridge, shared by Android and iOS. */
-class NativeOnDeviceMessenger(
+/** Messenger (or Instagram, see [NativeOnDeviceInstagram]) running in-process through hydbridge, shared by Android and iOS. */
+open class NativeOnDeviceMessenger(
     private val factory: NativeMessengerFactory,
     private val secrets: OnDeviceSecretStore,
     private val dataDir: OnDeviceDataDirectory,
@@ -214,3 +216,14 @@ class NativeOnDeviceMessenger(
         val CODES = listOf("wrong_pin:", "pin_limit", "no_backup")
     }
 }
+
+/** Instagram DMs through hydbridge's instameow wrapper; same cookie login and events as Messenger. */
+class NativeOnDeviceInstagram(
+    factory: NativeMessengerFactory,
+    secrets: OnDeviceSecretStore,
+    dataDir: OnDeviceDataDirectory,
+    scope: CoroutineScope
+) : NativeOnDeviceMessenger(factory, secrets, dataDir, scope), OnDeviceInstagram {
+    override val network: ChatNetwork get() = ChatNetwork.INSTAGRAM
+}
+

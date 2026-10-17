@@ -6,6 +6,7 @@ import com.devvalor.howyoudoing.chat.data.ondevice.OnDeviceInboxCache
 import hydbridge.hyd_call
 import hydbridge.hyd_free
 import hydbridge.hyd_new
+import hydbridge.hyd_new_instagram
 import hydbridge.hyd_new_whatsapp
 import hydbridge.hyd_release
 import kotlinx.cinterop.ByteVar
@@ -145,8 +146,8 @@ private fun appSupportDir(name: String): String {
 }
 
 /** A file under Application Support, encrypted by iOS Data Protection while the phone is locked. */
-class IosSecretStore : OnDeviceSecretStore {
-    private val path get() = "${IosDataDirectory().path}/session.json"
+class IosSecretStore(private val directory: String = "on_device_messenger") : OnDeviceSecretStore {
+    private val path get() = "${IosDataDirectory(directory).path}/session.json"
 
     override fun read(): String? =
         NSString.create(contentsOfFile = path, encoding = NSUTF8StringEncoding, error = null)?.toString()
@@ -254,6 +255,47 @@ private class HandleCaller(private val handle: Long) {
             throw IllegalStateException(message)
         }
         result?.let { pointer -> pointer.toKString().also { hyd_free(pointer) } }.orEmpty()
+    }
+}
+
+/** hydbridge's Instagram client through the static C library; only connecting and text are wired so far. */
+class IosInstagramFactory : NativeMessengerFactory {
+    override fun create(cookiesJson: String, dataDir: String, onEvent: (String) -> Unit): NativeMessengerClient {
+        val callback = StableRef.create(onEvent)
+        val handle = memScoped {
+            val error = alloc<CPointerVar<ByteVar>>()
+            val handle = hyd_new_instagram(cookiesJson.cstr, eventCallback, callback.asCPointer(), error.ptr)
+            error.value?.let {
+                val message = it.toKString()
+                hyd_free(it)
+                callback.dispose()
+                throw IllegalStateException(message)
+            }
+            handle
+        }
+        val call = HandleCaller(handle)
+        fun unsupported(): Nothing = throw UnsupportedOperationException("Not supported for Instagram yet")
+        return object : NativeMessengerClient {
+            override fun connect() {
+                call("connect")
+            }
+            override fun disconnect() {
+                call("disconnect")
+                hyd_release(handle)
+                callback.dispose()
+            }
+            override fun sendText(threadKey: String, text: String) = call("sendText", "threadKey" to threadKey, "text" to text)
+            override fun sendEncryptedText(threadKey: String, isGroup: Boolean, text: String): String = unsupported()
+            override fun requestOlder(threadKey: String, beforeTimestampMs: Long, beforeMessageId: String) = unsupported()
+            override fun historyStatus(): String = unsupported()
+            override fun restoreHistory(pin: String) = unsupported()
+            override fun fetchEncryptedHistory(threadKey: String, isGroup: Boolean, beforeTimestampMs: Long, count: Long) = unsupported()
+            override fun sendReaction(threadKey: String, messageId: String, emoji: String) = unsupported()
+            override fun sendEncryptedReaction(threadKey: String, isGroup: Boolean, messageId: String, messageSenderId: String, emoji: String) =
+                unsupported()
+            override fun markRead(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, lastMessageId: String, senderId: String) = unsupported()
+            override fun setTyping(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, isTyping: Boolean) = unsupported()
+        }
     }
 }
 

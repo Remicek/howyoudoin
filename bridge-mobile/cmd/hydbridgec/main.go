@@ -40,6 +40,7 @@ var (
 	clientsLock sync.Mutex
 	clients     = map[int64]*hydbridge.Messenger{}
 	whatsApps   = map[int64]*hydbridge.WhatsApp{}
+	instagrams  = map[int64]*hydbridge.Instagram{}
 	nextHandle  int64
 )
 
@@ -77,6 +78,20 @@ func hyd_new_whatsapp(dataDir *C.char, cb C.hyd_event_cb, ctx unsafe.Pointer, er
 	return C.int64_t(nextHandle)
 }
 
+//export hyd_new_instagram
+func hyd_new_instagram(cookiesJSON *C.char, cb C.hyd_event_cb, ctx unsafe.Pointer, errOut **C.char) C.int64_t {
+	ig, err := hydbridge.NewInstagram(C.GoString(cookiesJSON), &callbackListener{cb: cb, ctx: ctx})
+	if err != nil {
+		setError(errOut, err)
+		return 0
+	}
+	clientsLock.Lock()
+	defer clientsLock.Unlock()
+	nextHandle++
+	instagrams[nextHandle] = ig
+	return C.int64_t(nextHandle)
+}
+
 type callArgs struct {
 	ThreadKey         string `json:"threadKey"`
 	Text              string `json:"text"`
@@ -101,6 +116,7 @@ func hyd_call(handle C.int64_t, method, argsJSON *C.char, errOut **C.char) *C.ch
 	clientsLock.Lock()
 	m := clients[int64(handle)]
 	w := whatsApps[int64(handle)]
+	ig := instagrams[int64(handle)]
 	clientsLock.Unlock()
 	var a callArgs
 	if raw := C.GoString(argsJSON); raw != "" {
@@ -111,7 +127,9 @@ func hyd_call(handle C.int64_t, method, argsJSON *C.char, errOut **C.char) *C.ch
 	}
 	var result string
 	var err error
-	if w != nil {
+	if ig != nil {
+		result, err = callInstagram(ig, C.GoString(method), a)
+	} else if w != nil {
 		result, err = callWhatsApp(w, C.GoString(method), a)
 	} else if m == nil {
 		err = errors.New("unknown client")
@@ -123,6 +141,20 @@ func hyd_call(handle C.int64_t, method, argsJSON *C.char, errOut **C.char) *C.ch
 		return nil
 	}
 	return C.CString(result)
+}
+
+func callInstagram(ig *hydbridge.Instagram, name string, a callArgs) (result string, err error) {
+	switch name {
+	case "connect":
+		err = ig.Connect()
+	case "disconnect":
+		ig.Disconnect()
+	case "sendText":
+		result, err = ig.SendText(a.ThreadKey, a.Text)
+	default:
+		err = fmt.Errorf("%q isn't supported for Instagram yet", name)
+	}
+	return
 }
 
 func callWhatsApp(w *hydbridge.WhatsApp, name string, a callArgs) (result string, err error) {
@@ -187,6 +219,7 @@ func hyd_release(handle C.int64_t) {
 	defer clientsLock.Unlock()
 	delete(clients, int64(handle))
 	delete(whatsApps, int64(handle))
+	delete(instagrams, int64(handle))
 }
 
 //export hyd_free

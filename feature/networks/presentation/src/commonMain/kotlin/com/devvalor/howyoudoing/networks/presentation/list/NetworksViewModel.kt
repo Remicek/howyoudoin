@@ -3,6 +3,7 @@ package com.devvalor.howyoudoing.networks.presentation.list
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
+import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceInstagram
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceMessenger
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceWhatsApp
 import com.devvalor.howyoudoing.core.domain.util.Result
@@ -25,10 +26,11 @@ class NetworksViewModel(
     private val bridgeRepository: BridgeRepository,
     onboardingRepository: OnboardingRepository,
     onDeviceMessenger: OnDeviceMessenger,
-    onDeviceWhatsApp: OnDeviceWhatsApp
+    onDeviceWhatsApp: OnDeviceWhatsApp,
+    onDeviceInstagram: OnDeviceInstagram
 ) : ViewModel() {
 
-    private val onDeviceClients = listOf(onDeviceMessenger, onDeviceWhatsApp).associateBy { it.network }
+    private val onDeviceClients = listOf(onDeviceMessenger, onDeviceWhatsApp, onDeviceInstagram).associateBy { it.network }
 
     private val eventChannel = Channel<NetworksEvent>()
     val events = eventChannel.receiveAsFlow()
@@ -60,6 +62,10 @@ class NetworksViewModel(
         ChatNetwork.bridged.filter { it.isSupported }.forEach { network ->
             viewModelScope.launch { loadStatus(network) }
         }
+        // No server bridge, but connectable on the device
+        ChatNetwork.bridged
+            .filter { !it.isSupported && onDeviceClients[it]?.isSupported == true }
+            .forEach { setStatus(it, NetworkStatus.Ready(emptyList())) }
     }
 
     private suspend fun loadStatus(network: ChatNetwork) {
