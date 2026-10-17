@@ -1,5 +1,6 @@
 package com.devvalor.howyoudoing.core.domain.ondevice
 
+import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
 import com.devvalor.howyoudoing.core.domain.util.DataError
 import com.devvalor.howyoudoing.core.domain.util.EmptyResult
 import com.devvalor.howyoudoing.core.domain.util.Result
@@ -12,7 +13,10 @@ import kotlinx.coroutines.flow.StateFlow
  * WhatsApp-protocol client as well.
  */
 interface OnDeviceMessenger {
-    /** False where the native library isn't available (iOS for now). */
+    /** Which network this client connects (Messenger, or WhatsApp through [OnDeviceWhatsApp]). */
+    val network: ChatNetwork get() = ChatNetwork.MESSENGER
+
+    /** False where the native library isn't available. */
     val isSupported: Boolean
     val state: StateFlow<OnDeviceMessengerState>
 
@@ -114,3 +118,30 @@ object UnsupportedOnDeviceMessenger : OnDeviceMessenger {
         Result.Failure(DataError.Remote.UNKNOWN)
     override suspend fun unlink() = Unit
 }
+
+/**
+ * Experimental: WhatsApp linked as a companion device of the user's phone, running in the app. Linking shows a
+ * QR code or a pairing code ([pairing]) to confirm on the phone, under Linked devices.
+ */
+interface OnDeviceWhatsApp : OnDeviceMessenger {
+    override val network: ChatNetwork get() = ChatNetwork.WHATSAPP
+
+    /** The current QR code or pairing code while linking, else null. */
+    val pairing: StateFlow<OnDevicePairing?>
+
+    /** Starts linking: with a phone number (international format) a pairing code, otherwise QR codes. */
+    suspend fun startLinking(phoneNumber: String?): EmptyResult<DataError.Remote>
+
+    suspend fun cancelLinking()
+}
+
+data class OnDevicePairing(val qrCode: String? = null, val pairingCode: String? = null)
+
+/** Used where the native client isn't built in. */
+object UnsupportedOnDeviceWhatsApp : OnDeviceWhatsApp, OnDeviceMessenger by UnsupportedOnDeviceMessenger {
+    override val network: ChatNetwork get() = ChatNetwork.WHATSAPP
+    override val pairing: StateFlow<OnDevicePairing?> = kotlinx.coroutines.flow.MutableStateFlow(null)
+    override suspend fun startLinking(phoneNumber: String?): EmptyResult<DataError.Remote> = Result.Failure(DataError.Remote.UNKNOWN)
+    override suspend fun cancelLinking() = Unit
+}
+

@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceMessenger
+import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceWhatsApp
 import com.devvalor.howyoudoing.core.domain.util.Result
 import com.devvalor.howyoudoing.core.domain.util.onFailure
 import com.devvalor.howyoudoing.core.domain.util.onSuccess
@@ -23,8 +24,11 @@ import kotlinx.coroutines.launch
 class NetworksViewModel(
     private val bridgeRepository: BridgeRepository,
     onboardingRepository: OnboardingRepository,
-    private val onDeviceMessenger: OnDeviceMessenger
+    onDeviceMessenger: OnDeviceMessenger,
+    onDeviceWhatsApp: OnDeviceWhatsApp
 ) : ViewModel() {
+
+    private val onDeviceClients = listOf(onDeviceMessenger, onDeviceWhatsApp).associateBy { it.network }
 
     private val eventChannel = Channel<NetworksEvent>()
     val events = eventChannel.receiveAsFlow()
@@ -36,16 +40,18 @@ class NetworksViewModel(
         onboardingRepository.observeDismissedTutorials()
             .onEach { dismissed -> _state.update { it.copy(dismissedTutorials = dismissed) } }
             .launchIn(viewModelScope)
-        onDeviceMessenger.state
-            .onEach { onDevice -> _state.update { it.copy(onDeviceMessenger = onDevice) } }
-            .launchIn(viewModelScope)
+        onDeviceClients.values.forEach { client ->
+            client.state
+                .onEach { onDevice -> _state.update { it.copy(onDevice = it.onDevice + (client.network to onDevice)) } }
+                .launchIn(viewModelScope)
+        }
     }
 
     fun onAction(action: NetworksAction) {
         when (action) {
             NetworksAction.OnRefresh -> refresh()
             is NetworksAction.OnDisconnectClick -> disconnect(action.network, action.loginId)
-            NetworksAction.OnDisconnectOnDeviceClick -> viewModelScope.launch { onDeviceMessenger.unlink() }
+            is NetworksAction.OnDisconnectOnDeviceClick -> viewModelScope.launch { onDeviceClients[action.network]?.unlink() }
             else -> Unit
         }
     }

@@ -62,8 +62,8 @@ class KeystoreSecretStore(context: Context) : OnDeviceSecretStore {
 }
 
 /** Not backed up, so encrypted-chat keys never leave the phone. */
-class AndroidDataDirectory(context: Context) : OnDeviceDataDirectory {
-    private val dir = File(context.noBackupFilesDir, "on_device_messenger").apply { mkdirs() }
+class AndroidDataDirectory(context: Context, name: String = "on_device_messenger") : OnDeviceDataDirectory {
+    private val dir = File(context.noBackupFilesDir, name).apply { mkdirs() }
     override val path: String get() = dir.absolutePath
     override fun clear() {
         dir.deleteRecursively()
@@ -72,8 +72,8 @@ class AndroidDataDirectory(context: Context) : OnDeviceDataDirectory {
 }
 
 /** The on-device inbox cache, next to the encrypted-chat keys (cleared with them on Disconnect). */
-class AndroidInboxCache(context: Context) : OnDeviceInboxCache {
-    private val file = File(File(context.noBackupFilesDir, "on_device_messenger").apply { mkdirs() }, "inbox.json")
+class AndroidInboxCache(context: Context, directory: String = "on_device_messenger") : OnDeviceInboxCache {
+    private val file = File(File(context.noBackupFilesDir, directory).apply { mkdirs() }, "inbox.json")
     override fun read(): String? = file.takeIf { it.exists() }?.readText()
     override fun write(value: String) {
         val tmp = File(file.parentFile, "inbox.json.tmp")
@@ -84,3 +84,25 @@ class AndroidInboxCache(context: Context) : OnDeviceInboxCache {
         file.delete()
     }
 }
+
+/** hydbridge's WhatsApp client from the gomobile AAR. */
+class AndroidWhatsAppFactory : NativeWhatsAppFactory {
+    override fun create(dataDir: String, onEvent: (String) -> Unit): NativeWhatsAppClient {
+        val listener = object : Listener {
+            override fun onEvent(json: String) = onEvent(json)
+        }
+        val w = Hydbridge.newWhatsApp(dataDir, listener)
+        return object : NativeWhatsAppClient {
+            override fun isLinked() = w.isLinked
+            override fun connect(phoneNumber: String) = w.connect(phoneNumber)
+            override fun disconnect() = w.disconnect()
+            override fun logout() = w.logout()
+            override fun sendText(chatJid: String, text: String): String = w.sendText(chatJid, text)
+            override fun sendReaction(chatJid: String, messageId: String, senderJid: String, emoji: String) =
+                w.sendReaction(chatJid, messageId, senderJid, emoji)
+            override fun markRead(chatJid: String, messageId: String, senderJid: String) = w.markRead(chatJid, messageId, senderJid)
+            override fun setTyping(chatJid: String, isTyping: Boolean) = w.setTyping(chatJid, isTyping)
+        }
+    }
+}
+

@@ -8,8 +8,8 @@ import com.devvalor.howyoudoing.networks.domain.NetworkLogin
 data class NetworksState(
     /** Networks whose how-to-connect tutorial the user chose not to see again. */
     val dismissedTutorials: Set<ChatNetwork> = emptySet(),
-    /** Messenger connected from this phone (experimental), shown under Messenger. */
-    val onDeviceMessenger: OnDeviceMessengerState = OnDeviceMessengerState.NotLinked,
+    /** Networks connected from this phone (experimental), shown under each network. */
+    val onDevice: Map<ChatNetwork, OnDeviceMessengerState> = emptyMap(),
     val items: List<NetworkItemUi> = ChatNetwork.bridged.map { network ->
         NetworkItemUi(
             network = network,

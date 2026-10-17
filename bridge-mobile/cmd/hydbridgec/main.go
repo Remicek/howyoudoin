@@ -39,6 +39,7 @@ func (l *callbackListener) OnEvent(data string) {
 var (
 	clientsLock sync.Mutex
 	clients     = map[int64]*hydbridge.Messenger{}
+	whatsApps   = map[int64]*hydbridge.WhatsApp{}
 	nextHandle  int64
 )
 
@@ -62,6 +63,20 @@ func hyd_new(cookiesJSON, dataDir *C.char, cb C.hyd_event_cb, ctx unsafe.Pointer
 	return C.int64_t(nextHandle)
 }
 
+//export hyd_new_whatsapp
+func hyd_new_whatsapp(dataDir *C.char, cb C.hyd_event_cb, ctx unsafe.Pointer, errOut **C.char) C.int64_t {
+	w, err := hydbridge.NewWhatsApp(C.GoString(dataDir), &callbackListener{cb: cb, ctx: ctx})
+	if err != nil {
+		setError(errOut, err)
+		return 0
+	}
+	clientsLock.Lock()
+	defer clientsLock.Unlock()
+	nextHandle++
+	whatsApps[nextHandle] = w
+	return C.int64_t(nextHandle)
+}
+
 type callArgs struct {
 	ThreadKey         string `json:"threadKey"`
 	Text              string `json:"text"`
@@ -75,6 +90,7 @@ type callArgs struct {
 	SenderID          string `json:"senderId"`
 	Pin               string `json:"pin"`
 	Count             int    `json:"count"`
+	Phone             string `json:"phone"`
 }
 
 // hyd_call runs method with JSON args and returns a string result (caller frees it with hyd_free), or NULL with
@@ -84,11 +100,8 @@ type callArgs struct {
 func hyd_call(handle C.int64_t, method, argsJSON *C.char, errOut **C.char) *C.char {
 	clientsLock.Lock()
 	m := clients[int64(handle)]
+	w := whatsApps[int64(handle)]
 	clientsLock.Unlock()
-	if m == nil {
-		setError(errOut, errors.New("unknown client"))
-		return nil
-	}
 	var a callArgs
 	if raw := C.GoString(argsJSON); raw != "" {
 		if err := json.Unmarshal([]byte(raw), &a); err != nil {
@@ -98,7 +111,46 @@ func hyd_call(handle C.int64_t, method, argsJSON *C.char, errOut **C.char) *C.ch
 	}
 	var result string
 	var err error
-	switch name := C.GoString(method); name {
+	if w != nil {
+		result, err = callWhatsApp(w, C.GoString(method), a)
+	} else if m == nil {
+		err = errors.New("unknown client")
+	} else {
+		result, err = callMessenger(m, C.GoString(method), a)
+	}
+	if err != nil {
+		setError(errOut, err)
+		return nil
+	}
+	return C.CString(result)
+}
+
+func callWhatsApp(w *hydbridge.WhatsApp, name string, a callArgs) (result string, err error) {
+	switch name {
+	case "isLinked":
+		result = fmt.Sprint(w.IsLinked())
+	case "connect":
+		err = w.Connect(a.Phone)
+	case "disconnect":
+		w.Disconnect()
+	case "logout":
+		err = w.Logout()
+	case "sendText":
+		result, err = w.SendText(a.ThreadKey, a.Text)
+	case "sendReaction":
+		err = w.SendReaction(a.ThreadKey, a.MessageID, a.SenderID, a.Emoji)
+	case "markRead":
+		err = w.MarkRead(a.ThreadKey, a.MessageID, a.SenderID)
+	case "setTyping":
+		err = w.SetTyping(a.ThreadKey, a.IsTyping)
+	default:
+		err = fmt.Errorf("unknown method %q", name)
+	}
+	return
+}
+
+func callMessenger(m *hydbridge.Messenger, name string, a callArgs) (result string, err error) {
+	switch name {
 	case "connect":
 		err = m.Connect()
 	case "disconnect":
@@ -126,11 +178,7 @@ func hyd_call(handle C.int64_t, method, argsJSON *C.char, errOut **C.char) *C.ch
 	default:
 		err = fmt.Errorf("unknown method %q", name)
 	}
-	if err != nil {
-		setError(errOut, err)
-		return nil
-	}
-	return C.CString(result)
+	return
 }
 
 //export hyd_release
@@ -138,6 +186,7 @@ func hyd_release(handle C.int64_t) {
 	clientsLock.Lock()
 	defer clientsLock.Unlock()
 	delete(clients, int64(handle))
+	delete(whatsApps, int64(handle))
 }
 
 //export hyd_free

@@ -6,12 +6,21 @@ import com.devvalor.howyoudoing.app.ondevice.KeystoreSecretStore
 import com.devvalor.howyoudoing.app.ondevice.AndroidInboxCache
 import com.devvalor.howyoudoing.app.ondevice.NativeOnDeviceMessenger
 import com.devvalor.howyoudoing.chat.data.ondevice.OnDeviceInboxCache
+import com.devvalor.howyoudoing.chat.data.di.ON_DEVICE_WHATSAPP_CACHE
+import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceWhatsApp
+import org.koin.core.qualifier.named
+import com.devvalor.howyoudoing.app.ondevice.AndroidWhatsAppFactory
+import com.devvalor.howyoudoing.app.ondevice.NativeOnDeviceWhatsApp
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceMessenger
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.Module
 import org.koin.dsl.module
 
 actual val platformAppModule: Module = module {
+    single<OnDeviceInboxCache>(named(ON_DEVICE_WHATSAPP_CACHE)) { AndroidInboxCache(androidContext(), WHATSAPP_DIR) }
+    single<OnDeviceWhatsApp>(createdAtStart = true) {
+        NativeOnDeviceWhatsApp(AndroidWhatsAppFactory(), AndroidDataDirectory(androidContext(), WHATSAPP_DIR), get())
+    }
     single<OnDeviceInboxCache> { AndroidInboxCache(androidContext()) }
     single<OnDeviceMessenger>(createdAtStart = true) {
         NativeOnDeviceMessenger(
@@ -22,3 +31,5 @@ actual val platformAppModule: Module = module {
         )
     }
 }
+
+private const val WHATSAPP_DIR = "on_device_whatsapp"

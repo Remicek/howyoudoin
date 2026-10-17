@@ -7,6 +7,7 @@ import com.devvalor.howyoudoing.chat.domain.ChatRepository
 import com.devvalor.howyoudoing.chat.domain.MediaRequest
 import com.devvalor.howyoudoing.chat.domain.Message
 import com.devvalor.howyoudoing.chat.domain.SyncState
+import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceMessenger
 import com.devvalor.howyoudoing.core.domain.util.DataError
 import com.devvalor.howyoudoing.core.domain.util.EmptyResult
@@ -19,59 +20,73 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withTimeoutOrNull
+
+/** A network connected on the device: its native client and the store built from its events. */
+class OnDeviceSource(val client: OnDeviceMessenger, val store: OnDeviceMessengerStore)
 
 /**
- * Server chats (Matrix / demo) plus Messenger chats connected on the device. Calls for [OnDeviceMessengerStore]
- * chat IDs go to the on-device client; the rest to the server repository.
+ * Server chats (Matrix / demo) plus chats of networks connected on the device (Messenger, WhatsApp). Calls for an
+ * on-device chat go to its source, recognized by the store's chat ID prefix; the rest to the server repository.
  */
 class OnDeviceChatRepository(
     private val server: SessionAwareChatRepository,
-    private val messenger: OnDeviceMessenger,
-    private val store: OnDeviceMessengerStore,
+    private val sources: List<OnDeviceSource>,
     private val httpClient: HttpClient
 ) : ChatRepository {
 
-    private fun String.threadKey(): String? =
-        takeIf { it.startsWith(OnDeviceMessengerStore.CHAT_ID_PREFIX) }?.removePrefix(OnDeviceMessengerStore.CHAT_ID_PREFIX)
+    private data class Route(val source: OnDeviceSource, val key: String) {
+        val client get() = source.client
+        val store get() = source.store
+    }
+
+    private fun route(chatId: String): Route? = sources.firstNotNullOfOrNull { source ->
+        chatId.takeIf { it.startsWith(source.store.chatIdPrefix) }?.let { Route(source, it.removePrefix(source.store.chatIdPrefix)) }
+    }
 
     override fun observeSyncState(): Flow<SyncState> = server.observeSyncState()
 
     override fun observeChats(): Flow<List<Chat>> =
-        combine(server.observeChats(), store.snapshot) { serverChats, _ ->
-            (serverChats + store.chats()).sortedByDescending { it.lastActivity }
-        }
+        sources.fold(server.observeChats()) { chats, source ->
+            combine(chats, source.store.snapshot) { soFar, _ -> soFar + source.store.chats() }
+        }.map { chats -> chats.sortedByDescending { it.lastActivity } }
 
-    override fun observeChat(chatId: String): Flow<Chat?> =
-        if (chatId.threadKey() == null) server.observeChat(chatId)
-        else store.snapshot.map { store.chats().firstOrNull { it.id == chatId } }
+    override fun observeChat(chatId: String): Flow<Chat?> {
+        val route = route(chatId) ?: return server.observeChat(chatId)
+        return route.store.snapshot.map { route.store.chats().firstOrNull { it.id == chatId } }
+    }
 
     override fun observeMessages(chatId: String): Flow<List<Message>> {
-        val key = chatId.threadKey() ?: return server.observeMessages(chatId)
-        return store.snapshot.map { store.messages(key) }
+        val route = route(chatId) ?: return server.observeMessages(chatId)
+        return route.store.snapshot.map { route.store.messages(route.key) }
     }
 
     override suspend fun refresh() {
-        messenger.connectIfLinked()
+        sources.forEach { it.client.connectIfLinked() }
         server.refresh()
     }
 
     /**
      * Messenger answers a history request asynchronously over the socket, so this waits until older messages
-     * (or a "no more history" range) arrive.
+     * (or a "no more history" range) arrive. WhatsApp only has what its history sync delivered.
      */
     override suspend fun loadOlderMessages(chatId: String): EmptyResult<DataError.Remote> {
-        val key = chatId.threadKey() ?: return server.loadOlderMessages(chatId)
-        val oldest = store.oldestMessage(key)
+        val route = route(chatId) ?: return server.loadOlderMessages(chatId)
+        val (key, store, client) = Triple(route.key, route.store, route.client)
         if (!store.hasMoreBefore(key)) return Result.Success(Unit)
+        if (client.network == ChatNetwork.WHATSAPP) {
+            store.markNoMoreHistory(key)
+            return Result.Success(Unit)
+        }
+        val oldest = store.oldestMessage(key)
         val thread = store.thread(key)
-        if (thread?.isEncrypted == true) return loadEncryptedHistory(key, thread.isGroup, oldest?.timestampMs)
+        if (thread?.isEncrypted == true) return loadEncryptedHistory(route, thread.isGroup, oldest?.timestampMs)
         val result = if (oldest == null) {
             // Nothing loaded for this chat yet: fetch the latest page
-            messenger.requestOlder(key, Long.MAX_VALUE / 2, "")
+            client.requestOlder(key, Long.MAX_VALUE / 2, "")
         } else {
-            messenger.requestOlder(key, oldest.timestampMs, oldest.id)
+            client.requestOlder(key, oldest.timestampMs, oldest.id)
         }
         if (result is Result.Failure) return result
         withTimeoutOrNull(HISTORY_TIMEOUT_MILLIS) {
@@ -84,25 +99,26 @@ class OnDeviceChatRepository(
     }
 
     /** Encrypted history comes from the PIN-protected backup; without a restored backup there's nothing older. */
-    private suspend fun loadEncryptedHistory(key: String, isGroup: Boolean, oldestTimestampMs: Long?): EmptyResult<DataError.Remote> {
-        val before = store.historyCursor(key) ?: oldestTimestampMs ?: 0L
-        if (messenger.fetchEncryptedHistory(key, isGroup, before) is Result.Failure) store.markNoMoreHistory(key)
+    private suspend fun loadEncryptedHistory(route: Route, isGroup: Boolean, oldestTimestampMs: Long?): EmptyResult<DataError.Remote> {
+        val before = route.store.historyCursor(route.key) ?: oldestTimestampMs ?: 0L
+        if (route.client.fetchEncryptedHistory(route.key, isGroup, before) is Result.Failure) route.store.markNoMoreHistory(route.key)
         return Result.Success(Unit)
     }
 
     override fun hasMoreHistory(chatId: String): Flow<Boolean> {
-        val key = chatId.threadKey() ?: return server.hasMoreHistory(chatId)
-        return store.snapshot.map { store.hasMoreBefore(key) }.distinctUntilChanged()
+        val route = route(chatId) ?: return server.hasMoreHistory(chatId)
+        return route.store.snapshot.map { route.store.hasMoreBefore(route.key) }.distinctUntilChanged()
     }
 
     override suspend fun sendMessage(chatId: String, body: String, replyToId: String?): EmptyResult<DataError.Remote> {
-        val key = chatId.threadKey() ?: return server.sendMessage(chatId, body, replyToId)
+        val route = route(chatId) ?: return server.sendMessage(chatId, body, replyToId)
+        val store = route.store
         val pendingId = store.newPendingId()
-        store.addPending(key, pendingId, body)
-        val thread = store.thread(key)
-        return when (val result = messenger.sendText(key, body, thread?.isEncrypted == true, thread?.isGroup == true)) {
+        store.addPending(route.key, pendingId, body)
+        val thread = store.thread(route.key)
+        return when (val result = route.client.sendText(route.key, body, thread?.isEncrypted == true, thread?.isGroup == true)) {
             is Result.Success -> {
-                // The server's copy carries this ID and replaces the echo
+                // The network's copy carries this ID and replaces the echo
                 store.rekeyPending(pendingId, result.data)
                 Result.Success(Unit)
             }
@@ -114,38 +130,38 @@ class OnDeviceChatRepository(
     }
 
     override suspend fun sendAttachment(chatId: String, attachment: Attachment, caption: String?): EmptyResult<DataError.Remote> =
-        if (chatId.threadKey() == null) server.sendAttachment(chatId, attachment, caption) else Result.Failure(DataError.Remote.BAD_REQUEST)
+        if (route(chatId) == null) server.sendAttachment(chatId, attachment, caption) else Result.Failure(DataError.Remote.BAD_REQUEST)
 
     override suspend fun toggleReaction(chatId: String, messageId: String, key: String): EmptyResult<DataError.Remote> {
-        val threadKey = chatId.threadKey() ?: return server.toggleReaction(chatId, messageId, key)
-        val thread = store.thread(threadKey)
-        val target = store.messages(threadKey).firstOrNull { it.id == messageId }
+        val route = route(chatId) ?: return server.toggleReaction(chatId, messageId, key)
+        val thread = route.store.thread(route.key)
+        val target = route.store.messages(route.key).firstOrNull { it.id == messageId }
         val isOwn = target?.reactions?.any { it.key == key && it.isOwn } == true
-        return messenger.sendReaction(
-            threadKey, messageId, if (isOwn) "" else key,
+        return route.client.sendReaction(
+            route.key, messageId, if (isOwn) "" else key,
             isEncrypted = thread?.isEncrypted == true, isGroup = thread?.isGroup == true, messageSenderId = target?.senderId.orEmpty()
         )
     }
 
     override suspend fun setTyping(chatId: String, isTyping: Boolean): EmptyResult<DataError.Remote> {
-        val key = chatId.threadKey() ?: return server.setTyping(chatId, isTyping)
-        val thread = store.thread(key) ?: return Result.Success(Unit)
-        return messenger.setTyping(key, thread.isEncrypted, thread.isGroup, isTyping)
+        val route = route(chatId) ?: return server.setTyping(chatId, isTyping)
+        val thread = route.store.thread(route.key) ?: return Result.Success(Unit)
+        return route.client.setTyping(route.key, thread.isEncrypted, thread.isGroup, isTyping)
     }
 
     override suspend fun markAsRead(chatId: String): EmptyResult<DataError.Remote> {
-        val key = chatId.threadKey() ?: return server.markAsRead(chatId)
-        val thread = store.thread(key) ?: return Result.Success(Unit)
-        val newest = store.messages(key).lastOrNull { !it.isOutgoing }
-        return messenger.markRead(key, thread.isEncrypted, thread.isGroup, newest?.id.orEmpty(), newest?.senderId.orEmpty())
+        val route = route(chatId) ?: return server.markAsRead(chatId)
+        val thread = route.store.thread(route.key) ?: return Result.Success(Unit)
+        val newest = route.store.messages(route.key).lastOrNull { !it.isOutgoing }
+        return route.client.markRead(route.key, thread.isEncrypted, thread.isGroup, newest?.id.orEmpty(), newest?.senderId.orEmpty())
     }
 
-    // On-device media are Messenger CDN URLs, signed and loadable without extra headers
+    // On-device media are CDN URLs (signed, no extra headers) or decrypted files in private storage
     override suspend fun resolveMedia(mxcUrl: String, thumbnail: Boolean): MediaRequest? =
-        if (mxcUrl.isHttp()) MediaRequest(mxcUrl, emptyMap()) else server.resolveMedia(mxcUrl, thumbnail)
+        if (mxcUrl.isDirect()) MediaRequest(mxcUrl, emptyMap()) else server.resolveMedia(mxcUrl, thumbnail)
 
     override suspend fun downloadMedia(mxcUrl: String): ByteArray? {
-        if (!mxcUrl.isHttp()) return server.downloadMedia(mxcUrl)
+        if (!mxcUrl.isDirect()) return server.downloadMedia(mxcUrl)
         return try {
             httpClient.get(mxcUrl).readRawBytes()
         } catch (e: CancellationException) {
@@ -155,8 +171,7 @@ class OnDeviceChatRepository(
         }
     }
 
-    // Decrypted media of encrypted chats are files in the app's private storage (file://)
-    private fun String.isHttp() = startsWith("https://") || startsWith("http://") || startsWith("file://")
+    private fun String.isDirect() = startsWith("https://") || startsWith("http://") || startsWith("file://")
 
     private companion object {
         const val HISTORY_TIMEOUT_MILLIS = 15_000L

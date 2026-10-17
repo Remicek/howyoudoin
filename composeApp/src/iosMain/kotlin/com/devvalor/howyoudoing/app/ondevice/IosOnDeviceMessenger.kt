@@ -6,6 +6,7 @@ import com.devvalor.howyoudoing.chat.data.ondevice.OnDeviceInboxCache
 import hydbridge.hyd_call
 import hydbridge.hyd_free
 import hydbridge.hyd_new
+import hydbridge.hyd_new_whatsapp
 import hydbridge.hyd_release
 import kotlinx.cinterop.ByteVar
 import kotlinx.cinterop.COpaquePointer
@@ -138,9 +139,9 @@ private class IosMessengerClient(
     }
 }
 
-private fun appSupportDir(): String {
+private fun appSupportDir(name: String): String {
     val base = NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, true).first() as String
-    return "$base/on_device_messenger"
+    return "$base/$name"
 }
 
 /** A file under Application Support, encrypted by iOS Data Protection while the phone is locked. */
@@ -161,8 +162,8 @@ class IosSecretStore : OnDeviceSecretStore {
 }
 
 /** Excluded from iCloud backups, so encrypted-chat keys stay on this phone. */
-class IosDataDirectory : OnDeviceDataDirectory {
-    override val path: String = appSupportDir().also(::ensure)
+class IosDataDirectory(name: String = "on_device_messenger") : OnDeviceDataDirectory {
+    override val path: String = appSupportDir(name).also(::ensure)
 
     override fun clear() {
         NSFileManager.defaultManager.removeItemAtPath(path, error = null)
@@ -176,8 +177,8 @@ class IosDataDirectory : OnDeviceDataDirectory {
 }
 
 /** The on-device inbox cache, protected by iOS Data Protection and excluded from backups with its directory. */
-class IosInboxCache : OnDeviceInboxCache {
-    private val path get() = "${IosDataDirectory().path}/inbox.json"
+class IosInboxCache(private val directory: String = "on_device_messenger") : OnDeviceInboxCache {
+    private val path get() = "${IosDataDirectory(directory).path}/inbox.json"
 
     override fun read(): String? =
         NSString.create(contentsOfFile = path, encoding = NSUTF8StringEncoding, error = null)?.toString()
@@ -191,3 +192,68 @@ class IosInboxCache : OnDeviceInboxCache {
         NSFileManager.defaultManager.removeItemAtPath(path, error = null)
     }
 }
+
+/** hydbridge's WhatsApp client through the static C library. */
+class IosWhatsAppFactory : NativeWhatsAppFactory {
+    override fun create(dataDir: String, onEvent: (String) -> Unit): NativeWhatsAppClient {
+        val callback = StableRef.create(onEvent)
+        val handle = memScoped {
+            val error = alloc<CPointerVar<ByteVar>>()
+            val handle = hyd_new_whatsapp(dataDir.cstr, eventCallback, callback.asCPointer(), error.ptr)
+            error.value?.let {
+                val message = it.toKString()
+                hyd_free(it)
+                callback.dispose()
+                throw IllegalStateException(message)
+            }
+            handle
+        }
+        val call = HandleCaller(handle)
+        return object : NativeWhatsAppClient {
+            override fun isLinked() = call("isLinked") == "true"
+            override fun connect(phoneNumber: String) {
+                call("connect", "phone" to phoneNumber)
+            }
+            override fun disconnect() {
+                call("disconnect")
+            }
+            override fun logout() {
+                call("logout")
+                hyd_release(handle)
+                callback.dispose()
+            }
+            override fun sendText(chatJid: String, text: String) = call("sendText", "threadKey" to chatJid, "text" to text)
+            override fun sendReaction(chatJid: String, messageId: String, senderJid: String, emoji: String) {
+                call("sendReaction", "threadKey" to chatJid, "messageId" to messageId, "senderId" to senderJid, "emoji" to emoji)
+            }
+            override fun markRead(chatJid: String, messageId: String, senderJid: String) {
+                call("markRead", "threadKey" to chatJid, "messageId" to messageId, "senderId" to senderJid)
+            }
+            override fun setTyping(chatJid: String, isTyping: Boolean) {
+                call("setTyping", "threadKey" to chatJid, "isTyping" to isTyping)
+            }
+        }
+    }
+}
+
+/** Calls a hydbridge method by name with JSON arguments; throws the Go error. */
+private class HandleCaller(private val handle: Long) {
+    operator fun invoke(method: String, vararg args: Pair<String, Any>): String = memScoped {
+        val json = JsonObject(args.associate { (key, value) ->
+            key to when (value) {
+                is Boolean -> JsonPrimitive(value)
+                is Number -> JsonPrimitive(value)
+                else -> JsonPrimitive(value.toString())
+            }
+        }).toString()
+        val error = alloc<CPointerVar<ByteVar>>()
+        val result = hyd_call(handle, method.cstr, json.cstr, error.ptr)
+        error.value?.let {
+            val message = it.toKString()
+            hyd_free(it)
+            throw IllegalStateException(message)
+        }
+        result?.let { pointer -> pointer.toKString().also { hyd_free(pointer) } }.orEmpty()
+    }
+}
+

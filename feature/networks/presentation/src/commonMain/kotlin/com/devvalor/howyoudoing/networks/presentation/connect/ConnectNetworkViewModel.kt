@@ -10,6 +10,12 @@ import com.devvalor.howyoudoing.core.domain.util.Result
 import com.devvalor.howyoudoing.core.presentation.util.toUiText
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceMessenger
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceMessengerState
+import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceWhatsApp
+import com.devvalor.howyoudoing.core.presentation.util.UiText
+import com.devvalor.howyoudoing.networks.domain.DisplayType
+import com.devvalor.howyoudoing.networks.domain.LoginInputField
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import com.devvalor.howyoudoing.networks.domain.BridgeLoginFlow
 import com.devvalor.howyoudoing.networks.domain.BridgeLoginStep
 import com.devvalor.howyoudoing.networks.domain.RequiredCookie
@@ -34,8 +40,11 @@ class ConnectNetworkViewModel(
     private val bridgeRepository: BridgeRepository,
     private val deviceRegion: DeviceRegionProvider,
     developerOptions: DeveloperOptions,
-    private val onDeviceMessenger: OnDeviceMessenger
+    private val onDeviceMessenger: OnDeviceMessenger,
+    private val onDeviceWhatsApp: OnDeviceWhatsApp
 ) : ViewModel() {
+
+    private var pairingJob: Job? = null
 
     private val route = savedStateHandle.toRoute<NetworksRoutes.Connect>()
     private val network = ChatNetwork.valueOf(route.network)
@@ -69,10 +78,11 @@ class ConnectNetworkViewModel(
                 stepJob?.cancel()
                 _state.update { it.copy(phase = ConnectPhase.ConfigureBridge, error = null) }
             }
-            is ConnectNetworkAction.OnFlowClick -> if (action.flowId == ON_DEVICE_FLOW_ID) {
-                showStep(onDeviceCookiesStep())
-            } else {
-                runStep { bridgeRepository.startLogin(network, action.flowId) }
+            is ConnectNetworkAction.OnFlowClick -> when (action.flowId) {
+                ON_DEVICE_FLOW_ID -> showStep(onDeviceCookiesStep())
+                ON_DEVICE_WHATSAPP_QR_FLOW_ID -> linkWhatsAppOnDevice(phoneNumber = null)
+                ON_DEVICE_WHATSAPP_CODE_FLOW_ID -> showStep(onDeviceWhatsAppPhoneStep())
+                else -> runStep { bridgeRepository.startLogin(network, action.flowId) }
             }
             is ConnectNetworkAction.OnInputChange -> onInputChange(action.fieldId, action.value)
             is ConnectNetworkAction.OnCountrySelect -> {
@@ -122,6 +132,9 @@ class ConnectNetworkViewModel(
     private fun submitInput() {
         val step = (state.value.phase as? ConnectPhase.Step)?.step as? BridgeLoginStep.UserInput ?: return
         if (!state.value.canSubmitInput) return
+        if (step.loginId == ON_DEVICE_WHATSAPP_CODE_FLOW_ID) {
+            return linkWhatsAppOnDevice(step.fields.firstOrNull()?.let { state.value.submittedValue(it) })
+        }
         val values = step.fields.associate { it.id to state.value.submittedValue(it) }
         runStep { bridgeRepository.submitUserInput(network, step, values) }
     }
@@ -230,18 +243,92 @@ class ConnectNetworkViewModel(
         }
     }
 
-    private fun onDeviceFlows(): List<BridgeLoginFlow> =
-        if (network == ChatNetwork.MESSENGER && onDeviceMessenger.isSupported) {
-            listOf(
-                BridgeLoginFlow(
-                    id = ON_DEVICE_FLOW_ID,
-                    name = "On this device (experimental)",
-                    description = "Connect from your phone, without the server bridge. Regular chats only for now."
-                )
+    private fun onDeviceFlows(): List<BridgeLoginFlow> = when {
+        network == ChatNetwork.MESSENGER && onDeviceMessenger.isSupported -> listOf(
+            BridgeLoginFlow(
+                id = ON_DEVICE_FLOW_ID,
+                name = "On this device (experimental)",
+                description = "Connect from your phone, without the server bridge."
             )
-        } else {
-            emptyList()
+        )
+        network == ChatNetwork.WHATSAPP && onDeviceWhatsApp.isSupported -> listOf(
+            BridgeLoginFlow(
+                id = ON_DEVICE_WHATSAPP_QR_FLOW_ID,
+                name = "On this device · QR code (experimental)",
+                description = "Link this app as a WhatsApp device directly, without the server bridge."
+            ),
+            BridgeLoginFlow(
+                id = ON_DEVICE_WHATSAPP_CODE_FLOW_ID,
+                name = "On this device · pairing code (experimental)",
+                description = "Same, but type a code on your phone instead of scanning."
+            )
+        )
+        else -> emptyList()
+    }
+
+    private fun onDeviceWhatsAppPhoneStep() = BridgeLoginStep.UserInput(
+        loginId = ON_DEVICE_WHATSAPP_CODE_FLOW_ID,
+        stepId = "on-device-whatsapp-phone",
+        instructions = "",
+        fields = listOf(LoginInputField(id = "phone", name = "Phone number", description = "", type = InputFieldType.PHONE_NUMBER))
+    )
+
+    /**
+     * Links WhatsApp on this phone: shows the QR codes (or the pairing code) the native client produces until the
+     * phone confirms, then the connected account.
+     */
+    private fun linkWhatsAppOnDevice(phoneNumber: String?) {
+        stepJob?.cancel()
+        pairingJob?.cancel()
+        stepJob = viewModelScope.launch {
+            _state.update { it.copy(isSubmitting = true, error = null) }
+            val result = onDeviceWhatsApp.startLinking(phoneNumber)
+            if (result is Result.Failure) {
+                _state.update { it.copy(isSubmitting = false, error = result.error.toUiText()) }
+                return@launch
+            }
+            pairingJob = viewModelScope.launch {
+                launch {
+                    onDeviceWhatsApp.pairing.collect { pairing ->
+                        pairing ?: return@collect
+                        showStep(
+                            BridgeLoginStep.DisplayAndWait(
+                                loginId = ON_DEVICE_WHATSAPP_QR_FLOW_ID,
+                                stepId = "on-device-whatsapp-pairing",
+                                instructions = if (pairing.pairingCode != null) {
+                                    "On your phone open WhatsApp → Linked devices → Link a device → Link with phone number instead, and enter this code."
+                                } else {
+                                    "On your phone open WhatsApp → Linked devices → Link a device, and scan this code."
+                                },
+                                displayType = if (pairing.pairingCode != null) DisplayType.CODE else DisplayType.QR,
+                                data = pairing.pairingCode ?: pairing.qrCode
+                            )
+                        )
+                    }
+                }
+                onDeviceWhatsApp.state.collect { linkState ->
+                    when (linkState) {
+                        is OnDeviceMessengerState.Connected -> {
+                            _state.update { it.copy(phase = ConnectPhase.Connected(linkState.accountName), isSubmitting = false) }
+                            pairingJob?.cancel()
+                        }
+                        is OnDeviceMessengerState.Failed -> _state.update {
+                            it.copy(isSubmitting = false, error = UiText.DynamicString(linkState.message))
+                        }
+                        else -> Unit
+                    }
+                }
+            }
         }
+    }
+
+    override fun onCleared() {
+        // Leaving the screen mid-linking stops showing codes; an already linked device stays connected
+        if (pairingJob?.isActive == true && onDeviceWhatsApp.state.value !is OnDeviceMessengerState.Connected) {
+            CoroutineScope(Dispatchers.Default).launch { onDeviceWhatsApp.cancelLinking() }
+        }
+        super.onCleared()
+    }
 
     /** Same cookie web view as the bridge's flow, but the cookies stay on the phone. */
     private fun onDeviceCookiesStep() = BridgeLoginStep.Cookies(
@@ -270,5 +357,7 @@ class ConnectNetworkViewModel(
 
     private companion object {
         const val ON_DEVICE_FLOW_ID = "howyoudoin-on-device"
+        const val ON_DEVICE_WHATSAPP_QR_FLOW_ID = "howyoudoin-on-device-whatsapp-qr"
+        const val ON_DEVICE_WHATSAPP_CODE_FLOW_ID = "howyoudoin-on-device-whatsapp-code"
     }
 }

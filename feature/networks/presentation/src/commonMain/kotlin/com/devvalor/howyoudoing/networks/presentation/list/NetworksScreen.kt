@@ -116,7 +116,11 @@ fun NetworksScreen(
                 )
             }
             items(state.items, key = { it.network.name }) { item ->
-                NetworkCard(item = item, onAction = onAction, onDeviceMessenger = state.onDeviceMessenger)
+                NetworkCard(
+                    item = item,
+                    onAction = onAction,
+                    onDevice = state.onDevice[item.network] ?: OnDeviceMessengerState.NotLinked,
+                )
             }
         }
     }
@@ -126,7 +130,7 @@ fun NetworksScreen(
 private fun NetworkCard(
     item: NetworkItemUi,
     onAction: (NetworksAction) -> Unit,
-    onDeviceMessenger: OnDeviceMessengerState = OnDeviceMessengerState.NotLinked,
+    onDevice: OnDeviceMessengerState = OnDeviceMessengerState.NotLinked,
 ) {
     val network = item.network
     val isComingSoon = item.status == NetworkStatus.ComingSoon
@@ -160,20 +164,20 @@ private fun NetworkCard(
                     LoginRow(login = login, onDisconnect = { onAction(NetworksAction.OnDisconnectClick(network, login.id)) })
                 }
             }
-            if (network == ChatNetwork.MESSENGER && onDeviceMessenger != OnDeviceMessengerState.NotLinked) {
+            if (onDevice != OnDeviceMessengerState.NotLinked) {
                 Spacer(Modifier.height(HowYouDoinSpacing.sm))
                 LoginRow(
                     login = NetworkLogin(
                         id = "on-device",
-                        name = ((onDeviceMessenger as? OnDeviceMessengerState.Connected)?.accountName ?: "Messenger") + " · on this device",
-                        state = when (onDeviceMessenger) {
+                        name = ((onDevice as? OnDeviceMessengerState.Connected)?.accountName ?: network.displayName) + " · on this device",
+                        state = when (onDevice) {
                             is OnDeviceMessengerState.Connected -> "CONNECTED"
                             OnDeviceMessengerState.Connecting -> "CONNECTING"
-                            is OnDeviceMessengerState.Failed -> "ERROR: ${onDeviceMessenger.message}"
+                            is OnDeviceMessengerState.Failed -> "ERROR: ${onDevice.message}"
                             OnDeviceMessengerState.NotLinked -> null
                         }
                     ),
-                    onDisconnect = { onAction(NetworksAction.OnDisconnectOnDeviceClick) },
+                    onDisconnect = { onAction(NetworksAction.OnDisconnectOnDeviceClick(network)) },
                 )
             }
         }

@@ -39,12 +39,13 @@ interface OnDeviceInboxCache {
     fun clear()
 }
 
-/** Builds chats and messages from [OnDeviceMessenger] events. Chat IDs are [CHAT_ID_PREFIX] + thread key. */
+/** Builds chats and messages from [OnDeviceMessenger] events. Chat IDs are [chatIdPrefix] + thread key. */
 @OptIn(ExperimentalTime::class, FlowPreview::class)
 class OnDeviceMessengerStore(
     private val messenger: OnDeviceMessenger,
     private val cache: OnDeviceInboxCache,
-    scope: CoroutineScope
+    scope: CoroutineScope,
+    val chatIdPrefix: String = MESSENGER_CHAT_ID_PREFIX
 ) {
     @Serializable
     data class Snapshot(
@@ -172,6 +173,14 @@ class OnDeviceMessengerStore(
                 "self" -> s.copy(selfId = event.str("id"))
                 "contact" -> event.str("id").takeIf { it.isNotEmpty() }?.let { id ->
                     s.copy(contacts = s.contacts + (id to Contact(id, event.str("name"), event.str("firstName"), event.str("avatarUrl").ifBlank { null })))
+                } ?: s
+                // Group names from WhatsApp's group list carry no activity; don't let them reset it
+                "thread" if event.bool("nameOnly") -> event.str("key").takeIf { it.isNotEmpty() }?.let { key ->
+                    val existing = s.threads[key]
+                    s.copy(threads = s.threads + (key to (existing?.copy(name = event.str("name").ifBlank { existing.name }) ?: Thread(
+                        key = key, name = event.str("name"), isGroup = event.bool("isGroup"), isEncrypted = event.bool("isEncrypted"),
+                        lastActivityMs = 0L, lastReadMs = 0L, snippet = "", snippetSender = ""
+                    ))))
                 } ?: s
                 "thread" -> event.str("key").takeIf { it.isNotEmpty() }?.let { key ->
                     s.copy(threads = s.threads + (key to Thread(
@@ -331,14 +340,14 @@ class OnDeviceMessengerStore(
         }.ifBlank { if (isGroup) "Group chat" else "Messenger chat" }
         val latest = messages(key).lastOrNull()
         val lastMessage = latest?.takeIf { it.timestamp >= lastActivityMs - CLOCK_SKEW_MS } ?: Message(
-            id = "snippet-$key", chatId = CHAT_ID_PREFIX + key, senderId = snippetSender,
+            id = "snippet-$key", chatId = chatIdPrefix + key, senderId = snippetSender,
             senderName = s.contacts[snippetSender]?.firstName.orEmpty(), body = snippet, timestamp = lastActivityMs,
             isOutgoing = snippetSender.isNotEmpty() && snippetSender == s.selfId
         )
         return Chat(
-            id = CHAT_ID_PREFIX + key,
+            id = chatIdPrefix + key,
             name = name,
-            network = ChatNetwork.MESSENGER,
+            network = messenger.network,
             lastMessage = lastMessage,
             unreadCount = if (lastActivityMs > lastReadMs && lastMessage.isOutgoing.not()) 1 else 0,
             isGroup = isGroup,
@@ -381,7 +390,7 @@ class OnDeviceMessengerStore(
         val media = attachment?.media?.takeIf { it.url.isNotBlank() }
         return Message(
             id = id,
-            chatId = CHAT_ID_PREFIX + threadKey,
+            chatId = chatIdPrefix + threadKey,
             senderId = senderId,
             senderName = s.contacts[senderId]?.name.orEmpty(),
             body = when {
@@ -409,7 +418,8 @@ class OnDeviceMessengerStore(
     private fun JsonObject.bool(key: String) = this[key]?.jsonPrimitive?.booleanOrNull ?: false
 
     companion object {
-        const val CHAT_ID_PREFIX = "fbdevice:"
+        const val MESSENGER_CHAT_ID_PREFIX = "fbdevice:"
+        const val WHATSAPP_CHAT_ID_PREFIX = "wadevice:"
         private const val CACHE_WRITE_DELAY_MILLIS = 2_000L
         private val cacheJson = Json { ignoreUnknownKeys = true }
         private val MEDIA_TYPES = setOf(MessageType.IMAGE, MessageType.VIDEO, MessageType.AUDIO, MessageType.FILE, MessageType.STICKER)
