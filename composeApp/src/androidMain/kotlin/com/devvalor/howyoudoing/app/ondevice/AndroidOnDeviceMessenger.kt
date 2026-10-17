@@ -4,6 +4,7 @@ import android.content.Context
 import com.devvalor.howyoudoing.bridge.hydbridge.Hydbridge
 import com.devvalor.howyoudoing.bridge.hydbridge.Listener
 import com.devvalor.howyoudoing.bridge.hydbridge.Messenger
+import com.devvalor.howyoudoing.chat.data.ondevice.OnDeviceInboxCache
 import java.io.File
 
 /** hydbridge from the gomobile AAR (composeApp/libs/hydbridge.aar). */
@@ -28,6 +29,8 @@ private class AndroidMessengerClient(private val m: Messenger) : NativeMessenger
     override fun fetchEncryptedHistory(threadKey: String, isGroup: Boolean, beforeTimestampMs: Long, count: Long) =
         m.fetchEncryptedHistory(threadKey, isGroup, beforeTimestampMs, count)
     override fun sendReaction(threadKey: String, messageId: String, emoji: String) = m.sendReaction(threadKey, messageId, emoji)
+    override fun sendEncryptedReaction(threadKey: String, isGroup: Boolean, messageId: String, messageSenderId: String, emoji: String) =
+        m.sendEncryptedReaction(threadKey, isGroup, messageId, messageSenderId, emoji)
     override fun markRead(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, lastMessageId: String, senderId: String) =
         m.markRead(threadKey, isEncrypted, isGroup, lastMessageId, senderId)
     override fun setTyping(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, isTyping: Boolean) =
@@ -65,5 +68,19 @@ class AndroidDataDirectory(context: Context) : OnDeviceDataDirectory {
     override fun clear() {
         dir.deleteRecursively()
         dir.mkdirs()
+    }
+}
+
+/** The on-device inbox cache, next to the encrypted-chat keys (cleared with them on Disconnect). */
+class AndroidInboxCache(context: Context) : OnDeviceInboxCache {
+    private val file = File(File(context.noBackupFilesDir, "on_device_messenger").apply { mkdirs() }, "inbox.json")
+    override fun read(): String? = file.takeIf { it.exists() }?.readText()
+    override fun write(value: String) {
+        val tmp = File(file.parentFile, "inbox.json.tmp")
+        tmp.writeText(value)
+        tmp.renameTo(file)
+    }
+    override fun clear() {
+        file.delete()
     }
 }

@@ -10,6 +10,11 @@ import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceMessenger
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceMessengerState
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.runningFold
+import kotlinx.serialization.Serializable
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -27,12 +32,21 @@ import kotlin.random.Random
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 
+/** Keeps the on-device inbox between launches (a file in the app's private, non-backed-up storage). */
+interface OnDeviceInboxCache {
+    fun read(): String?
+    fun write(value: String)
+    fun clear()
+}
+
 /** Builds chats and messages from [OnDeviceMessenger] events. Chat IDs are [CHAT_ID_PREFIX] + thread key. */
-@OptIn(ExperimentalTime::class)
+@OptIn(ExperimentalTime::class, FlowPreview::class)
 class OnDeviceMessengerStore(
     private val messenger: OnDeviceMessenger,
+    private val cache: OnDeviceInboxCache,
     scope: CoroutineScope
 ) {
+    @Serializable
     data class Snapshot(
         val selfId: String? = null,
         val contacts: Map<String, Contact> = emptyMap(),
@@ -58,11 +72,24 @@ class OnDeviceMessengerStore(
         val readWatermarks: Map<String, Map<String, Long>> = emptyMap()
     )
 
+    @Serializable
     data class Link(val threadKey: String, val isGroup: Boolean, val lastActivityMs: Long)
 
-    data class StoredAttachment(val kind: String, val media: MediaInfo)
+    @Serializable
+    data class StoredAttachment(
+        val kind: String,
+        val url: String,
+        val mimeType: String?,
+        val fileName: String?,
+        val width: Int?,
+        val height: Int?
+    ) {
+        val media: MediaInfo get() = MediaInfo(url, mimeType, fileName, sizeBytes = null, width, height, durationMillis = null)
+    }
 
+    @Serializable
     data class Contact(val id: String, val name: String, val firstName: String, val avatarUrl: String?)
+    @Serializable
     data class Thread(
         val key: String,
         val name: String,
@@ -74,6 +101,7 @@ class OnDeviceMessengerStore(
         val snippetSender: String
     )
 
+    @Serializable
     data class StoredMessage(
         val id: String,
         val threadKey: String,
@@ -83,15 +111,37 @@ class OnDeviceMessengerStore(
         val timestampMs: Long,
         val isUnsent: Boolean,
         val status: MessageStatus = MessageStatus.SENT,
-        val kind: String = "text"
+        val kind: String = "text",
+        val isEncrypted: Boolean = false
     )
 
     private val _snapshot = MutableStateFlow(Snapshot())
     val snapshot: StateFlow<Snapshot> = _snapshot.asStateFlow()
 
     init {
+        // The inbox from the last run, so chats known only from live messages survive restarts
+        cache.read()?.let { saved ->
+            runCatching { cacheJson.decodeFromString<Snapshot>(saved) }.getOrNull()?.let { _snapshot.value = it }
+        }
         messenger.events.onEach(::apply).launchIn(scope)
-        messenger.state.onEach { if (it == OnDeviceMessengerState.NotLinked) _snapshot.value = Snapshot() }.launchIn(scope)
+        // Forget the inbox when the account is disconnected (not at launch, where the state also starts unlinked)
+        messenger.state
+            .runningFold(null as OnDeviceMessengerState? to (null as OnDeviceMessengerState?)) { (_, previous), current -> previous to current }
+            .onEach { (previous, current) ->
+                if (previous != null && previous != OnDeviceMessengerState.NotLinked && current == OnDeviceMessengerState.NotLinked) {
+                    _snapshot.value = Snapshot()
+                    cache.clear()
+                }
+            }
+            .launchIn(scope)
+        _snapshot
+            .drop(1)
+            .debounce(CACHE_WRITE_DELAY_MILLIS)
+            .onEach { snapshot ->
+                // Typing and unsent echoes only make sense while the app runs
+                runCatching { cache.write(cacheJson.encodeToString(snapshot.copy(typing = emptyMap(), pending = emptyMap()))) }
+            }
+            .launchIn(scope)
     }
 
     fun addPending(threadKey: String, otid: String, text: String) = _snapshot.update { s ->
@@ -152,15 +202,11 @@ class OnDeviceMessengerStore(
                     if (messageId.isEmpty() || messageId in s.attachments) s
                     else s.copy(attachments = s.attachments + (messageId to StoredAttachment(
                         kind = event.str("kind"),
-                        media = MediaInfo(
-                            url = event.str("url"),
-                            mimeType = event.str("mimeType").ifBlank { null },
-                            fileName = event.str("fileName").ifBlank { null },
-                            sizeBytes = null,
-                            width = event.long("width").toInt().takeIf { it > 0 },
-                            height = event.long("height").toInt().takeIf { it > 0 },
-                            durationMillis = null
-                        )
+                        url = event.str("url"),
+                        mimeType = event.str("mimeType").ifBlank { null },
+                        fileName = event.str("fileName").ifBlank { null },
+                        width = event.long("width").toInt().takeIf { it > 0 },
+                        height = event.long("height").toInt().takeIf { it > 0 }
                     )))
                 }
                 "typing" -> {
@@ -206,7 +252,8 @@ class OnDeviceMessengerStore(
                     val message = StoredMessage(
                         id = event.str("id"), threadKey = event.str("threadKey"), otid = event.str("otid"),
                         senderId = event.str("senderId"), text = event.str("text"), timestampMs = event.long("timestampMs"),
-                        isUnsent = event.bool("isUnsent"), kind = event.str("kind").ifEmpty { "text" }
+                        isUnsent = event.bool("isUnsent"), kind = event.str("kind").ifEmpty { "text" },
+                        isEncrypted = event.bool("isEncrypted")
                     )
                     val thread = s.messages[message.threadKey].orEmpty()
                     s.copy(
@@ -223,34 +270,37 @@ class OnDeviceMessengerStore(
         val s = _snapshot.value
         // A Facebook thread that moved to an encrypted chat is shown as that chat
         val replaced = s.links.filter { (fbKey, link) -> fbKey != link.threadKey }.keys
-        // Encrypted chats announced only by a link have no thread row; build one from the link
-        val linkedOnly = s.links.values
-            .filter { it.threadKey !in s.threads }
-            .associate { link ->
-                link.threadKey to Thread(
-                    key = link.threadKey, name = "", isGroup = link.isGroup, isEncrypted = true,
-                    lastActivityMs = link.lastActivityMs, lastReadMs = link.lastActivityMs, snippet = "", snippetSender = ""
-                )
-            }
-        return (s.threads + linkedOnly).values
+        return allThreads(s).values
             .filter { it.key !in replaced }
             .map { thread -> thread.toChat(s) }
     }
 
-    fun thread(threadKey: String): Thread? = chatsByKey()[threadKey]
+    fun thread(threadKey: String): Thread? = allThreads(_snapshot.value)[threadKey]
 
-    private fun chatsByKey(): Map<String, Thread> {
-        val s = _snapshot.value
-        return s.threads + s.links.values.filter { it.threadKey !in s.threads }.associate {
-            it.threadKey to Thread(it.threadKey, "", it.isGroup, true, it.lastActivityMs, it.lastActivityMs, "", "")
+    /**
+     * Thread rows, plus encrypted chats known only from a link (no thread row) or only from live messages
+     * (a chat that started after connecting).
+     */
+    private fun allThreads(s: Snapshot): Map<String, Thread> {
+        val fromLinks = s.links.values.filter { it.threadKey !in s.threads }.associate { link ->
+            link.threadKey to Thread(link.threadKey, "", link.isGroup, true, link.lastActivityMs, link.lastActivityMs, "", "")
         }
+        val fromMessages = s.messages
+            .filterKeys { it !in s.threads && it !in fromLinks }
+            .mapNotNull { (key, messages) ->
+                val newest = messages.values.maxByOrNull { it.timestampMs } ?: return@mapNotNull null
+                if (!newest.isEncrypted) return@mapNotNull null
+                key to Thread(key, "", false, true, newest.timestampMs, 0L, "", "")
+            }
+            .toMap()
+        return s.threads + fromLinks + fromMessages
     }
 
     fun historyCursor(threadKey: String): Long? = _snapshot.value.historyCursors[threadKey]
 
     /** After restoring history, encrypted chats can page again. */
     fun resetEncryptedPaging() = _snapshot.update { s ->
-        val encrypted = chatsByKey().values.filter { it.isEncrypted }.map { it.key }.toSet()
+        val encrypted = allThreads(s).values.filter { it.isEncrypted }.map { it.key }.toSet()
         s.copy(hasMoreBefore = s.hasMoreBefore - encrypted, historyCursors = s.historyCursors - encrypted)
     }
 
@@ -336,8 +386,8 @@ class OnDeviceMessengerStore(
             senderName = s.contacts[senderId]?.name.orEmpty(),
             body = when {
                 isUnsent -> "Message unsent"
-                // With media the body is the caption (or the file name the bubble expects)
-                media != null -> text.ifBlank { media.fileName ?: placeholder }
+                // With media the body is the caption, or the file name (which the bubble doesn't repeat as a caption)
+                media != null -> text.ifBlank { media.fileName.orEmpty() }
                 placeholder.isNotEmpty() && text.isNotBlank() -> "$placeholder · $text"
                 placeholder.isNotEmpty() -> placeholder
                 else -> text
@@ -360,6 +410,8 @@ class OnDeviceMessengerStore(
 
     companion object {
         const val CHAT_ID_PREFIX = "fbdevice:"
+        private const val CACHE_WRITE_DELAY_MILLIS = 2_000L
+        private val cacheJson = Json { ignoreUnknownKeys = true }
         private val MEDIA_TYPES = setOf(MessageType.IMAGE, MessageType.VIDEO, MessageType.AUDIO, MessageType.FILE, MessageType.STICKER)
         private const val CLOCK_SKEW_MS = 5_000L
     }

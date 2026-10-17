@@ -19,6 +19,6 @@ val chatDataModule = module {
     singleOf(::DemoChatRepository)
     singleOf(::SessionAwareChatRepository)
     // Created eagerly so it collects the on-device Messenger inbox from the start
-    single(createdAtStart = true) { OnDeviceMessengerStore(get(), get()) }
+    single(createdAtStart = true) { OnDeviceMessengerStore(get(), get(), get()) }
     singleOf(::OnDeviceChatRepository) bind ChatRepository::class
 }

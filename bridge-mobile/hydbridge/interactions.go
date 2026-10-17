@@ -130,6 +130,10 @@ func (m *Messenger) SetTyping(threadKey string, isEncrypted bool, isGroup bool, 
 		state := types.ChatPresencePaused
 		if isTyping {
 			state = types.ChatPresenceComposing
+			// Like mautrix-meta's send_presence_on_typing: Messenger ignores typing from devices that aren't available
+			if err := m.e2ee.SendPresence(context.Background(), types.PresenceAvailable); err != nil {
+				m.log.Warn().Err(err).Msg("Failed to send available presence")
+			}
 		}
 		return m.e2ee.SendChatPresence(context.Background(), types.NewJID(threadKey, chatServer(isGroup)), state, types.ChatPresenceMediaText)
 	}

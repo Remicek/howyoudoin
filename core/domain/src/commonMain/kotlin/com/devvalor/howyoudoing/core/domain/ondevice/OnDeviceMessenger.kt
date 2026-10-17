@@ -46,8 +46,18 @@ interface OnDeviceMessenger {
     /** Asks for messages older than the given one; they arrive as message events plus a range event. */
     suspend fun requestOlder(threadKey: String, beforeTimestampMs: Long, beforeMessageId: String): EmptyResult<DataError.Remote>
 
-    /** Reacts to a message in a regular chat; an empty [emoji] removes the reaction. */
-    suspend fun sendReaction(threadKey: String, messageId: String, emoji: String): EmptyResult<DataError.Remote>
+    /**
+     * Reacts to a message; an empty [emoji] removes the reaction. Encrypted chats also need whether it's a group
+     * and who sent the message.
+     */
+    suspend fun sendReaction(
+        threadKey: String,
+        messageId: String,
+        emoji: String,
+        isEncrypted: Boolean = false,
+        isGroup: Boolean = false,
+        messageSenderId: String = ""
+    ): EmptyResult<DataError.Remote>
 
     /** Marks a chat read; encrypted chats need the newest message's ID and sender. */
     suspend fun markRead(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, lastMessageId: String, senderId: String): EmptyResult<DataError.Remote>
@@ -94,7 +104,9 @@ object UnsupportedOnDeviceMessenger : OnDeviceMessenger {
         Result.Failure(DataError.Remote.UNKNOWN)
     override suspend fun requestOlder(threadKey: String, beforeTimestampMs: Long, beforeMessageId: String): EmptyResult<DataError.Remote> =
         Result.Failure(DataError.Remote.UNKNOWN)
-    override suspend fun sendReaction(threadKey: String, messageId: String, emoji: String): EmptyResult<DataError.Remote> =
+    override suspend fun sendReaction(
+        threadKey: String, messageId: String, emoji: String, isEncrypted: Boolean, isGroup: Boolean, messageSenderId: String
+    ): EmptyResult<DataError.Remote> =
         Result.Failure(DataError.Remote.UNKNOWN)
     override suspend fun markRead(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, lastMessageId: String, senderId: String): EmptyResult<DataError.Remote> =
         Result.Failure(DataError.Remote.UNKNOWN)

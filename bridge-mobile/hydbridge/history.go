@@ -144,7 +144,13 @@ func (m *Messenger) emitArchiveMessage(threadKey string, message *securehistory.
 		return
 	}
 	metadata := backup.GetMetadata()
-	m.emitFBMessage(threadKey, metadata.GetMessageID(), metadata.GetSenderID(), message.Message.TimestampMS, decoded.GetConsumerApplication())
+	paths := make(map[string]string, len(message.Attachments))
+	for _, attachment := range message.Attachments {
+		if attachment.ObjectID != "" && attachment.URL != "" {
+			paths[attachment.ObjectID] = attachment.URL
+		}
+	}
+	m.emitFBMessage(threadKey, metadata.GetMessageID(), metadata.GetSenderID(), message.Message.TimestampMS, decoded.GetConsumerApplication(), paths)
 }
 
 func (m *Messenger) historyDevicePath() string {

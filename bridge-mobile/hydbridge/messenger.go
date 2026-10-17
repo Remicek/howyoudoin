@@ -40,6 +40,10 @@ type Messenger struct {
 	cancel context.CancelFunc
 	selfID int64
 
+	// Contacts already sent to the app; others are looked up when their encrypted messages arrive
+	knownContacts sync.Map
+	lookups       sync.Map
+
 	// End-to-end encrypted chats (WhatsApp protocol); see e2ee.go
 	dataDir     string
 	deviceStore *sqlstore.Container
@@ -243,6 +247,7 @@ func (m *Messenger) emitContact(contactID int64, name, firstName, avatar string)
 	if contactID == 0 {
 		return
 	}
+	m.knownContacts.Store(contactID, true)
 	m.emit(map[string]any{"type": "contact", "id": id(contactID), "name": name, "firstName": firstName, "avatarUrl": avatar})
 }
 
@@ -303,4 +308,26 @@ func errString(err error) string {
 		return ""
 	}
 	return err.Error()
+}
+
+// ensureContact looks up a contact the app doesn't know yet (e.g. the other person of an encrypted chat that
+// started after connecting), so the chat gets a name.
+func (m *Messenger) ensureContact(idStr string) {
+	contactID, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil || contactID == 0 || contactID == m.selfID {
+		return
+	} else if _, known := m.knownContacts.Load(contactID); known {
+		return
+	} else if _, pending := m.lookups.LoadOrStore(contactID, true); pending {
+		return
+	}
+	go func() {
+		defer m.lookups.Delete(contactID)
+		resp, err := m.client.ExecuteTasks(context.Background(), &socket.GetContactsFullTask{ContactID: contactID})
+		if err != nil {
+			m.log.Err(err).Int64("contact_id", contactID).Msg("Failed to look up contact")
+			return
+		}
+		m.emitTable(resp)
+	}()
 }

@@ -117,6 +117,8 @@ func hyd_call(handle C.int64_t, method, argsJSON *C.char, errOut **C.char) *C.ch
 		err = m.FetchEncryptedHistory(a.ThreadKey, a.IsGroup, a.BeforeTimestampMs, a.Count)
 	case "sendReaction":
 		err = m.SendReaction(a.ThreadKey, a.MessageID, a.Emoji)
+	case "sendEncryptedReaction":
+		err = m.SendEncryptedReaction(a.ThreadKey, a.IsGroup, a.MessageID, a.SenderID, a.Emoji)
 	case "markRead":
 		err = m.MarkRead(a.ThreadKey, a.IsEncrypted, a.IsGroup, a.MessageID, a.SenderID)
 	case "setTyping":

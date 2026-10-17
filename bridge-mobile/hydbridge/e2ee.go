@@ -65,7 +65,7 @@ func (m *Messenger) connectE2EE(ctx context.Context) error {
 func (m *Messenger) handleE2EEEvent(rawEvt any) {
 	switch evt := rawEvt.(type) {
 	case *events.FBMessage:
-		m.emitFBMessage(evt.Info.Chat.User, evt.Info.ID, evt.Info.Sender.User, evt.Info.Timestamp.UnixMilli(), evt.GetConsumerApplication())
+		m.emitFBMessage(evt.Info.Chat.User, evt.Info.ID, evt.Info.Sender.User, evt.Info.Timestamp.UnixMilli(), evt.GetConsumerApplication(), nil)
 	case *events.ChatPresence:
 		m.emit(map[string]any{"type": "typing", "threadKey": evt.Chat.User, "senderId": evt.Sender.User,
 			"isTyping": evt.State == types.ChatPresenceComposing})
@@ -82,7 +82,7 @@ func (m *Messenger) handleE2EEEvent(rawEvt any) {
 }
 
 // emitFBMessage turns a decrypted Messenger (consumer application) message into a message or reaction event.
-func (m *Messenger) emitFBMessage(threadKey, messageID, senderID string, timestamp int64, app *waConsumerApplication.ConsumerApplication) {
+func (m *Messenger) emitFBMessage(threadKey, messageID, senderID string, timestamp int64, app *waConsumerApplication.ConsumerApplication, mediaPaths map[string]string) {
 	content := app.GetPayload().GetContent()
 	if content == nil || messageID == "" {
 		return
@@ -98,6 +98,8 @@ func (m *Messenger) emitFBMessage(threadKey, messageID, senderID string, timesta
 	if kind == "" {
 		return
 	}
+	m.ensureContact(senderID)
+	m.ensureContact(threadKey)
 	m.emit(map[string]any{
 		"type":        "message",
 		"threadKey":   threadKey,
@@ -108,6 +110,7 @@ func (m *Messenger) emitFBMessage(threadKey, messageID, senderID string, timesta
 		"timestampMs": timestamp,
 		"isEncrypted": true,
 	})
+	m.downloadEncryptedMedia(threadKey, messageID, content, mediaPaths)
 }
 
 type captioned interface {
@@ -144,7 +147,7 @@ func describeContent(content *waConsumerApplication.ConsumerApplication_Content)
 // SendEncryptedText sends text to an end-to-end encrypted chat and returns the message ID the echo will carry.
 func (m *Messenger) SendEncryptedText(threadKey string, isGroup bool, text string) (string, error) {
 	if m.e2ee == nil {
-		return "", fmt.Errorf("encrypted chats aren't connected")
+		return "", errNotConnectedE2EE
 	}
 	server := chatServer(isGroup)
 	msg := &waConsumerApplication.ConsumerApplication{
@@ -162,5 +165,12 @@ func (m *Messenger) SendEncryptedText(threadKey string, isGroup bool, text strin
 	if err != nil {
 		return "", err
 	}
+	// The encrypted protocol doesn't echo our own messages; emit it so the app replaces its local echo
+	m.emit(map[string]any{
+		"type": "message", "threadKey": threadKey, "id": resp.ID, "otid": resp.ID, "senderId": m.SelfID(),
+		"text": text, "kind": "text", "timestampMs": resp.Timestamp.UnixMilli(), "isEncrypted": true,
+	})
 	return resp.ID, nil
 }
+
+var errNotConnectedE2EE = fmt.Errorf("encrypted chats aren't connected")

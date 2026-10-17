@@ -119,10 +119,12 @@ class OnDeviceChatRepository(
     override suspend fun toggleReaction(chatId: String, messageId: String, key: String): EmptyResult<DataError.Remote> {
         val threadKey = chatId.threadKey() ?: return server.toggleReaction(chatId, messageId, key)
         val thread = store.thread(threadKey)
-        // Reactions in encrypted chats need the WhatsApp-protocol message key; not supported on device yet
-        if (thread?.isEncrypted == true) return Result.Failure(DataError.Remote.BAD_REQUEST)
-        val isOwn = store.messages(threadKey).firstOrNull { it.id == messageId }?.reactions?.any { it.key == key && it.isOwn } == true
-        return messenger.sendReaction(threadKey, messageId, if (isOwn) "" else key)
+        val target = store.messages(threadKey).firstOrNull { it.id == messageId }
+        val isOwn = target?.reactions?.any { it.key == key && it.isOwn } == true
+        return messenger.sendReaction(
+            threadKey, messageId, if (isOwn) "" else key,
+            isEncrypted = thread?.isEncrypted == true, isGroup = thread?.isGroup == true, messageSenderId = target?.senderId.orEmpty()
+        )
     }
 
     override suspend fun setTyping(chatId: String, isTyping: Boolean): EmptyResult<DataError.Remote> {
@@ -153,7 +155,8 @@ class OnDeviceChatRepository(
         }
     }
 
-    private fun String.isHttp() = startsWith("https://") || startsWith("http://")
+    // Decrypted media of encrypted chats are files in the app's private storage (file://)
+    private fun String.isHttp() = startsWith("https://") || startsWith("http://") || startsWith("file://")
 
     private companion object {
         const val HISTORY_TIMEOUT_MILLIS = 15_000L

@@ -2,6 +2,7 @@
 
 package com.devvalor.howyoudoing.app.ondevice
 
+import com.devvalor.howyoudoing.chat.data.ondevice.OnDeviceInboxCache
 import hydbridge.hyd_call
 import hydbridge.hyd_free
 import hydbridge.hyd_new
@@ -103,6 +104,13 @@ private class IosMessengerClient(
         call("sendReaction", "threadKey" to threadKey, "messageId" to messageId, "emoji" to emoji)
     }
 
+    override fun sendEncryptedReaction(threadKey: String, isGroup: Boolean, messageId: String, messageSenderId: String, emoji: String) {
+        call(
+            "sendEncryptedReaction",
+            "threadKey" to threadKey, "isGroup" to isGroup, "messageId" to messageId, "senderId" to messageSenderId, "emoji" to emoji
+        )
+    }
+
     override fun markRead(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, lastMessageId: String, senderId: String) {
         call("markRead", "threadKey" to threadKey, "isEncrypted" to isEncrypted, "isGroup" to isGroup, "messageId" to lastMessageId, "senderId" to senderId)
     }
@@ -164,5 +172,22 @@ class IosDataDirectory : OnDeviceDataDirectory {
     private fun ensure(dir: String) {
         NSFileManager.defaultManager.createDirectoryAtPath(dir, withIntermediateDirectories = true, attributes = null, error = null)
         NSURL.fileURLWithPath(dir).setResourceValue(NSNumber(bool = true), forKey = NSURLIsExcludedFromBackupKey, error = null)
+    }
+}
+
+/** The on-device inbox cache, protected by iOS Data Protection and excluded from backups with its directory. */
+class IosInboxCache : OnDeviceInboxCache {
+    private val path get() = "${IosDataDirectory().path}/inbox.json"
+
+    override fun read(): String? =
+        NSString.create(contentsOfFile = path, encoding = NSUTF8StringEncoding, error = null)?.toString()
+
+    override fun write(value: String) {
+        val data: NSData = (value as NSString).dataUsingEncoding(NSUTF8StringEncoding) ?: return
+        data.writeToFile(path, options = NSDataWritingAtomic or NSDataWritingFileProtectionComplete, error = null)
+    }
+
+    override fun clear() {
+        NSFileManager.defaultManager.removeItemAtPath(path, error = null)
     }
 }

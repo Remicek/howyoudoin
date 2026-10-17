@@ -39,6 +39,7 @@ interface NativeMessengerClient {
     fun restoreHistory(pin: String)
     fun fetchEncryptedHistory(threadKey: String, isGroup: Boolean, beforeTimestampMs: Long, count: Long)
     fun sendReaction(threadKey: String, messageId: String, emoji: String)
+    fun sendEncryptedReaction(threadKey: String, isGroup: Boolean, messageId: String, messageSenderId: String, emoji: String)
     fun markRead(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, lastMessageId: String, senderId: String)
     fun setTyping(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, isTyping: Boolean)
 }
@@ -157,8 +158,11 @@ class NativeOnDeviceMessenger(
     override suspend fun requestOlder(threadKey: String, beforeTimestampMs: Long, beforeMessageId: String): EmptyResult<DataError.Remote> =
         native("Requesting older messages") { requestOlder(threadKey, beforeTimestampMs, beforeMessageId) }
 
-    override suspend fun sendReaction(threadKey: String, messageId: String, emoji: String): EmptyResult<DataError.Remote> =
-        native("Sending a reaction") { sendReaction(threadKey, messageId, emoji) }
+    override suspend fun sendReaction(
+        threadKey: String, messageId: String, emoji: String, isEncrypted: Boolean, isGroup: Boolean, messageSenderId: String
+    ): EmptyResult<DataError.Remote> = native("Sending a reaction") {
+        if (isEncrypted) sendEncryptedReaction(threadKey, isGroup, messageId, messageSenderId, emoji) else sendReaction(threadKey, messageId, emoji)
+    }
 
     override suspend fun markRead(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, lastMessageId: String, senderId: String): EmptyResult<DataError.Remote> =
         native("Marking read") { markRead(threadKey, isEncrypted, isGroup, lastMessageId, senderId) }
@@ -182,7 +186,7 @@ class NativeOnDeviceMessenger(
         val current = client ?: return Result.Failure(DataError.Remote.SERVICE_UNAVAILABLE)
         return withContext(Dispatchers.IO) {
             try {
-                Result.Success(current.block())
+                Result.Success(current.block()).also { log("$description: ok") }
             } catch (e: Exception) {
                 log("$description failed: ${e.message}")
                 Result.Failure(DataError.Remote.UNKNOWN)
@@ -194,7 +198,7 @@ class NativeOnDeviceMessenger(
         val event = runCatching { Json.parseToJsonElement(json).jsonObject }.getOrNull() ?: return
         when (event["type"]?.jsonPrimitive?.contentOrNull) {
             "self" -> _state.value = OnDeviceMessengerState.Connected(event["name"]?.jsonPrimitive?.contentOrNull)
-            "state" -> when (event["state"]?.jsonPrimitive?.contentOrNull) {
+            "state" -> when (event["state"]?.jsonPrimitive?.contentOrNull.also { log("state $it ${event["error"]?.jsonPrimitive?.contentOrNull.orEmpty()}") }) {
                 "error" -> _state.value = OnDeviceMessengerState.Failed(event["error"]?.jsonPrimitive?.contentOrNull ?: "Disconnected")
                 "reconnecting" -> _state.value = OnDeviceMessengerState.Connecting
             }
