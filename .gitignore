@@ -17,3 +17,5 @@ captures
 **/xcshareddata/WorkspaceSettings.xcsettings
 *.log
 Thumbs.db
+# Built by bridge-mobile/scripts/build-android.sh and build-ios.sh
+composeApp/libs/
