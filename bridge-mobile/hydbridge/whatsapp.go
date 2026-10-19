@@ -369,6 +369,21 @@ func (w *WhatsApp) emitWAMessage(evt *events.Message, live bool) {
 			"senderId": sender, "emoji": reaction.GetText()})
 		return
 	}
+	if secret := msg.GetSecretEncryptedMessage(); secret != nil {
+		// Edits nowadays come encrypted with the original message's secret
+		if secret.GetSecretEncType() == waE2E.SecretEncryptedMessage_MESSAGE_EDIT && w.client != nil {
+			if edited, err := w.client.DecryptSecretEncryptedMessage(context.Background(), evt); err == nil {
+				if inner := edited.GetProtocolMessage().GetEditedMessage(); inner != nil {
+					edited = inner
+				}
+				_, text := describeWAMessage(edited)
+				w.emit(map[string]any{"type": "edit", "threadKey": chat, "messageId": secret.GetTargetMessageKey().GetID(), "text": text})
+			} else {
+				w.emit(map[string]any{"type": "debug", "event": "edit_decrypt_failed", "error": err.Error()})
+			}
+		}
+		return
+	}
 	if protocol := msg.GetProtocolMessage(); protocol != nil {
 		switch protocol.GetType() {
 		case waE2E.ProtocolMessage_REVOKE:
