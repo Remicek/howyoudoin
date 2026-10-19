@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"strconv"
 	"sync"
+	"time"
 
 	"github.com/rs/zerolog"
 
@@ -30,6 +31,8 @@ type Instagram struct {
 	// IG thread ID → thread key, for typing notifications (which use the IG ID), and back, for sending
 	threadKeys  sync.Map
 	igThreadIDs sync.Map
+	// Threads being fetched because a message arrived for one the inbox sync didn't have
+	threadsLoading sync.Map
 }
 
 // NewInstagram takes the instagram.com session cookies as a JSON object; sessionid, csrftoken and ds_user_id are
@@ -138,6 +141,10 @@ func (ig *Instagram) handleDelta(delta *slidetypes.Delta) {
 	switch evt := delta.Data.(type) {
 	case *slidetypes.NewMessageEvent:
 		ig.emitMessage(threadKey, evt.Message)
+		if _, known := ig.igThreadIDs.Load(threadKey); !known {
+			// A conversation started after connecting (e.g. someone new writing): load it so it shows up
+			go ig.loadNewThread(threadKey)
+		}
 	case *slidetypes.CreateReactionEvent:
 		ig.emit(map[string]any{"type": "reaction", "threadKey": threadKey, "targetId": evt.MessageID,
 			"senderId": strconv.FormatInt(evt.Reaction.SenderFBID, 10), "emoji": evt.Reaction.Reaction})
@@ -275,3 +282,28 @@ func (ig *Instagram) RequestOlder(threadKey string, beforeMessageID string) erro
 }
 
 const instagramPageSize = 20
+
+// loadNewThread fetches a thread the inbox sync didn't have and emits it with its people and messages.
+func (ig *Instagram) loadNewThread(threadKey string) {
+	if _, loading := ig.threadsLoading.LoadOrStore(threadKey, true); loading {
+		return
+	}
+	defer ig.threadsLoading.Delete(threadKey)
+	fbid, err := strconv.ParseInt(threadKey, 10, 64)
+	if err != nil {
+		return
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	ids, err := ig.client.FetchThreadID(ctx, fbid)
+	if err != nil {
+		ig.log.Err(err).Msg("Failed to look up a new Instagram thread")
+		return
+	}
+	resp, err := ig.client.GetThread(ctx, slidetypes.MakeGetThreadInfoRequest(ids.ShortID))
+	if err != nil || resp.ThreadInfo.AsIGDirectThread == nil {
+		ig.log.Err(err).Msg("Failed to load a new Instagram thread")
+		return
+	}
+	ig.emitThread(resp.ThreadInfo.AsIGDirectThread)
+}
