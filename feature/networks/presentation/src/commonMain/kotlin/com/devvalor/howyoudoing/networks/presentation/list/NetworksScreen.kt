@@ -1,5 +1,8 @@
 package com.devvalor.howyoudoing.networks.presentation.list
 
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.material3.AlertDialog
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -169,6 +172,26 @@ private fun NetworkCard(
                 }
             }
             if (onDevice != OnDeviceMessengerState.NotLinked) {
+                var confirmDisconnect by remember { mutableStateOf(false) }
+                if (confirmDisconnect) {
+                    AlertDialog(
+                        onDismissRequest = { confirmDisconnect = false },
+                        title = { Text("Disconnect ${network.displayName}?") },
+                        text = {
+                            Text(
+                                "Its chats, photos and encryption keys are deleted from this phone. Your " +
+                                    "${network.displayName} account and its messages stay as they are; you can connect again anytime."
+                            )
+                        },
+                        confirmButton = {
+                            TextButton(onClick = {
+                                confirmDisconnect = false
+                                onAction(NetworksAction.OnDisconnectOnDeviceClick(network))
+                            }) { Text("Disconnect and delete", color = MaterialTheme.colorScheme.error) }
+                        },
+                        dismissButton = { TextButton(onClick = { confirmDisconnect = false }) { Text("Cancel") } },
+                    )
+                }
                 Spacer(Modifier.height(HowYouDoinSpacing.sm))
                 LoginRow(
                     login = NetworkLogin(
@@ -181,7 +204,7 @@ private fun NetworkCard(
                             OnDeviceMessengerState.NotLinked -> null
                         }
                     ),
-                    onDisconnect = { onAction(NetworksAction.OnDisconnectOnDeviceClick(network)) },
+                    onDisconnect = { confirmDisconnect = true },
                 )
             }
         }
