@@ -42,6 +42,9 @@ func (t *Telegram) describeMedia(key, id string, msg *tg.Message, event map[stri
 		}
 		kind, fileName, w, h := documentKind(doc)
 		event["kind"] = kind
+		if seconds := documentSeconds(doc); seconds > 0 {
+			event["durationMs"] = int64(seconds * 1000)
+		}
 		switch {
 		case kind == "sticker":
 			// Static stickers are WebP images; animated ones show their still preview
@@ -123,6 +126,19 @@ func documentKind(doc *tg.Document) (kind, fileName string, w, h int) {
 		kind = "image"
 	}
 	return kind, fileName, w, h
+}
+
+// documentSeconds is an audio or video document's length.
+func documentSeconds(doc *tg.Document) float64 {
+	for _, raw := range doc.Attributes {
+		switch attr := raw.(type) {
+		case *tg.DocumentAttributeAudio:
+			return float64(attr.Duration)
+		case *tg.DocumentAttributeVideo:
+			return float64(attr.Duration)
+		}
+	}
+	return 0
 }
 
 func stickerEmoji(doc *tg.Document) string {
@@ -272,7 +288,7 @@ func (t *Telegram) SendMediaFile(threadKey, path, mimeType, fileName, caption st
 		return "", friendlyTelegramError(err)
 	}
 	// The echo with its media comes as an update
-	_ = t.updates.Handle(ctx, resp)
+	t.handleSent(ctx, threadKey, rid, resp)
 	return strconv.FormatInt(rid, 10), nil
 }
 
@@ -348,4 +364,56 @@ func (t *Telegram) fetchAvatar(key string) {
 		}
 	}
 	t.emit(map[string]any{"type": "avatar", "threadKey": key, "url": "file://" + path})
+}
+
+// SendVoice sends the recording at path (Ogg/Opus) as a voice message, which Telegram shows with a play button and
+// waveform. waveform is comma-separated loudness values, 0–255.
+func (t *Telegram) SendVoice(threadKey, path, mimeType string, durationMs int, waveform string) (string, error) {
+	defer os.Remove(path)
+	peer, err := t.peerFor(threadKey)
+	if err != nil {
+		return "", err
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	defer cancel()
+	file, err := uploader.NewUploader(t.client.API()).FromPath(ctx, path, "voice.ogg")
+	if err != nil {
+		return "", fmt.Errorf("upload failed: %w", err)
+	}
+	if strings.HasPrefix(mimeType, "audio/ogg") {
+		mimeType = "audio/ogg"
+	}
+	media := &tg.InputMediaUploadedDocument{
+		File:     file,
+		MimeType: mimeType,
+		Attributes: []tg.DocumentAttributeClass{&tg.DocumentAttributeAudio{
+			Voice:    true,
+			Duration: (durationMs + 500) / 1000,
+			Waveform: telegramWaveform(scaleWaveform(waveform, 100, 31)),
+		}},
+	}
+	rid := randomID()
+	resp, err := t.client.API().MessagesSendMedia(ctx, &tg.MessagesSendMediaRequest{Peer: peer, Media: media, RandomID: rid})
+	if err != nil {
+		return "", friendlyTelegramError(err)
+	}
+	t.handleSent(ctx, threadKey, rid, resp)
+	return strconv.FormatInt(rid, 10), nil
+}
+
+// telegramWaveform packs 5-bit samples (0–31) one after another, lowest bits first, as Telegram stores waveforms.
+func telegramWaveform(samples []byte) []byte {
+	if len(samples) == 0 {
+		return nil
+	}
+	out := make([]byte, (len(samples)*5+7)/8)
+	for i, s := range samples {
+		bit := i * 5
+		v := uint16(s&31) << (bit % 8)
+		out[bit/8] |= byte(v)
+		if bit/8+1 < len(out) {
+			out[bit/8+1] |= byte(v >> 8)
+		}
+	}
+	return out
 }

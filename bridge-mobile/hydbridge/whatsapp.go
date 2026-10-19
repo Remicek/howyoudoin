@@ -447,6 +447,11 @@ func (w *WhatsApp) emitWAMessage(evt *events.Message, live bool) {
 		"type": "message", "threadKey": chat, "id": evt.Info.ID, "otid": evt.Info.ID, "senderId": sender, "text": text,
 		"kind": kind, "timestampMs": evt.Info.Timestamp.UnixMilli(), "isEncrypted": true,
 	}
+	if seconds := msg.GetAudioMessage().GetSeconds(); seconds > 0 {
+		event["durationMs"] = int64(seconds) * 1000
+	} else if seconds := msg.GetVideoMessage().GetSeconds(); seconds > 0 {
+		event["durationMs"] = int64(seconds) * 1000
+	}
 	isMedia := kind != "text" && kind != "other" && kind != "location"
 	// History can be long, so from it only photos and stickers are downloaded right away; the rest carries a
 	// reference the app hands back to DownloadMedia when the user opens it
@@ -762,6 +767,18 @@ func (w *WhatsApp) SendMediaFile(chatJID, path, mimeType, fileName, caption stri
 			FileName: &fileName, Title: &fileName, Caption: optionalString(caption),
 		}
 	}
+	return w.sendMedia(client, chat, msg, sentMedia{kind: kind, caption: caption, path: path, mimeType: mimeType,
+		fileName: fileName, width: width, height: height})
+}
+
+// sentMedia describes an outgoing media message for its echo.
+type sentMedia struct {
+	kind, caption, path, mimeType, fileName string
+	width, height, durationMs               int
+}
+
+// sendMedia sends a media message and echoes it, keeping our copy of the file as the echo's media.
+func (w *WhatsApp) sendMedia(client *whatsmeow.Client, chat types.JID, msg *waE2E.Message, media sentMedia) (string, error) {
 	resp, err := client.SendMessage(context.Background(), chat, msg)
 	if err != nil {
 		return "", err
@@ -769,22 +786,50 @@ func (w *WhatsApp) SendMediaFile(chatJID, path, mimeType, fileName, caption stri
 	self := client.Store.ID.ToNonAD().String()
 	w.emit(map[string]any{
 		"type": "message", "threadKey": chat.String(), "id": resp.ID, "otid": resp.ID, "senderId": self,
-		"text": caption, "kind": kind, "timestampMs": resp.Timestamp.UnixMilli(), "isEncrypted": true,
+		"text": media.caption, "kind": media.kind, "timestampMs": resp.Timestamp.UnixMilli(), "isEncrypted": true,
 	})
-	// Keep our copy as the echo's media
 	dir := filepath.Join(w.dataDir, "media")
 	if os.MkdirAll(dir, 0o700) == nil {
 		sum := sha256.Sum256([]byte(chat.String() + "/" + resp.ID))
 		cached := filepath.Join(dir, hex.EncodeToString(sum[:16]))
-		if os.Rename(path, cached) == nil {
+		if os.Rename(media.path, cached) == nil {
 			w.emit(map[string]any{
-				"type": "attachment", "threadKey": chat.String(), "messageId": resp.ID, "kind": kind,
-				"url": "file://" + cached, "previewUrl": "file://" + cached, "mimeType": mimeType, "fileName": fileName,
-				"width": width, "height": height,
+				"type": "attachment", "threadKey": chat.String(), "messageId": resp.ID, "kind": media.kind,
+				"url": "file://" + cached, "previewUrl": "file://" + cached, "mimeType": media.mimeType,
+				"fileName": media.fileName, "width": media.width, "height": media.height, "durationMs": media.durationMs,
 			})
 		}
 	}
 	return resp.ID, nil
+}
+
+// SendVoice sends the recording at path (Ogg/Opus) as a voice note: WhatsApp shows it with a play button and
+// waveform. waveform is comma-separated loudness values, 0–255.
+func (w *WhatsApp) SendVoice(chatJID, path, mimeType string, durationMs int, waveform string) (string, error) {
+	client, chat, err := w.clientAndChat(chatJID)
+	if err != nil {
+		return "", err
+	}
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return "", err
+	}
+	up, err := client.Upload(context.Background(), data, whatsmeow.MediaAudio)
+	if err != nil {
+		return "", fmt.Errorf("upload failed: %w", err)
+	}
+	// Voice notes are Ogg/Opus with the codec named; other recordings still play, as audio
+	if strings.HasPrefix(mimeType, "audio/ogg") {
+		mimeType = "audio/ogg; codecs=opus"
+	}
+	msg := &waE2E.Message{AudioMessage: &waE2E.AudioMessage{
+		URL: &up.URL, DirectPath: &up.DirectPath, MediaKey: up.MediaKey, Mimetype: &mimeType,
+		FileEncSHA256: up.FileEncSHA256, FileSHA256: up.FileSHA256, FileLength: &up.FileLength,
+		PTT: proto.Bool(true), Seconds: proto.Uint32(uint32((durationMs + 500) / 1000)),
+		Waveform: scaleWaveform(waveform, 64, 100),
+	}}
+	return w.sendMedia(client, chat, msg, sentMedia{kind: "audio", path: path, mimeType: mimeType,
+		fileName: "Voice message.ogg", durationMs: durationMs})
 }
 
 func optionalString(s string) *string {

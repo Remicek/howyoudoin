@@ -184,11 +184,12 @@ class OnDeviceChatRepository(
         val route = route(chatId) ?: return server.sendAttachment(chatId, attachment, caption)
         val store = route.store
         val pendingId = store.newPendingId()
-        store.addPending(route.key, pendingId, caption ?: attachment.fileName)
+        store.addPending(route.key, pendingId, caption ?: if (attachment.isVoice) "🎤 Voice message" else attachment.fileName)
         val thread = store.thread(route.key)
         val result = route.client.sendAttachment(
             route.key, attachment.bytes, attachment.fileName, attachment.mimeType, attachment.width, attachment.height, caption,
-            isEncrypted = thread?.isEncrypted == true, isGroup = thread?.isGroup == true
+            isEncrypted = thread?.isEncrypted == true, isGroup = thread?.isGroup == true,
+            voiceDurationMillis = attachment.voiceDurationMillis, waveform = attachment.waveform
         )
         return when (result) {
             is Result.Success -> {

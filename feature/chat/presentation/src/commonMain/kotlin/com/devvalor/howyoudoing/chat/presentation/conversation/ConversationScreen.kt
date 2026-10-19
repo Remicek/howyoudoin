@@ -87,6 +87,12 @@ import com.devvalor.howyoudoing.chat.presentation.platform.rememberFileOpener
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import org.koin.compose.viewmodel.koinViewModel
+import androidx.compose.runtime.CompositionLocalProvider
+import com.devvalor.howyoudoing.chat.presentation.conversation.components.LocalVoicePlayback
+import com.devvalor.howyoudoing.chat.presentation.conversation.components.VoiceMessagesUi
+import com.devvalor.howyoudoing.chat.presentation.conversation.components.rememberVoiceMessages
+import com.devvalor.howyoudoing.chat.presentation.platform.VoiceFormat
+import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
 
 @Composable
 fun ConversationRoot(
@@ -113,19 +119,42 @@ fun ConversationRoot(
         }
     }
 
-    ConversationScreen(
-        state = state,
-        snackbarHostState = snackbarHostState,
-        resolver = viewModel::resolveMedia,
-        canAttach = isAttachmentPickerSupported,
-        onAttach = pickAttachment,
-        onAction = { action ->
-            when (action) {
-                ConversationAction.OnBackClick -> onBack()
-                else -> viewModel.onAction(action)
-            }
-        }
+    val voice = rememberVoiceMessages(
+        format = voiceFormatFor(state.network, state.isOnDevice),
+        loadMedia = viewModel::loadMedia,
+        onRecorded = { viewModel.onAction(ConversationAction.OnVoiceRecorded(it)) },
+        onError = { message -> viewModel.onAction(ConversationAction.OnAttachmentError(message)) },
     )
+
+    CompositionLocalProvider(LocalVoicePlayback provides voice.playback) {
+        ConversationScreen(
+            state = state,
+            snackbarHostState = snackbarHostState,
+            resolver = viewModel::resolveMedia,
+            canAttach = isAttachmentPickerSupported,
+            onAttach = pickAttachment,
+            voice = voice,
+            onAction = { action ->
+                when (action) {
+                    ConversationAction.OnBackClick -> onBack()
+                    else -> viewModel.onAction(action)
+                }
+            }
+        )
+    }
+}
+
+/**
+ * The voice note format the chat's network expects, or null where voice messages can't be sent from here
+ * (on-device Instagram doesn't send attachments yet).
+ */
+private fun voiceFormatFor(network: ChatNetwork?, isOnDevice: Boolean): VoiceFormat? = when {
+    // Through the server, bridges convert Matrix voice messages (Ogg/Opus) for their network
+    !isOnDevice -> VoiceFormat.OGG_OPUS
+    network == ChatNetwork.WHATSAPP || network == ChatNetwork.TELEGRAM -> VoiceFormat.OGG_OPUS
+    network == ChatNetwork.SIGNAL -> VoiceFormat.AAC_ADTS
+    network == ChatNetwork.MESSENGER -> VoiceFormat.M4A_AAC
+    else -> null
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -137,6 +166,7 @@ fun ConversationScreen(
     resolver: MediaResolver = { _, _ -> null },
     canAttach: Boolean = false,
     onAttach: () -> Unit = {},
+    voice: VoiceMessagesUi? = null,
 ) {
     Scaffold(
         topBar = {
@@ -221,6 +251,11 @@ fun ConversationScreen(
                 onSend = { onAction(ConversationAction.OnSendClick) },
                 onAttach = onAttach,
                 onCancelReply = { onAction(ConversationAction.OnCancelReply) },
+                canRecord = voice?.canRecord == true,
+                recording = voice?.recording,
+                onRecordStart = { voice?.start?.invoke() },
+                onRecordCancel = { voice?.cancel?.invoke() },
+                onRecordSend = { voice?.send?.invoke() },
             )
         }
     }

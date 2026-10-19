@@ -58,6 +58,8 @@ type Telegram struct {
 	msgDates   sync.Map // message ID ("<thread key>/<id>") → unix ms, for read receipts
 	reactions  sync.Map // message ID → map[sender]emoji, to tell removals apart
 	typing     sync.Map // thread key + sender → *time.Timer that ends the typing indicator
+	// Message ID → random ID of a media message we sent, so its echo (from the update stream) carries it as otid
+	sentRandomIDs sync.Map
 }
 
 // NewTelegram creates the client; apiID and apiHash are the app's credentials from my.telegram.org. The login
@@ -568,6 +570,9 @@ func (t *Telegram) emitMessage(raw tg.MessageClass) {
 		"type": "message", "threadKey": key, "id": id, "senderId": sender, "text": msg.Message,
 		"kind": "text", "timestampMs": timestamp,
 	}
+	if rid, ok := t.sentRandomIDs.LoadAndDelete(id); ok {
+		event["otid"] = rid
+	}
 	if msg.Media != nil {
 		t.describeMedia(key, id, msg, event)
 	}
@@ -693,6 +698,19 @@ func (t *Telegram) echoSent(ctx context.Context, threadKey string, rid int64, te
 	if _, short := resp.(*tg.UpdateShortSentMessage); !short {
 		_ = t.updates.Handle(ctx, resp)
 	}
+}
+
+// handleSent passes a send response to the update manager, which emits the message; the random ID goes along as
+// its otid so the app replaces what it showed while sending.
+func (t *Telegram) handleSent(ctx context.Context, threadKey string, rid int64, resp tg.UpdatesClass) {
+	if updates, ok := resp.(*tg.Updates); ok {
+		for _, u := range updates.Updates {
+			if idUpdate, ok := u.(*tg.UpdateMessageID); ok && idUpdate.RandomID == rid {
+				t.sentRandomIDs.Store(threadKey+"/"+strconv.Itoa(idUpdate.ID), strconv.FormatInt(rid, 10))
+			}
+		}
+	}
+	_ = t.updates.Handle(ctx, resp)
 }
 
 // MarkRead marks a chat read up to a message.

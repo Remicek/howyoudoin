@@ -46,6 +46,8 @@ choose whether the app offers to share it after a crash.
 - **Running in the background / starting at boot:** so messages keep arriving when the app is closed.
 - **Fingerprint / face (optional):** to unlock the app; Android handles the biometric check, the app never sees
   your fingerprint.
+- **Microphone (optional):** only while you record a voice message; the recording is sent to the chat you
+  recorded it in.
 - **Photos and files you pick:** only the ones you choose to send.
 
 ## Children

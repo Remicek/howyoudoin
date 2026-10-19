@@ -87,9 +87,10 @@ class OnDeviceMessengerStore(
         val mimeType: String?,
         val fileName: String?,
         val width: Int?,
-        val height: Int?
+        val height: Int?,
+        val durationMs: Long? = null
     ) {
-        val media: MediaInfo get() = MediaInfo(url, mimeType, fileName, sizeBytes = null, width, height, durationMillis = null)
+        val media: MediaInfo get() = MediaInfo(url, mimeType, fileName, sizeBytes = null, width, height, durationMillis = durationMs)
     }
 
     @Serializable
@@ -120,7 +121,9 @@ class OnDeviceMessengerStore(
         val isEncrypted: Boolean = false,
         /** For media not downloaded with the message: what the client needs to download it on request. */
         val mediaRef: String? = null,
-        val isEdited: Boolean = false
+        val isEdited: Boolean = false,
+        /** Length of audio or video, when the network says. */
+        val durationMs: Long? = null
     )
 
     private val _snapshot = MutableStateFlow(Snapshot())
@@ -234,7 +237,8 @@ class OnDeviceMessengerStore(
                         mimeType = event.str("mimeType").ifBlank { null },
                         fileName = event.str("fileName").ifBlank { null },
                         width = event.long("width").toInt().takeIf { it > 0 },
-                        height = event.long("height").toInt().takeIf { it > 0 }
+                        height = event.long("height").toInt().takeIf { it > 0 },
+                        durationMs = event.long("durationMs").takeIf { it > 0 }
                     )))
                 }
                 "typing" -> {
@@ -294,7 +298,8 @@ class OnDeviceMessengerStore(
                         id = event.str("id"), threadKey = event.str("threadKey"), otid = event.str("otid"),
                         senderId = event.str("senderId"), text = event.str("text"), timestampMs = event.long("timestampMs"),
                         isUnsent = event.bool("isUnsent"), kind = event.str("kind").ifEmpty { "text" },
-                        isEncrypted = event.bool("isEncrypted"), mediaRef = event.str("mediaRef").ifEmpty { null }
+                        isEncrypted = event.bool("isEncrypted"), mediaRef = event.str("mediaRef").ifEmpty { null },
+                        durationMs = event.long("durationMs").takeIf { it > 0 }
                     )
                     val thread = s.messages[message.threadKey].orEmpty()
                     s.copy(
@@ -446,6 +451,7 @@ class OnDeviceMessengerStore(
             }
         val isOutgoing = senderId.isNotEmpty() && senderId == s.selfId
         val media = attachment?.media?.takeIf { it.url.isNotBlank() && !isUnsent }
+            ?.let { if (it.durationMillis == null && durationMs != null) it.copy(durationMillis = durationMs) else it }
             // Not downloaded yet: shown as a card that downloads it when opened
             ?: mediaRef?.takeIf { type in ON_REQUEST_TYPES }?.let {
                 // The real type arrives with the download; until then a typical one, so the file opens in a player
@@ -454,7 +460,7 @@ class OnDeviceMessengerStore(
                     MessageType.AUDIO -> "audio/ogg" to "voice.ogg"
                     else -> null to text.ifBlank { null }
                 }
-                MediaInfo(onRequestMediaUrl(chatIdPrefix + threadKey, id), mimeType, fileName, null, null, null, null)
+                MediaInfo(onRequestMediaUrl(chatIdPrefix + threadKey, id), mimeType, fileName, null, null, null, durationMs)
             }
         return Message(
             id = id,

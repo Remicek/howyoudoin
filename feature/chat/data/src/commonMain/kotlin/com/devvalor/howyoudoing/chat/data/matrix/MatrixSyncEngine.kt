@@ -8,6 +8,8 @@ import kotlinx.serialization.json.JsonObjectBuilder
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonObject
+import kotlinx.serialization.json.putJsonArray
+import kotlinx.serialization.json.add
 import com.devvalor.howyoudoing.chat.data.matrix.dto.SyncResponseDto
 import com.devvalor.howyoudoing.chat.data.matrix.dto.string
 import com.devvalor.howyoudoing.chat.domain.SyncState
@@ -222,6 +224,16 @@ class MatrixSyncEngine(
                         put("size", attachment.bytes.size)
                         attachment.width?.let { put("w", it) }
                         attachment.height?.let { put("h", it) }
+                        attachment.voiceDurationMillis?.let { put("duration", it) }
+                    }
+                    // A voice message (MSC3245): bridges send it as the network's voice note
+                    attachment.voiceDurationMillis?.let { duration ->
+                        putJsonObject("org.matrix.msc3245.voice") {}
+                        putJsonObject("org.matrix.msc1767.audio") {
+                            put("duration", duration)
+                            // MSC1767 waveforms run 0–1024
+                            attachment.waveform?.let { samples -> putJsonArray("waveform") { samples.forEach { add(it * 4) } } }
+                        }
                     }
                 })
             }

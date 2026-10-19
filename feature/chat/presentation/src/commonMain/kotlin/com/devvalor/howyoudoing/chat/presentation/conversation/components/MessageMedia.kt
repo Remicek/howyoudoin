@@ -113,6 +113,8 @@ fun MessageMedia(
     resolver: MediaResolver,
     onClick: () -> Unit,
     contentColor: Color,
+    /** Lets audio play inside the bubble (see [LocalVoicePlayback]). */
+    messageId: String? = null,
 ) {
     when (type) {
         // Stickers stand on their own, without a frame, like in the networks' apps
@@ -143,6 +145,11 @@ fun MessageMedia(
                     .clip(RoundedCornerShape(14.dp))
                     .clickable(onClick = onClick),
             )
+        }
+        MessageType.AUDIO -> {
+            val playback = LocalVoicePlayback.current
+            if (playback != null && messageId != null) VoiceNote(messageId, media, playback, contentColor)
+            else FileCard(type, media, onClick, contentColor)
         }
         else -> FileCard(type, media, onClick, contentColor)
     }

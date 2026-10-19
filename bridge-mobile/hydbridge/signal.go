@@ -730,6 +730,41 @@ func (s *Signal) rememberOwnReaction(messageID, emoji string) {
 	}
 }
 
+// SendVoice sends the recording at path (AAC) as a voice message, which Signal shows with a play button.
+func (s *Signal) SendVoice(threadKey, path, mimeType string, durationMs int, _ string) (string, error) {
+	client := s.currentClient()
+	if client == nil {
+		return "", errors.New("not connected")
+	}
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return "", err
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	defer cancel()
+	pointer, err := client.UploadAttachment(ctx, data)
+	if err != nil {
+		return "", fmt.Errorf("upload failed: %w", err)
+	}
+	pointer.ContentType = &mimeType
+	pointer.Flags = proto.Uint32(uint32(signalpb.AttachmentPointer_VOICE_MESSAGE))
+	ts := uint64(time.Now().UnixMilli())
+	msg := &signalpb.DataMessage{Timestamp: &ts, Attachments: []*signalpb.AttachmentPointer{pointer}}
+	if err = s.send(ctx, threadKey, signalmeow.WrapDataMessage(msg)); err != nil {
+		return "", err
+	}
+	s.echo(threadKey, ts, "", "audio")
+	id := s.selfID() + ":" + strconv.FormatUint(ts, 10)
+	if cached, err := s.mediaPath(id); err == nil && os.Rename(path, cached) == nil {
+		s.emit(map[string]any{"type": "attachment", "threadKey": threadKey, "messageId": id, "kind": "audio",
+			"url": "file://" + cached, "previewUrl": "file://" + cached, "mimeType": mimeType, "fileName": "Voice message.aac",
+			"durationMs": durationMs})
+	} else {
+		_ = os.Remove(path)
+	}
+	return strconv.FormatUint(ts, 10), nil
+}
+
 // SendReaction reacts to a message (by its "<author>:<timestamp>" ID); an empty emoji removes our reaction.
 func (s *Signal) SendReaction(threadKey, messageID, emoji string) error {
 	author, targetTS, err := splitSignalMessageID(messageID)

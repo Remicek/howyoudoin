@@ -32,19 +32,54 @@ func (m *Messenger) SendMediaFile(threadKey string, isEncrypted, isGroup bool, p
 		return "", err
 	}
 	if isEncrypted {
-		return m.sendEncryptedMedia(threadKey, isGroup, path, data, mimeType, fileName, caption, width, height)
+		return m.sendEncryptedMedia(threadKey, isGroup, path, data, mimeType, fileName, caption, width, height, 0)
 	}
+	return m.sendRegularMedia(threadKey, path, data, &httpclient.MercuryUploadMedia{
+		Filename:  fileName,
+		MimeType:  mimeType,
+		MediaData: data,
+	}, caption)
+}
+
+// SendVoice sends the recording at path (AAC in MP4) as a voice clip, which Messenger shows with a play button.
+// waveform is comma-separated loudness values, 0–255.
+func (m *Messenger) SendVoice(threadKey string, isEncrypted, isGroup bool, path, mimeType string, durationMs int, waveform string) (string, error) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return "", err
+	}
+	const fileName = "Voice message.m4a"
+	if isEncrypted {
+		return m.sendEncryptedMedia(threadKey, isGroup, path, data, mimeType, fileName, "", 0, 0, durationMs)
+	}
+	var waveformData *httpclient.WaveformData
+	if values := parseWaveform(waveform); len(values) > 0 && durationMs > 0 {
+		waveformData = &httpclient.WaveformData{
+			Amplitudes:        make([]float64, len(values)),
+			SamplingFrequency: max(1, len(values)*1000/durationMs),
+		}
+		for i, v := range values {
+			waveformData.Amplitudes[i] = float64(v) / 255
+		}
+	}
+	return m.sendRegularMedia(threadKey, path, data, &httpclient.MercuryUploadMedia{
+		Filename:     fileName,
+		MimeType:     mimeType,
+		MediaData:    data,
+		IsVoiceClip:  true,
+		WaveformData: waveformData,
+	}, "")
+}
+
+// sendRegularMedia uploads to Messenger and sends a message referencing the upload (non-encrypted chats).
+func (m *Messenger) sendRegularMedia(threadKey, path string, data []byte, media *httpclient.MercuryUploadMedia, caption string) (string, error) {
 	defer os.Remove(path)
 	key, err := strconv.ParseInt(threadKey, 10, 64)
 	if err != nil {
 		return "", fmt.Errorf("invalid thread key: %w", err)
 	}
 	ctx := context.Background()
-	upload, err := m.client.GetHTTP().SendMercuryUploadRequest(ctx, key, &httpclient.MercuryUploadMedia{
-		Filename:  fileName,
-		MimeType:  mimeType,
-		MediaData: data,
-	})
+	upload, err := m.client.GetHTTP().SendMercuryUploadRequest(ctx, key, media)
 	if err != nil {
 		return "", fmt.Errorf("upload failed: %w", err)
 	}
@@ -75,7 +110,8 @@ func (m *Messenger) SendMediaFile(threadKey string, isEncrypted, isGroup bool, p
 	return strconv.FormatInt(otid, 10), nil
 }
 
-func (m *Messenger) sendEncryptedMedia(threadKey string, isGroup bool, path string, data []byte, mimeType, fileName, caption string, width, height int) (string, error) {
+// sendEncryptedMedia sends media in an encrypted chat; voiceMs > 0 makes audio a voice note of that length.
+func (m *Messenger) sendEncryptedMedia(threadKey string, isGroup bool, path string, data []byte, mimeType, fileName, caption string, width, height, voiceMs int) (string, error) {
 	if m.e2ee == nil {
 		return "", errNotConnectedE2EE
 	}
@@ -129,10 +165,14 @@ func (m *Messenger) sendEncryptedMedia(threadKey string, isGroup bool, path stri
 		})
 		content = &waConsumerApplication.ConsumerApplication_Content_VideoMessage{VideoMessage: msg}
 	case "audio":
-		msg := &waConsumerApplication.ConsumerApplication_AudioMessage{PTT: proto.Bool(false)}
+		msg := &waConsumerApplication.ConsumerApplication_AudioMessage{PTT: proto.Bool(voiceMs > 0)}
+		ancillary := &waMediaTransport.AudioTransport_Ancillary{}
+		if voiceMs > 0 {
+			ancillary.Seconds = proto.Uint32(uint32((voiceMs + 500) / 1000))
+		}
 		err = msg.Set(&waMediaTransport.AudioTransport{
 			Integral:  &waMediaTransport.AudioTransport_Integral{Transport: transport},
-			Ancillary: &waMediaTransport.AudioTransport_Ancillary{},
+			Ancillary: ancillary,
 		})
 		content = &waConsumerApplication.ConsumerApplication_Content_AudioMessage{AudioMessage: msg}
 	default:

@@ -16,6 +16,8 @@ import com.devvalor.howyoudoing.core.domain.util.Result
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -53,6 +55,9 @@ interface NativeLinkedClient {
     /** Asks for messages older than the given one (newest page when [beforeMessageId] is empty). */
     fun requestOlder(chat: String, beforeMessageId: String, beforeIsOutgoing: Boolean, beforeTimestampMs: Long)
     fun sendMediaFile(chat: String, path: String, mimeType: String, fileName: String, caption: String, width: Long, height: Long): String
+    /** Sends a recording as a voice note; [waveform] is comma-separated loudness values, 0–255. */
+    fun sendVoice(chat: String, path: String, mimeType: String, durationMs: Long, waveform: String): String =
+        throw UnsupportedOperationException("Voice messages aren't supported here yet")
     /** Downloads media from a message event's mediaRef and returns the file's path. */
     fun downloadMedia(chat: String, messageId: String, mediaRef: String): String
     /** Asks for these chats' pictures (comma-separated chat keys); they arrive as avatar events. */
@@ -67,11 +72,13 @@ fun interface NativeLinkedClientFactory {
 abstract class NativeOnDeviceLinkedAccount(
     private val factory: NativeLinkedClientFactory?,
     private val dataDir: OnDeviceDataDirectory,
-    scope: CoroutineScope
+    private val scope: CoroutineScope
 ) : OnDeviceLinkedAccount {
 
     private val lock = Mutex()
     private var client: NativeLinkedClient? = null
+    /** Retries connecting a linked account after a failure (e.g. no network yet after a reboot). */
+    private var retryJob: Job? = null
 
     private val _state = MutableStateFlow<OnDeviceMessengerState>(OnDeviceMessengerState.NotLinked)
     override val state: StateFlow<OnDeviceMessengerState> = _state.asStateFlow()
@@ -96,12 +103,28 @@ abstract class NativeOnDeviceLinkedAccount(
 
     override suspend fun connectIfLinked() {
         if (factory == null) return
-        lock.withLock {
-            withContext(Dispatchers.IO) {
-                val current = runCatching { createClient() }.getOrNull()
-                if (current == null || !current.isLinked()) return@withContext
-                _state.value = OnDeviceMessengerState.Connecting
-                runCatching { current.connect() }.onFailure { failed(it) }
+        val failure = lock.withLock { connectLocked() }
+        if (failure) scheduleRetry()
+    }
+
+    /** Connects a linked account; true if that failed. */
+    private suspend fun connectLocked(): Boolean = withContext(Dispatchers.IO) {
+        val current = runCatching { createClient() }.getOrNull()
+        if (current == null || !current.isLinked()) return@withContext false
+        _state.value = OnDeviceMessengerState.Connecting
+        runCatching { current.connect() }.onFailure { failed(it) }.isFailure
+    }
+
+    private fun scheduleRetry() {
+        if (retryJob?.isActive == true) return
+        retryJob = scope.launch {
+            var wait = RETRY_FIRST_MILLIS
+            while (true) {
+                delay(wait)
+                if (_state.value !is OnDeviceMessengerState.Failed) return@launch
+                log("Retrying the connection")
+                if (!lock.withLock { connectLocked() }) return@launch
+                wait = (wait * 2).coerceAtMost(RETRY_MAX_MILLIS)
             }
         }
     }
@@ -149,6 +172,7 @@ abstract class NativeOnDeviceLinkedAccount(
     }
 
     override suspend fun unlink() {
+        retryJob?.cancel()
         lock.withLock {
             withContext(Dispatchers.IO) { runCatching { client?.logout() } }
             client = null
@@ -168,10 +192,14 @@ abstract class NativeOnDeviceLinkedAccount(
 
     override suspend fun sendAttachment(
         threadKey: String, bytes: ByteArray, fileName: String, mimeType: String, width: Int?, height: Int?, caption: String?,
-        isEncrypted: Boolean, isGroup: Boolean
+        isEncrypted: Boolean, isGroup: Boolean, voiceDurationMillis: Long?, waveform: List<Int>?
     ): Result<String, DataError.Remote> = native("Sending an attachment") {
         val path = dataDir.writeTemp(bytes)
-        sendMediaFile(threadKey, path, mimeType, fileName, caption.orEmpty(), (width ?: 0).toLong(), (height ?: 0).toLong())
+        if (voiceDurationMillis != null) {
+            sendVoice(threadKey, path, mimeType, voiceDurationMillis, waveform.orEmpty().joinToString(","))
+        } else {
+            sendMediaFile(threadKey, path, mimeType, fileName, caption.orEmpty(), (width ?: 0).toLong(), (height ?: 0).toLong())
+        }
     }
 
     override suspend fun downloadMedia(threadKey: String, messageId: String, mediaRef: String): Result<ByteArray, DataError.Remote> =
@@ -279,6 +307,8 @@ abstract class NativeOnDeviceLinkedAccount(
 
     private companion object {
         const val EVENT_REPLAY = 5_000
+        const val RETRY_FIRST_MILLIS = 5_000L
+        const val RETRY_MAX_MILLIS = 120_000L
     }
 }
 

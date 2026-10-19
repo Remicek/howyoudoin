@@ -100,7 +100,7 @@ fun MessageBubble(
         ) {
             message.replyTo?.let { ReplyQuote(it, textColor) }
             if (media != null) {
-                MessageMedia(message.type, media, resolver, onMediaClick, textColor)
+                MessageMedia(message.type, media, resolver, onMediaClick, textColor, messageId = message.id)
             }
             caption?.let {
                 Text(

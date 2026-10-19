@@ -45,15 +45,20 @@ data class MediaInfo(
     val durationMillis: Long?
 )
 
-/** A file picked by the user, ready to upload. */
+/** A file picked by the user, or a voice message they recorded, ready to upload. */
 class Attachment(
     val bytes: ByteArray,
     val fileName: String,
     val mimeType: String,
     val width: Int? = null,
-    val height: Int? = null
+    val height: Int? = null,
+    /** Set for a recorded voice message, which networks show as a voice note rather than an audio file. */
+    val voiceDurationMillis: Long? = null,
+    /** Loudness over the recording, 0–255 per sample, for the voice note's waveform. */
+    val waveform: List<Int>? = null
 ) {
     val isImage: Boolean get() = mimeType.startsWith("image/")
+    val isVoice: Boolean get() = voiceDurationMillis != null
 }
 
 enum class MessageType {

@@ -18,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Send
 import androidx.compose.material.icons.rounded.AttachFile
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Mic
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
@@ -48,6 +49,12 @@ fun Composer(
     onSend: () -> Unit,
     onAttach: () -> Unit,
     onCancelReply: () -> Unit,
+    /** Voice messages can be recorded here (empty draft shows a microphone instead of send). */
+    canRecord: Boolean = false,
+    recording: VoiceRecordingUi? = null,
+    onRecordStart: () -> Unit = {},
+    onRecordCancel: () -> Unit = {},
+    onRecordSend: () -> Unit = {},
 ) {
     Surface(color = MaterialTheme.colorScheme.surface, tonalElevation = 2.dp) {
         Column(Modifier.fillMaxWidth().navigationBarsPadding()) {
@@ -56,6 +63,14 @@ fun Composer(
                 verticalAlignment = Alignment.Bottom,
                 modifier = Modifier.fillMaxWidth().padding(horizontal = HowYouDoinSpacing.sm, vertical = HowYouDoinSpacing.sm),
             ) {
+                if (recording != null) {
+                    RecordingBar(recording, onCancel = onRecordCancel, modifier = Modifier.weight(1f))
+                    Spacer(Modifier.width(HowYouDoinSpacing.sm))
+                    FilledIconButton(onClick = onRecordSend, shape = CircleShape, modifier = Modifier.size(52.dp)) {
+                        Icon(Icons.AutoMirrored.Rounded.Send, contentDescription = "Send voice message")
+                    }
+                    return@Row
+                }
                 if (canAttach) {
                     IconButton(onClick = onAttach, enabled = !isSendingAttachment, modifier = Modifier.padding(bottom = 4.dp)) {
                         if (isSendingAttachment) {
@@ -80,8 +95,19 @@ fun Composer(
                     modifier = Modifier.weight(1f),
                 )
                 Spacer(Modifier.width(HowYouDoinSpacing.sm))
-                FilledIconButton(onClick = onSend, enabled = canSend, shape = CircleShape, modifier = Modifier.size(52.dp)) {
-                    Icon(Icons.AutoMirrored.Rounded.Send, contentDescription = "Send")
+                if (canRecord && draft.isBlank()) {
+                    FilledIconButton(
+                        onClick = onRecordStart,
+                        enabled = !isSendingAttachment,
+                        shape = CircleShape,
+                        modifier = Modifier.size(52.dp),
+                    ) {
+                        Icon(Icons.Rounded.Mic, contentDescription = "Record a voice message")
+                    }
+                } else {
+                    FilledIconButton(onClick = onSend, enabled = canSend, shape = CircleShape, modifier = Modifier.size(52.dp)) {
+                        Icon(Icons.AutoMirrored.Rounded.Send, contentDescription = "Send")
+                    }
                 }
             }
         }

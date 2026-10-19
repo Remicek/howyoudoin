@@ -96,6 +96,7 @@ class ConversationViewModel(
                 if (text != null) viewModelScope.launch { eventChannel.send(ConversationEvent.CopyToClipboard(text)) }
             }
             is ConversationAction.OnAttachmentPicked -> sendAttachment(action.attachment)
+            is ConversationAction.OnVoiceRecorded -> sendVoice(action.attachment)
             is ConversationAction.OnAttachmentError -> viewModelScope.launch {
                 eventChannel.send(ConversationEvent.Error(UiText.DynamicString(action.message)))
             }
@@ -187,6 +188,19 @@ class ConversationViewModel(
             _state.update { it.copy(isSendingAttachment = false) }
         }
     }
+
+    /** A voice message goes without the draft as its caption. */
+    private fun sendVoice(attachment: Attachment) {
+        _state.update { it.copy(isSendingAttachment = true) }
+        viewModelScope.launch {
+            chatRepository.sendAttachment(chatId, attachment, caption = null)
+                .onFailure { error -> eventChannel.send(ConversationEvent.Error(error.toUiText())) }
+            _state.update { it.copy(isSendingAttachment = false) }
+        }
+    }
+
+    /** Media bytes for in-app playback (voice messages). */
+    suspend fun loadMedia(url: String): ByteArray? = chatRepository.downloadMedia(url)
 
     /** Images open in the in-app viewer; anything else is downloaded and handed to another app. */
     private fun openMedia(messageId: String) {

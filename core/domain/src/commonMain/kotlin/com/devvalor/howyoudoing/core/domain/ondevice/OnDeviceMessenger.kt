@@ -38,7 +38,10 @@ interface OnDeviceMessenger {
      */
     suspend fun sendText(threadKey: String, text: String, isEncrypted: Boolean = false, isGroup: Boolean = false): Result<String, DataError.Remote>
 
-    /** Sends a photo, video, voice message or file; returns the ID the echoed message carries. */
+    /**
+     * Sends a photo, video, audio or file; returns the ID the echoed message carries. With [voiceDurationMillis] it's a
+     * recorded voice message, sent as the network's voice note ([waveform]: loudness 0–255 over the recording).
+     */
     suspend fun sendAttachment(
         threadKey: String,
         bytes: ByteArray,
@@ -48,7 +51,9 @@ interface OnDeviceMessenger {
         height: Int?,
         caption: String?,
         isEncrypted: Boolean,
-        isGroup: Boolean
+        isGroup: Boolean,
+        voiceDurationMillis: Long? = null,
+        waveform: List<Int>? = null
     ): Result<String, DataError.Remote> = Result.Failure(DataError.Remote.BAD_REQUEST)
 
     /** Downloads media that wasn't fetched with its message, from the reference the message event carried. */

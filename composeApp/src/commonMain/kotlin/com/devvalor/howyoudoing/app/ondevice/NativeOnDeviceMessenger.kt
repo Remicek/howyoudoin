@@ -11,6 +11,8 @@ import com.devvalor.howyoudoing.core.domain.util.EmptyResult
 import com.devvalor.howyoudoing.core.domain.util.Result
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -50,6 +52,10 @@ interface NativeMessengerClient {
         threadKey: String, isEncrypted: Boolean, isGroup: Boolean, path: String, mimeType: String, fileName: String,
         caption: String, width: Long, height: Long
     ): String = throw UnsupportedOperationException("Attachments aren't supported here yet")
+    /** Sends a recording as a voice note; [waveform] is comma-separated loudness values, 0–255. */
+    fun sendVoice(
+        threadKey: String, isEncrypted: Boolean, isGroup: Boolean, path: String, mimeType: String, durationMs: Long, waveform: String
+    ): String = throw UnsupportedOperationException("Voice messages aren't supported here yet")
 }
 
 fun interface NativeMessengerFactory {
@@ -80,11 +86,12 @@ open class NativeOnDeviceMessenger(
     private val factory: NativeMessengerFactory,
     private val secrets: OnDeviceSecretStore,
     private val dataDir: OnDeviceDataDirectory,
-    scope: CoroutineScope
+    private val scope: CoroutineScope
 ) : OnDeviceMessenger {
 
     private val lock = Mutex()
     private var client: NativeMessengerClient? = null
+    private var retryJob: Job? = null
 
     private val _state = MutableStateFlow<OnDeviceMessengerState>(OnDeviceMessengerState.NotLinked)
     override val state: StateFlow<OnDeviceMessengerState> = _state.asStateFlow()
@@ -108,7 +115,23 @@ open class NativeOnDeviceMessenger(
 
     override suspend fun connectIfLinked() {
         val saved = secrets.read() ?: return
-        connect(saved)
+        if (connect(saved) is Result.Failure) scheduleRetry()
+    }
+
+    /** A saved login that failed to connect (e.g. no network yet after a reboot) is tried again, waiting longer each time. */
+    private fun scheduleRetry() {
+        if (retryJob?.isActive == true) return
+        retryJob = scope.launch {
+            var wait = RETRY_FIRST_MILLIS
+            while (true) {
+                delay(wait)
+                if (_state.value !is OnDeviceMessengerState.Failed) return@launch
+                val saved = secrets.read() ?: return@launch
+                log("Retrying the connection")
+                if (connect(saved) is Result.Success) return@launch
+                wait = (wait * 2).coerceAtMost(RETRY_MAX_MILLIS)
+            }
+        }
     }
 
     private suspend fun connect(cookiesJson: String): EmptyResult<DataError.Remote> = lock.withLock {
@@ -135,10 +158,14 @@ open class NativeOnDeviceMessenger(
 
     override suspend fun sendAttachment(
         threadKey: String, bytes: ByteArray, fileName: String, mimeType: String, width: Int?, height: Int?, caption: String?,
-        isEncrypted: Boolean, isGroup: Boolean
+        isEncrypted: Boolean, isGroup: Boolean, voiceDurationMillis: Long?, waveform: List<Int>?
     ): Result<String, DataError.Remote> = native("Sending an attachment") {
         val path = dataDir.writeTemp(bytes)
-        sendMediaFile(threadKey, isEncrypted, isGroup, path, mimeType, fileName, caption.orEmpty(), (width ?: 0).toLong(), (height ?: 0).toLong())
+        if (voiceDurationMillis != null) {
+            sendVoice(threadKey, isEncrypted, isGroup, path, mimeType, voiceDurationMillis, waveform.orEmpty().joinToString(","))
+        } else {
+            sendMediaFile(threadKey, isEncrypted, isGroup, path, mimeType, fileName, caption.orEmpty(), (width ?: 0).toLong(), (height ?: 0).toLong())
+        }
     }
 
     override suspend fun readMediaFile(path: String): ByteArray? = withContext(Dispatchers.IO) { dataDir.read(path) }
@@ -201,6 +228,7 @@ open class NativeOnDeviceMessenger(
         native("Sending typing") { setTyping(threadKey, isEncrypted, isGroup, isTyping) }
 
     override suspend fun unlink() {
+        retryJob?.cancel()
         lock.withLock {
             withContext(Dispatchers.IO) { client?.disconnect() }
             client = null
@@ -241,6 +269,8 @@ open class NativeOnDeviceMessenger(
     private companion object {
         const val EVENT_REPLAY = 5_000
         const val HISTORY_PAGE_SIZE = 50L
+        const val RETRY_FIRST_MILLIS = 5_000L
+        const val RETRY_MAX_MILLIS = 120_000L
         val CODES = listOf("wrong_pin:", "pin_limit", "no_backup")
     }
 }

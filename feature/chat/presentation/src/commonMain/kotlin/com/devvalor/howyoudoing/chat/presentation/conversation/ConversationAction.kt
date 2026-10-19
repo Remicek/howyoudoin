@@ -16,6 +16,8 @@ sealed interface ConversationAction {
     data class OnCopyClick(val messageId: String) : ConversationAction
 
     data class OnAttachmentPicked(val attachment: Attachment) : ConversationAction
+    /** A recorded voice message, sent as the network's voice note. */
+    data class OnVoiceRecorded(val attachment: Attachment) : ConversationAction
     data class OnAttachmentError(val message: String) : ConversationAction
     data class OnMediaClick(val messageId: String) : ConversationAction
     data object OnCloseImage : ConversationAction

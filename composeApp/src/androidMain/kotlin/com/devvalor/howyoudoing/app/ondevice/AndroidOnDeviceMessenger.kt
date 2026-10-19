@@ -26,6 +26,9 @@ private class AndroidMessengerClient(private val m: Messenger) : NativeMessenger
         threadKey: String, isEncrypted: Boolean, isGroup: Boolean, path: String, mimeType: String, fileName: String,
         caption: String, width: Long, height: Long
     ): String = m.sendMediaFile(threadKey, isEncrypted, isGroup, path, mimeType, fileName, caption, width, height)
+    override fun sendVoice(
+        threadKey: String, isEncrypted: Boolean, isGroup: Boolean, path: String, mimeType: String, durationMs: Long, waveform: String
+    ): String = m.sendVoice(threadKey, isEncrypted, isGroup, path, mimeType, durationMs, waveform)
     override fun requestOlder(threadKey: String, beforeTimestampMs: Long, beforeMessageId: String) =
         m.requestOlder(threadKey, beforeTimestampMs, beforeMessageId)
     override fun historyStatus(): String = m.historyStatus()
@@ -119,6 +122,8 @@ class AndroidWhatsAppFactory : NativeLinkedClientFactory {
             override fun sendMediaFile(
                 chat: String, path: String, mimeType: String, fileName: String, caption: String, width: Long, height: Long
             ): String = w.sendMediaFile(chat, path, mimeType, fileName, caption, width, height)
+            override fun sendVoice(chat: String, path: String, mimeType: String, durationMs: Long, waveform: String): String =
+                w.sendVoice(chat, path, mimeType, durationMs, waveform)
             override fun downloadMedia(chat: String, messageId: String, mediaRef: String): String = w.downloadMedia(chat, messageId, mediaRef)
             override fun fetchAvatars(chats: String) = w.fetchAvatars(chats)
         }
@@ -154,6 +159,8 @@ class AndroidTelegramFactory(private val apiId: Long, private val apiHash: Strin
             override fun sendMediaFile(
                 chat: String, path: String, mimeType: String, fileName: String, caption: String, width: Long, height: Long
             ): String = t.sendMediaFile(chat, path, mimeType, fileName, caption, width, height)
+            override fun sendVoice(chat: String, path: String, mimeType: String, durationMs: Long, waveform: String): String =
+                t.sendVoice(chat, path, mimeType, durationMs, waveform)
             override fun downloadMedia(chat: String, messageId: String, mediaRef: String): String = t.downloadMedia(chat, messageId, mediaRef)
             override fun fetchAvatars(chats: String) = t.fetchAvatars(chats)
         }
@@ -181,6 +188,8 @@ class AndroidSignalFactory : NativeLinkedClientFactory {
             override fun sendMediaFile(
                 chat: String, path: String, mimeType: String, fileName: String, caption: String, width: Long, height: Long
             ): String = s.sendMediaFile(chat, path, mimeType, fileName, caption, width, height)
+            override fun sendVoice(chat: String, path: String, mimeType: String, durationMs: Long, waveform: String): String =
+                s.sendVoice(chat, path, mimeType, durationMs, waveform)
             override fun downloadMedia(chat: String, messageId: String, mediaRef: String): String = s.downloadMedia(chat, messageId, mediaRef)
         }
     }
