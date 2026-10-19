@@ -254,26 +254,26 @@ class ConnectNetworkViewModel(
         network == ChatNetwork.MESSENGER && onDeviceMessenger.isSupported -> listOf(
             BridgeLoginFlow(
                 id = ON_DEVICE_FLOW_ID,
-                name = "On this device (experimental)",
+                name = "On this device",
                 description = "Connect from your phone, without the server bridge."
             )
         )
         network == ChatNetwork.INSTAGRAM && onDeviceInstagram.isSupported -> listOf(
             BridgeLoginFlow(
                 id = ON_DEVICE_FLOW_ID,
-                name = "On this device (experimental)",
+                name = "On this device",
                 description = "Log in on instagram.com; your direct messages connect from this phone."
             )
         )
         network == ChatNetwork.WHATSAPP && onDeviceWhatsApp.isSupported -> listOf(
             BridgeLoginFlow(
                 id = ON_DEVICE_WHATSAPP_QR_FLOW_ID,
-                name = "On this device · QR code (experimental)",
+                name = "On this device · QR code",
                 description = "Link this app as a WhatsApp device directly, without the server bridge."
             ),
             BridgeLoginFlow(
                 id = ON_DEVICE_WHATSAPP_CODE_FLOW_ID,
-                name = "On this device · pairing code (experimental)",
+                name = "On this device · pairing code",
                 description = "Same, but type a code on your phone instead of scanning."
             )
         )

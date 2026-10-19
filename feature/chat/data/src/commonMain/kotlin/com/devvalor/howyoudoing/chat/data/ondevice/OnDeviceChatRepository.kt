@@ -9,6 +9,7 @@ import com.devvalor.howyoudoing.chat.domain.Message
 import com.devvalor.howyoudoing.chat.domain.SyncState
 import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceMessenger
+import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceMessengerState
 import com.devvalor.howyoudoing.core.domain.util.DataError
 import com.devvalor.howyoudoing.core.domain.util.EmptyResult
 import com.devvalor.howyoudoing.core.domain.util.Result
@@ -47,10 +48,21 @@ class OnDeviceChatRepository(
 
     override fun observeSyncState(): Flow<SyncState> = server.observeSyncState()
 
-    override fun observeChats(): Flow<List<Chat>> =
-        sources.fold(server.observeChats()) { chats, source ->
+    /**
+     * When a network is connected on this phone, its chats come from there; the same chats from the server bridge
+     * would only be duplicates, so they're hidden.
+     */
+    override fun observeChats(): Flow<List<Chat>> {
+        val onDeviceNetworks = combine(sources.map { source -> source.client.state.map { source.client.network to it } }) { states ->
+            states.filter { (_, state) -> state != OnDeviceMessengerState.NotLinked }.mapTo(HashSet()) { it.first }
+        }
+        val serverChats = combine(server.observeChats(), onDeviceNetworks) { chats, networks ->
+            chats.filterNot { it.network in networks }
+        }
+        return sources.fold(serverChats) { chats, source ->
             combine(chats, source.store.snapshot) { soFar, _ -> soFar + source.store.chats() }
         }.map { chats -> chats.sortedByDescending { it.lastActivity } }
+    }
 
     override fun observeChat(chatId: String): Flow<Chat?> {
         val route = route(chatId) ?: return server.observeChat(chatId)

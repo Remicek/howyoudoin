@@ -27,16 +27,28 @@ object LoginFlowLabels {
             }
     }
 
+    // Connecting on this phone is the default; the server bridge flows remain as an alternative
     private val KNOWN = mapOf(
         ChatNetwork.WHATSAPP to listOf(
-            LoginFlowLabel("phone", "Pairing code", "Best when WhatsApp is on this phone", isRecommended = true),
-            LoginFlowLabel("qr", "QR code", "Scan it with WhatsApp from another screen"),
+            LoginFlowLabel(ON_DEVICE_WHATSAPP_CODE, "Pairing code", "Best when WhatsApp is on this phone", isRecommended = true),
+            LoginFlowLabel(ON_DEVICE_WHATSAPP_QR, "QR code", "Scan it with WhatsApp on another phone"),
+            LoginFlowLabel("phone", "Pairing code via server bridge", "Connects through your Matrix server instead"),
+            LoginFlowLabel("qr", "QR code via server bridge", "Connects through your Matrix server instead"),
         ),
         ChatNetwork.MESSENGER to listOf(
-            LoginFlowLabel("messenger", "Messenger", "Log in on messenger.com", isRecommended = true),
-            LoginFlowLabel("facebook", "Facebook account", "Log in on facebook.com"),
-            LoginFlowLabel("messenger-lite", "Email or phone & password", "Sign in without a web page"),
+            LoginFlowLabel(ON_DEVICE, "Messenger", "Log in on messenger.com; chats connect from this phone", isRecommended = true),
+            LoginFlowLabel("messenger", "Messenger via server bridge", "Log in on messenger.com; chats connect through your server"),
+            LoginFlowLabel("facebook", "Facebook account via server bridge", "Log in on facebook.com"),
+            LoginFlowLabel("messenger-lite", "Email or phone & password via server bridge", "Sign in without a web page"),
             LoginFlowLabel("messenger-lite-android", "Email or phone & password (alternative)", "Use this if the first one is rejected"),
         ),
+        ChatNetwork.INSTAGRAM to listOf(
+            LoginFlowLabel(ON_DEVICE, "Instagram", "Log in on instagram.com; direct messages connect from this phone", isRecommended = true),
+        ),
     )
+
+    // Flow IDs of the on-device options (see ConnectNetworkViewModel)
+    private const val ON_DEVICE = "howyoudoin-on-device"
+    private const val ON_DEVICE_WHATSAPP_QR = "howyoudoin-on-device-whatsapp-qr"
+    private const val ON_DEVICE_WHATSAPP_CODE = "howyoudoin-on-device-whatsapp-code"
 }

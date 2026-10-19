@@ -109,7 +109,7 @@ fun NetworksScreen(
         ) {
             item {
                 Text(
-                    "Connect your chat accounts. Each one is bridged into your inbox through your Matrix server.",
+                    "Connect your chat accounts. They connect directly from this phone; a server bridge is optional.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(bottom = HowYouDoinSpacing.sm),
