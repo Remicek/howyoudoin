@@ -337,8 +337,9 @@ class ConnectNetworkViewModel(
     }
 
     override fun onCleared() {
-        // Leaving the screen mid-linking stops showing codes; an already linked device stays connected
-        if (pairingJob?.isActive == true && onDeviceWhatsApp.state.value !is OnDeviceMessengerState.Connected) {
+        // Leaving the screen mid-linking stops showing codes; an already linked device stays connected.
+        // viewModelScope is already cancelled here, so pairingJob only tells whether linking started.
+        if (pairingJob != null && onDeviceWhatsApp.state.value !is OnDeviceMessengerState.Connected) {
             CoroutineScope(Dispatchers.Default).launch { onDeviceWhatsApp.cancelLinking() }
         }
         super.onCleared()

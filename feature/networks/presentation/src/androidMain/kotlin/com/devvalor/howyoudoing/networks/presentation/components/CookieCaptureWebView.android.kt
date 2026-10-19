@@ -88,26 +88,3 @@ private fun zoomToForm(webView: WebView) {
         webView.postDelayed({ webView.evaluateJavascript(CENTER_FORM_SCRIPT, null) }, FOCUS_DELAY_MILLIS)
     }
 }
-
-private const val FIND_FORM_SCRIPT = """
-(function() {
-  function visible(e) { var r = e.getBoundingClientRect(); return r.width > 0 && r.height > 0; }
-  var password = Array.from(document.querySelectorAll('input[type=password]')).find(visible);
-  var target = password && (password.closest('form') || password.parentElement);
-  if (!target) target = Array.from(document.querySelectorAll('form')).find(visible);
-  if (!target) target = Array.from(document.querySelectorAll('[role=button],button')).find(function(e) {
-    return visible(e) && /continue|kontynuuj/i.test(e.innerText || '');
-  });
-  if (!target) return null;
-  window.__hydFocus = target;
-  var r = target.getBoundingClientRect();
-  return JSON.stringify({ width: r.width, viewportWidth: window.innerWidth });
-})()
-"""
-
-private const val CENTER_FORM_SCRIPT =
-    "window.__hydFocus && window.__hydFocus.scrollIntoView({block: 'center', inline: 'center'});"
-
-private const val FOCUS_DELAY_MILLIS = 600L
-private const val FORM_WIDTH_SHARE = 0.9
-private const val MAX_ZOOM_STEP = 3f

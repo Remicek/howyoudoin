@@ -19,6 +19,33 @@ expect fun CookieCaptureWebView(
 
 internal const val COOKIE_POLL_INTERVAL_MILLIS = 1_000L
 
+/**
+ * Finds what the user has to act on on a login page (the form with a password field, another visible form, or a
+ * "Continue" button), remembers it for [CENTER_FORM_SCRIPT] and returns its width and the viewport's as JSON.
+ */
+internal const val FIND_FORM_SCRIPT = """
+(function() {
+  function visible(e) { var r = e.getBoundingClientRect(); return r.width > 0 && r.height > 0; }
+  var password = Array.from(document.querySelectorAll('input[type=password]')).find(visible);
+  var target = password && (password.closest('form') || password.parentElement);
+  if (!target) target = Array.from(document.querySelectorAll('form')).find(visible);
+  if (!target) target = Array.from(document.querySelectorAll('[role=button],button')).find(function(e) {
+    return visible(e) && /continue|kontynuuj/i.test(e.innerText || '');
+  });
+  if (!target) return null;
+  window.__hydFocus = target;
+  var r = target.getBoundingClientRect();
+  return JSON.stringify({ width: r.width, viewportWidth: window.innerWidth });
+})()
+"""
+
+internal const val CENTER_FORM_SCRIPT =
+    "window.__hydFocus && window.__hydFocus.scrollIntoView({block: 'center', inline: 'center'});"
+
+internal const val FOCUS_DELAY_MILLIS = 600L
+internal const val FORM_WIDTH_SHARE = 0.9
+internal const val MAX_ZOOM_STEP = 3f
+
 /** Parses a `name=value; name2=value2` cookie header. */
 internal fun parseCookieHeader(header: String?): Map<String, String> =
     header.orEmpty()

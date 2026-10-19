@@ -361,7 +361,7 @@ private fun EmptyInbox(isFiltered: Boolean, onNetworksClick: () -> Unit) {
         Spacer(Modifier.height(HowYouDoinSpacing.sm))
         if (!isFiltered) {
             Text(
-                "Connect WhatsApp or Messenger and your conversations will show up here.",
+                "Connect WhatsApp, Messenger or Instagram and your conversations will show up here.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
