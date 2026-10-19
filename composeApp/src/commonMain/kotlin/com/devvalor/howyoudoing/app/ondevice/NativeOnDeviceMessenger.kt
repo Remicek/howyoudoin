@@ -61,6 +61,9 @@ interface OnDeviceSecretStore {
 interface OnDeviceDataDirectory {
     val path: String
     fun clear()
+
+    /** Writes [bytes] to a new file inside the directory and returns its path. */
+    fun writeTemp(bytes: ByteArray): String
 }
 
 /** Messenger (or Instagram, see [NativeOnDeviceInstagram]) running in-process through hydbridge, shared by Android and iOS. */

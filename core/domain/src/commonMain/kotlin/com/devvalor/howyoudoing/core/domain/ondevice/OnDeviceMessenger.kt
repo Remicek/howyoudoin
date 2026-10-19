@@ -38,6 +38,17 @@ interface OnDeviceMessenger {
      */
     suspend fun sendText(threadKey: String, text: String, isEncrypted: Boolean = false, isGroup: Boolean = false): Result<String, DataError.Remote>
 
+    /** Sends a photo, video, voice message or file; returns the ID the echoed message carries. */
+    suspend fun sendAttachment(
+        threadKey: String,
+        bytes: ByteArray,
+        fileName: String,
+        mimeType: String,
+        width: Int?,
+        height: Int?,
+        caption: String?
+    ): Result<String, DataError.Remote> = Result.Failure(DataError.Remote.BAD_REQUEST)
+
     /** Messenger's PIN-protected backup of encrypted chats, as seen from this phone. */
     suspend fun historyStatus(): Result<OnDeviceHistoryStatus, DataError.Remote>
 

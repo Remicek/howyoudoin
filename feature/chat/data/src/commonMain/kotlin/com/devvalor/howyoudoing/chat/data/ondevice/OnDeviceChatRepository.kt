@@ -148,8 +148,25 @@ class OnDeviceChatRepository(
         }
     }
 
-    override suspend fun sendAttachment(chatId: String, attachment: Attachment, caption: String?): EmptyResult<DataError.Remote> =
-        if (route(chatId) == null) server.sendAttachment(chatId, attachment, caption) else Result.Failure(DataError.Remote.BAD_REQUEST)
+    override suspend fun sendAttachment(chatId: String, attachment: Attachment, caption: String?): EmptyResult<DataError.Remote> {
+        val route = route(chatId) ?: return server.sendAttachment(chatId, attachment, caption)
+        val store = route.store
+        val pendingId = store.newPendingId()
+        store.addPending(route.key, pendingId, caption ?: attachment.fileName)
+        val result = route.client.sendAttachment(
+            route.key, attachment.bytes, attachment.fileName, attachment.mimeType, attachment.width, attachment.height, caption
+        )
+        return when (result) {
+            is Result.Success -> {
+                store.rekeyPending(pendingId, result.data)
+                Result.Success(Unit)
+            }
+            is Result.Failure -> {
+                store.failPending(pendingId)
+                result
+            }
+        }
+    }
 
     override suspend fun toggleReaction(chatId: String, messageId: String, key: String): EmptyResult<DataError.Remote> {
         val route = route(chatId) ?: return server.toggleReaction(chatId, messageId, key)

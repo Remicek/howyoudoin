@@ -107,6 +107,11 @@ type callArgs struct {
 	Count             int    `json:"count"`
 	Phone             string `json:"phone"`
 	IsOutgoing        bool   `json:"isOutgoing"`
+	Path              string `json:"path"`
+	MimeType          string `json:"mimeType"`
+	FileName          string `json:"fileName"`
+	Width             int    `json:"width"`
+	Height            int    `json:"height"`
 }
 
 // hyd_call runs method with JSON args and returns a string result (caller frees it with hyd_free), or NULL with
@@ -176,6 +181,8 @@ func callWhatsApp(w *hydbridge.WhatsApp, name string, a callArgs) (result string
 		err = w.MarkRead(a.ThreadKey, a.MessageID, a.SenderID)
 	case "setTyping":
 		err = w.SetTyping(a.ThreadKey, a.IsTyping)
+	case "sendMediaFile":
+		result, err = w.SendMediaFile(a.ThreadKey, a.Path, a.MimeType, a.FileName, a.Text, a.Width, a.Height)
 	case "requestHistory":
 		err = w.RequestHistory(a.ThreadKey, a.BeforeMessageID, a.IsOutgoing, a.BeforeTimestampMs, a.Count)
 	default:

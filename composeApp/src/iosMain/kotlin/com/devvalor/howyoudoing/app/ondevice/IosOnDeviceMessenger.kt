@@ -25,6 +25,8 @@ import kotlinx.cinterop.alloc
 import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.ptr
 import kotlinx.cinterop.value
+import kotlinx.cinterop.addressOf
+import kotlinx.cinterop.usePinned
 import kotlinx.cinterop.CPointer
 import platform.Foundation.NSApplicationSupportDirectory
 import platform.Foundation.NSData
@@ -171,6 +173,13 @@ class IosDataDirectory(name: String = "on_device_messenger") : OnDeviceDataDirec
         ensure(path)
     }
 
+    override fun writeTemp(bytes: ByteArray): String {
+        val file = "$path/outgoing-${kotlin.random.Random.nextLong(0, Long.MAX_VALUE)}"
+        val data = bytes.usePinned { pinned -> NSData.create(bytes = pinned.addressOf(0), length = bytes.size.toULong()) }
+        data.writeToFile(file, atomically = true)
+        return file
+    }
+
     private fun ensure(dir: String) {
         NSFileManager.defaultManager.createDirectoryAtPath(dir, withIntermediateDirectories = true, attributes = null, error = null)
         NSURL.fileURLWithPath(dir).setResourceValue(NSNumber(bool = true), forKey = NSURLIsExcludedFromBackupKey, error = null)
@@ -233,6 +242,12 @@ class IosWhatsAppFactory : NativeWhatsAppFactory {
             override fun setTyping(chatJid: String, isTyping: Boolean) {
                 call("setTyping", "threadKey" to chatJid, "isTyping" to isTyping)
             }
+            override fun sendMediaFile(
+                chatJid: String, path: String, mimeType: String, fileName: String, caption: String, width: Long, height: Long
+            ) = call(
+                "sendMediaFile", "threadKey" to chatJid, "path" to path, "mimeType" to mimeType, "fileName" to fileName,
+                "text" to caption, "width" to width, "height" to height
+            )
             override fun requestHistory(chatJid: String, oldestMessageId: String, oldestIsOutgoing: Boolean, oldestTimestampMs: Long, count: Long) {
                 call(
                     "requestHistory", "threadKey" to chatJid, "beforeMessageId" to oldestMessageId, "isOutgoing" to oldestIsOutgoing,

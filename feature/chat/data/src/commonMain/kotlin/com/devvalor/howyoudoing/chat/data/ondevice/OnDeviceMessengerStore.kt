@@ -281,6 +281,8 @@ class OnDeviceMessengerStore(
         val replaced = s.links.filter { (fbKey, link) -> fbKey != link.threadKey }.keys
         return allThreads(s).values
             .filter { it.key !in replaced }
+            // WhatsApp's system account (0@s.whatsapp.net) isn't a chat
+            .filterNot { it.key.startsWith("0@") }
             // Known chats without any activity yet (e.g. from a contact or group list) would only clutter the inbox
             .filter { it.lastActivityMs > 0 || s.messages[it.key].orEmpty().isNotEmpty() }
             .map { thread -> thread.toChat(s) }

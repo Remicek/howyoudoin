@@ -69,6 +69,8 @@ class AndroidDataDirectory(context: Context, name: String = "on_device_messenger
         dir.deleteRecursively()
         dir.mkdirs()
     }
+    override fun writeTemp(bytes: ByteArray): String =
+        File.createTempFile("outgoing", null, dir.also { it.mkdirs() }).apply { writeBytes(bytes) }.absolutePath
 }
 
 /** The on-device inbox cache, next to the encrypted-chat keys (cleared with them on Disconnect). */
@@ -104,6 +106,9 @@ class AndroidWhatsAppFactory : NativeWhatsAppFactory {
             override fun setTyping(chatJid: String, isTyping: Boolean) = w.setTyping(chatJid, isTyping)
             override fun requestHistory(chatJid: String, oldestMessageId: String, oldestIsOutgoing: Boolean, oldestTimestampMs: Long, count: Long) =
                 w.requestHistory(chatJid, oldestMessageId, oldestIsOutgoing, oldestTimestampMs, count)
+            override fun sendMediaFile(
+                chatJid: String, path: String, mimeType: String, fileName: String, caption: String, width: Long, height: Long
+            ): String = w.sendMediaFile(chatJid, path, mimeType, fileName, caption, width, height)
         }
     }
 }

@@ -291,7 +291,8 @@ func (w *WhatsApp) handleHistorySync(evt *events.HistorySync) {
 		"conversations": len(evt.Data.GetConversations()), "progress": evt.Data.GetProgress()})
 	for _, conv := range evt.Data.GetConversations() {
 		chat, err := types.ParseJID(conv.GetID())
-		if err != nil || chat.Server == types.BroadcastServer || chat.Server == types.NewsletterServer {
+		if err != nil || chat.User == "0" || chat.Server == types.BroadcastServer || chat.Server == types.NewsletterServer {
+			// WhatsApp's system account, status updates and channels aren't chats
 			continue
 		}
 		if !chat.IsEmpty() && chat.Server == types.HiddenUserServer && conv.GetPnJID() != "" {
@@ -516,7 +517,9 @@ func (w *WhatsApp) SetTyping(chatJID string, isTyping bool) error {
 			chat = lid
 		}
 	}
-	return client.SendChatPresence(context.Background(), chat, state, types.ChatPresenceMediaText)
+	err = client.SendChatPresence(context.Background(), chat, state, types.ChatPresenceMediaText)
+	w.emit(map[string]any{"type": "debug", "event": "typing_sent", "server": chat.Server, "state": string(state), "ok": err == nil})
+	return err
 }
 
 func (w *WhatsApp) clientAndChat(chatJID string) (*whatsmeow.Client, types.JID, error) {
@@ -568,4 +571,87 @@ func (w *WhatsApp) RequestHistory(chatJID, oldestMessageID string, oldestFromMe 
 	}, count)
 	_, err = client.SendPeerMessage(context.Background(), request)
 	return err
+}
+
+// SendMediaFile sends the file at path (written by the app into its private storage) as a photo, video, voice
+// message or document, depending on mimeType, and returns the message ID. The file is moved into the media
+// cache so the app's echo can show it.
+func (w *WhatsApp) SendMediaFile(chatJID, path, mimeType, fileName, caption string, width, height int) (string, error) {
+	client, chat, err := w.clientAndChat(chatJID)
+	if err != nil {
+		return "", err
+	}
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return "", err
+	}
+	kind, mediaType := "file", whatsmeow.MediaDocument
+	switch {
+	case strings.HasPrefix(mimeType, "image/"):
+		kind, mediaType = "image", whatsmeow.MediaImage
+	case strings.HasPrefix(mimeType, "video/"):
+		kind, mediaType = "video", whatsmeow.MediaVideo
+	case strings.HasPrefix(mimeType, "audio/"):
+		kind, mediaType = "audio", whatsmeow.MediaAudio
+	}
+	up, err := client.Upload(context.Background(), data, mediaType)
+	if err != nil {
+		return "", fmt.Errorf("upload failed: %w", err)
+	}
+	msg := &waE2E.Message{}
+	switch kind {
+	case "image":
+		msg.ImageMessage = &waE2E.ImageMessage{
+			URL: &up.URL, DirectPath: &up.DirectPath, MediaKey: up.MediaKey, Mimetype: &mimeType,
+			FileEncSHA256: up.FileEncSHA256, FileSHA256: up.FileSHA256, FileLength: &up.FileLength,
+			Width: proto.Uint32(uint32(width)), Height: proto.Uint32(uint32(height)), Caption: optionalString(caption),
+		}
+	case "video":
+		msg.VideoMessage = &waE2E.VideoMessage{
+			URL: &up.URL, DirectPath: &up.DirectPath, MediaKey: up.MediaKey, Mimetype: &mimeType,
+			FileEncSHA256: up.FileEncSHA256, FileSHA256: up.FileSHA256, FileLength: &up.FileLength,
+			Caption: optionalString(caption),
+		}
+	case "audio":
+		msg.AudioMessage = &waE2E.AudioMessage{
+			URL: &up.URL, DirectPath: &up.DirectPath, MediaKey: up.MediaKey, Mimetype: &mimeType,
+			FileEncSHA256: up.FileEncSHA256, FileSHA256: up.FileSHA256, FileLength: &up.FileLength,
+		}
+	default:
+		msg.DocumentMessage = &waE2E.DocumentMessage{
+			URL: &up.URL, DirectPath: &up.DirectPath, MediaKey: up.MediaKey, Mimetype: &mimeType,
+			FileEncSHA256: up.FileEncSHA256, FileSHA256: up.FileSHA256, FileLength: &up.FileLength,
+			FileName: &fileName, Title: &fileName, Caption: optionalString(caption),
+		}
+	}
+	resp, err := client.SendMessage(context.Background(), chat, msg)
+	if err != nil {
+		return "", err
+	}
+	self := client.Store.ID.ToNonAD().String()
+	w.emit(map[string]any{
+		"type": "message", "threadKey": chat.String(), "id": resp.ID, "otid": resp.ID, "senderId": self,
+		"text": caption, "kind": kind, "timestampMs": resp.Timestamp.UnixMilli(), "isEncrypted": true,
+	})
+	// Keep our copy as the echo's media
+	dir := filepath.Join(w.dataDir, "media")
+	if os.MkdirAll(dir, 0o700) == nil {
+		sum := sha256.Sum256([]byte(chat.String() + "/" + resp.ID))
+		cached := filepath.Join(dir, hex.EncodeToString(sum[:16]))
+		if os.Rename(path, cached) == nil {
+			w.emit(map[string]any{
+				"type": "attachment", "threadKey": chat.String(), "messageId": resp.ID, "kind": kind,
+				"url": "file://" + cached, "previewUrl": "file://" + cached, "mimeType": mimeType, "fileName": fileName,
+				"width": width, "height": height,
+			})
+		}
+	}
+	return resp.ID, nil
+}
+
+func optionalString(s string) *string {
+	if s == "" {
+		return nil
+	}
+	return &s
 }
