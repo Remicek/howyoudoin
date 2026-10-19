@@ -9,6 +9,7 @@ class HowYouDoinApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        CrashLog.install(this)
         initKoin {
             androidContext(this@HowYouDoinApplication)
             androidLogger()
