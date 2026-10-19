@@ -38,6 +38,8 @@ type WhatsApp struct {
 
 	lock   sync.Mutex
 	cancel context.CancelFunc
+
+	seenEvents sync.Map
 }
 
 // NewWhatsApp opens (or creates) the device store in dataDir.
@@ -101,9 +103,11 @@ func (w *WhatsApp) connectLinked(device *store.Device) error {
 }
 
 func (w *WhatsApp) startLinking(ctx context.Context, device *store.Device, phone string) error {
-	client := whatsmeow.NewClient(device, waLog.Zerolog(w.log.With().Str("component", "whatsmeow-login").Logger()))
+	// One client for linking and afterwards: WhatsApp sends the first history batch right after pairing, on this
+	// connection, so its events must go through the regular handler too. whatsmeow reconnects by itself after
+	// the post-pairing restart (stream error 515).
+	client := whatsmeow.NewClient(device, waLog.Zerolog(w.log.With().Str("component", "whatsmeow").Logger()))
 	client.EnableAutoReconnect = false
-	client.DisableLoginAutoReconnect = true
 	firstQR := make(chan struct{})
 	var once sync.Once
 	var paired *events.PairSuccess
@@ -112,6 +116,7 @@ func (w *WhatsApp) startLinking(ctx context.Context, device *store.Device, phone
 		client.Disconnect()
 		w.emitState("pairing_failed", reason)
 	}
+	client.AddEventHandler(w.handleEvent)
 	client.AddEventHandler(func(rawEvt any) {
 		switch evt := rawEvt.(type) {
 		case *events.QR:
@@ -151,24 +156,10 @@ func (w *WhatsApp) startLinking(ctx context.Context, device *store.Device, phone
 			if qrTimer != nil {
 				qrTimer.Stop()
 			}
+			client.EnableAutoReconnect = true
 			w.emitState("paired", "")
 		case *events.PairError:
 			fail(evt.Error.Error())
-		case *events.ManualLoginReconnect:
-			// Pairing finished: continue with a regular client for the saved device
-			go func() {
-				client.Disconnect()
-				w.lock.Lock()
-				defer w.lock.Unlock()
-				linked, err := w.container.GetFirstDevice(context.Background())
-				if err != nil || linked.ID == nil {
-					w.emitState("pairing_failed", "the linked device wasn't saved")
-					return
-				}
-				if err = w.connectLinked(linked); err != nil {
-					w.emitState("pairing_failed", err.Error())
-				}
-			}()
 		case *events.Disconnected:
 			if paired == nil {
 				w.emitState("pairing_failed", "disconnected before linking finished")
@@ -236,6 +227,10 @@ func (w *WhatsApp) Logout() error {
 }
 
 func (w *WhatsApp) handleEvent(rawEvt any) {
+	// Diagnostics: which kinds of events arrive (types only, no content)
+	if _, seen := w.seenEvents.LoadOrStore(fmt.Sprintf("%T", rawEvt), true); !seen {
+		w.emit(map[string]any{"type": "debug", "event": fmt.Sprintf("%T", rawEvt)})
+	}
 	switch evt := rawEvt.(type) {
 	case *events.Connected:
 		w.emitSelf()
@@ -292,6 +287,8 @@ func (w *WhatsApp) syncNames() {
 }
 
 func (w *WhatsApp) handleHistorySync(evt *events.HistorySync) {
+	w.emit(map[string]any{"type": "debug", "event": "history_sync", "syncType": evt.Data.GetSyncType().String(),
+		"conversations": len(evt.Data.GetConversations()), "progress": evt.Data.GetProgress()})
 	for _, conv := range evt.Data.GetConversations() {
 		chat, err := types.ParseJID(conv.GetID())
 		if err != nil || chat.Server == types.BroadcastServer || chat.Server == types.NewsletterServer {
@@ -349,6 +346,10 @@ func (w *WhatsApp) emitWAMessage(evt *events.Message, live bool) {
 	} else if chatJID.Server == types.HiddenUserServer && evt.Info.IsFromMe && !evt.Info.RecipientAlt.IsEmpty() {
 		chatJID = evt.Info.RecipientAlt
 	}
+	if chatJID.User == "0" || chatJID.Server == types.BroadcastServer || chatJID.Server == types.NewsletterServer {
+		// WhatsApp's system account, status updates and channels aren't chats
+		return
+	}
 	chat := w.pnJID(chatJID).String()
 	senderJID := evt.Info.Sender
 	if senderJID.Server == types.HiddenUserServer && !evt.Info.SenderAlt.IsEmpty() {
@@ -374,7 +375,8 @@ func (w *WhatsApp) emitWAMessage(evt *events.Message, live bool) {
 		"type": "message", "threadKey": chat, "id": evt.Info.ID, "otid": evt.Info.ID, "senderId": sender, "text": text,
 		"kind": kind, "timestampMs": evt.Info.Timestamp.UnixMilli(), "isEncrypted": true,
 	})
-	if live && kind != "text" && kind != "other" && kind != "location" {
+	// History can be long, so from it only photos and stickers are downloaded right away
+	if (live && kind != "text" && kind != "other" && kind != "location") || (!live && (kind == "image" || kind == "sticker")) {
 		go w.downloadMedia(chat, evt.Info.ID, kind, msg)
 	}
 }
@@ -544,4 +546,20 @@ func (w *WhatsApp) pnJID(jid types.JID) types.JID {
 		return pn.ToNonAD()
 	}
 	return jid
+}
+
+// RequestHistory asks the user's own phone (not any contact) for up to count messages of a chat older than the
+// given one; they arrive as an on-demand history sync (message events).
+func (w *WhatsApp) RequestHistory(chatJID, oldestMessageID string, oldestFromMe bool, oldestTimestampMs int64, count int) error {
+	client, chat, err := w.clientAndChat(chatJID)
+	if err != nil {
+		return err
+	}
+	request := client.BuildHistorySyncRequest(&types.MessageInfo{
+		MessageSource: types.MessageSource{Chat: chat, IsFromMe: oldestFromMe},
+		ID:            oldestMessageID,
+		Timestamp:     time.UnixMilli(oldestTimestampMs),
+	}, count)
+	_, err = client.SendPeerMessage(context.Background(), request)
+	return err
 }

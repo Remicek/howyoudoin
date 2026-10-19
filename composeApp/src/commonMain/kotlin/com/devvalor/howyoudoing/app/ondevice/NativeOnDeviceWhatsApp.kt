@@ -36,6 +36,7 @@ interface NativeWhatsAppClient {
     fun sendReaction(chatJid: String, messageId: String, senderJid: String, emoji: String)
     fun markRead(chatJid: String, messageId: String, senderJid: String)
     fun setTyping(chatJid: String, isTyping: Boolean)
+    fun requestHistory(chatJid: String, oldestMessageId: String, oldestIsOutgoing: Boolean, oldestTimestampMs: Long, count: Long)
 }
 
 fun interface NativeWhatsAppFactory {
@@ -130,9 +131,12 @@ class NativeOnDeviceWhatsApp(
     override suspend fun setTyping(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, isTyping: Boolean): EmptyResult<DataError.Remote> =
         native("Sending typing") { setTyping(threadKey, isTyping) }
 
-    // History arrives through WhatsApp's own history sync after linking; there's no paging or PIN backup
-    override suspend fun requestOlder(threadKey: String, beforeTimestampMs: Long, beforeMessageId: String): EmptyResult<DataError.Remote> =
-        Result.Failure(DataError.Remote.BAD_REQUEST)
+    // Older messages come from the user's own phone as an on-demand history sync
+    override suspend fun requestOlder(
+        threadKey: String, beforeTimestampMs: Long, beforeMessageId: String, beforeMessageIsOutgoing: Boolean
+    ): EmptyResult<DataError.Remote> = native("Requesting history") {
+        requestHistory(threadKey, beforeMessageId, beforeMessageIsOutgoing, beforeTimestampMs, HISTORY_PAGE_SIZE)
+    }
 
     override suspend fun historyStatus(): Result<OnDeviceHistoryStatus, DataError.Remote> =
         Result.Success(OnDeviceHistoryStatus(isRestored = false, isBackupAvailable = false))
@@ -164,6 +168,7 @@ class NativeOnDeviceWhatsApp(
         fun str(key: String) = event[key]?.jsonPrimitive?.contentOrNull
         when (str("type")) {
             "pairing" -> _pairing.value = OnDevicePairing(qrCode = str("qr"), pairingCode = str("code"))
+            "debug" -> log("debug $json")
             "self" -> {
                 _pairing.value = null
                 _state.value = OnDeviceMessengerState.Connected(str("name")?.takeIf { it.isNotBlank() })
@@ -195,5 +200,6 @@ class NativeOnDeviceWhatsApp(
 
     private companion object {
         const val EVENT_REPLAY = 5_000
+        const val HISTORY_PAGE_SIZE = 50L
     }
 }

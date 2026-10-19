@@ -281,6 +281,8 @@ class OnDeviceMessengerStore(
         val replaced = s.links.filter { (fbKey, link) -> fbKey != link.threadKey }.keys
         return allThreads(s).values
             .filter { it.key !in replaced }
+            // Known chats without any activity yet (e.g. from a contact or group list) would only clutter the inbox
+            .filter { it.lastActivityMs > 0 || s.messages[it.key].orEmpty().isNotEmpty() }
             .map { thread -> thread.toChat(s) }
     }
 
@@ -337,7 +339,14 @@ class OnDeviceMessengerStore(
             others.mapNotNull { s.contacts[it] }.let { people ->
                 if (isGroup) people.take(4).joinToString(", ") { it.firstName.ifBlank { it.name } } else people.firstOrNull()?.name.orEmpty()
             }
-        }.ifBlank { if (isGroup) "Group chat" else "Messenger chat" }
+        }.ifBlank {
+            when {
+                isGroup -> "Group chat"
+                // WhatsApp chats are keyed by JID: show the phone number until the contact name is known
+                key.endsWith("@s.whatsapp.net") -> "+" + key.substringBefore("@")
+                else -> "${messenger.network.displayName} chat"
+            }
+        }
         val latest = messages(key).lastOrNull()
         val lastMessage = latest?.takeIf { it.timestamp >= lastActivityMs - CLOCK_SKEW_MS } ?: Message(
             id = "snippet-$key", chatId = chatIdPrefix + key, senderId = snippetSender,

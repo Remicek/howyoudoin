@@ -106,6 +106,7 @@ type callArgs struct {
 	Pin               string `json:"pin"`
 	Count             int    `json:"count"`
 	Phone             string `json:"phone"`
+	IsOutgoing        bool   `json:"isOutgoing"`
 }
 
 // hyd_call runs method with JSON args and returns a string result (caller frees it with hyd_free), or NULL with
@@ -175,6 +176,8 @@ func callWhatsApp(w *hydbridge.WhatsApp, name string, a callArgs) (result string
 		err = w.MarkRead(a.ThreadKey, a.MessageID, a.SenderID)
 	case "setTyping":
 		err = w.SetTyping(a.ThreadKey, a.IsTyping)
+	case "requestHistory":
+		err = w.RequestHistory(a.ThreadKey, a.BeforeMessageID, a.IsOutgoing, a.BeforeTimestampMs, a.Count)
 	default:
 		err = fmt.Errorf("unknown method %q", name)
 	}

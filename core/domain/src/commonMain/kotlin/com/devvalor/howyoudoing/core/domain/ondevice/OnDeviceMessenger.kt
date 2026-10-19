@@ -48,7 +48,12 @@ interface OnDeviceMessenger {
     suspend fun fetchEncryptedHistory(threadKey: String, isGroup: Boolean, beforeTimestampMs: Long): EmptyResult<DataError.Remote>
 
     /** Asks for messages older than the given one; they arrive as message events plus a range event. */
-    suspend fun requestOlder(threadKey: String, beforeTimestampMs: Long, beforeMessageId: String): EmptyResult<DataError.Remote>
+    suspend fun requestOlder(
+        threadKey: String,
+        beforeTimestampMs: Long,
+        beforeMessageId: String,
+        beforeMessageIsOutgoing: Boolean = false
+    ): EmptyResult<DataError.Remote>
 
     /**
      * Reacts to a message; an empty [emoji] removes the reaction. Encrypted chats also need whether it's a group
@@ -106,7 +111,9 @@ object UnsupportedOnDeviceMessenger : OnDeviceMessenger {
         Result.Failure(OnDeviceHistoryError.NoBackup)
     override suspend fun fetchEncryptedHistory(threadKey: String, isGroup: Boolean, beforeTimestampMs: Long): EmptyResult<DataError.Remote> =
         Result.Failure(DataError.Remote.UNKNOWN)
-    override suspend fun requestOlder(threadKey: String, beforeTimestampMs: Long, beforeMessageId: String): EmptyResult<DataError.Remote> =
+    override suspend fun requestOlder(
+        threadKey: String, beforeTimestampMs: Long, beforeMessageId: String, beforeMessageIsOutgoing: Boolean
+    ): EmptyResult<DataError.Remote> =
         Result.Failure(DataError.Remote.UNKNOWN)
     override suspend fun sendReaction(
         threadKey: String, messageId: String, emoji: String, isEncrypted: Boolean, isGroup: Boolean, messageSenderId: String

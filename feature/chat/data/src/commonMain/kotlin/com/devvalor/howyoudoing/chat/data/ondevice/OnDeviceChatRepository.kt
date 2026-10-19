@@ -75,11 +75,8 @@ class OnDeviceChatRepository(
         val route = route(chatId) ?: return server.loadOlderMessages(chatId)
         val (key, store, client) = Triple(route.key, route.store, route.client)
         if (!store.hasMoreBefore(key)) return Result.Success(Unit)
-        if (client.network == ChatNetwork.WHATSAPP) {
-            store.markNoMoreHistory(key)
-            return Result.Success(Unit)
-        }
         val oldest = store.oldestMessage(key)
+        if (client.network == ChatNetwork.WHATSAPP) return loadWhatsAppHistory(route, oldest)
         val thread = store.thread(key)
         if (thread?.isEncrypted == true) return loadEncryptedHistory(route, thread.isGroup, oldest?.timestampMs)
         val result = if (oldest == null) {
@@ -95,6 +92,28 @@ class OnDeviceChatRepository(
                     s.messages[key].orEmpty().values.any { oldest == null || it.timestampMs < oldest.timestampMs }
             }
         }
+        return Result.Success(Unit)
+    }
+
+    /**
+     * WhatsApp history comes from the user's own phone (an on-demand history sync anchored at the oldest message we
+     * have). Without any message there's no anchor; if nothing older arrives, the chat has no more history here.
+     */
+    private suspend fun loadWhatsAppHistory(route: Route, oldest: OnDeviceMessengerStore.StoredMessage?): EmptyResult<DataError.Remote> {
+        val (key, store) = route.key to route.store
+        if (oldest == null) {
+            store.markNoMoreHistory(key)
+            return Result.Success(Unit)
+        }
+        val isOutgoing = oldest.senderId == store.snapshot.value.selfId
+        if (route.client.requestOlder(key, oldest.timestampMs, oldest.id, isOutgoing) is Result.Failure) {
+            store.markNoMoreHistory(key)
+            return Result.Success(Unit)
+        }
+        val arrived = withTimeoutOrNull(HISTORY_TIMEOUT_MILLIS) {
+            store.snapshot.first { s -> s.messages[key].orEmpty().values.any { it.timestampMs < oldest.timestampMs } }
+        }
+        if (arrived == null) store.markNoMoreHistory(key)
         return Result.Success(Unit)
     }
 

@@ -233,6 +233,12 @@ class IosWhatsAppFactory : NativeWhatsAppFactory {
             override fun setTyping(chatJid: String, isTyping: Boolean) {
                 call("setTyping", "threadKey" to chatJid, "isTyping" to isTyping)
             }
+            override fun requestHistory(chatJid: String, oldestMessageId: String, oldestIsOutgoing: Boolean, oldestTimestampMs: Long, count: Long) {
+                call(
+                    "requestHistory", "threadKey" to chatJid, "beforeMessageId" to oldestMessageId, "isOutgoing" to oldestIsOutgoing,
+                    "beforeTimestampMs" to oldestTimestampMs, "count" to count
+                )
+            }
         }
     }
 }

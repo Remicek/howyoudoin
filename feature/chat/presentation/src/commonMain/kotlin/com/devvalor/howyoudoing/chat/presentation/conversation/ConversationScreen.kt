@@ -289,7 +289,10 @@ private fun MessageList(
  */
 @Composable
 private fun HistoryStartNote(state: ConversationState) {
-    val text = if (state.isEncrypted) {
+    val text = if (state.isOnDevice) {
+        // On-device chats load history from the network (Messenger's backup, WhatsApp's phone) as far as it goes
+        "This is the start of the history available on this device."
+    } else if (state.isEncrypted) {
         "Older messages in end-to-end encrypted ${state.network?.displayName ?: ""} chats stay on your other devices and can't be " +
             "transferred. New messages will appear here."
     } else {

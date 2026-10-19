@@ -102,6 +102,8 @@ class AndroidWhatsAppFactory : NativeWhatsAppFactory {
                 w.sendReaction(chatJid, messageId, senderJid, emoji)
             override fun markRead(chatJid: String, messageId: String, senderJid: String) = w.markRead(chatJid, messageId, senderJid)
             override fun setTyping(chatJid: String, isTyping: Boolean) = w.setTyping(chatJid, isTyping)
+            override fun requestHistory(chatJid: String, oldestMessageId: String, oldestIsOutgoing: Boolean, oldestTimestampMs: Long, count: Long) =
+                w.requestHistory(chatJid, oldestMessageId, oldestIsOutgoing, oldestTimestampMs, count)
         }
     }
 }

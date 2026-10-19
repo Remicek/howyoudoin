@@ -157,7 +157,9 @@ open class NativeOnDeviceMessenger(
     override suspend fun fetchEncryptedHistory(threadKey: String, isGroup: Boolean, beforeTimestampMs: Long): EmptyResult<DataError.Remote> =
         native("Fetching encrypted history") { fetchEncryptedHistory(threadKey, isGroup, beforeTimestampMs, HISTORY_PAGE_SIZE) }
 
-    override suspend fun requestOlder(threadKey: String, beforeTimestampMs: Long, beforeMessageId: String): EmptyResult<DataError.Remote> =
+    override suspend fun requestOlder(
+        threadKey: String, beforeTimestampMs: Long, beforeMessageId: String, beforeMessageIsOutgoing: Boolean
+    ): EmptyResult<DataError.Remote> =
         native("Requesting older messages") { requestOlder(threadKey, beforeTimestampMs, beforeMessageId) }
 
     override suspend fun sendReaction(
