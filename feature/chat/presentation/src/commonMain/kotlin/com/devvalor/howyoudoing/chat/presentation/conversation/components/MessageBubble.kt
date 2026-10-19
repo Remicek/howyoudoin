@@ -71,6 +71,9 @@ fun MessageBubble(
         message.text.isNotBlank() && message.text != media.fileName -> message.text
         else -> null
     }
+    // A sticker without a caption shows without a bubble, its time underneath
+    val isBareSticker = message.type == MessageType.STICKER && media != null && caption == null && message.replyTo == null
+    val metaColor = if (isBareSticker) MaterialTheme.colorScheme.onSurfaceVariant else textColor
 
     Column(
         horizontalAlignment = if (isOutgoing) Alignment.End else Alignment.Start,
@@ -88,9 +91,12 @@ fun MessageBubble(
             modifier = Modifier
                 .widthIn(max = 300.dp)
                 .clip(shape)
-                .background(bubbleColor)
+                .background(if (isBareSticker) Color.Transparent else bubbleColor)
                 .combinedClickable(onClick = {}, onLongClick = onLongPress)
-                .padding(horizontal = if (media != null) 6.dp else 14.dp, vertical = if (media != null) 6.dp else HowYouDoinSpacing.sm),
+                .padding(
+                    horizontal = if (isBareSticker) 0.dp else if (media != null) 6.dp else 14.dp,
+                    vertical = if (isBareSticker) 0.dp else if (media != null) 6.dp else HowYouDoinSpacing.sm,
+                ),
         ) {
             message.replyTo?.let { ReplyQuote(it, textColor) }
             if (media != null) {
@@ -114,14 +120,14 @@ fun MessageBubble(
                 Text(
                     if (message.isEdited) "edited · ${message.time}" else message.time,
                     style = MaterialTheme.typography.labelSmall,
-                    color = textColor.copy(alpha = 0.7f)
+                    color = metaColor.copy(alpha = 0.7f)
                 )
                 if (isOutgoing) {
                     when {
-                        message.status == MessageStatus.SENDING -> StatusIcon(Icons.Rounded.Schedule, "Sending", textColor.copy(alpha = 0.7f))
+                        message.status == MessageStatus.SENDING -> StatusIcon(Icons.Rounded.Schedule, "Sending", metaColor.copy(alpha = 0.7f))
                         message.status == MessageStatus.FAILED -> StatusIcon(Icons.Rounded.ErrorOutline, "Failed to send", MaterialTheme.colorScheme.error)
-                        message.isReadByOthers -> StatusIcon(Icons.Rounded.DoneAll, "Read", textColor)
-                        else -> StatusIcon(Icons.Rounded.Done, "Sent", textColor.copy(alpha = 0.7f))
+                        message.isReadByOthers -> StatusIcon(Icons.Rounded.DoneAll, "Read", metaColor)
+                        else -> StatusIcon(Icons.Rounded.Done, "Sent", metaColor.copy(alpha = 0.7f))
                     }
                 }
             }

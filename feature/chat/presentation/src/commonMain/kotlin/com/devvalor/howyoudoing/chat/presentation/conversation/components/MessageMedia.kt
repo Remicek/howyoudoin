@@ -57,12 +57,14 @@ fun AuthenticatedImage(
     contentDescription: String?,
     modifier: Modifier = Modifier,
     contentScale: ContentScale = ContentScale.Crop,
+    /** Shown behind the image while it loads; stickers use none (they have transparent backgrounds). */
+    placeholderColor: Color = MaterialTheme.colorScheme.surfaceContainerHigh,
 ) {
     var request by remember(mxcUrl, thumbnail) { mutableStateOf<MediaRequest?>(null) }
     var failed by remember(mxcUrl) { mutableStateOf(false) }
     LaunchedEffect(mxcUrl, thumbnail) { request = resolver(mxcUrl, thumbnail) }
     val context = LocalPlatformContext.current
-    Box(modifier = modifier.background(MaterialTheme.colorScheme.surfaceContainerHigh), contentAlignment = Alignment.Center) {
+    Box(modifier = modifier.background(placeholderColor), contentAlignment = Alignment.Center) {
         val resolved = request
         if (resolved != null && !failed) {
             AsyncImage(
@@ -113,7 +115,17 @@ fun MessageMedia(
     contentColor: Color,
 ) {
     when (type) {
-        MessageType.IMAGE, MessageType.STICKER -> {
+        // Stickers stand on their own, without a frame, like in the networks' apps
+        MessageType.STICKER -> AuthenticatedImage(
+            mxcUrl = media.url,
+            resolver = resolver,
+            thumbnail = true,
+            contentDescription = "Sticker",
+            contentScale = ContentScale.Fit,
+            placeholderColor = Color.Transparent,
+            modifier = Modifier.size(STICKER_SIZE).clickable(onClick = onClick),
+        )
+        MessageType.IMAGE -> {
             val width = media.width
             val height = media.height
             val ratio = if (width != null && height != null && height > 0) {
@@ -190,3 +202,5 @@ private fun formatDuration(millis: Long): String {
     val seconds = millis / 1000
     return "${seconds / 60}:${(seconds % 60).toString().padStart(2, '0')}"
 }
+
+private val STICKER_SIZE = 160.dp
