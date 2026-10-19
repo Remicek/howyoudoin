@@ -145,12 +145,16 @@ private fun NetworkCard(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(network.displayName, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                     Text(
-                        item.status.summary(),
+                        // Connected on the phone, the server bridge is optional: its trouble isn't this network's
+                        if (onDevice != OnDeviceMessengerState.NotLinked && item.status !is NetworkStatus.Ready) {
+                            "Connected on this device"
+                        } else item.status.summary(),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
                 when (item.status) {
+                    NetworkStatus.Loading if onDevice != OnDeviceMessengerState.NotLinked -> Unit
                     NetworkStatus.Loading -> CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
                     NetworkStatus.ComingSoon -> Unit
                     else -> FilledTonalButton(onClick = { onAction(NetworksAction.OnConnectClick(network)) }) {

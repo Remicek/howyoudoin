@@ -46,22 +46,39 @@ class OnDeviceChatRepository(
         chatId.takeIf { it.startsWith(source.store.chatIdPrefix) }?.let { Route(source, it.removePrefix(source.store.chatIdPrefix)) }
     }
 
-    override fun observeSyncState(): Flow<SyncState> = server.observeSyncState()
+    /**
+     * The server's sync state matters only while it has chats; with only on-device connections an unreachable
+     * server isn't "offline". On-device clients connecting show as connecting.
+     */
+    override fun observeSyncState(): Flow<SyncState> {
+        // Only the server chats actually shown (not the duplicates of networks connected on the phone)
+        val serverUsed = visibleServerChats().map { it.isNotEmpty() }.distinctUntilChanged()
+        val onDeviceConnecting = combine(sources.map { it.client.state }) { states ->
+            states.any { it == OnDeviceMessengerState.Connecting }
+        }
+        return combine(server.observeSyncState(), serverUsed, onDeviceConnecting) { serverState, used, connecting ->
+            when {
+                used && serverState != SyncState.IDLE && serverState != SyncState.SYNCED -> serverState
+                connecting -> SyncState.CONNECTING
+                else -> SyncState.SYNCED
+            }
+        }.distinctUntilChanged()
+    }
 
     /**
      * When a network is connected on this phone, its chats come from there; the same chats from the server bridge
      * would only be duplicates, so they're hidden.
      */
-    override fun observeChats(): Flow<List<Chat>> {
+    override fun observeChats(): Flow<List<Chat>> =
+        sources.fold(visibleServerChats()) { chats, source ->
+            combine(chats, source.store.snapshot) { soFar, _ -> soFar + source.store.chats() }
+        }.map { chats -> chats.sortedByDescending { it.lastActivity } }
+
+    private fun visibleServerChats(): Flow<List<Chat>> {
         val onDeviceNetworks = combine(sources.map { source -> source.client.state.map { source.client.network to it } }) { states ->
             states.filter { (_, state) -> state != OnDeviceMessengerState.NotLinked }.mapTo(HashSet()) { it.first }
         }
-        val serverChats = combine(server.observeChats(), onDeviceNetworks) { chats, networks ->
-            chats.filterNot { it.network in networks }
-        }
-        return sources.fold(serverChats) { chats, source ->
-            combine(chats, source.store.snapshot) { soFar, _ -> soFar + source.store.chats() }
-        }.map { chats -> chats.sortedByDescending { it.lastActivity } }
+        return combine(server.observeChats(), onDeviceNetworks) { chats, networks -> chats.filterNot { it.network in networks } }
     }
 
     override fun observeChat(chatId: String): Flow<Chat?> {

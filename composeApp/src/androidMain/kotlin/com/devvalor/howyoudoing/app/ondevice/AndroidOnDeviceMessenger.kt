@@ -39,6 +39,7 @@ private class AndroidMessengerClient(private val m: Messenger) : NativeMessenger
         m.markRead(threadKey, isEncrypted, isGroup, lastMessageId, senderId)
     override fun setTyping(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, isTyping: Boolean) =
         m.setTyping(threadKey, isEncrypted, isGroup, isTyping)
+    override fun fetchAvatars(contactIds: String) = m.fetchAvatars(contactIds)
 }
 
 /** Cookies encrypted with a Keystore key in private SharedPreferences (plain copies from early builds migrate). */

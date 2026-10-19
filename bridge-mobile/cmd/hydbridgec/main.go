@@ -206,6 +206,8 @@ func callMessenger(m *hydbridge.Messenger, name string, a callArgs) (result stri
 		result, err = m.SendText(a.ThreadKey, a.Text)
 	case "sendEncryptedText":
 		result, err = m.SendEncryptedText(a.ThreadKey, a.IsGroup, a.Text)
+	case "fetchAvatars":
+		m.FetchAvatars(a.Text)
 	case "sendMediaFile":
 		result, err = m.SendMediaFile(a.ThreadKey, a.IsEncrypted, a.IsGroup, a.Path, a.MimeType, a.FileName, a.Text, a.Width, a.Height)
 	case "requestOlder":

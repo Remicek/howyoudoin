@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -352,3 +353,22 @@ func (m *Messenger) ensureContact(idStr string) {
 		}
 	}()
 }
+
+// FetchAvatars looks up these contacts again (comma-separated IDs), one at a time, for fresh profile picture
+// links; Messenger's CDN links expire after a few days.
+func (m *Messenger) FetchAvatars(contactIDs string) {
+	ids := strings.Split(contactIDs, ",")
+	go func() {
+		for _, idStr := range ids {
+			contactID, err := strconv.ParseInt(strings.TrimSpace(idStr), 10, 64)
+			if err != nil || contactID == 0 || contactID == m.selfID {
+				continue
+			}
+			m.knownContacts.Delete(contactID)
+			m.ensureContact(idStr)
+			time.Sleep(avatarRefreshInterval)
+		}
+	}()
+}
+
+const avatarRefreshInterval = 300 * time.Millisecond

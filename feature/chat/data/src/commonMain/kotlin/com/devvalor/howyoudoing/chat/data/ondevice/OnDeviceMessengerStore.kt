@@ -146,7 +146,7 @@ class OnDeviceMessengerStore(
         messenger.state
             .filter { it is OnDeviceMessengerState.Connected }
             .distinctUntilChanged()
-            .onEach { messenger.fetchAvatars(chatKeys()) }
+            .onEach { messenger.fetchAvatars(avatarKeysToRefresh()) }
             .launchIn(scope)
         _snapshot
             .drop(1)
@@ -322,8 +322,17 @@ class OnDeviceMessengerStore(
 
     fun thread(threadKey: String): Thread? = allThreads(_snapshot.value)[threadKey]
 
-    /** Keys of the chats shown in the inbox. */
-    fun chatKeys(): List<String> = chats().map { it.id.removePrefix(chatIdPrefix) }
+    /**
+     * 1:1 chats whose picture is missing or about to expire (CDN links carry their expiry as `oe=<hex seconds>`);
+     * group pictures come with the thread sync.
+     */
+    fun avatarKeysToRefresh(): List<String> {
+        val soon = Clock.System.now().toEpochMilliseconds() / 1000 + AVATAR_REFRESH_AHEAD_SECONDS
+        return chats().filter { !it.isGroup }.filter { chat ->
+            val expiry = chat.avatarUrl?.let { EXPIRY_PARAM.find(it)?.groupValues?.get(1)?.toLongOrNull(16) }
+            chat.avatarUrl == null || (expiry != null && expiry < soon)
+        }.map { it.id.removePrefix(chatIdPrefix) }
+    }
 
     fun mediaRef(threadKey: String, messageId: String): String? = _snapshot.value.messages[threadKey]?.get(messageId)?.mediaRef
 
@@ -485,6 +494,8 @@ class OnDeviceMessengerStore(
         private val cacheJson = Json { ignoreUnknownKeys = true }
         private val MEDIA_TYPES = setOf(MessageType.IMAGE, MessageType.VIDEO, MessageType.AUDIO, MessageType.FILE, MessageType.STICKER)
         private const val CLOCK_SKEW_MS = 5_000L
+        private const val AVATAR_REFRESH_AHEAD_SECONDS = 24 * 3600L
+        private val EXPIRY_PARAM = Regex("[?&]oe=([0-9A-Fa-f]+)")
         private val ON_REQUEST_TYPES = setOf(MessageType.VIDEO, MessageType.AUDIO, MessageType.FILE)
         private const val ON_REQUEST_SCHEME = "ondevice-media:"
 

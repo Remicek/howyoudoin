@@ -131,6 +131,10 @@ private class IosMessengerClient(
         call("setTyping", "threadKey" to threadKey, "isEncrypted" to isEncrypted, "isGroup" to isGroup, "isTyping" to isTyping)
     }
 
+    override fun fetchAvatars(contactIds: String) {
+        call("fetchAvatars", "text" to contactIds)
+    }
+
     private fun call(method: String, vararg args: Pair<String, Any>): String = memScoped {
         val json = JsonObject(args.associate { (key, value) ->
             key to when (value) {

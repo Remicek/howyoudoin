@@ -44,6 +44,8 @@ interface NativeMessengerClient {
     fun sendEncryptedReaction(threadKey: String, isGroup: Boolean, messageId: String, messageSenderId: String, emoji: String)
     fun markRead(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, lastMessageId: String, senderId: String)
     fun setTyping(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, isTyping: Boolean)
+    /** Looks these contacts up again for fresh profile pictures (comma-separated IDs). */
+    fun fetchAvatars(contactIds: String) = Unit
     fun sendMediaFile(
         threadKey: String, isEncrypted: Boolean, isGroup: Boolean, path: String, mimeType: String, fileName: String,
         caption: String, width: Long, height: Long
@@ -140,6 +142,10 @@ open class NativeOnDeviceMessenger(
     }
 
     override suspend fun readMediaFile(path: String): ByteArray? = withContext(Dispatchers.IO) { dataDir.read(path) }
+
+    override suspend fun fetchAvatars(threadKeys: List<String>) {
+        if (threadKeys.isNotEmpty()) native("Refreshing pictures") { fetchAvatars(threadKeys.joinToString(",")) }
+    }
 
     override suspend fun historyStatus(): Result<OnDeviceHistoryStatus, DataError.Remote> =
         native("Checking history") {
