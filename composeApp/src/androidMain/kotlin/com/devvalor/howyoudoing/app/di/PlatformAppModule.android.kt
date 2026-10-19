@@ -5,6 +5,7 @@ import com.devvalor.howyoudoing.app.ondevice.AndroidMessengerFactory
 import com.devvalor.howyoudoing.app.ondevice.KeystoreSecretStore
 import com.devvalor.howyoudoing.app.ondevice.AndroidInboxCache
 import com.devvalor.howyoudoing.app.ondevice.NativeOnDeviceMessenger
+import com.devvalor.howyoudoing.app.ondevice.OnDeviceConnectionKeeper
 import com.devvalor.howyoudoing.chat.data.ondevice.OnDeviceInboxCache
 import com.devvalor.howyoudoing.chat.data.di.ON_DEVICE_INSTAGRAM_CACHE
 import com.devvalor.howyoudoing.chat.data.di.ON_DEVICE_WHATSAPP_CACHE
@@ -21,6 +22,14 @@ import org.koin.core.module.Module
 import org.koin.dsl.module
 
 actual val platformAppModule: Module = module {
+    single(createdAtStart = true) {
+        OnDeviceConnectionKeeper(
+            context = androidContext(),
+            clients = listOf(get<OnDeviceMessenger>(), get<OnDeviceWhatsApp>(), get<OnDeviceInstagram>()),
+            whatsApp = get(),
+            scope = get()
+        )
+    }
     single<OnDeviceInboxCache>(named(ON_DEVICE_INSTAGRAM_CACHE)) { AndroidInboxCache(androidContext(), INSTAGRAM_DIR) }
     single<OnDeviceInstagram>(createdAtStart = true) {
         NativeOnDeviceInstagram(

@@ -15,6 +15,7 @@ import (
 
 	"github.com/rs/zerolog"
 	"go.mau.fi/whatsmeow"
+	"go.mau.fi/whatsmeow/proto/waCompanionReg"
 	"go.mau.fi/whatsmeow/proto/waE2E"
 	"go.mau.fi/whatsmeow/store"
 	"go.mau.fi/whatsmeow/store/sqlstore"
@@ -52,6 +53,13 @@ func NewWhatsApp(dataDir string, listener Listener) (*WhatsApp, error) {
 	}
 	// Shown on the phone under "Linked devices"
 	store.SetOSInfo("HowYouDoin", [3]uint32{1, 0, 0})
+	// Ask for a full history sync when linking (like mautrix-whatsapp's request_full_sync); only applies to new links
+	store.DeviceProps.RequireFullSync = proto.Bool(true)
+	if store.DeviceProps.HistorySyncConfig == nil {
+		store.DeviceProps.HistorySyncConfig = &waCompanionReg.DeviceProps_HistorySyncConfig{}
+	}
+	store.DeviceProps.HistorySyncConfig.FullSyncDaysLimit = proto.Uint32(365)
+	store.DeviceProps.HistorySyncConfig.FullSyncSizeMbLimit = proto.Uint32(500)
 	return &WhatsApp{listener: listener, log: log, dataDir: dataDir, container: container}, nil
 }
 
@@ -63,6 +71,8 @@ func (w *WhatsApp) IsLinked() bool {
 
 // Connect connects a linked device, or starts linking: with an empty phone number it emits QR codes
 // ({"type":"pairing","qr":...}), otherwise a pairing code to type on the phone ({"type":"pairing","code":...}).
+// Linking follows mautrix-whatsapp: a login client without auto-reconnect, then after the pairing succeeded and
+// WhatsApp asked for a reconnect (stream error 515), a regular client for the saved device.
 func (w *WhatsApp) Connect(phone string) error {
 	w.lock.Lock()
 	defer w.lock.Unlock()
@@ -70,41 +80,127 @@ func (w *WhatsApp) Connect(phone string) error {
 		return errors.New("already connected")
 	}
 	ctx, cancel := context.WithCancel(context.Background())
+	w.cancel = cancel
 	device, err := w.container.GetFirstDevice(ctx)
 	if err != nil {
-		cancel()
 		return err
 	}
+	if device.ID != nil {
+		return w.connectLinked(device)
+	}
+	return w.startLinking(ctx, device, phone)
+}
+
+// connectLinked runs the normal client for an already linked device. Call with w.lock held.
+func (w *WhatsApp) connectLinked(device *store.Device) error {
 	client := whatsmeow.NewClient(device, waLog.Zerolog(w.log.With().Str("component", "whatsmeow").Logger()))
 	client.EnableAutoReconnect = true
 	client.AddEventHandler(w.handleEvent)
-	w.client, w.cancel = client, cancel
+	w.client = client
+	return client.Connect()
+}
 
-	if device.ID != nil {
-		return client.Connect()
+func (w *WhatsApp) startLinking(ctx context.Context, device *store.Device, phone string) error {
+	client := whatsmeow.NewClient(device, waLog.Zerolog(w.log.With().Str("component", "whatsmeow-login").Logger()))
+	client.EnableAutoReconnect = false
+	client.DisableLoginAutoReconnect = true
+	firstQR := make(chan struct{})
+	var once sync.Once
+	var paired *events.PairSuccess
+	var qrTimer *time.Timer
+	fail := func(reason string) {
+		client.Disconnect()
+		w.emitState("pairing_failed", reason)
 	}
-	if phone == "" {
-		qr, err := client.GetQRChannel(ctx)
-		if err != nil {
-			return err
-		}
-		go func() {
-			for item := range qr {
-				switch item.Event {
-				case whatsmeow.QRChannelEventCode:
-					w.emit(map[string]any{"type": "pairing", "qr": item.Code, "timeoutMs": item.Timeout.Milliseconds()})
-				case whatsmeow.QRChannelEventError, "timeout":
-					w.emitState("pairing_failed", item.Event)
+	client.AddEventHandler(func(rawEvt any) {
+		switch evt := rawEvt.(type) {
+		case *events.QR:
+			once.Do(func() { close(firstQR) })
+			if phone == "" {
+				// Like the official clients: the first code is valid for a minute, the rest for 20 seconds each
+				codes := evt.Codes
+				var show func(i int)
+				show = func(i int) {
+					if i >= len(codes) || paired != nil {
+						if paired == nil {
+							fail("timeout")
+						}
+						return
+					}
+					timeout := 20 * time.Second
+					if i == 0 {
+						timeout = time.Minute
+					}
+					w.emit(map[string]any{"type": "pairing", "qr": codes[i], "timeoutMs": timeout.Milliseconds()})
+					qrTimer = time.AfterFunc(timeout, func() { show(i + 1) })
+				}
+				show(0)
+			}
+		case *events.PairPasskeyConfirmation:
+			if evt.SkipHandoffUX {
+				if err := client.SendPasskeyConfirmation(ctx); err != nil {
+					fail("passkey confirmation failed: " + err.Error())
 				}
 			}
-		}()
-		return client.Connect()
-	}
-	if err = client.Connect(); err != nil {
+		case *events.PairPasskeyRequest:
+			fail("WhatsApp asked for a passkey, which isn't supported yet")
+		case *events.PairPasskeyError:
+			fail(evt.Error.Error())
+		case *events.PairSuccess:
+			paired = evt
+			if qrTimer != nil {
+				qrTimer.Stop()
+			}
+			w.emitState("paired", "")
+		case *events.PairError:
+			fail(evt.Error.Error())
+		case *events.ManualLoginReconnect:
+			// Pairing finished: continue with a regular client for the saved device
+			go func() {
+				client.Disconnect()
+				w.lock.Lock()
+				defer w.lock.Unlock()
+				linked, err := w.container.GetFirstDevice(context.Background())
+				if err != nil || linked.ID == nil {
+					w.emitState("pairing_failed", "the linked device wasn't saved")
+					return
+				}
+				if err = w.connectLinked(linked); err != nil {
+					w.emitState("pairing_failed", err.Error())
+				}
+			}()
+		case *events.Disconnected:
+			if paired == nil {
+				w.emitState("pairing_failed", "disconnected before linking finished")
+			}
+		case *events.ClientOutdated:
+			fail("WhatsApp says this client version is outdated")
+		}
+	})
+	w.client = client
+	if err := client.Connect(); err != nil {
 		return err
 	}
-	code, err := client.PairPhone(ctx, phone, true, whatsmeow.PairClientChrome, "Chrome (HowYouDoin)")
+	select {
+	case <-firstQR:
+	case <-time.After(30 * time.Second):
+		client.Disconnect()
+		return errors.New("WhatsApp didn't start linking in time")
+	}
+	if phone == "" {
+		return nil
+	}
+	digits := strings.Map(func(r rune) rune {
+		if r >= '0' && r <= '9' {
+			return r
+		}
+		return -1
+	}, phone)
+	pairCtx, cancelPair := context.WithTimeout(ctx, 30*time.Second)
+	defer cancelPair()
+	code, err := client.PairPhone(pairCtx, digits, true, whatsmeow.PairClientChrome, "Chrome (Linux)")
 	if err != nil {
+		client.Disconnect()
 		return err
 	}
 	w.emit(map[string]any{"type": "pairing", "code": code})
@@ -141,8 +237,6 @@ func (w *WhatsApp) Logout() error {
 
 func (w *WhatsApp) handleEvent(rawEvt any) {
 	switch evt := rawEvt.(type) {
-	case *events.PairSuccess:
-		w.emitState("paired", "")
 	case *events.Connected:
 		w.emitSelf()
 		w.emitState("connected", "")
@@ -157,11 +251,11 @@ func (w *WhatsApp) handleEvent(rawEvt any) {
 		w.emitWAMessage(evt, true)
 	case *events.Receipt:
 		if evt.Type == types.ReceiptTypeRead || evt.Type == types.ReceiptTypeReadSelf {
-			w.emit(map[string]any{"type": "read", "threadKey": evt.Chat.String(), "contactId": evt.Sender.ToNonAD().String(),
+			w.emit(map[string]any{"type": "read", "threadKey": w.pnJID(evt.Chat).String(), "contactId": w.pnJID(evt.Sender).String(),
 				"watermarkMs": evt.Timestamp.UnixMilli()})
 		}
 	case *events.ChatPresence:
-		w.emit(map[string]any{"type": "typing", "threadKey": evt.Chat.String(), "senderId": evt.Sender.ToNonAD().String(),
+		w.emit(map[string]any{"type": "typing", "threadKey": w.pnJID(evt.Chat).String(), "senderId": w.pnJID(evt.Sender).String(),
 			"isTyping": evt.State == types.ChatPresenceComposing})
 	case *events.PushName:
 		w.emitContact(evt.JID, evt.NewPushName)
@@ -203,6 +297,12 @@ func (w *WhatsApp) handleHistorySync(evt *events.HistorySync) {
 		if err != nil || chat.Server == types.BroadcastServer || chat.Server == types.NewsletterServer {
 			continue
 		}
+		if !chat.IsEmpty() && chat.Server == types.HiddenUserServer && conv.GetPnJID() != "" {
+			if pn, err := types.ParseJID(conv.GetPnJID()); err == nil {
+				chat = pn
+			}
+		}
+		chat = w.pnJID(chat)
 		lastActivity := int64(conv.GetConversationTimestamp()) * 1000
 		w.emit(map[string]any{
 			"type": "thread", "key": chat.String(), "name": firstNonEmpty(conv.GetName(), conv.GetDisplayName()),
@@ -234,7 +334,7 @@ func (w *WhatsApp) emitContact(jid types.JID, name string) {
 	if name == "" || jid.IsEmpty() {
 		return
 	}
-	w.emit(map[string]any{"type": "contact", "id": jid.ToNonAD().String(), "name": name, "firstName": strings.SplitN(name, " ", 2)[0]})
+	w.emit(map[string]any{"type": "contact", "id": w.pnJID(jid).String(), "name": name, "firstName": strings.SplitN(name, " ", 2)[0]})
 }
 
 // emitWAMessage turns a WhatsApp message into message / reaction events (and downloads its media when live).
@@ -243,13 +343,23 @@ func (w *WhatsApp) emitWAMessage(evt *events.Message, live bool) {
 	if msg == nil {
 		return
 	}
-	chat := evt.Info.Chat.String()
-	sender := evt.Info.Sender.ToNonAD().String()
+	chatJID := evt.Info.Chat
+	if chatJID.Server == types.HiddenUserServer && !evt.Info.IsFromMe && !evt.Info.SenderAlt.IsEmpty() && !evt.Info.IsGroup {
+		chatJID = evt.Info.SenderAlt
+	} else if chatJID.Server == types.HiddenUserServer && evt.Info.IsFromMe && !evt.Info.RecipientAlt.IsEmpty() {
+		chatJID = evt.Info.RecipientAlt
+	}
+	chat := w.pnJID(chatJID).String()
+	senderJID := evt.Info.Sender
+	if senderJID.Server == types.HiddenUserServer && !evt.Info.SenderAlt.IsEmpty() {
+		senderJID = evt.Info.SenderAlt
+	}
+	sender := w.pnJID(senderJID).String()
 	if evt.Info.IsFromMe && w.client != nil && w.client.Store.ID != nil {
 		sender = w.client.Store.ID.ToNonAD().String()
 	}
 	if evt.Info.PushName != "" && !evt.Info.IsFromMe {
-		w.emitContact(evt.Info.Sender, evt.Info.PushName)
+		w.emitContact(w.pnJID(senderJID), evt.Info.PushName)
 	}
 	if reaction := msg.GetReactionMessage(); reaction != nil {
 		w.emit(map[string]any{"type": "reaction", "threadKey": chat, "targetId": reaction.GetKey().GetID(),
@@ -421,4 +531,17 @@ func (w *WhatsApp) emit(event map[string]any) {
 	if err == nil && w.listener != nil {
 		w.listener.OnEvent(string(data))
 	}
+}
+
+// pnJID maps WhatsApp's anonymous LID identifiers (user@lid) to the phone-number JID when the device store knows
+// it, so chats and senders match contacts (which are keyed by phone number). Other JIDs are returned unchanged.
+func (w *WhatsApp) pnJID(jid types.JID) types.JID {
+	jid = jid.ToNonAD()
+	if jid.Server != types.HiddenUserServer || w.client == nil {
+		return jid
+	}
+	if pn, err := w.client.Store.LIDs.GetPNForLID(context.Background(), jid); err == nil && !pn.IsEmpty() {
+		return pn.ToNonAD()
+	}
+	return jid
 }

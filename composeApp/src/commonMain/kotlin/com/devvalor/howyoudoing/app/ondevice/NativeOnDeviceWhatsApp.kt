@@ -169,10 +169,18 @@ class NativeOnDeviceWhatsApp(
                 _state.value = OnDeviceMessengerState.Connected(str("name")?.takeIf { it.isNotBlank() })
             }
             "state" -> {
-                log("state ${str("state")}")
+                log("state ${str("state")} ${str("error").orEmpty()}")
                 when (str("state")) {
                     "reconnecting" -> if (_state.value is OnDeviceMessengerState.Connected) _state.value = OnDeviceMessengerState.Connecting
-                    "pairing_failed" -> _state.value = OnDeviceMessengerState.Failed("Linking timed out, try again")
+                    "pairing_failed" -> if (_state.value !is OnDeviceMessengerState.Connected) {
+                        _pairing.value = null
+                        _state.value = OnDeviceMessengerState.Failed(
+                            when (val reason = str("error").orEmpty()) {
+                                "", "timeout" -> "Linking timed out, try again"
+                                else -> "Linking failed: $reason"
+                            }
+                        )
+                    }
                     "logged_out" -> {
                         _state.value = OnDeviceMessengerState.NotLinked
                         dataDir.clear()
