@@ -510,6 +510,12 @@ func (w *WhatsApp) SetTyping(chatJID string, isTyping bool) error {
 		state = types.ChatPresenceComposing
 		_ = client.SendPresence(context.Background(), types.PresenceAvailable)
 	}
+	// 1:1 chats are addressed by LID nowadays; typing sent to the phone-number JID isn't shown (as in mautrix-whatsapp)
+	if chat.Server == types.DefaultUserServer {
+		if lid, err := client.Store.LIDs.GetLIDForPN(context.Background(), chat); err == nil && !lid.IsEmpty() {
+			chat = lid
+		}
+	}
 	return client.SendChatPresence(context.Background(), chat, state, types.ChatPresenceMediaText)
 }
 
