@@ -1,6 +1,7 @@
 package com.devvalor.howyoudoing.networks.presentation.components
 
 import android.annotation.SuppressLint
+import android.view.ViewGroup
 import android.webkit.CookieManager
 import org.json.JSONArray
 import org.json.JSONObject
@@ -28,6 +29,9 @@ actual fun CookieCaptureWebView(
     AndroidView(
         factory = { context ->
             WebView(context).apply {
+                // With AndroidView's default WRAP_CONTENT height, WebView resolves CSS viewport units (vh) to 0,
+                // and pages sized with them (Instagram's login and cookie dialog) collapse to nothing
+                layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
                 settings.javaScriptEnabled = true
                 settings.domStorageEnabled = true
                 // Bridges ask for a desktop user agent (the session is reused with it), so the site

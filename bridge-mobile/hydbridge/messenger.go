@@ -321,6 +321,11 @@ func errString(err error) string {
 
 // ensureContact looks up a contact the app doesn't know yet (e.g. the other person of an encrypted chat that
 // started after connecting), so the chat gets a name.
+const (
+	contactLookupAttempts   = 5
+	contactLookupRetryDelay = 3 * time.Second
+)
+
 func (m *Messenger) ensureContact(idStr string) {
 	contactID, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil || contactID == 0 || contactID == m.selfID {
@@ -332,11 +337,17 @@ func (m *Messenger) ensureContact(idStr string) {
 	}
 	go func() {
 		defer m.lookups.Delete(contactID)
-		resp, err := m.client.ExecuteTasks(context.Background(), &socket.GetContactsFullTask{ContactID: contactID})
-		if err != nil {
-			m.log.Err(err).Int64("contact_id", contactID).Msg("Failed to look up contact")
-			return
+		// The initial sync can ask before the socket is open; try again a few times
+		for attempt := 1; ; attempt++ {
+			resp, err := m.client.ExecuteTasks(context.Background(), &socket.GetContactsFullTask{ContactID: contactID})
+			if err == nil {
+				m.emitTable(resp)
+				return
+			} else if attempt == contactLookupAttempts {
+				m.log.Err(err).Int64("contact_id", contactID).Msg("Failed to look up contact")
+				return
+			}
+			time.Sleep(time.Duration(attempt) * contactLookupRetryDelay)
 		}
-		m.emitTable(resp)
 	}()
 }
