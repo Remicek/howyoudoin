@@ -350,7 +350,8 @@ class ConnectNetworkViewModel(
         stepId = "on-device-cookies",
         instructions = "Log in to Messenger. HowYouDoin then connects from this phone directly.",
         url = "https://www.messenger.com/",
-        userAgent = null,
+        // messenger.com only offers its login form to desktop browsers; this matches what hydbridge sends
+        userAgent = DESKTOP_USER_AGENT,
         cookies = listOf("xs", "c_user", "datr").map { RequiredCookie(fieldId = it, cookieName = it, isRequired = true) }
     )
 
@@ -387,3 +388,7 @@ class ConnectNetworkViewModel(
         const val ON_DEVICE_WHATSAPP_CODE_FLOW_ID = "howyoudoin-on-device-whatsapp-code"
     }
 }
+
+/** The desktop Chrome user agent hydbridge (messagix) uses, so the session looks the same from both. */
+private const val DESKTOP_USER_AGENT =
+    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"

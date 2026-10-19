@@ -212,10 +212,15 @@ func (m *Messenger) emitTable(tbl *table.LSTable) {
 	}
 	// Facebook thread ↔ encrypted chat: the app shows the encrypted one and hides the old Facebook thread
 	for _, link := range tbl.LSVerifyHybridThreadExists {
+		if !link.IsGroupThread {
+			// A 1:1 encrypted chat is keyed by the other person's ID; look them up so it isn't nameless
+			m.ensureContact(id(link.ThreadJID))
+		}
 		m.emit(map[string]any{"type": "link", "fbThreadKey": id(link.ThreadKey), "threadKey": id(link.ThreadJID),
 			"isGroup": link.IsGroupThread, "lastActivityMs": link.LastActivityTimestampMS})
 	}
 	for _, link := range tbl.LSCreateOpenToE2EEThreadLink {
+		m.ensureContact(id(link.ThreadJID))
 		m.emit(map[string]any{"type": "link", "fbThreadKey": id(link.ThreadKey), "threadKey": id(link.ThreadJID),
 			"isGroup": false, "lastActivityMs": link.LastActivityTimestampMS})
 	}

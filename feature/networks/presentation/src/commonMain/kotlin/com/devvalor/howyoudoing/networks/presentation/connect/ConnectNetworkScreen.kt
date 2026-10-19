@@ -408,8 +408,10 @@ private fun CookiesStep(
         // The bridge's own instructions are for clients that paste cookies by hand
         // ("Enter a JSON object with your cookies…"); here the web view collects them.
         Text(
-            "Log in to ${network.displayName} below. If it asks you to confirm it's you, finish those steps " +
-                "here too. HowYouDoin continues automatically once you're logged in.",
+            "1. Enter your ${network.displayName} email or phone number and password, then tap Log in.\n" +
+                "2. If it then shows \"Continue as <your name>\", tap it. Finish any \"confirm it's you\" steps " +
+                "here too.\n" +
+                "HowYouDoin continues by itself once you're in. Pinch to zoom if the page looks small.",
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.padding(HowYouDoinSpacing.md),
         )
