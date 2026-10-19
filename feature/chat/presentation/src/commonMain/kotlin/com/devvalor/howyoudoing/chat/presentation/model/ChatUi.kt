@@ -21,7 +21,8 @@ data class ChatUi(
     val isEncrypted: Boolean = false,
     val isOnDevice: Boolean = false,
     /** "Anna is typing…" replaces the preview while someone types. */
-    val typingText: String? = null
+    val typingText: String? = null,
+    val avatarUrl: String? = null
 )
 
 data class MessageUi(
@@ -61,7 +62,8 @@ fun Chat.toChatUi(): ChatUi = ChatUi(
     isGroup = isGroup,
     isEncrypted = isEncrypted,
     isOnDevice = isOnDevice,
-    typingText = typingText(typingNames, isGroup)
+    typingText = typingText(typingNames, isGroup),
+    avatarUrl = avatarUrl
 )
 
 /**

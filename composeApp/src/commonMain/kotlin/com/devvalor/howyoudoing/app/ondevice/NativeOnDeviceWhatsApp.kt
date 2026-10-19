@@ -40,6 +40,8 @@ interface NativeWhatsAppClient {
     fun sendMediaFile(chatJid: String, path: String, mimeType: String, fileName: String, caption: String, width: Long, height: Long): String
     /** Downloads media from a message event's mediaRef and returns the file's path. */
     fun downloadMedia(chatJid: String, messageId: String, mediaRef: String): String
+    /** Queues profile pictures for these chats (comma-separated JIDs). */
+    fun fetchAvatars(chatJids: String)
 }
 
 fun interface NativeWhatsAppFactory {
@@ -139,6 +141,10 @@ class NativeOnDeviceWhatsApp(
         }
 
     override suspend fun readMediaFile(path: String): ByteArray? = withContext(Dispatchers.IO) { dataDir.read(path) }
+
+    override suspend fun fetchAvatars(threadKeys: List<String>) {
+        if (threadKeys.isNotEmpty()) native("Fetching pictures") { fetchAvatars(threadKeys.joinToString(",")) }
+    }
 
     override suspend fun sendReaction(
         threadKey: String, messageId: String, emoji: String, isEncrypted: Boolean, isGroup: Boolean, messageSenderId: String

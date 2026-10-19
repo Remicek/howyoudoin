@@ -75,6 +75,7 @@ import com.devvalor.howyoudoing.core.designsystem.components.ChatAvatar
 import com.devvalor.howyoudoing.core.designsystem.theme.HowYouDoinSpacing
 import com.devvalor.howyoudoing.core.designsystem.theme.brandColor
 import com.devvalor.howyoudoing.core.presentation.util.ObserveAsEvents
+import com.devvalor.howyoudoing.chat.presentation.conversation.components.AvatarImage
 import com.devvalor.howyoudoing.chat.presentation.conversation.components.Composer
 import com.devvalor.howyoudoing.chat.presentation.conversation.components.ImageViewer
 import com.devvalor.howyoudoing.chat.presentation.conversation.components.MediaResolver
@@ -162,7 +163,12 @@ fun ConversationScreen(
                 },
                 title = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        ChatAvatar(name = state.chatName, network = state.network, size = 38.dp)
+                        ChatAvatar(
+                            name = state.chatName,
+                            network = state.network,
+                            size = 38.dp,
+                            image = state.avatarUrl?.let { url -> { AvatarImage(url, resolver) } },
+                        )
                         Spacer(Modifier.width(HowYouDoinSpacing.sm))
                         Column {
                             Text(state.chatName, style = MaterialTheme.typography.titleMedium, maxLines = 1)

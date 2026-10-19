@@ -41,6 +41,9 @@ type WhatsApp struct {
 	cancel context.CancelFunc
 
 	seenEvents sync.Map
+
+	avatarQueue   chan string
+	avatarsQueued sync.Map
 }
 
 // NewWhatsApp opens (or creates) the device store in dataDir.
@@ -63,7 +66,9 @@ func NewWhatsApp(dataDir string, listener Listener) (*WhatsApp, error) {
 	}
 	store.DeviceProps.HistorySyncConfig.FullSyncDaysLimit = proto.Uint32(365)
 	store.DeviceProps.HistorySyncConfig.FullSyncSizeMbLimit = proto.Uint32(500)
-	return &WhatsApp{listener: listener, log: log, dataDir: dataDir, container: container}, nil
+	w := &WhatsApp{listener: listener, log: log, dataDir: dataDir, container: container, avatarQueue: make(chan string, 1024)}
+	go w.fetchAvatars()
+	return w, nil
 }
 
 // IsLinked tells whether this phone is already linked to a WhatsApp account.
@@ -281,6 +286,7 @@ func (w *WhatsApp) syncNames() {
 		for _, group := range groups {
 			w.emit(map[string]any{"type": "thread", "key": group.JID.String(), "name": group.Name, "isGroup": true,
 				"isEncrypted": true, "lastActivityMs": 0, "nameOnly": true})
+			w.queueAvatar(group.JID.String())
 		}
 	} else {
 		w.log.Err(err).Msg("Failed to get WhatsApp groups")
@@ -353,6 +359,7 @@ func (w *WhatsApp) emitWAMessage(evt *events.Message, live bool) {
 		return
 	}
 	chat := w.pnJID(chatJID).String()
+	w.queueAvatar(chat)
 	senderJID := evt.Info.Sender
 	if senderJID.Server == types.HiddenUserServer && !evt.Info.SenderAlt.IsEmpty() {
 		senderJID = evt.Info.SenderAlt

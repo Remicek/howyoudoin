@@ -18,6 +18,8 @@ import kotlinx.serialization.Serializable
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
@@ -70,7 +72,9 @@ class OnDeviceMessengerStore(
         /** Thread key → people typing. */
         val typing: Map<String, Set<String>> = emptyMap(),
         /** Thread key → contact → read up to (ms). */
-        val readWatermarks: Map<String, Map<String, Long>> = emptyMap()
+        val readWatermarks: Map<String, Map<String, Long>> = emptyMap(),
+        /** Thread key → its picture (group photo, or a WhatsApp contact's profile picture). */
+        val avatars: Map<String, String> = emptyMap()
     )
 
     @Serializable
@@ -138,6 +142,12 @@ class OnDeviceMessengerStore(
                 }
             }
             .launchIn(scope)
+        // Pictures of known chats (WhatsApp sends them only on request; their links also expire, so every connect)
+        messenger.state
+            .filter { it is OnDeviceMessengerState.Connected }
+            .distinctUntilChanged()
+            .onEach { messenger.fetchAvatars(chatKeys()) }
+            .launchIn(scope)
         _snapshot
             .drop(1)
             .debounce(CACHE_WRITE_DELAY_MILLIS)
@@ -171,11 +181,17 @@ class OnDeviceMessengerStore(
     private fun apply(json: String) {
         val event = runCatching { Json.parseToJsonElement(json).jsonObject }.getOrNull() ?: return
         if (event.str("type") == "history") return resetEncryptedPaging()
-        _snapshot.update { s ->
+        _snapshot.update { current ->
+            // A thread's picture can come with its thread event (Messenger) or on its own (WhatsApp)
+            val pictureKey = event.str(if (event.str("type") == "avatar") "threadKey" else "key")
+            val picture = event.str(if (event.str("type") == "avatar") "url" else "pictureUrl")
+            val s = if (pictureKey.isNotEmpty() && picture.isNotEmpty()) current.copy(avatars = current.avatars + (pictureKey to picture)) else current
             when (event.str("type")) {
                 "self" -> s.copy(selfId = event.str("id"))
                 "contact" -> event.str("id").takeIf { it.isNotEmpty() }?.let { id ->
-                    s.copy(contacts = s.contacts + (id to Contact(id, event.str("name"), event.str("firstName"), event.str("avatarUrl").ifBlank { null })))
+                    // WhatsApp's contact events carry only names; keep a picture learned before
+                    val avatar = event.str("avatarUrl").ifBlank { null } ?: s.contacts[id]?.avatarUrl
+                    s.copy(contacts = s.contacts + (id to Contact(id, event.str("name"), event.str("firstName"), avatar)))
                 } ?: s
                 // Group names from WhatsApp's group list carry no activity; don't let them reset it
                 "thread" if event.bool("nameOnly") -> event.str("key").takeIf { it.isNotEmpty() }?.let { key ->
@@ -306,6 +322,9 @@ class OnDeviceMessengerStore(
 
     fun thread(threadKey: String): Thread? = allThreads(_snapshot.value)[threadKey]
 
+    /** Keys of the chats shown in the inbox. */
+    fun chatKeys(): List<String> = chats().map { it.id.removePrefix(chatIdPrefix) }
+
     fun mediaRef(threadKey: String, messageId: String): String? = _snapshot.value.messages[threadKey]?.get(messageId)?.mediaRef
 
     /**
@@ -380,7 +399,7 @@ class OnDeviceMessengerStore(
             lastMessage = lastMessage,
             unreadCount = if (lastActivityMs > lastReadMs && lastMessage.isOutgoing.not()) 1 else 0,
             isGroup = isGroup,
-            avatarUrl = null,
+            avatarUrl = s.avatars[key] ?: if (isGroup) null else others.firstNotNullOfOrNull { s.contacts[it]?.avatarUrl },
             isEncrypted = isEncrypted,
             typingNames = s.typing[key].orEmpty().mapNotNull { s.contacts[it]?.name },
             isOnDevice = true

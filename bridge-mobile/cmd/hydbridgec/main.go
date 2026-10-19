@@ -184,6 +184,8 @@ func callWhatsApp(w *hydbridge.WhatsApp, name string, a callArgs) (result string
 		err = w.SetTyping(a.ThreadKey, a.IsTyping)
 	case "downloadMedia":
 		result, err = w.DownloadMedia(a.ThreadKey, a.MessageID, a.MediaRef)
+	case "fetchAvatars":
+		w.FetchAvatars(a.Text)
 	case "sendMediaFile":
 		result, err = w.SendMediaFile(a.ThreadKey, a.Path, a.MimeType, a.FileName, a.Text, a.Width, a.Height)
 	case "requestHistory":

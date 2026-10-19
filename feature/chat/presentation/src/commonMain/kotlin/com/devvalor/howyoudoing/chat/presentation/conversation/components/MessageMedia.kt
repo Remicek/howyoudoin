@@ -2,6 +2,7 @@ package com.devvalor.howyoudoing.chat.presentation.conversation.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -80,6 +81,26 @@ fun AuthenticatedImage(
             Icon(Icons.Rounded.BrokenImage, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
+}
+
+/** A chat's picture for [ChatAvatar]'s image slot; draws nothing until (and unless) it loads. */
+@Composable
+fun AvatarImage(url: String, resolver: MediaResolver, modifier: Modifier = Modifier) {
+    var request by remember(url) { mutableStateOf<MediaRequest?>(null) }
+    LaunchedEffect(url) { request = resolver(url, true) }
+    val context = LocalPlatformContext.current
+    val resolved = request ?: return
+    AsyncImage(
+        model = remember(resolved) {
+            ImageRequest.Builder(context)
+                .data(resolved.url)
+                .httpHeaders(NetworkHeaders.Builder().apply { resolved.headers.forEach { (k, v) -> set(k, v) } }.build())
+                .build()
+        },
+        contentDescription = null,
+        contentScale = ContentScale.Crop,
+        modifier = modifier.fillMaxSize(),
+    )
 }
 
 /** Photo thumbnail sized by its aspect ratio, or a file card for video / audio / files. */

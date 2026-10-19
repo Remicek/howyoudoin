@@ -1,5 +1,7 @@
 package com.devvalor.howyoudoing.chat.presentation.inbox
 
+import com.devvalor.howyoudoing.chat.presentation.conversation.components.AvatarImage
+import com.devvalor.howyoudoing.chat.presentation.conversation.components.MediaResolver
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -79,6 +81,7 @@ fun InboxRoot(
     InboxScreen(
         state = state,
         banner = { banner(state.encryptedNetworks) },
+        resolver = viewModel::resolveMedia,
         onAction = { action ->
             when (action) {
                 is InboxAction.OnChatClick -> onChatClick(action.chatId)
@@ -96,6 +99,7 @@ fun InboxScreen(
     onAction: (InboxAction) -> Unit,
     /** Slot for other features' prompts (e.g. restoring encrypted history). */
     banner: @Composable () -> Unit = {},
+    resolver: MediaResolver = { _, _ -> null },
 ) {
     var isMenuOpen by remember { mutableStateOf(false) }
 
@@ -159,7 +163,7 @@ fun InboxScreen(
                         modifier = Modifier.fillMaxSize(),
                     ) {
                         items(state.chats, key = { it.id }) { chat ->
-                            ChatRow(chat = chat, onClick = { onAction(InboxAction.OnChatClick(chat.id)) })
+                            ChatRow(chat = chat, resolver = resolver, onClick = { onAction(InboxAction.OnChatClick(chat.id)) })
                         }
                     }
                 }
@@ -238,7 +242,7 @@ private fun FilterRow(state: InboxState, onAction: (InboxAction) -> Unit) {
 }
 
 @Composable
-private fun ChatRow(chat: ChatUi, onClick: () -> Unit) {
+private fun ChatRow(chat: ChatUi, resolver: MediaResolver, onClick: () -> Unit) {
     val isUnread = chat.unreadCount > 0
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -247,7 +251,11 @@ private fun ChatRow(chat: ChatUi, onClick: () -> Unit) {
             .clickable(onClick = onClick)
             .padding(horizontal = HowYouDoinSpacing.md, vertical = 10.dp),
     ) {
-        ChatAvatar(name = chat.name, network = chat.network)
+        ChatAvatar(
+            name = chat.name,
+            network = chat.network,
+            image = chat.avatarUrl?.let { url -> { AvatarImage(url, resolver) } },
+        )
         Spacer(Modifier.width(HowYouDoinSpacing.md))
         Column(modifier = Modifier.weight(1f)) {
             Row(verticalAlignment = Alignment.CenterVertically) {

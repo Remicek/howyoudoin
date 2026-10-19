@@ -205,10 +205,10 @@ func (m *Messenger) emitTable(tbl *table.LSTable) {
 		m.emitContact(c.Id, c.Name, c.FirstName, c.ProfilePictureUrl)
 	}
 	for _, t := range tbl.LSDeleteThenInsertThread {
-		m.emitThread(t.ThreadKey, t.ThreadName, t.ThreadType, t.LastActivityTimestampMs, t.LastReadWatermarkTimestampMs, t.Snippet, t.SnippetSenderContactId, t.FolderName)
+		m.emitThread(t.ThreadKey, t.ThreadName, t.ThreadType, t.LastActivityTimestampMs, t.LastReadWatermarkTimestampMs, t.Snippet, t.SnippetSenderContactId, t.FolderName, t.ThreadPictureUrl)
 	}
 	for _, t := range tbl.LSUpdateOrInsertThread {
-		m.emitThread(t.ThreadKey, t.ThreadName, t.ThreadType, t.LastActivityTimestampMs, t.LastReadWatermarkTimestampMs, t.Snippet, t.SnippetSenderContactId, t.FolderName)
+		m.emitThread(t.ThreadKey, t.ThreadName, t.ThreadType, t.LastActivityTimestampMs, t.LastReadWatermarkTimestampMs, t.Snippet, t.SnippetSenderContactId, t.FolderName, t.ThreadPictureUrl)
 	}
 	// Facebook thread ↔ encrypted chat: the app shows the encrypted one and hides the old Facebook thread
 	for _, link := range tbl.LSVerifyHybridThreadExists {
@@ -260,7 +260,7 @@ func (m *Messenger) emitContact(contactID int64, name, firstName, avatar string)
 	m.emit(map[string]any{"type": "contact", "id": id(contactID), "name": name, "firstName": firstName, "avatarUrl": avatar})
 }
 
-func (m *Messenger) emitThread(key int64, name string, threadType table.ThreadType, lastActivity, lastRead int64, snippet string, snippetSender int64, folder string) {
+func (m *Messenger) emitThread(key int64, name string, threadType table.ThreadType, lastActivity, lastRead int64, snippet string, snippetSender int64, folder, pictureURL string) {
 	if key == 0 {
 		return
 	}
@@ -275,6 +275,7 @@ func (m *Messenger) emitThread(key int64, name string, threadType table.ThreadTy
 		"snippet":        snippet,
 		"snippetSender":  id(snippetSender),
 		"folder":         folder,
+		"pictureUrl":     pictureURL,
 	})
 }
 

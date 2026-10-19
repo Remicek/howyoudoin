@@ -5,6 +5,7 @@ import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
 
 data class ConversationState(
     val chatName: String = "",
+    val avatarUrl: String? = null,
     val network: ChatNetwork? = null,
     val isGroup: Boolean = false,
     val isEncrypted: Boolean = false,

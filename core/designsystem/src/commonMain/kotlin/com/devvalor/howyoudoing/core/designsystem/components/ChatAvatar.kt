@@ -9,6 +9,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
@@ -23,8 +24,8 @@ private val avatarPalette = listOf(
 )
 
 /**
- * Initials avatar with an optional network badge in the bottom-right corner.
- * TODO: load mxc:// avatars once authenticated media loading is in place.
+ * Initials avatar with an optional network badge in the bottom-right corner. [image] (the chat's picture,
+ * loaded by the caller) is drawn over the initials, which show while it loads or when there's none.
  */
 @Composable
 fun ChatAvatar(
@@ -32,6 +33,7 @@ fun ChatAvatar(
     modifier: Modifier = Modifier,
     network: ChatNetwork? = null,
     size: Dp = 52.dp,
+    image: (@Composable () -> Unit)? = null,
 ) {
     Box(modifier = modifier.size(size)) {
         Box(
@@ -46,6 +48,9 @@ fun ChatAvatar(
                 fontWeight = FontWeight.SemiBold,
                 fontSize = (size.value * 0.36f).sp,
             )
+            if (image != null) {
+                Box(modifier = Modifier.matchParentSize().clip(CircleShape)) { image() }
+            }
         }
         if (network != null) {
             NetworkBadge(

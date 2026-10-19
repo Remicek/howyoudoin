@@ -1,5 +1,6 @@
 package com.devvalor.howyoudoing.chat.presentation.inbox
 
+import com.devvalor.howyoudoing.chat.domain.MediaRequest
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.devvalor.howyoudoing.chat.domain.Chat
@@ -95,4 +96,8 @@ class InboxViewModel(
             _state.update { it.copy(isRefreshing = false) }
         }
     }
+
+    /** Lets the UI's image loader fetch chat pictures (authenticated server media, or direct URLs). */
+    suspend fun resolveMedia(mxcUrl: String, thumbnail: Boolean): MediaRequest? =
+        chatRepository.resolveMedia(mxcUrl, thumbnail)
 }

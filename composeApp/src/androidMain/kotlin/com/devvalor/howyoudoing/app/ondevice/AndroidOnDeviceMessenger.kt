@@ -119,6 +119,7 @@ class AndroidWhatsAppFactory : NativeWhatsAppFactory {
             ): String = w.sendMediaFile(chatJid, path, mimeType, fileName, caption, width, height)
             override fun downloadMedia(chatJid: String, messageId: String, mediaRef: String): String =
                 w.downloadMedia(chatJid, messageId, mediaRef)
+            override fun fetchAvatars(chatJids: String) = w.fetchAvatars(chatJids)
         }
     }
 }

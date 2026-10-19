@@ -140,6 +140,7 @@ class ConversationViewModel(
                 _state.update {
                     it.copy(
                         chatName = chat?.name ?: it.chatName,
+                        avatarUrl = chat?.avatarUrl ?: it.avatarUrl,
                         network = chat?.network ?: it.network,
                         isGroup = chat?.isGroup ?: it.isGroup,
                         isEncrypted = chat?.isEncrypted ?: it.isEncrypted,

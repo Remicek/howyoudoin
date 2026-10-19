@@ -267,6 +267,9 @@ class IosWhatsAppFactory : NativeWhatsAppFactory {
             )
             override fun downloadMedia(chatJid: String, messageId: String, mediaRef: String) =
                 call("downloadMedia", "threadKey" to chatJid, "messageId" to messageId, "mediaRef" to mediaRef)
+            override fun fetchAvatars(chatJids: String) {
+                call("fetchAvatars", "text" to chatJids)
+            }
             override fun requestHistory(chatJid: String, oldestMessageId: String, oldestIsOutgoing: Boolean, oldestTimestampMs: Long, count: Long) {
                 call(
                     "requestHistory", "threadKey" to chatJid, "beforeMessageId" to oldestMessageId, "isOutgoing" to oldestIsOutgoing,

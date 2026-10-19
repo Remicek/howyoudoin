@@ -55,6 +55,9 @@ interface OnDeviceMessenger {
     suspend fun downloadMedia(threadKey: String, messageId: String, mediaRef: String): Result<ByteArray, DataError.Remote> =
         Result.Failure(DataError.Remote.BAD_REQUEST)
 
+    /** Asks for the pictures of these chats; they arrive as avatar events. Networks that send them anyway ignore it. */
+    suspend fun fetchAvatars(threadKeys: List<String>) = Unit
+
     /** Reads a media file this client stored (a `file://` attachment URL's path); null if it isn't one of its files. */
     suspend fun readMediaFile(path: String): ByteArray? = null
 
