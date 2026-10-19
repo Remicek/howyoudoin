@@ -44,6 +44,10 @@ interface NativeMessengerClient {
     fun sendEncryptedReaction(threadKey: String, isGroup: Boolean, messageId: String, messageSenderId: String, emoji: String)
     fun markRead(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, lastMessageId: String, senderId: String)
     fun setTyping(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, isTyping: Boolean)
+    fun sendMediaFile(
+        threadKey: String, isEncrypted: Boolean, isGroup: Boolean, path: String, mimeType: String, fileName: String,
+        caption: String, width: Long, height: Long
+    ): String = throw UnsupportedOperationException("Attachments aren't supported here yet")
 }
 
 fun interface NativeMessengerFactory {
@@ -64,6 +68,9 @@ interface OnDeviceDataDirectory {
 
     /** Writes [bytes] to a new file inside the directory and returns its path. */
     fun writeTemp(bytes: ByteArray): String
+
+    /** Reads a file inside the directory; null for paths outside it or missing files. */
+    fun read(path: String): ByteArray?
 }
 
 /** Messenger (or Instagram, see [NativeOnDeviceInstagram]) running in-process through hydbridge, shared by Android and iOS. */
@@ -123,6 +130,16 @@ open class NativeOnDeviceMessenger(
 
     override suspend fun sendText(threadKey: String, text: String, isEncrypted: Boolean, isGroup: Boolean): Result<String, DataError.Remote> =
         native("Sending a message") { if (isEncrypted) sendEncryptedText(threadKey, isGroup, text) else sendText(threadKey, text) }
+
+    override suspend fun sendAttachment(
+        threadKey: String, bytes: ByteArray, fileName: String, mimeType: String, width: Int?, height: Int?, caption: String?,
+        isEncrypted: Boolean, isGroup: Boolean
+    ): Result<String, DataError.Remote> = native("Sending an attachment") {
+        val path = dataDir.writeTemp(bytes)
+        sendMediaFile(threadKey, isEncrypted, isGroup, path, mimeType, fileName, caption.orEmpty(), (width ?: 0).toLong(), (height ?: 0).toLong())
+    }
+
+    override suspend fun readMediaFile(path: String): ByteArray? = withContext(Dispatchers.IO) { dataDir.read(path) }
 
     override suspend fun historyStatus(): Result<OnDeviceHistoryStatus, DataError.Remote> =
         native("Checking history") {

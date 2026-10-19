@@ -38,6 +38,8 @@ interface NativeWhatsAppClient {
     fun setTyping(chatJid: String, isTyping: Boolean)
     fun requestHistory(chatJid: String, oldestMessageId: String, oldestIsOutgoing: Boolean, oldestTimestampMs: Long, count: Long)
     fun sendMediaFile(chatJid: String, path: String, mimeType: String, fileName: String, caption: String, width: Long, height: Long): String
+    /** Downloads media from a message event's mediaRef and returns the file's path. */
+    fun downloadMedia(chatJid: String, messageId: String, mediaRef: String): String
 }
 
 fun interface NativeWhatsAppFactory {
@@ -123,11 +125,20 @@ class NativeOnDeviceWhatsApp(
         native("Sending a message") { sendText(threadKey, text) }
 
     override suspend fun sendAttachment(
-        threadKey: String, bytes: ByteArray, fileName: String, mimeType: String, width: Int?, height: Int?, caption: String?
+        threadKey: String, bytes: ByteArray, fileName: String, mimeType: String, width: Int?, height: Int?, caption: String?,
+        isEncrypted: Boolean, isGroup: Boolean
     ): Result<String, DataError.Remote> = native("Sending an attachment") {
         val path = dataDir.writeTemp(bytes)
         sendMediaFile(threadKey, path, mimeType, fileName, caption.orEmpty(), (width ?: 0).toLong(), (height ?: 0).toLong())
     }
+
+    override suspend fun downloadMedia(threadKey: String, messageId: String, mediaRef: String): Result<ByteArray, DataError.Remote> =
+        native("Downloading media") {
+            val path = downloadMedia(threadKey, messageId, mediaRef)
+            dataDir.read(path) ?: throw IllegalStateException("Downloaded media is missing")
+        }
+
+    override suspend fun readMediaFile(path: String): ByteArray? = withContext(Dispatchers.IO) { dataDir.read(path) }
 
     override suspend fun sendReaction(
         threadKey: String, messageId: String, emoji: String, isEncrypted: Boolean, isGroup: Boolean, messageSenderId: String

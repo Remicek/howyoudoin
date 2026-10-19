@@ -111,7 +111,11 @@ fun MessageBubble(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.align(Alignment.End).padding(horizontal = if (media != null) 6.dp else 0.dp),
             ) {
-                Text(message.time, style = MaterialTheme.typography.labelSmall, color = textColor.copy(alpha = 0.7f))
+                Text(
+                    if (message.isEdited) "edited · ${message.time}" else message.time,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = textColor.copy(alpha = 0.7f)
+                )
                 if (isOutgoing) {
                     when {
                         message.status == MessageStatus.SENDING -> StatusIcon(Icons.Rounded.Schedule, "Sending", textColor.copy(alpha = 0.7f))

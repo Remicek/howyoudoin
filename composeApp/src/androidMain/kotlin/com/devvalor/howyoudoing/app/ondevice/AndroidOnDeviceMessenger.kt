@@ -22,6 +22,10 @@ private class AndroidMessengerClient(private val m: Messenger) : NativeMessenger
     override fun disconnect() = m.disconnect()
     override fun sendText(threadKey: String, text: String): String = m.sendText(threadKey, text)
     override fun sendEncryptedText(threadKey: String, isGroup: Boolean, text: String): String = m.sendEncryptedText(threadKey, isGroup, text)
+    override fun sendMediaFile(
+        threadKey: String, isEncrypted: Boolean, isGroup: Boolean, path: String, mimeType: String, fileName: String,
+        caption: String, width: Long, height: Long
+    ): String = m.sendMediaFile(threadKey, isEncrypted, isGroup, path, mimeType, fileName, caption, width, height)
     override fun requestOlder(threadKey: String, beforeTimestampMs: Long, beforeMessageId: String) =
         m.requestOlder(threadKey, beforeTimestampMs, beforeMessageId)
     override fun historyStatus(): String = m.historyStatus()
@@ -71,6 +75,10 @@ class AndroidDataDirectory(context: Context, name: String = "on_device_messenger
     }
     override fun writeTemp(bytes: ByteArray): String =
         File.createTempFile("outgoing", null, dir.also { it.mkdirs() }).apply { writeBytes(bytes) }.absolutePath
+    override fun read(path: String): ByteArray? {
+        val file = File(path).canonicalFile
+        return file.takeIf { it.path.startsWith(dir.canonicalPath + File.separator) && it.isFile }?.readBytes()
+    }
 }
 
 /** The on-device inbox cache, next to the encrypted-chat keys (cleared with them on Disconnect). */
@@ -109,6 +117,8 @@ class AndroidWhatsAppFactory : NativeWhatsAppFactory {
             override fun sendMediaFile(
                 chatJid: String, path: String, mimeType: String, fileName: String, caption: String, width: Long, height: Long
             ): String = w.sendMediaFile(chatJid, path, mimeType, fileName, caption, width, height)
+            override fun downloadMedia(chatJid: String, messageId: String, mediaRef: String): String =
+                w.downloadMedia(chatJid, messageId, mediaRef)
         }
     }
 }

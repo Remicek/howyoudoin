@@ -90,6 +90,14 @@ private class IosMessengerClient(
     override fun sendEncryptedText(threadKey: String, isGroup: Boolean, text: String): String =
         call("sendEncryptedText", "threadKey" to threadKey, "isGroup" to isGroup, "text" to text)
 
+    override fun sendMediaFile(
+        threadKey: String, isEncrypted: Boolean, isGroup: Boolean, path: String, mimeType: String, fileName: String,
+        caption: String, width: Long, height: Long
+    ): String = call(
+        "sendMediaFile", "threadKey" to threadKey, "isEncrypted" to isEncrypted, "isGroup" to isGroup, "path" to path,
+        "mimeType" to mimeType, "fileName" to fileName, "text" to caption, "width" to width, "height" to height
+    )
+
     override fun requestOlder(threadKey: String, beforeTimestampMs: Long, beforeMessageId: String) {
         call("requestOlder", "threadKey" to threadKey, "beforeTimestampMs" to beforeTimestampMs, "beforeMessageId" to beforeMessageId)
     }
@@ -180,6 +188,15 @@ class IosDataDirectory(name: String = "on_device_messenger") : OnDeviceDataDirec
         return file
     }
 
+    override fun read(path: String): ByteArray? {
+        val standardized = NSURL.fileURLWithPath(path).URLByStandardizingPath?.path ?: return null
+        if (!standardized.startsWith(this.path + "/")) return null
+        val data = NSData.create(contentsOfFile = standardized) ?: return null
+        val bytes = ByteArray(data.length.toInt())
+        if (bytes.isNotEmpty()) bytes.usePinned { pinned -> platform.posix.memcpy(pinned.addressOf(0), data.bytes, data.length) }
+        return bytes
+    }
+
     private fun ensure(dir: String) {
         NSFileManager.defaultManager.createDirectoryAtPath(dir, withIntermediateDirectories = true, attributes = null, error = null)
         NSURL.fileURLWithPath(dir).setResourceValue(NSNumber(bool = true), forKey = NSURLIsExcludedFromBackupKey, error = null)
@@ -248,6 +265,8 @@ class IosWhatsAppFactory : NativeWhatsAppFactory {
                 "sendMediaFile", "threadKey" to chatJid, "path" to path, "mimeType" to mimeType, "fileName" to fileName,
                 "text" to caption, "width" to width, "height" to height
             )
+            override fun downloadMedia(chatJid: String, messageId: String, mediaRef: String) =
+                call("downloadMedia", "threadKey" to chatJid, "messageId" to messageId, "mediaRef" to mediaRef)
             override fun requestHistory(chatJid: String, oldestMessageId: String, oldestIsOutgoing: Boolean, oldestTimestampMs: Long, count: Long) {
                 call(
                     "requestHistory", "threadKey" to chatJid, "beforeMessageId" to oldestMessageId, "isOutgoing" to oldestIsOutgoing,

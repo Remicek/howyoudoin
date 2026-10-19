@@ -83,8 +83,17 @@ func (m *Messenger) handleE2EEEvent(rawEvt any) {
 
 // emitFBMessage turns a decrypted Messenger (consumer application) message into a message or reaction event.
 func (m *Messenger) emitFBMessage(threadKey, messageID, senderID string, timestamp int64, app *waConsumerApplication.ConsumerApplication, mediaPaths map[string]string) {
+	if revoke := app.GetPayload().GetApplicationData().GetRevoke(); revoke != nil {
+		m.emit(map[string]any{"type": "unsend", "threadKey": threadKey, "messageId": revoke.GetKey().GetID()})
+		return
+	}
 	content := app.GetPayload().GetContent()
 	if content == nil || messageID == "" {
+		return
+	}
+	if edit := content.GetEditMessage(); edit != nil {
+		m.emit(map[string]any{"type": "edit", "threadKey": threadKey, "messageId": edit.GetKey().GetID(),
+			"text": edit.GetMessage().GetText()})
 		return
 	}
 	if reaction := content.GetReactionMessage(); reaction != nil {

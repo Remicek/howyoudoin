@@ -165,8 +165,10 @@ class OnDeviceChatRepository(
         val store = route.store
         val pendingId = store.newPendingId()
         store.addPending(route.key, pendingId, caption ?: attachment.fileName)
+        val thread = store.thread(route.key)
         val result = route.client.sendAttachment(
-            route.key, attachment.bytes, attachment.fileName, attachment.mimeType, attachment.width, attachment.height, caption
+            route.key, attachment.bytes, attachment.fileName, attachment.mimeType, attachment.width, attachment.height, caption,
+            isEncrypted = thread?.isEncrypted == true, isGroup = thread?.isGroup == true
         )
         return when (result) {
             is Result.Success -> {
@@ -205,10 +207,22 @@ class OnDeviceChatRepository(
     }
 
     // On-device media are CDN URLs (signed, no extra headers) or decrypted files in private storage
-    override suspend fun resolveMedia(mxcUrl: String, thumbnail: Boolean): MediaRequest? =
-        if (mxcUrl.isDirect()) MediaRequest(mxcUrl, emptyMap()) else server.resolveMedia(mxcUrl, thumbnail)
+    override suspend fun resolveMedia(mxcUrl: String, thumbnail: Boolean): MediaRequest? = when {
+        mxcUrl.isDirect() -> MediaRequest(mxcUrl, emptyMap())
+        OnDeviceMessengerStore.parseOnRequestMediaUrl(mxcUrl) != null -> null
+        else -> server.resolveMedia(mxcUrl, thumbnail)
+    }
 
     override suspend fun downloadMedia(mxcUrl: String): ByteArray? {
+        OnDeviceMessengerStore.parseOnRequestMediaUrl(mxcUrl)?.let { (chatId, messageId) ->
+            val route = route(chatId) ?: return null
+            val ref = route.store.mediaRef(route.key, messageId) ?: return null
+            return (route.client.downloadMedia(route.key, messageId, ref) as? Result.Success)?.data
+        }
+        if (mxcUrl.startsWith("file://")) {
+            val path = mxcUrl.removePrefix("file://")
+            return sources.firstNotNullOfOrNull { it.client.readMediaFile(path) }
+        }
         if (!mxcUrl.isDirect()) return server.downloadMedia(mxcUrl)
         return try {
             httpClient.get(mxcUrl).readRawBytes()

@@ -3,6 +3,7 @@ package hydbridge
 import (
 	"context"
 	"crypto/sha256"
+	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -368,18 +369,52 @@ func (w *WhatsApp) emitWAMessage(evt *events.Message, live bool) {
 			"senderId": sender, "emoji": reaction.GetText()})
 		return
 	}
+	if protocol := msg.GetProtocolMessage(); protocol != nil {
+		switch protocol.GetType() {
+		case waE2E.ProtocolMessage_REVOKE:
+			w.emit(map[string]any{"type": "unsend", "threadKey": chat, "messageId": protocol.GetKey().GetID()})
+		case waE2E.ProtocolMessage_MESSAGE_EDIT:
+			_, text := describeWAMessage(protocol.GetEditedMessage())
+			w.emit(map[string]any{"type": "edit", "threadKey": chat, "messageId": protocol.GetKey().GetID(), "text": text})
+		}
+		return
+	}
 	kind, text := describeWAMessage(msg)
 	if kind == "" {
 		return
 	}
-	w.emit(map[string]any{
+	event := map[string]any{
 		"type": "message", "threadKey": chat, "id": evt.Info.ID, "otid": evt.Info.ID, "senderId": sender, "text": text,
 		"kind": kind, "timestampMs": evt.Info.Timestamp.UnixMilli(), "isEncrypted": true,
-	})
-	// History can be long, so from it only photos and stickers are downloaded right away
-	if (live && kind != "text" && kind != "other" && kind != "location") || (!live && (kind == "image" || kind == "sticker")) {
+	}
+	isMedia := kind != "text" && kind != "other" && kind != "location"
+	// History can be long, so from it only photos and stickers are downloaded right away; the rest carries a
+	// reference the app hands back to DownloadMedia when the user opens it
+	downloadNow := isMedia && (live || kind == "image" || kind == "sticker")
+	if isMedia && !downloadNow {
+		if ref, err := proto.Marshal(msg); err == nil {
+			event["mediaRef"] = base64.StdEncoding.EncodeToString(ref)
+		}
+	}
+	w.emit(event)
+	if downloadNow {
 		go w.downloadMedia(chat, evt.Info.ID, kind, msg)
 	}
+}
+
+// DownloadMedia downloads a message's media from the reference its message event carried, emits the attachment
+// and returns the file's path.
+func (w *WhatsApp) DownloadMedia(chatJID, messageID, mediaRef string) (string, error) {
+	raw, err := base64.StdEncoding.DecodeString(mediaRef)
+	if err != nil {
+		return "", fmt.Errorf("invalid media reference: %w", err)
+	}
+	msg := &waE2E.Message{}
+	if err = proto.Unmarshal(raw, msg); err != nil {
+		return "", fmt.Errorf("invalid media reference: %w", err)
+	}
+	kind, _ := describeWAMessage(msg)
+	return w.downloadMedia(chatJID, messageID, kind, msg)
 }
 
 func describeWAMessage(msg *waE2E.Message) (kind, text string) {
@@ -412,25 +447,37 @@ func describeWAMessage(msg *waE2E.Message) (kind, text string) {
 	}
 }
 
-func (w *WhatsApp) downloadMedia(chat, messageID, kind string, msg *waE2E.Message) {
+func (w *WhatsApp) downloadMedia(chat, messageID, kind string, msg *waE2E.Message) (string, error) {
 	client := w.client
 	if client == nil {
-		return
+		return "", errors.New("WhatsApp isn't connected")
+	}
+	for {
+		// Media of disappearing and view-once messages sits one level down
+		if inner := msg.GetEphemeralMessage().GetMessage(); inner != nil {
+			msg = inner
+		} else if inner := msg.GetViewOnceMessage().GetMessage(); inner != nil {
+			msg = inner
+		} else {
+			break
+		}
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 	defer cancel()
 	data, err := client.DownloadAny(ctx, msg)
-	if err != nil || len(data) > maxEncryptedMediaBytes {
-		return
+	if err != nil {
+		return "", fmt.Errorf("download failed: %w", err)
+	} else if len(data) > maxEncryptedMediaBytes {
+		return "", errors.New("the file is too large")
 	}
 	dir := filepath.Join(w.dataDir, "media")
-	if os.MkdirAll(dir, 0o700) != nil {
-		return
+	if err = os.MkdirAll(dir, 0o700); err != nil {
+		return "", err
 	}
 	sum := sha256.Sum256([]byte(chat + "/" + messageID))
 	file := filepath.Join(dir, hex.EncodeToString(sum[:16]))
-	if os.WriteFile(file, data, 0o600) != nil {
-		return
+	if err = os.WriteFile(file, data, 0o600); err != nil {
+		return "", err
 	}
 	var mimeType, fileName string
 	var width, height uint32
@@ -450,6 +497,7 @@ func (w *WhatsApp) downloadMedia(chat, messageID, kind string, msg *waE2E.Messag
 		"type": "attachment", "threadKey": chat, "messageId": messageID, "kind": kind, "url": "file://" + file,
 		"previewUrl": "file://" + file, "mimeType": mimeType, "fileName": fileName, "width": width, "height": height,
 	})
+	return file, nil
 }
 
 // SendText sends a text message and emits it (WhatsApp doesn't echo our own messages to this device).
@@ -500,6 +548,29 @@ func (w *WhatsApp) MarkRead(chatJID, messageID, senderJID string) error {
 	return client.MarkRead(context.Background(), []types.MessageID{messageID}, time.Now(), chat, sender)
 }
 
+// sendAvailable marks the account online. Presence needs the account's push name, which arrives with the app state
+// sync; until it has, the name of the account's own contact (or its phone number) stands in.
+func (w *WhatsApp) sendAvailable(client *whatsmeow.Client) error {
+	if client.Store.PushName == "" && client.Store.ID != nil {
+		self := client.Store.ID.ToNonAD()
+		name := "+" + self.User
+		if contact, err := client.Store.Contacts.GetContact(context.Background(), self); err == nil {
+			name = cmpOr(contact.PushName, contact.FullName, name)
+		}
+		client.Store.PushName = name
+	}
+	return client.SendPresence(context.Background(), types.PresenceAvailable)
+}
+
+func cmpOr(values ...string) string {
+	for _, v := range values {
+		if v != "" {
+			return v
+		}
+	}
+	return ""
+}
+
 // SetTyping shows or clears "typing…" in the chat.
 func (w *WhatsApp) SetTyping(chatJID string, isTyping bool) error {
 	client, chat, err := w.clientAndChat(chatJID)
@@ -509,7 +580,10 @@ func (w *WhatsApp) SetTyping(chatJID string, isTyping bool) error {
 	state := types.ChatPresencePaused
 	if isTyping {
 		state = types.ChatPresenceComposing
-		_ = client.SendPresence(context.Background(), types.PresenceAvailable)
+		// Typing from someone who isn't "available" isn't shown
+		if err := w.sendAvailable(client); err != nil {
+			w.emit(map[string]any{"type": "debug", "event": "presence_failed", "error": err.Error()})
+		}
 	}
 	// 1:1 chats are addressed by LID nowadays; typing sent to the phone-number JID isn't shown (as in mautrix-whatsapp)
 	if chat.Server == types.DefaultUserServer {
@@ -519,6 +593,10 @@ func (w *WhatsApp) SetTyping(chatJID string, isTyping bool) error {
 	}
 	err = client.SendChatPresence(context.Background(), chat, state, types.ChatPresenceMediaText)
 	w.emit(map[string]any{"type": "debug", "event": "typing_sent", "server": chat.Server, "state": string(state), "ok": err == nil})
+	if !isTyping {
+		// While a linked device is online the phone holds back its own notifications
+		_ = client.SendPresence(context.Background(), types.PresenceUnavailable)
+	}
 	return err
 }
 

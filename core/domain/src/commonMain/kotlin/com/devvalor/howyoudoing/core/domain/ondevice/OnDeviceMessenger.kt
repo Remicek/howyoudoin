@@ -46,8 +46,17 @@ interface OnDeviceMessenger {
         mimeType: String,
         width: Int?,
         height: Int?,
-        caption: String?
+        caption: String?,
+        isEncrypted: Boolean,
+        isGroup: Boolean
     ): Result<String, DataError.Remote> = Result.Failure(DataError.Remote.BAD_REQUEST)
+
+    /** Downloads media that wasn't fetched with its message, from the reference the message event carried. */
+    suspend fun downloadMedia(threadKey: String, messageId: String, mediaRef: String): Result<ByteArray, DataError.Remote> =
+        Result.Failure(DataError.Remote.BAD_REQUEST)
+
+    /** Reads a media file this client stored (a `file://` attachment URL's path); null if it isn't one of its files. */
+    suspend fun readMediaFile(path: String): ByteArray? = null
 
     /** Messenger's PIN-protected backup of encrypted chats, as seen from this phone. */
     suspend fun historyStatus(): Result<OnDeviceHistoryStatus, DataError.Remote>

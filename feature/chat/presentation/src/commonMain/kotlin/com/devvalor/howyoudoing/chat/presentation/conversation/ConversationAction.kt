@@ -20,4 +20,11 @@ sealed interface ConversationAction {
     data class OnMediaClick(val messageId: String) : ConversationAction
     data object OnCloseImage : ConversationAction
     data object OnToggleMute : ConversationAction
+
+    data object OnSearchClick : ConversationAction
+    data class OnSearchQueryChange(val query: String) : ConversationAction
+    /** Moves to the next older match. */
+    data object OnSearchOlder : ConversationAction
+    data object OnSearchNewer : ConversationAction
+    data object OnCloseSearch : ConversationAction
 }

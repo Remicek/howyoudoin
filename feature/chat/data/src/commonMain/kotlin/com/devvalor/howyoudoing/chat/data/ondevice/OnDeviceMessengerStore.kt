@@ -113,7 +113,10 @@ class OnDeviceMessengerStore(
         val isUnsent: Boolean,
         val status: MessageStatus = MessageStatus.SENT,
         val kind: String = "text",
-        val isEncrypted: Boolean = false
+        val isEncrypted: Boolean = false,
+        /** For media not downloaded with the message: what the client needs to download it on request. */
+        val mediaRef: String? = null,
+        val isEdited: Boolean = false
     )
 
     private val _snapshot = MutableStateFlow(Snapshot())
@@ -257,12 +260,25 @@ class OnDeviceMessengerStore(
                         s.copy(reactions = s.reactions + (key to (byMessage + (target to bySender))))
                     }
                 }
+                "edit", "unsend" -> {
+                    // Messenger edits come without a thread key; the message ID is unique anyway
+                    val messageId = event.str("messageId")
+                    val threadKey = event.str("threadKey").ifEmpty {
+                        s.messages.entries.firstOrNull { messageId in it.value }?.key.orEmpty()
+                    }
+                    val original = s.messages[threadKey]?.get(messageId)
+                    if (original == null) s else {
+                        val changed = if (event.str("type") == "edit") original.copy(text = event.str("text"), isEdited = true)
+                        else original.copy(isUnsent = true, text = "", mediaRef = null)
+                        s.copy(messages = s.messages + (threadKey to (s.messages.getValue(threadKey) + (messageId to changed))))
+                    }
+                }
                 "message" -> {
                     val message = StoredMessage(
                         id = event.str("id"), threadKey = event.str("threadKey"), otid = event.str("otid"),
                         senderId = event.str("senderId"), text = event.str("text"), timestampMs = event.long("timestampMs"),
                         isUnsent = event.bool("isUnsent"), kind = event.str("kind").ifEmpty { "text" },
-                        isEncrypted = event.bool("isEncrypted")
+                        isEncrypted = event.bool("isEncrypted"), mediaRef = event.str("mediaRef").ifEmpty { null }
                     )
                     val thread = s.messages[message.threadKey].orEmpty()
                     s.copy(
@@ -289,6 +305,8 @@ class OnDeviceMessengerStore(
     }
 
     fun thread(threadKey: String): Thread? = allThreads(_snapshot.value)[threadKey]
+
+    fun mediaRef(threadKey: String, messageId: String): String? = _snapshot.value.messages[threadKey]?.get(messageId)?.mediaRef
 
     /**
      * Thread rows, plus encrypted chats known only from a link (no thread row) or only from live messages
@@ -398,7 +416,17 @@ class OnDeviceMessengerStore(
                 Reaction(key = emoji, count = senders.size, ownReactionId = if (s.selfId in senders) "own-$emoji" else null)
             }
         val isOutgoing = senderId.isNotEmpty() && senderId == s.selfId
-        val media = attachment?.media?.takeIf { it.url.isNotBlank() }
+        val media = attachment?.media?.takeIf { it.url.isNotBlank() && !isUnsent }
+            // Not downloaded yet: shown as a card that downloads it when opened
+            ?: mediaRef?.takeIf { type in ON_REQUEST_TYPES }?.let {
+                // The real type arrives with the download; until then a typical one, so the file opens in a player
+                val (mimeType, fileName) = when (type) {
+                    MessageType.VIDEO -> "video/mp4" to "video.mp4"
+                    MessageType.AUDIO -> "audio/ogg" to "voice.ogg"
+                    else -> null to text.ifBlank { null }
+                }
+                MediaInfo(onRequestMediaUrl(chatIdPrefix + threadKey, id), mimeType, fileName, null, null, null, null)
+            }
         return Message(
             id = id,
             chatId = chatIdPrefix + threadKey,
@@ -419,6 +447,7 @@ class OnDeviceMessengerStore(
             status = status,
             reactions = reactions,
             media = media,
+            isEdited = isEdited,
             isReadByOthers = isOutgoing && s.readWatermarks[threadKey].orEmpty()
                 .any { (contact, watermark) -> contact != s.selfId && watermark >= timestampMs }
         )
@@ -436,5 +465,14 @@ class OnDeviceMessengerStore(
         private val cacheJson = Json { ignoreUnknownKeys = true }
         private val MEDIA_TYPES = setOf(MessageType.IMAGE, MessageType.VIDEO, MessageType.AUDIO, MessageType.FILE, MessageType.STICKER)
         private const val CLOCK_SKEW_MS = 5_000L
+        private val ON_REQUEST_TYPES = setOf(MessageType.VIDEO, MessageType.AUDIO, MessageType.FILE)
+        private const val ON_REQUEST_SCHEME = "ondevice-media:"
+
+        fun onRequestMediaUrl(chatId: String, messageId: String) = "$ON_REQUEST_SCHEME$chatId|$messageId"
+
+        /** The chat ID and message ID in an [onRequestMediaUrl]. */
+        fun parseOnRequestMediaUrl(url: String): Pair<String, String>? =
+            url.takeIf { it.startsWith(ON_REQUEST_SCHEME) }?.removePrefix(ON_REQUEST_SCHEME)?.split('|', limit = 2)
+                ?.takeIf { it.size == 2 }?.let { it[0] to it[1] }
     }
 }

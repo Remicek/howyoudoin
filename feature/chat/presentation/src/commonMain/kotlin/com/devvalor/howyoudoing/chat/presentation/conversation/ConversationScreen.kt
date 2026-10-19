@@ -1,5 +1,11 @@
 package com.devvalor.howyoudoing.chat.presentation.conversation
 
+import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.KeyboardArrowUp
+import androidx.compose.material.icons.rounded.KeyboardArrowDown
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -133,8 +139,15 @@ fun ConversationScreen(
 ) {
     Scaffold(
         topBar = {
+            if (state.searchQuery != null) {
+                SearchBar(state, onAction)
+                return@Scaffold
+            }
             TopAppBar(
                 actions = {
+                    IconButton(onClick = { onAction(ConversationAction.OnSearchClick) }) {
+                        Icon(Icons.Rounded.Search, contentDescription = "Search in chat")
+                    }
                     IconButton(onClick = { onAction(ConversationAction.OnToggleMute) }) {
                         Icon(
                             if (state.isMuted) Icons.Rounded.NotificationsOff else Icons.Rounded.Notifications,
@@ -220,6 +233,55 @@ fun ConversationScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SearchBar(state: ConversationState, onAction: (ConversationAction) -> Unit) {
+    val focusRequester = remember { FocusRequester() }
+    LaunchedEffect(Unit) { focusRequester.requestFocus() }
+    TopAppBar(
+        navigationIcon = {
+            IconButton(onClick = { onAction(ConversationAction.OnCloseSearch) }) {
+                Icon(Icons.Rounded.Close, contentDescription = "Close search")
+            }
+        },
+        title = {
+            TextField(
+                value = state.searchQuery.orEmpty(),
+                onValueChange = { onAction(ConversationAction.OnSearchQueryChange(it)) },
+                placeholder = { Text("Search in chat") },
+                singleLine = true,
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                ),
+                modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
+            )
+        },
+        actions = {
+            if (!state.searchQuery.isNullOrBlank()) {
+                Text(
+                    if (state.searchMatches.isEmpty()) "0" else "${state.searchIndex + 1}/${state.searchMatches.size}",
+                    style = MaterialTheme.typography.labelMedium,
+                )
+            }
+            IconButton(
+                onClick = { onAction(ConversationAction.OnSearchOlder) },
+                enabled = state.searchIndex < state.searchMatches.size - 1,
+            ) {
+                Icon(Icons.Rounded.KeyboardArrowUp, contentDescription = "Older match")
+            }
+            IconButton(
+                onClick = { onAction(ConversationAction.OnSearchNewer) },
+                enabled = state.searchIndex > 0,
+            ) {
+                Icon(Icons.Rounded.KeyboardArrowDown, contentDescription = "Newer match")
+            }
+        },
+    )
+}
+
 @Composable
 private fun MessageList(
     state: ConversationState,
@@ -261,6 +323,12 @@ private fun MessageList(
         if (state.messages.size - previousCount == 1) listState.animateScrollToItem(0) else listState.scrollToItem(0)
     }
 
+    // Searching: bring the current match into view
+    LaunchedEffect(state.currentMatchId) {
+        val index = reversed.indexOfFirst { it.id == state.currentMatchId }
+        if (index >= 0) listState.animateScrollToItem(index)
+    }
+
     LazyColumn(
         state = listState,
         reverseLayout = true,
@@ -269,7 +337,12 @@ private fun MessageList(
         modifier = modifier.fillMaxWidth(),
     ) {
         items(reversed, key = { it.id }) { message ->
-            Column {
+            val isMatch = message.id == state.currentMatchId
+            Column(
+                modifier = if (isMatch) {
+                    Modifier.background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f), RoundedCornerShape(12.dp))
+                } else Modifier
+            ) {
                 message.dayHeader?.let { DayHeader(it) }
                 MessageBubble(
                     message = message,

@@ -104,6 +104,7 @@ type callArgs struct {
 	Emoji             string `json:"emoji"`
 	SenderID          string `json:"senderId"`
 	Pin               string `json:"pin"`
+	MediaRef          string `json:"mediaRef"`
 	Count             int    `json:"count"`
 	Phone             string `json:"phone"`
 	IsOutgoing        bool   `json:"isOutgoing"`
@@ -181,6 +182,8 @@ func callWhatsApp(w *hydbridge.WhatsApp, name string, a callArgs) (result string
 		err = w.MarkRead(a.ThreadKey, a.MessageID, a.SenderID)
 	case "setTyping":
 		err = w.SetTyping(a.ThreadKey, a.IsTyping)
+	case "downloadMedia":
+		result, err = w.DownloadMedia(a.ThreadKey, a.MessageID, a.MediaRef)
 	case "sendMediaFile":
 		result, err = w.SendMediaFile(a.ThreadKey, a.Path, a.MimeType, a.FileName, a.Text, a.Width, a.Height)
 	case "requestHistory":
@@ -201,6 +204,8 @@ func callMessenger(m *hydbridge.Messenger, name string, a callArgs) (result stri
 		result, err = m.SendText(a.ThreadKey, a.Text)
 	case "sendEncryptedText":
 		result, err = m.SendEncryptedText(a.ThreadKey, a.IsGroup, a.Text)
+	case "sendMediaFile":
+		result, err = m.SendMediaFile(a.ThreadKey, a.IsEncrypted, a.IsGroup, a.Path, a.MimeType, a.FileName, a.Text, a.Width, a.Height)
 	case "requestOlder":
 		err = m.RequestOlder(a.ThreadKey, a.BeforeTimestampMs, a.BeforeMessageID)
 	case "historyStatus":

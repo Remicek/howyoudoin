@@ -23,7 +23,13 @@ data class ConversationState(
     val actionsFor: MessageUi? = null,
     /** Image shown full screen. */
     val viewingImage: MessageUi? = null,
-    val isSendingAttachment: Boolean = false
+    val isSendingAttachment: Boolean = false,
+    /** Searching the loaded messages when not null. */
+    val searchQuery: String? = null,
+    /** IDs of messages matching [searchQuery], newest first. */
+    val searchMatches: List<String> = emptyList(),
+    val searchIndex: Int = 0
 ) {
     val canSend: Boolean get() = draft.isNotBlank()
+    val currentMatchId: String? get() = searchMatches.getOrNull(searchIndex)
 }

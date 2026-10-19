@@ -104,8 +104,24 @@ class ConversationViewModel(
             ConversationAction.OnToggleMute -> viewModelScope.launch {
                 notificationPreferences.setMuted(chatId, !state.value.isMuted)
             }
+            ConversationAction.OnSearchClick -> _state.update { it.copy(searchQuery = "") }
+            is ConversationAction.OnSearchQueryChange -> _state.update { it.copy(searchQuery = action.query).withSearchMatches() }
+            ConversationAction.OnSearchOlder -> _state.update {
+                it.copy(searchIndex = (it.searchIndex + 1).coerceAtMost((it.searchMatches.size - 1).coerceAtLeast(0)))
+            }
+            ConversationAction.OnSearchNewer -> _state.update { it.copy(searchIndex = (it.searchIndex - 1).coerceAtLeast(0)) }
+            ConversationAction.OnCloseSearch -> _state.update { it.copy(searchQuery = null, searchMatches = emptyList(), searchIndex = 0) }
             ConversationAction.OnBackClick -> Unit
         }
+    }
+
+    /** Recomputes the matches, staying on the current one when it still matches. */
+    private fun ConversationState.withSearchMatches(): ConversationState {
+        val query = searchQuery?.trim().orEmpty()
+        if (query.isEmpty()) return copy(searchMatches = emptyList(), searchIndex = 0)
+        val matches = messages.asReversed().filter { it.text.contains(query, ignoreCase = true) }.map { it.id }
+        val keep = currentMatchId?.let(matches::indexOf)?.takeIf { it >= 0 }
+        return copy(searchMatches = matches, searchIndex = keep ?: 0)
     }
 
     /** Lets the UI's image loader fetch authenticated media. */
@@ -131,7 +147,7 @@ class ConversationViewModel(
                         typingText = chat?.let { c -> typingText(c.typingNames, c.isGroup) },
                         messages = messages.toMessageUis(showSenderNames = chat?.isGroup == true),
                         hasMoreHistory = hasMore
-                    )
+                    ).let { updated -> if (updated.searchQuery != null) updated.withSearchMatches() else updated }
                 }
                 // Anything that arrives while the chat is open counts as read.
                 if ((chat?.unreadCount ?: 0) > 0) {

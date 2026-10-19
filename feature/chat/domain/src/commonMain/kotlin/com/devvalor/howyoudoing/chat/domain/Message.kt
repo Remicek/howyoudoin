@@ -14,7 +14,8 @@ data class Message(
     val reactions: List<Reaction> = emptyList(),
     val media: MediaInfo? = null,
     /** For outgoing messages: someone else in the chat has read up to (at least) this message. */
-    val isReadByOthers: Boolean = false
+    val isReadByOthers: Boolean = false,
+    val isEdited: Boolean = false
 )
 
 /** The message this one replies to, as shown in the quote above it. */
