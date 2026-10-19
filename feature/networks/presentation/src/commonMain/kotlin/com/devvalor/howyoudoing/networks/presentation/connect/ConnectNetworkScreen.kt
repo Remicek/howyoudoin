@@ -230,6 +230,13 @@ private fun ChooseFlow(network: ChatNetwork, flows: List<BridgeLoginFlow>, onAct
             }
         }
     }
+    Spacer(Modifier.height(HowYouDoinSpacing.lg))
+    Text(
+        "HowYouDoin is an unofficial app, not made or supported by ${network.displayName}. ${network.displayName} " +
+            "doesn't officially allow other apps, so it could limit an account that uses one.",
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
 }
 
 @Composable

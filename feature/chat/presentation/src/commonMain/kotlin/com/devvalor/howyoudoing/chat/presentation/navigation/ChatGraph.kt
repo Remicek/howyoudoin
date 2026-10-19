@@ -12,6 +12,7 @@ import com.devvalor.howyoudoing.chat.presentation.inbox.InboxRoot
 fun NavGraphBuilder.chatGraph(
     navController: NavController,
     onNetworksClick: () -> Unit,
+    onSettingsClick: () -> Unit,
     inboxBanner: @Composable (encryptedNetworks: Set<ChatNetwork>) -> Unit = {},
 ) {
     navigation<ChatRoutes.Graph>(startDestination = ChatRoutes.Inbox) {
@@ -21,6 +22,7 @@ fun NavGraphBuilder.chatGraph(
                     navController.navigate(ChatRoutes.Conversation(chatId)) { launchSingleTop = true }
                 },
                 onNetworksClick = onNetworksClick,
+                onSettingsClick = onSettingsClick,
                 banner = inboxBanner,
             )
         }

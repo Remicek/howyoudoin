@@ -10,6 +10,8 @@ import com.devvalor.howyoudoing.chat.presentation.navigation.chatGraph
 import com.devvalor.howyoudoing.networks.presentation.history.EncryptedHistoryBannerRoot
 import com.devvalor.howyoudoing.networks.presentation.navigation.NetworksRoutes
 import com.devvalor.howyoudoing.networks.presentation.navigation.networksGraph
+import com.devvalor.howyoudoing.settings.presentation.navigation.SettingsRoutes
+import com.devvalor.howyoudoing.settings.presentation.navigation.settingsGraph
 
 @Composable
 fun NavigationRoot(
@@ -32,8 +34,15 @@ fun NavigationRoot(
             onNetworksClick = {
                 navController.navigate(NetworksRoutes.Graph) { launchSingleTop = true }
             },
+            onSettingsClick = {
+                navController.navigate(SettingsRoutes.Graph) { launchSingleTop = true }
+            },
             inboxBanner = { encryptedNetworks -> EncryptedHistoryBannerRoot(encryptedNetworks) },
         )
         networksGraph(navController = navController)
+        settingsGraph(
+            navController = navController,
+            onNetworksClick = { navController.navigate(NetworksRoutes.Graph) { launchSingleTop = true } },
+        )
     }
 }

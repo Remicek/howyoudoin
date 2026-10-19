@@ -31,11 +31,30 @@ import com.devvalor.howyoudoing.app.notifications.IncomingMessageNotifier
 import com.devvalor.howyoudoing.app.notifications.MessageNotificationPresenter
 import com.devvalor.howyoudoing.app.notifications.AndroidNotificationPresenter
 import org.koin.core.module.Module
+import com.devvalor.howyoudoing.app.SOURCE_CODE_URL
+import com.devvalor.howyoudoing.app.settings.AndroidBiometricAuthenticator
+import com.devvalor.howyoudoing.app.settings.AndroidCrashReports
+import com.devvalor.howyoudoing.app.settings.AndroidPinHasher
+import com.devvalor.howyoudoing.settings.domain.AppInfo
+import com.devvalor.howyoudoing.settings.domain.BiometricAuthenticator
+import com.devvalor.howyoudoing.settings.domain.CrashReports
+import com.devvalor.howyoudoing.settings.domain.PinHasher
+import com.devvalor.howyoudoing.core.domain.config.BuildInfo
 import org.koin.dsl.module
 
 actual val platformAppModule: Module = module {
+    single<PinHasher> { AndroidPinHasher() }
+    single<BuildInfo> { BuildInfo { BuildConfig.DEBUG } }
+    single<BiometricAuthenticator> { AndroidBiometricAuthenticator(androidContext()) }
+    single<CrashReports> { AndroidCrashReports(androidContext()) }
+    single {
+        val version = runCatching {
+            androidContext().packageManager.getPackageInfo(androidContext().packageName, 0).versionName
+        }.getOrNull()
+        AppInfo(versionName = version ?: "?", sourceCodeUrl = SOURCE_CODE_URL)
+    }
     single<MessageNotificationPresenter> { AndroidNotificationPresenter(androidContext()) }
-    single(createdAtStart = true) { IncomingMessageNotifier(get(), get(), get(), get(), get()) }
+    single(createdAtStart = true) { IncomingMessageNotifier(get(), get(), get(), get(), get(), get()) }
     single(createdAtStart = true) {
         OnDeviceConnectionKeeper(
             context = androidContext(),

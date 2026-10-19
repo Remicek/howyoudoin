@@ -1,0 +1,138 @@
+package com.devvalor.howyoudoing.settings.presentation.lock
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.devvalor.howyoudoing.settings.domain.AppLockRepository
+import com.devvalor.howyoudoing.settings.domain.AppLockSettings
+import com.devvalor.howyoudoing.settings.domain.BiometricAuthenticator
+import com.devvalor.howyoudoing.settings.domain.LockTimeout
+import com.devvalor.howyoudoing.settings.domain.PinCheck
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+
+/** Where the PIN pad is in setting up, changing or turning off the lock. */
+sealed interface PinStep {
+    /** Confirm the current PIN before [then]. */
+    data class Current(val then: PinPurpose) : PinStep
+    data object New : PinStep
+    data class Confirm(val first: String) : PinStep
+}
+
+enum class PinPurpose { CHANGE, TURN_OFF }
+
+data class AppLockSettingsState(
+    val settings: AppLockSettings = AppLockSettings(),
+    val isBiometricAvailable: Boolean = false,
+    val pinStep: PinStep? = null,
+    val pinLength: Int = 0,
+    val pinMessage: String? = null,
+    val pinError: Boolean = false,
+    val isTimeoutDialogOpen: Boolean = false,
+)
+
+sealed interface AppLockSettingsAction {
+    data object OnTurnOnClick : AppLockSettingsAction
+    data object OnTurnOffClick : AppLockSettingsAction
+    data object OnChangePinClick : AppLockSettingsAction
+    data class OnBiometricChange(val enabled: Boolean) : AppLockSettingsAction
+    data class OnHideNotificationsChange(val hides: Boolean) : AppLockSettingsAction
+    data object OnLockAfterClick : AppLockSettingsAction
+    data class OnLockAfterSelect(val timeout: LockTimeout) : AppLockSettingsAction
+    data object OnDismissDialog : AppLockSettingsAction
+    data class OnDigit(val digit: Int) : AppLockSettingsAction
+    data object OnDelete : AppLockSettingsAction
+    data object OnSubmit : AppLockSettingsAction
+    data object OnCancelPin : AppLockSettingsAction
+    data object OnBackClick : AppLockSettingsAction
+}
+
+class AppLockSettingsViewModel(
+    private val repository: AppLockRepository,
+    private val biometrics: BiometricAuthenticator,
+) : ViewModel() {
+
+    private val _state = MutableStateFlow(AppLockSettingsState(isBiometricAvailable = biometrics.isAvailable()))
+    val state = _state.asStateFlow()
+
+    private var pin = ""
+
+    init {
+        viewModelScope.launch {
+            repository.observeSettings().collect { settings -> _state.update { it.copy(settings = settings) } }
+        }
+    }
+
+    fun onAction(action: AppLockSettingsAction) {
+        when (action) {
+            AppLockSettingsAction.OnTurnOnClick -> startPin(PinStep.New)
+            AppLockSettingsAction.OnTurnOffClick -> startPin(PinStep.Current(PinPurpose.TURN_OFF))
+            AppLockSettingsAction.OnChangePinClick -> startPin(PinStep.Current(PinPurpose.CHANGE))
+            is AppLockSettingsAction.OnBiometricChange -> viewModelScope.launch {
+                // Make sure the fingerprint works before relying on it
+                if (!action.enabled || biometrics.authenticate("Use fingerprint for HowYouDoin", "Confirm it's you")) {
+                    repository.setBiometricEnabled(action.enabled)
+                }
+            }
+            is AppLockSettingsAction.OnHideNotificationsChange -> viewModelScope.launch {
+                repository.setHidesNotificationContent(action.hides)
+            }
+            AppLockSettingsAction.OnLockAfterClick -> _state.update { it.copy(isTimeoutDialogOpen = true) }
+            is AppLockSettingsAction.OnLockAfterSelect -> {
+                _state.update { it.copy(isTimeoutDialogOpen = false) }
+                viewModelScope.launch { repository.setLockAfter(action.timeout) }
+            }
+            AppLockSettingsAction.OnDismissDialog -> _state.update { it.copy(isTimeoutDialogOpen = false) }
+            is AppLockSettingsAction.OnDigit -> if (pin.length < PIN_MAX_LENGTH) {
+                pin += action.digit
+                _state.update { it.copy(pinLength = pin.length, pinMessage = null, pinError = false) }
+            }
+            AppLockSettingsAction.OnDelete -> if (pin.isNotEmpty()) {
+                pin = pin.dropLast(1)
+                _state.update { it.copy(pinLength = pin.length) }
+            }
+            AppLockSettingsAction.OnSubmit -> submitPin()
+            AppLockSettingsAction.OnCancelPin -> {
+                pin = ""
+                _state.update { it.copy(pinStep = null, pinLength = 0, pinMessage = null, pinError = false) }
+            }
+            AppLockSettingsAction.OnBackClick -> Unit
+        }
+    }
+
+    private fun startPin(step: PinStep, message: String? = null, isError: Boolean = false) {
+        pin = ""
+        _state.update { it.copy(pinStep = step, pinLength = 0, pinMessage = message, pinError = isError) }
+    }
+
+    private fun submitPin() {
+        if (pin.length < PIN_MIN_LENGTH) return
+        val entered = pin
+        when (val step = _state.value.pinStep) {
+            is PinStep.Current -> viewModelScope.launch {
+                when (val result = repository.checkPin(entered)) {
+                    PinCheck.Correct -> when (step.then) {
+                        PinPurpose.CHANGE -> startPin(PinStep.New)
+                        PinPurpose.TURN_OFF -> {
+                            repository.disable()
+                            onAction(AppLockSettingsAction.OnCancelPin)
+                        }
+                    }
+                    is PinCheck.Wrong -> startPin(step, "Wrong PIN", isError = true)
+                    is PinCheck.TooManyAttempts -> startPin(step, "Too many wrong PINs. Try again in ${result.seconds} s.", isError = true)
+                }
+            }
+            PinStep.New -> startPin(PinStep.Confirm(entered), "Enter the same PIN again")
+            is PinStep.Confirm -> if (entered == step.first) {
+                viewModelScope.launch {
+                    repository.setPin(entered)
+                    onAction(AppLockSettingsAction.OnCancelPin)
+                }
+            } else {
+                startPin(PinStep.New, "The PINs didn't match. Choose a PIN again.", isError = true)
+            }
+            null -> Unit
+        }
+    }
+}

@@ -20,9 +20,18 @@ LIBSIGNAL_OUT="$LIBSIGNAL/target/aarch64-linux-android/release"
 if [ ! -f "$LIBSIGNAL_OUT/libsignal_ffi.a" ]; then
     (cd "$LIBSIGNAL" && RUSTFLAGS="-Ctarget-feature=-crt-static" cargo ndk -t arm64-v8a -P 26 build -p libsignal-ffi --release)
 fi
-export CGO_LDFLAGS="-L$LIBSIGNAL_OUT"
+# libsignalgo links -lstdc++, which the NDK's clang turns into -lc++, i.e. libc++_shared.so at runtime; that isn't
+# packaged in the app, so the library failed to load. A libc++ found first on the search path links the static
+# C++ runtime instead.
+STATIC_CXX="$MODULE_DIR/build/static-cxx"
+mkdir -p "$STATIC_CXX"
+echo "INPUT(-lc++_static -lc++abi)" > "$STATIC_CXX/libc++.so"
+export CGO_LDFLAGS="-L$STATIC_CXX -L$LIBSIGNAL_OUT"
 mkdir -p "$(dirname "$OUT")"
 cd "$MODULE_DIR"
 # arm64 covers current phones; add android/amd64 for emulators when needed
 gomobile bind -target=android/arm64 -androidapi 26 -javapkg com.devvalor.howyoudoing.bridge -ldflags="-s -w" -o "$OUT" ./hydbridge
 echo "Built $OUT"
+
+# The license list shown in the app follows what was just linked
+python3 "$MODULE_DIR/scripts/generate-licenses.py"

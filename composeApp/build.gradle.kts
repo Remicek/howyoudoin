@@ -2,6 +2,7 @@ import java.util.Properties
 
 plugins {
     alias(libs.plugins.convention.cmp.application)
+    alias(libs.plugins.aboutlibraries)
 }
 
 // Telegram API credentials (my.telegram.org) stay out of git: telegram.apiId / telegram.apiHash in local.properties.
@@ -13,6 +14,24 @@ val localProperties = Properties().apply {
 android {
     buildFeatures {
         buildConfig = true
+    }
+    // Release signing, also from local.properties (never in git):
+    //   release.storeFile=/path/to/howyoudoin-release.jks, release.storePassword, release.keyAlias, release.keyPassword
+    val releaseStore = localProperties.getProperty("release.storeFile")?.let(::file)
+    if (releaseStore != null) {
+        signingConfigs {
+            create("release") {
+                storeFile = releaseStore
+                storePassword = localProperties.getProperty("release.storePassword")
+                keyAlias = localProperties.getProperty("release.keyAlias")
+                keyPassword = localProperties.getProperty("release.keyPassword")
+            }
+        }
+        buildTypes {
+            getByName("release") {
+                signingConfig = signingConfigs.getByName("release")
+            }
+        }
     }
     defaultConfig {
         buildConfigField("long", "TELEGRAM_API_ID", "${localProperties.getProperty("telegram.apiId")?.trim()?.toLongOrNull() ?: 0}L")
@@ -26,6 +45,7 @@ kotlin {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
             implementation(libs.koin.android)
+            implementation(libs.androidx.biometric)
             // On-device Messenger bridge, built by bridge-mobile/scripts/build-android.sh (not in git)
             implementation(files("libs/hydbridge.aar"))
         }
@@ -46,6 +66,10 @@ kotlin {
             implementation(projects.feature.networks.data)
             implementation(projects.feature.networks.presentation)
 
+            implementation(projects.feature.settings.domain)
+            implementation(projects.feature.settings.data)
+            implementation(projects.feature.settings.presentation)
+
             implementation(libs.jetbrains.compose.navigation)
             implementation(libs.bundles.koin.common)
 
@@ -59,6 +83,15 @@ kotlin {
             implementation(libs.jetbrains.lifecycle.compose)
             implementation(libs.kotlinx.serialization.json)
         }
+    }
+}
+
+// The app libraries' licenses, shown in Settings → Open-source licenses. Regenerate after changing dependencies:
+//   ./gradlew :composeApp:exportLibraryDefinitions
+aboutLibraries {
+    export {
+        outputFile = rootProject.file("feature/settings/presentation/src/commonMain/composeResources/files/aboutlibraries.json")
+        prettyPrint = true
     }
 }
 

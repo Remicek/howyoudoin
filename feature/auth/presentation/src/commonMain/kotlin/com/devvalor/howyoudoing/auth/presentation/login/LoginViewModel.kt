@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.devvalor.howyoudoing.core.domain.auth.AuthInfo
 import com.devvalor.howyoudoing.core.domain.auth.AuthService
 import com.devvalor.howyoudoing.core.domain.auth.SessionStorage
+import com.devvalor.howyoudoing.core.domain.config.BuildInfo
 import com.devvalor.howyoudoing.core.domain.util.onFailure
 import com.devvalor.howyoudoing.core.domain.util.onSuccess
 import com.devvalor.howyoudoing.core.presentation.util.toUiText
@@ -17,13 +18,15 @@ import kotlinx.coroutines.launch
 
 class LoginViewModel(
     private val authService: AuthService,
-    private val sessionStorage: SessionStorage
+    private val sessionStorage: SessionStorage,
+    buildInfo: BuildInfo
 ) : ViewModel() {
 
     private val eventChannel = Channel<LoginEvent>()
     val events = eventChannel.receiveAsFlow()
 
-    private val _state = MutableStateFlow(LoginState())
+    // The local test server's account only in debug builds; released apps start with an empty form
+    private val _state = MutableStateFlow(if (buildInfo.isDebug()) LoginState.developmentDefaults() else LoginState())
     val state = _state.asStateFlow()
 
     fun onAction(action: LoginAction) {

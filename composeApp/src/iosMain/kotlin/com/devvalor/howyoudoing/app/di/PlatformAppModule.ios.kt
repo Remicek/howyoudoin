@@ -26,11 +26,30 @@ import com.devvalor.howyoudoing.app.notifications.IncomingMessageNotifier
 import com.devvalor.howyoudoing.app.notifications.MessageNotificationPresenter
 import com.devvalor.howyoudoing.app.notifications.NoOpNotificationPresenter
 import org.koin.core.module.Module
+import com.devvalor.howyoudoing.app.SOURCE_CODE_URL
+import com.devvalor.howyoudoing.app.settings.IosBiometricAuthenticator
+import com.devvalor.howyoudoing.app.settings.IosCrashReports
+import com.devvalor.howyoudoing.app.settings.IosPinHasher
+import com.devvalor.howyoudoing.settings.domain.AppInfo
+import com.devvalor.howyoudoing.settings.domain.BiometricAuthenticator
+import com.devvalor.howyoudoing.settings.domain.CrashReports
+import com.devvalor.howyoudoing.settings.domain.PinHasher
+import com.devvalor.howyoudoing.core.domain.config.BuildInfo
+import platform.Foundation.NSBundle
 import org.koin.dsl.module
 
 actual val platformAppModule: Module = module {
+    single<PinHasher> { IosPinHasher() }
+    @OptIn(kotlin.experimental.ExperimentalNativeApi::class)
+    single<BuildInfo> { BuildInfo { kotlin.native.Platform.isDebugBinary } }
+    single<BiometricAuthenticator> { IosBiometricAuthenticator }
+    single<CrashReports> { IosCrashReports }
+    single {
+        val version = NSBundle.mainBundle.infoDictionary?.get("CFBundleShortVersionString") as? String
+        AppInfo(versionName = version ?: "?", sourceCodeUrl = SOURCE_CODE_URL)
+    }
     single<MessageNotificationPresenter> { NoOpNotificationPresenter }
-    single(createdAtStart = true) { IncomingMessageNotifier(get(), get(), get(), get(), get()) }
+    single(createdAtStart = true) { IncomingMessageNotifier(get(), get(), get(), get(), get(), get()) }
     single<OnDeviceInboxCache>(named(ON_DEVICE_INSTAGRAM_CACHE)) { IosInboxCache(INSTAGRAM_DIR) }
     single<OnDeviceInstagram>(createdAtStart = true) {
         NativeOnDeviceInstagram(IosInstagramFactory(), IosSecretStore(INSTAGRAM_DIR), IosDataDirectory(INSTAGRAM_DIR), get())

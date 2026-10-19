@@ -30,6 +30,7 @@ import androidx.compose.material.icons.rounded.Hub
 import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material.icons.rounded.PhoneAndroid
 import androidx.compose.material.icons.rounded.MoreVert
+import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
@@ -73,6 +74,7 @@ import org.koin.compose.viewmodel.koinViewModel
 fun InboxRoot(
     onChatClick: (chatId: String) -> Unit,
     onNetworksClick: () -> Unit,
+    onSettingsClick: () -> Unit,
     banner: @Composable (encryptedNetworks: Set<ChatNetwork>) -> Unit = {},
     viewModel: InboxViewModel = koinViewModel()
 ) {
@@ -86,6 +88,7 @@ fun InboxRoot(
             when (action) {
                 is InboxAction.OnChatClick -> onChatClick(action.chatId)
                 InboxAction.OnNetworksClick -> onNetworksClick()
+                InboxAction.OnSettingsClick -> onSettingsClick()
                 else -> viewModel.onAction(action)
             }
         }
@@ -121,6 +124,14 @@ fun InboxScreen(
                             Icon(Icons.Rounded.MoreVert, contentDescription = "More")
                         }
                         DropdownMenu(expanded = isMenuOpen, onDismissRequest = { isMenuOpen = false }) {
+                            DropdownMenuItem(
+                                text = { Text("Settings") },
+                                leadingIcon = { Icon(Icons.Rounded.Settings, contentDescription = null) },
+                                onClick = {
+                                    isMenuOpen = false
+                                    onAction(InboxAction.OnSettingsClick)
+                                },
+                            )
                             DropdownMenuItem(
                                 text = { Text("Log out") },
                                 leadingIcon = { Icon(Icons.AutoMirrored.Rounded.Logout, contentDescription = null) },

@@ -12,6 +12,7 @@ import com.devvalor.howyoudoing.auth.presentation.navigation.AuthGraphRoutes
 import com.devvalor.howyoudoing.chat.presentation.navigation.ChatRoutes
 import com.devvalor.howyoudoing.core.designsystem.theme.HowYouDoinTheme
 import com.devvalor.howyoudoing.core.presentation.util.ObserveAsEvents
+import com.devvalor.howyoudoing.settings.presentation.lock.AppLockGate
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -43,10 +44,13 @@ fun App(
 
     HowYouDoinTheme(darkTheme = isDarkTheme) {
         if (!state.isCheckingAuth) {
-            NavigationRoot(
-                navController = navController,
-                startDestination = if (state.isLoggedIn) ChatRoutes.Graph else AuthGraphRoutes.Graph
-            )
+            // The PIN / fingerprint lock guards everything once signed in
+            AppLockGate(isActive = state.isLoggedIn) {
+                NavigationRoot(
+                    navController = navController,
+                    startDestination = if (state.isLoggedIn) ChatRoutes.Graph else AuthGraphRoutes.Graph
+                )
+            }
         }
     }
 }

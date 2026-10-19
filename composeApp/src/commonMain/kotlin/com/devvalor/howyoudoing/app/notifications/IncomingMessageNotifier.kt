@@ -4,6 +4,8 @@ import com.devvalor.howyoudoing.chat.domain.ChatRepository
 import com.devvalor.howyoudoing.chat.domain.NotificationPreferences
 import com.devvalor.howyoudoing.chat.domain.OpenChatTracker
 import com.devvalor.howyoudoing.chat.presentation.model.toChatUi
+import com.devvalor.howyoudoing.settings.domain.AppLockRepository
+import com.devvalor.howyoudoing.settings.domain.AppLockSettings
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -35,14 +37,17 @@ class IncomingMessageNotifier(
     private val openChatTracker: OpenChatTracker,
     notificationPreferences: NotificationPreferences,
     private val presenter: MessageNotificationPresenter,
+    appLock: AppLockRepository,
     scope: CoroutineScope
 ) {
     private val lastSeenMessage = HashMap<String, String>()
     private val startedAt = now()
 
     init {
-        combine(chatRepository.observeChats(), notificationPreferences.observeMutedChats()) { chats, muted -> chats to muted }
-            .onEach { (chats, muted) ->
+        combine(chatRepository.observeChats(), notificationPreferences.observeMutedChats(), appLock.observeSettings()) { chats, muted, lock ->
+            Triple(chats, muted, lock)
+        }
+            .onEach { (chats, muted, lock) ->
                 val warmingUp = now() - startedAt < WARM_UP_MILLIS
                 for (chat in chats) {
                     val message = chat.lastMessage ?: continue
@@ -50,14 +55,20 @@ class IncomingMessageNotifier(
                     if (warmingUp || previous == message.id || message.isOutgoing) continue
                     if (now() - message.timestamp > MAX_AGE_MILLIS) continue
                     if (chat.id in muted || openChatTracker.isWatching(chat.id)) continue
-                    val preview = chat.toChatUi().preview
-                    presenter.show(chat.id, chat.name, preview, message.timestamp)
+                    if (lock.hidesContent()) {
+                        // With the app locked, a notification shouldn't reveal what the lock protects
+                        presenter.show(chat.id, "HowYouDoin", "New message", message.timestamp)
+                    } else {
+                        presenter.show(chat.id, chat.name, chat.toChatUi().preview, message.timestamp)
+                    }
                 }
             }
             .launchIn(scope)
         // Opening a chat clears its notification
         openChatTracker.openChatId.filterNotNull().onEach(presenter::cancel).launchIn(scope)
     }
+
+    private fun AppLockSettings.hidesContent() = isEnabled && hidesNotificationContent
 
     private fun now() = Clock.System.now().toEpochMilliseconds()
 

@@ -1,4 +1,6 @@
 [versions]
+aboutlibraries = "15.3.0"
+androidx-biometric = "1.1.0"
 # Build tools
 agp = "8.11.1"
 composeBom = "2025.07.00"
@@ -86,6 +88,7 @@ coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" 
 coil-network-ktor3 = { module = "io.coil-kt.coil3:coil-network-ktor3", version.ref = "coil" }
 
 # DataStore
+androidx-biometric = { module = "androidx.biometric:biometric", version.ref = "androidx-biometric" }
 datastore = { module = "androidx.datastore:datastore", version.ref = "datastore" }
 datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastore" }
 
@@ -127,6 +130,9 @@ android-library = { id = "com.android.library", version.ref = "agp" }
 # Kotlin
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+
+# Open-source license list
+aboutlibraries = { id = "com.mikepenz.aboutlibraries.plugin", version.ref = "aboutlibraries" }
 
 # Compose
 compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "compose-multiplatform" }

@@ -1,0 +1,2937 @@
+{
+ "libraries": [
+  {
+   "name": "go.mau.fi/mautrix-meta",
+   "version": "commit 3c16226",
+   "license": "AGPL-3.0",
+   "url": "https://go.mau.fi/mautrix-meta",
+   "usedFor": "Messenger and Instagram"
+  },
+  {
+   "name": "go.mau.fi/mautrix-signal",
+   "version": "commit 46aff24",
+   "license": "AGPL-3.0",
+   "url": "https://go.mau.fi/mautrix-signal",
+   "usedFor": "Signal"
+  },
+  {
+   "name": "go.mau.fi/mautrix-telegram/pkg/gotd",
+   "version": "commit 531adba3",
+   "license": "MIT",
+   "url": "https://go.mau.fi/mautrix-telegram",
+   "usedFor": "Telegram"
+  },
+  {
+   "name": "go.mau.fi/whatsmeow",
+   "version": "v0.0.0-20261014094007-f16f9ca30d6a",
+   "license": "MPL-2.0",
+   "url": "https://go.mau.fi/whatsmeow",
+   "usedFor": "WhatsApp"
+  },
+  {
+   "name": "libsignal",
+   "version": "0.105.0",
+   "license": "AGPL-3.0-only",
+   "url": "https://github.com/signalapp/libsignal",
+   "usedFor": "Signal"
+  },
+  {
+   "name": "addr2line",
+   "version": "0.25.1",
+   "license": "Apache-2.0 OR MIT",
+   "url": "https://github.com/gimli-rs/addr2line",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "adler2",
+   "version": "2.0.1",
+   "license": "0BSD OR MIT OR Apache-2.0",
+   "url": "https://github.com/oyvindln/adler2",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "aead",
+   "version": "0.6.1",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/RustCrypto/traits",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "aead",
+   "version": "0.5.2",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/RustCrypto/traits",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "aes",
+   "version": "0.8.4",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/RustCrypto/block-ciphers",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "aes",
+   "version": "0.9.1",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/RustCrypto/block-ciphers",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "aes-gcm",
+   "version": "0.10.3",
+   "license": "Apache-2.0 OR MIT",
+   "url": "https://github.com/RustCrypto/AEADs",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "aes-gcm-siv",
+   "version": "0.12.0",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/RustCrypto/AEADs",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "aho-corasick",
+   "version": "1.1.4",
+   "license": "Unlicense OR MIT",
+   "url": "https://github.com/BurntSushi/aho-corasick",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "android_system_properties",
+   "version": "0.1.5",
+   "license": "MIT/Apache-2.0",
+   "url": "https://github.com/nical/android_system_properties",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "anstream",
+   "version": "1.0.0",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/rust-cli/anstyle.git",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "anstyle",
+   "version": "1.0.14",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/rust-cli/anstyle.git",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "anstyle-parse",
+   "version": "1.0.0",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/rust-cli/anstyle.git",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "anstyle-query",
+   "version": "1.1.5",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/rust-cli/anstyle.git",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "anyhow",
+   "version": "1.0.103",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/dtolnay/anyhow",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "argon2",
+   "version": "0.5.3",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/RustCrypto/password-hashes/tree/master/argon2",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "arrayvec",
+   "version": "0.7.8",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/bluss/arrayvec",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "asn1",
+   "version": "0.24.1",
+   "license": "BSD-3-Clause",
+   "url": "https://github.com/alex/rust-asn1",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "asn1_derive",
+   "version": "0.24.1",
+   "license": "BSD-3-Clause",
+   "url": "https://github.com/alex/rust-asn1",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "assert_matches",
+   "version": "1.5.0",
+   "license": "MIT/Apache-2.0",
+   "url": "https://github.com/murarth/assert_matches",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "async-compression",
+   "version": "0.4.42",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/Nullus157/async-compression",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "async-trait",
+   "version": "0.1.89",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/dtolnay/async-trait",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "atomic-take",
+   "version": "1.1.0",
+   "license": "MIT",
+   "url": "https://github.com/Darksonn/atomic-take",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "atomic-waker",
+   "version": "1.1.2",
+   "license": "Apache-2.0 OR MIT",
+   "url": "https://github.com/smol-rs/atomic-waker",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "auto_enums",
+   "version": "0.8.9",
+   "license": "Apache-2.0 OR MIT",
+   "url": "https://github.com/taiki-e/auto_enums",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "backtrace",
+   "version": "0.3.76",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/rust-lang/backtrace-rs",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "base64",
+   "version": "0.22.1",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/marshallpierce/rust-base64",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "base64ct",
+   "version": "1.8.3",
+   "license": "Apache-2.0 OR MIT",
+   "url": "https://github.com/RustCrypto/formats",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "bincode",
+   "version": "1.3.3",
+   "license": "MIT",
+   "url": "https://github.com/servo/bincode",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "bitflags",
+   "version": "1.3.2",
+   "license": "MIT/Apache-2.0",
+   "url": "https://github.com/bitflags/bitflags",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "bitflags",
+   "version": "2.13.0",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/bitflags/bitflags",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "bitstream-io",
+   "version": "1.10.0",
+   "license": "MIT/Apache-2.0",
+   "url": "https://github.com/tuffy/bitstream-io",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "blake2",
+   "version": "0.10.6",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/RustCrypto/hashes",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "block-buffer",
+   "version": "0.10.4",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/RustCrypto/utils",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "block-buffer",
+   "version": "0.12.1",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/RustCrypto/utils",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "block-padding",
+   "version": "0.4.2",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/RustCrypto/utils",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "boring",
+   "version": "5.2.0",
+   "license": "Apache-2.0",
+   "url": "https://github.com/cloudflare/boring",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "boring-sys",
+   "version": "5.2.0",
+   "license": "MIT",
+   "url": "https://github.com/cloudflare/boring",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "bs58",
+   "version": "0.5.1",
+   "license": "MIT/Apache-2.0",
+   "url": "https://github.com/Nullus157/bs58-rs",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "bytes",
+   "version": "1.12.0",
+   "license": "MIT",
+   "url": "https://github.com/tokio-rs/bytes",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "cbc",
+   "version": "0.2.1",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/RustCrypto/block-modes",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "cfg-if",
+   "version": "1.0.4",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/rust-lang/cfg-if",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "chacha20",
+   "version": "0.9.1",
+   "license": "Apache-2.0 OR MIT",
+   "url": "https://github.com/RustCrypto/stream-ciphers",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "chacha20",
+   "version": "0.10.2",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/RustCrypto/stream-ciphers",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "chacha20poly1305",
+   "version": "0.11.0",
+   "license": "Apache-2.0 OR MIT",
+   "url": "https://github.com/RustCrypto/AEADs",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "chacha20poly1305",
+   "version": "0.10.1",
+   "license": "Apache-2.0 OR MIT",
+   "url": "https://github.com/RustCrypto/AEADs/tree/master/chacha20poly1305",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "chrono",
+   "version": "0.4.45",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/chronotope/chrono",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "cipher",
+   "version": "0.5.2",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/RustCrypto/traits",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "cipher",
+   "version": "0.4.4",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/RustCrypto/traits",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "clap",
+   "version": "4.6.1",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/clap-rs/clap",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "clap-stdin",
+   "version": "0.8.1",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/thepacketgeek/clap-stdin",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "clap_builder",
+   "version": "4.6.0",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/clap-rs/clap",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "clap_derive",
+   "version": "4.6.1",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/clap-rs/clap",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "clap_lex",
+   "version": "1.1.0",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/clap-rs/clap",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "cmov",
+   "version": "0.5.4",
+   "license": "Apache-2.0 OR MIT",
+   "url": "https://github.com/RustCrypto/utils",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "colorchoice",
+   "version": "1.0.5",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/rust-cli/anstyle.git",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "combine",
+   "version": "4.6.7",
+   "license": "MIT",
+   "url": "https://github.com/Marwes/combine",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "compression-codecs",
+   "version": "0.4.38",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/Nullus157/async-compression",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "compression-core",
+   "version": "0.4.32",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/Nullus157/async-compression",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "const-oid",
+   "version": "0.10.2",
+   "license": "Apache-2.0 OR MIT",
+   "url": "https://github.com/RustCrypto/formats",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "const-str",
+   "version": "1.1.0",
+   "license": "MIT",
+   "url": "https://github.com/Nugine/const-str",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "convert_case",
+   "version": "0.10.0",
+   "license": "MIT",
+   "url": "https://github.com/rutrum/convert-case",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "cpubits",
+   "version": "0.1.1",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/RustCrypto/utils",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "cpufeatures",
+   "version": "0.2.17",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/RustCrypto/utils",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "cpufeatures",
+   "version": "0.3.0",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/RustCrypto/utils",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "crc32fast",
+   "version": "1.5.0",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/srijs/rust-crc32fast",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "critical-section",
+   "version": "1.2.0",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/rust-embedded/critical-section",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "crossbeam-deque",
+   "version": "0.8.7",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/crossbeam-rs/crossbeam",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "crossbeam-epoch",
+   "version": "0.9.20",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/crossbeam-rs/crossbeam",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "crossbeam-utils",
+   "version": "0.8.22",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/crossbeam-rs/crossbeam",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "crypto-common",
+   "version": "0.1.7",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/RustCrypto/traits",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "crypto-common",
+   "version": "0.2.2",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/RustCrypto/traits",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "ctr",
+   "version": "0.10.1",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/RustCrypto/block-modes",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "ctr",
+   "version": "0.9.2",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/RustCrypto/block-modes",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "ctutils",
+   "version": "0.4.2",
+   "license": "Apache-2.0 OR MIT",
+   "url": "https://github.com/RustCrypto/utils",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "curve25519-dalek",
+   "version": "5.0.0",
+   "license": "BSD-3-Clause",
+   "url": "https://github.com/dalek-cryptography/curve25519-dalek/tree/main/curve25519-dalek",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "curve25519-dalek",
+   "version": "4.1.3",
+   "license": "BSD-3-Clause",
+   "url": "https://github.com/dalek-cryptography/curve25519-dalek/tree/main/curve25519-dalek",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "darling",
+   "version": "0.20.11",
+   "license": "MIT",
+   "url": "https://github.com/TedDriggs/darling",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "darling",
+   "version": "0.23.0",
+   "license": "MIT",
+   "url": "https://github.com/TedDriggs/darling",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "darling_core",
+   "version": "0.20.11",
+   "license": "MIT",
+   "url": "https://github.com/TedDriggs/darling",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "darling_core",
+   "version": "0.23.0",
+   "license": "MIT",
+   "url": "https://github.com/TedDriggs/darling",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "darling_macro",
+   "version": "0.23.0",
+   "license": "MIT",
+   "url": "https://github.com/TedDriggs/darling",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "darling_macro",
+   "version": "0.20.11",
+   "license": "MIT",
+   "url": "https://github.com/TedDriggs/darling",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "data-encoding",
+   "version": "2.11.0",
+   "license": "MIT",
+   "url": "https://github.com/ia0/data-encoding",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "data-encoding-macro",
+   "version": "0.1.20",
+   "license": "MIT",
+   "url": "https://github.com/ia0/data-encoding",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "data-encoding-macro-internal",
+   "version": "0.1.18",
+   "license": "MIT",
+   "url": "https://github.com/ia0/data-encoding",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "defmt",
+   "version": "1.1.1",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/knurling-rs/defmt",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "defmt-macros",
+   "version": "1.1.1",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/knurling-rs/defmt",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "defmt-parser",
+   "version": "1.0.0",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/knurling-rs/defmt",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "deranged",
+   "version": "0.5.8",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/jhpratt/deranged",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "derive-where",
+   "version": "1.6.1",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/ModProg/derive-where",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "derive_builder",
+   "version": "0.20.2",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/colin-kiegel/rust-derive-builder",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "derive_builder_core",
+   "version": "0.20.2",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/colin-kiegel/rust-derive-builder",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "derive_builder_macro",
+   "version": "0.20.2",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/colin-kiegel/rust-derive-builder",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "derive_more",
+   "version": "2.1.1",
+   "license": "MIT",
+   "url": "https://github.com/JelteF/derive_more",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "derive_more-impl",
+   "version": "2.1.1",
+   "license": "MIT",
+   "url": "https://github.com/JelteF/derive_more",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "derive_utils",
+   "version": "0.15.1",
+   "license": "Apache-2.0 OR MIT",
+   "url": "https://github.com/taiki-e/derive_utils",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "digest",
+   "version": "0.10.7",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/RustCrypto/traits",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "digest",
+   "version": "0.11.3",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/RustCrypto/traits",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "displaydoc",
+   "version": "0.2.6",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/yaahc/displaydoc",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "downcast-rs",
+   "version": "2.0.2",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/marcianx/downcast-rs",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "dyn-clonable",
+   "version": "0.9.2",
+   "license": "MIT",
+   "url": "https://github.com/kardeiz/objekt-clonable",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "dyn-clonable-impl",
+   "version": "0.9.2",
+   "license": "MIT",
+   "url": "https://github.com/kardeiz/objekt-clonable",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "dyn-clone",
+   "version": "1.0.20",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/dtolnay/dyn-clone",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "ed25519",
+   "version": "3.0.0",
+   "license": "Apache-2.0 OR MIT",
+   "url": "https://github.com/RustCrypto/signatures",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "ed25519-dalek",
+   "version": "3.0.0",
+   "license": "BSD-3-Clause",
+   "url": "https://github.com/dalek-cryptography/curve25519-dalek/tree/main/ed25519-dalek",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "either",
+   "version": "1.16.0",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/rayon-rs/either",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "env_filter",
+   "version": "2.0.0",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/rust-cli/env_logger",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "env_logger",
+   "version": "0.11.11",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/rust-cli/env_logger",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "equivalent",
+   "version": "1.0.2",
+   "license": "Apache-2.0 OR MIT",
+   "url": "https://github.com/indexmap-rs/equivalent",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "filippo.io/edwards25519",
+   "version": "v1.2.0",
+   "license": "BSD-3-Clause",
+   "url": "https://filippo.io/edwards25519",
+   "usedFor": null
+  },
+  {
+   "name": "flate2",
+   "version": "1.1.9",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/rust-lang/flate2-rs",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "fnv",
+   "version": "1.0.7",
+   "license": "Apache-2.0 / MIT",
+   "url": "https://github.com/servo/rust-fnv",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "foreign-types",
+   "version": "0.5.0",
+   "license": "MIT/Apache-2.0",
+   "url": "https://github.com/sfackler/foreign-types",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "foreign-types-macros",
+   "version": "0.2.3",
+   "license": "MIT/Apache-2.0",
+   "url": "https://github.com/sfackler/foreign-types",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "foreign-types-shared",
+   "version": "0.3.1",
+   "license": "MIT/Apache-2.0",
+   "url": "https://github.com/sfackler/foreign-types",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "form_urlencoded",
+   "version": "1.2.2",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/servo/rust-url",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "futures",
+   "version": "0.3.32",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/rust-lang/futures-rs",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "futures-channel",
+   "version": "0.3.32",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/rust-lang/futures-rs",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "futures-core",
+   "version": "0.3.32",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/rust-lang/futures-rs",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "futures-executor",
+   "version": "0.3.32",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/rust-lang/futures-rs",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "futures-io",
+   "version": "0.3.32",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/rust-lang/futures-rs",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "futures-macro",
+   "version": "0.3.32",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/rust-lang/futures-rs",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "futures-sink",
+   "version": "0.3.32",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/rust-lang/futures-rs",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "futures-task",
+   "version": "0.3.32",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/rust-lang/futures-rs",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "futures-util",
+   "version": "0.3.32",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/rust-lang/futures-rs",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "generic-array",
+   "version": "0.14.7",
+   "license": "MIT",
+   "url": "https://github.com/fizyk20/generic-array.git",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "getrandom",
+   "version": "0.3.4",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/rust-random/getrandom",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "getrandom",
+   "version": "0.4.3",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/rust-random/getrandom",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "getrandom",
+   "version": "0.2.17",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/rust-random/getrandom",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "ghash",
+   "version": "0.5.1",
+   "license": "Apache-2.0 OR MIT",
+   "url": "https://github.com/RustCrypto/universal-hashes",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "ghash",
+   "version": "0.6.0",
+   "license": "Apache-2.0 OR MIT",
+   "url": "https://github.com/RustCrypto/universal-hashes",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "gimli",
+   "version": "0.32.3",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/gimli-rs/gimli",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "github.com/andybalholm/brotli",
+   "version": "v1.2.4",
+   "license": "MIT",
+   "url": "https://github.com/andybalholm/brotli",
+   "usedFor": null
+  },
+  {
+   "name": "github.com/apache/thrift",
+   "version": "v0.24.0",
+   "license": "Apache-2.0",
+   "url": "https://github.com/apache/thrift",
+   "usedFor": null
+  },
+  {
+   "name": "github.com/armfazh/h2c-go-ref",
+   "version": "v0.0.0-20210215173008-07e12a6f8e0d",
+   "license": "BSD-3-Clause",
+   "url": "https://github.com/armfazh/h2c-go-ref",
+   "usedFor": null
+  },
+  {
+   "name": "github.com/armfazh/tozan-ecc",
+   "version": "v0.1.3",
+   "license": "BSD-3-Clause",
+   "url": "https://github.com/armfazh/tozan-ecc",
+   "usedFor": null
+  },
+  {
+   "name": "github.com/beeper/argo-go",
+   "version": "v1.1.2",
+   "license": "MIT",
+   "url": "https://github.com/beeper/argo-go",
+   "usedFor": null
+  },
+  {
+   "name": "github.com/beeper/poly1305",
+   "version": "v0.0.0-20250815183548-d4eede7bbf3c",
+   "license": "BSD-3-Clause",
+   "url": "https://github.com/beeper/poly1305",
+   "usedFor": null
+  },
+  {
+   "name": "github.com/bytemare/cryptotools",
+   "version": "v0.0.0-20210309005813-f9985b05742f",
+   "license": "MIT",
+   "url": "https://github.com/bytemare/cryptotools",
+   "usedFor": null
+  },
+  {
+   "name": "github.com/bytemare/opaque",
+   "version": "v0.0.0-20210310201842-16a10d180656",
+   "license": "MIT",
+   "url": "https://github.com/bytemare/opaque",
+   "usedFor": null
+  },
+  {
+   "name": "github.com/bytemare/voprf",
+   "version": "v0.0.0-20210221170502-f0af88d24d16",
+   "license": "MIT",
+   "url": "https://github.com/bytemare/voprf",
+   "usedFor": null
+  },
+  {
+   "name": "github.com/cenkalti/backoff/v4",
+   "version": "v4.3.0",
+   "license": "MIT",
+   "url": "https://github.com/cenkalti/backoff/v4",
+   "usedFor": null
+  },
+  {
+   "name": "github.com/cespare/xxhash/v2",
+   "version": "v2.3.0",
+   "license": "MIT",
+   "url": "https://github.com/cespare/xxhash/v2",
+   "usedFor": null
+  },
+  {
+   "name": "github.com/coder/websocket",
+   "version": "v1.8.15",
+   "license": "ISC",
+   "url": "https://github.com/coder/websocket",
+   "usedFor": null
+  },
+  {
+   "name": "github.com/coreos/go-systemd/v22",
+   "version": "v22.7.0",
+   "license": "Apache-2.0",
+   "url": "https://github.com/coreos/go-systemd/v22",
+   "usedFor": null
+  },
+  {
+   "name": "github.com/elliotchance/orderedmap/v3",
+   "version": "v3.1.0",
+   "license": "MIT",
+   "url": "https://github.com/elliotchance/orderedmap/v3",
+   "usedFor": null
+  },
+  {
+   "name": "github.com/go-faster/errors",
+   "version": "v0.7.1",
+   "license": "BSD-3-Clause",
+   "url": "https://github.com/go-faster/errors",
+   "usedFor": null
+  },
+  {
+   "name": "github.com/go-faster/jx",
+   "version": "v1.2.0",
+   "license": "MIT",
+   "url": "https://github.com/go-faster/jx",
+   "usedFor": null
+  },
+  {
+   "name": "github.com/go-faster/xor",
+   "version": "v1.0.0",
+   "license": "BSD-3-Clause",
+   "url": "https://github.com/go-faster/xor",
+   "usedFor": null
+  },
+  {
+   "name": "github.com/google/flatbuffers",
+   "version": "v25.12.19+incompatible",
+   "license": "Apache-2.0",
+   "url": "https://github.com/google/flatbuffers",
+   "usedFor": null
+  },
+  {
+   "name": "github.com/google/go-querystring",
+   "version": "v1.2.0",
+   "license": "BSD-3-Clause",
+   "url": "https://github.com/google/go-querystring",
+   "usedFor": null
+  },
+  {
+   "name": "github.com/google/uuid",
+   "version": "v1.6.0",
+   "license": "BSD-3-Clause",
+   "url": "https://github.com/google/uuid",
+   "usedFor": null
+  },
+  {
+   "name": "github.com/gotd/ige",
+   "version": "v0.2.2",
+   "license": "MIT",
+   "url": "https://github.com/gotd/ige",
+   "usedFor": null
+  },
+  {
+   "name": "github.com/gotd/neo",
+   "version": "v0.1.5",
+   "license": "BSD-3-Clause",
+   "url": "https://github.com/gotd/neo",
+   "usedFor": null
+  },
+  {
+   "name": "github.com/gtank/ristretto255",
+   "version": "v0.2.0",
+   "license": "BSD-3-Clause",
+   "url": "https://github.com/gtank/ristretto255",
+   "usedFor": null
+  },
+  {
+   "name": "github.com/icholy/digest",
+   "version": "v1.2.0",
+   "license": "MIT",
+   "url": "https://github.com/icholy/digest",
+   "usedFor": null
+  },
+  {
+   "name": "github.com/imroc/req/v3",
+   "version": "v3.56.0",
+   "license": "MIT",
+   "url": "https://github.com/imroc/req/v3",
+   "usedFor": null
+  },
+  {
+   "name": "github.com/klauspost/compress",
+   "version": "v1.20.0",
+   "license": "Apache-2.0",
+   "url": "https://github.com/klauspost/compress",
+   "usedFor": null
+  },
+  {
+   "name": "github.com/klauspost/compress/internal/snapref",
+   "version": "v1.20.0",
+   "license": "BSD-3-Clause",
+   "url": "https://github.com/klauspost/compress",
+   "usedFor": null
+  },
+  {
+   "name": "github.com/klauspost/compress/zstd/internal/xxhash",
+   "version": "v1.20.0",
+   "license": "MIT",
+   "url": "https://github.com/klauspost/compress",
+   "usedFor": null
+  },
+  {
+   "name": "github.com/mattn/go-colorable",
+   "version": "v0.1.15",
+   "license": "MIT",
+   "url": "https://github.com/mattn/go-colorable",
+   "usedFor": null
+  },
+  {
+   "name": "github.com/mattn/go-isatty",
+   "version": "v0.0.20",
+   "license": "MIT",
+   "url": "https://github.com/mattn/go-isatty",
+   "usedFor": null
+  },
+  {
+   "name": "github.com/mattn/go-pointer",
+   "version": "v0.0.1",
+   "license": "MIT",
+   "url": "https://github.com/mattn/go-pointer",
+   "usedFor": null
+  },
+  {
+   "name": "github.com/mattn/go-sqlite3",
+   "version": "v1.14.52",
+   "license": "MIT",
+   "url": "https://github.com/mattn/go-sqlite3",
+   "usedFor": null
+  },
+  {
+   "name": "github.com/petermattis/goid",
+   "version": "v0.0.0-20260918085751-abfca077860b",
+   "license": "Apache-2.0",
+   "url": "https://github.com/petermattis/goid",
+   "usedFor": null
+  },
+  {
+   "name": "github.com/quic-go/qpack",
+   "version": "v0.6.0",
+   "license": "MIT",
+   "url": "https://github.com/quic-go/qpack",
+   "usedFor": null
+  },
+  {
+   "name": "github.com/quic-go/quic-go",
+   "version": "v0.61.0",
+   "license": "MIT",
+   "url": "https://github.com/quic-go/quic-go",
+   "usedFor": null
+  },
+  {
+   "name": "github.com/refraction-networking/utls",
+   "version": "v1.8.2",
+   "license": "BSD-3-Clause",
+   "url": "https://github.com/refraction-networking/utls",
+   "usedFor": null
+  },
+  {
+   "name": "github.com/refraction-networking/utls/dicttls",
+   "version": "v1.8.2",
+   "license": "BSD-3-Clause",
+   "url": "https://github.com/refraction-networking/utls",
+   "usedFor": null
+  },
+  {
+   "name": "github.com/rs/xid",
+   "version": "v1.6.0",
+   "license": "MIT",
+   "url": "https://github.com/rs/xid",
+   "usedFor": null
+  },
+  {
+   "name": "github.com/rs/zerolog",
+   "version": "v1.35.1",
+   "license": "MIT",
+   "url": "https://github.com/rs/zerolog",
+   "usedFor": null
+  },
+  {
+   "name": "github.com/rs/zerolog/hlog/internal/mutil",
+   "version": "v1.35.1",
+   "license": "MIT",
+   "url": "https://github.com/rs/zerolog",
+   "usedFor": null
+  },
+  {
+   "name": "github.com/segmentio/asm",
+   "version": "v1.2.1",
+   "license": "MIT",
+   "url": "https://github.com/segmentio/asm",
+   "usedFor": null
+  },
+  {
+   "name": "github.com/tidwall/gjson",
+   "version": "v1.20.0",
+   "license": "MIT",
+   "url": "https://github.com/tidwall/gjson",
+   "usedFor": null
+  },
+  {
+   "name": "github.com/tidwall/match",
+   "version": "v1.2.0",
+   "license": "MIT",
+   "url": "https://github.com/tidwall/match",
+   "usedFor": null
+  },
+  {
+   "name": "github.com/tidwall/pretty",
+   "version": "v1.2.1",
+   "license": "MIT",
+   "url": "https://github.com/tidwall/pretty",
+   "usedFor": null
+  },
+  {
+   "name": "github.com/tidwall/sjson",
+   "version": "v1.2.5",
+   "license": "MIT",
+   "url": "https://github.com/tidwall/sjson",
+   "usedFor": null
+  },
+  {
+   "name": "github.com/vektah/gqlparser/v2",
+   "version": "v2.5.27",
+   "license": "MIT",
+   "url": "https://github.com/vektah/gqlparser/v2",
+   "usedFor": null
+  },
+  {
+   "name": "github.com/vmihailenco/msgpack/v5",
+   "version": "v5.2.0",
+   "license": "BSD-2-Clause",
+   "url": "https://github.com/vmihailenco/msgpack/v5",
+   "usedFor": null
+  },
+  {
+   "name": "github.com/vmihailenco/tagparser/v2",
+   "version": "v2.0.0",
+   "license": "BSD-2-Clause",
+   "url": "https://github.com/vmihailenco/tagparser/v2",
+   "usedFor": null
+  },
+  {
+   "name": "github.com/yuin/goldmark",
+   "version": "v1.8.6",
+   "license": "MIT",
+   "url": "https://github.com/yuin/goldmark",
+   "usedFor": null
+  },
+  {
+   "name": "Go standard library",
+   "version": "go1.27.2",
+   "license": "BSD-3-Clause",
+   "url": "https://go.dev",
+   "usedFor": null
+  },
+  {
+   "name": "go.mau.fi/libsignal",
+   "version": "v0.2.2",
+   "license": "AGPL-3.0",
+   "url": "https://go.mau.fi/libsignal",
+   "usedFor": null
+  },
+  {
+   "name": "go.mau.fi/util",
+   "version": "v0.11.0",
+   "license": "MPL-2.0",
+   "url": "https://go.mau.fi/util",
+   "usedFor": null
+  },
+  {
+   "name": "go.mau.fi/zeroconfig",
+   "version": "v0.2.0",
+   "license": "MPL-2.0",
+   "url": "https://go.mau.fi/zeroconfig",
+   "usedFor": null
+  },
+  {
+   "name": "go.opentelemetry.io/otel",
+   "version": "v1.45.0",
+   "license": "Apache-2.0",
+   "url": "https://go.opentelemetry.io/otel",
+   "usedFor": null
+  },
+  {
+   "name": "go.opentelemetry.io/otel/trace",
+   "version": "v1.45.0",
+   "license": "Apache-2.0",
+   "url": "https://go.opentelemetry.io/otel/trace",
+   "usedFor": null
+  },
+  {
+   "name": "go.uber.org/atomic",
+   "version": "v1.11.0",
+   "license": "MIT",
+   "url": "https://go.uber.org/atomic",
+   "usedFor": null
+  },
+  {
+   "name": "go.uber.org/multierr",
+   "version": "v1.11.0",
+   "license": "MIT",
+   "url": "https://go.uber.org/multierr",
+   "usedFor": null
+  },
+  {
+   "name": "go.uber.org/zap",
+   "version": "v1.28.0",
+   "license": "MIT",
+   "url": "https://go.uber.org/zap",
+   "usedFor": null
+  },
+  {
+   "name": "golang.org/x/crypto",
+   "version": "v0.58.0",
+   "license": "BSD-3-Clause",
+   "url": "https://golang.org/x/crypto",
+   "usedFor": null
+  },
+  {
+   "name": "golang.org/x/exp",
+   "version": "v0.0.0-20261014143641-f0251eb4aa3e",
+   "license": "BSD-3-Clause",
+   "url": "https://golang.org/x/exp",
+   "usedFor": null
+  },
+  {
+   "name": "golang.org/x/net",
+   "version": "v0.61.0",
+   "license": "BSD-3-Clause",
+   "url": "https://golang.org/x/net",
+   "usedFor": null
+  },
+  {
+   "name": "golang.org/x/sync",
+   "version": "v0.24.0",
+   "license": "BSD-3-Clause",
+   "url": "https://golang.org/x/sync",
+   "usedFor": null
+  },
+  {
+   "name": "golang.org/x/sys",
+   "version": "v0.49.0",
+   "license": "BSD-3-Clause",
+   "url": "https://golang.org/x/sys",
+   "usedFor": null
+  },
+  {
+   "name": "golang.org/x/text",
+   "version": "v0.43.0",
+   "license": "BSD-3-Clause",
+   "url": "https://golang.org/x/text",
+   "usedFor": null
+  },
+  {
+   "name": "google.golang.org/genproto/googleapis/rpc",
+   "version": "v0.0.0-20260706201446-f0a921348800",
+   "license": "Apache-2.0",
+   "url": "https://google.golang.org/genproto/googleapis/rpc",
+   "usedFor": null
+  },
+  {
+   "name": "google.golang.org/grpc",
+   "version": "v1.84.0",
+   "license": "Apache-2.0",
+   "url": "https://google.golang.org/grpc",
+   "usedFor": null
+  },
+  {
+   "name": "google.golang.org/protobuf",
+   "version": "v1.36.12",
+   "license": "BSD-3-Clause",
+   "url": "https://google.golang.org/protobuf",
+   "usedFor": null
+  },
+  {
+   "name": "gopkg.in/natefinch/lumberjack.v2",
+   "version": "v2.2.1",
+   "license": "MIT",
+   "url": "https://gopkg.in/natefinch/lumberjack.v2",
+   "usedFor": null
+  },
+  {
+   "name": "gopkg.in/yaml.v3",
+   "version": "v3.0.1",
+   "license": "Apache-2.0",
+   "url": "https://gopkg.in/yaml.v3",
+   "usedFor": null
+  },
+  {
+   "name": "h2",
+   "version": "0.4.16",
+   "license": "MIT",
+   "url": "https://github.com/hyperium/h2",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "hashbrown",
+   "version": "0.12.3",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/rust-lang/hashbrown",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "hashbrown",
+   "version": "0.17.1",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/rust-lang/hashbrown",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "hax-lib",
+   "version": "0.3.7",
+   "license": "Apache-2.0",
+   "url": "https://github.com/hacspec/hax",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "hax-lib-macros",
+   "version": "0.3.7",
+   "license": "Apache-2.0",
+   "url": "https://github.com/hacspec/hax",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "headers",
+   "version": "0.4.1",
+   "license": "MIT",
+   "url": "https://github.com/hyperium/headers",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "headers-core",
+   "version": "0.3.0",
+   "license": "MIT",
+   "url": "https://github.com/hyperium/headers",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "heck",
+   "version": "0.5.0",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/withoutboats/heck",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "hex",
+   "version": "0.4.3",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/KokaKiwi/rust-hex",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "hkdf",
+   "version": "0.13.0",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/RustCrypto/KDFs/",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "hmac",
+   "version": "0.13.0",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/RustCrypto/MACs",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "hpke-rs",
+   "version": "0.7.0",
+   "license": "MPL-2.0",
+   "url": "https://github.com/celabshq/libcrux",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "hpke-rs-crypto",
+   "version": "0.7.0",
+   "license": "MPL-2.0",
+   "url": "https://github.com/celabshq/libcrux",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "http",
+   "version": "1.4.2",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/hyperium/http",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "http-body",
+   "version": "1.0.1",
+   "license": "MIT",
+   "url": "https://github.com/hyperium/http-body",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "http-body-util",
+   "version": "0.1.3",
+   "license": "MIT",
+   "url": "https://github.com/hyperium/http-body",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "httparse",
+   "version": "1.10.1",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/seanmonstar/httparse",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "httpdate",
+   "version": "1.0.3",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/pyfisch/httpdate",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "hybrid-array",
+   "version": "0.4.13",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/RustCrypto/hybrid-array",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "hyper",
+   "version": "1.10.1",
+   "license": "MIT",
+   "url": "https://github.com/hyperium/hyper",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "hyper-util",
+   "version": "0.1.20",
+   "license": "MIT",
+   "url": "https://github.com/hyperium/hyper-util",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "iana-time-zone",
+   "version": "0.1.65",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/strawlab/iana-time-zone",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "ident_case",
+   "version": "1.0.1",
+   "license": "MIT/Apache-2.0",
+   "url": "https://github.com/TedDriggs/ident_case",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "indexmap",
+   "version": "1.9.3",
+   "license": "Apache-2.0 OR MIT",
+   "url": "https://github.com/bluss/indexmap",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "indexmap",
+   "version": "2.14.0",
+   "license": "Apache-2.0 OR MIT",
+   "url": "https://github.com/indexmap-rs/indexmap",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "inout",
+   "version": "0.1.4",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/RustCrypto/utils",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "inout",
+   "version": "0.2.2",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/RustCrypto/utils",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "intmap",
+   "version": "3.1.3",
+   "license": "MIT",
+   "url": "https://github.com/JesperAxelsson/rust-intmap",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "is_terminal_polyfill",
+   "version": "1.70.2",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/polyfill-rs/is_terminal_polyfill",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "itertools",
+   "version": "0.14.0",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/rust-itertools/itertools",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "itertools",
+   "version": "0.15.0",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/rust-itertools/itertools",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "itoa",
+   "version": "1.0.18",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/dtolnay/itoa",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "jiff",
+   "version": "0.2.31",
+   "license": "Unlicense OR MIT",
+   "url": "https://github.com/BurntSushi/jiff",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "jni",
+   "version": "0.22.4",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/jni-rs/jni-rs",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "jni-macros",
+   "version": "0.22.4",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/jni-rs/jni-rs",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "jni-sys",
+   "version": "0.4.1",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/jni-rs/jni-sys",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "jni-sys-macros",
+   "version": "0.4.1",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/jni-rs/jni-sys",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "libc",
+   "version": "0.2.186",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/rust-lang/libc",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "libcrux-hacl-rs",
+   "version": "0.0.5",
+   "license": "Apache-2.0",
+   "url": "https://github.com/cryspen/libcrux",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "libcrux-hmac",
+   "version": "0.0.8",
+   "license": "Apache-2.0",
+   "url": "https://github.com/cryspen/libcrux",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "libcrux-intrinsics",
+   "version": "0.0.8",
+   "license": "Apache-2.0",
+   "url": "https://github.com/cryspen/libcrux",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "libcrux-macros",
+   "version": "0.0.3",
+   "license": "Apache-2.0",
+   "url": "https://github.com/cryspen/libcrux",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "libcrux-ml-kem",
+   "version": "0.0.10",
+   "license": "Apache-2.0",
+   "url": "https://github.com/cryspen/libcrux",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "libcrux-platform",
+   "version": "0.0.3",
+   "license": "Apache-2.0",
+   "url": "https://github.com/cryspen/libcrux",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "libcrux-secrets",
+   "version": "0.0.6",
+   "license": "Apache-2.0",
+   "url": "https://github.com/cryspen/libcrux",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "libcrux-sha2",
+   "version": "0.0.8",
+   "license": "Apache-2.0",
+   "url": "https://github.com/cryspen/libcrux",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "libcrux-sha3",
+   "version": "0.0.10",
+   "license": "Apache-2.0",
+   "url": "https://github.com/cryspen/libcrux",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "libcrux-traits",
+   "version": "0.0.8",
+   "license": "Apache-2.0",
+   "url": "https://github.com/cryspen/libcrux",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "libloading",
+   "version": "0.8.9",
+   "license": "ISC",
+   "url": "https://github.com/nagisa/rust_libloading/",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "libm",
+   "version": "0.2.16",
+   "license": "MIT",
+   "url": "https://github.com/rust-lang/compiler-builtins",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "libz-sys",
+   "version": "1.1.29",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/rust-lang/libz-sys",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "linkme",
+   "version": "0.3.36",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/dtolnay/linkme",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "linkme-impl",
+   "version": "0.3.36",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/dtolnay/linkme",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "log",
+   "version": "0.4.33",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/rust-lang/log",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "macro_rules_attribute",
+   "version": "0.2.2",
+   "license": "Apache-2.0 OR MIT OR Zlib",
+   "url": "https://github.com/danielhenrymantilla/macro_rules_attribute-rs",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "macro_rules_attribute-proc_macro",
+   "version": "0.2.2",
+   "license": "Apache-2.0 OR MIT OR Zlib",
+   "url": "https://github.com/danielhenrymantilla/macro_rules_attribute-rs",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "maunium.net/go/mautrix",
+   "version": "v0.32.0",
+   "license": "MPL-2.0",
+   "url": "https://maunium.net/go/mautrix",
+   "usedFor": null
+  },
+  {
+   "name": "mediasan-common",
+   "version": "0.5.4",
+   "license": "MIT",
+   "url": "https://github.com/privacyresearchgroup/mp4san",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "memchr",
+   "version": "2.8.2",
+   "license": "Unlicense OR MIT",
+   "url": "https://github.com/BurntSushi/memchr",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "mime",
+   "version": "0.3.17",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/hyperium/mime",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "mime_guess",
+   "version": "2.0.5",
+   "license": "MIT",
+   "url": "https://github.com/abonander/mime_guess",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "miniz_oxide",
+   "version": "0.8.9",
+   "license": "MIT OR Zlib OR Apache-2.0",
+   "url": "https://github.com/Frommi/miniz_oxide/tree/master/miniz_oxide",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "mio",
+   "version": "1.2.1",
+   "license": "MIT",
+   "url": "https://github.com/tokio-rs/mio",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "mp4san",
+   "version": "0.5.4",
+   "license": "MIT",
+   "url": "https://github.com/privacyresearchgroup/mp4san",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "mp4san-derive",
+   "version": "0.5.4",
+   "license": "MIT",
+   "url": "https://github.com/privacyresearchgroup/mp4san",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "neon",
+   "version": "1.1.1",
+   "license": "MIT/Apache-2.0",
+   "url": "https://github.com/neon-bindings/neon",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "neon-macros",
+   "version": "1.1.1",
+   "license": "MIT/Apache-2.0",
+   "url": "https://github.com/neon-bindings/neon",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "nonzero_ext",
+   "version": "0.3.0",
+   "license": "Apache-2.0",
+   "url": "https://github.com/antifuchs/nonzero_ext",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "num-conv",
+   "version": "0.2.2",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/jhpratt/num-conv",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "num-integer",
+   "version": "0.1.46",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/rust-num/num-integer",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "num-traits",
+   "version": "0.2.19",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/rust-num/num-traits",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "num_enum",
+   "version": "0.7.6",
+   "license": "BSD-3-Clause OR MIT OR Apache-2.0",
+   "url": "https://github.com/illicitonion/num_enum",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "num_enum_derive",
+   "version": "0.7.6",
+   "license": "BSD-3-Clause OR MIT OR Apache-2.0",
+   "url": "https://github.com/illicitonion/num_enum",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "object",
+   "version": "0.37.3",
+   "license": "Apache-2.0 OR MIT",
+   "url": "https://github.com/gimli-rs/object",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "once_cell",
+   "version": "1.21.4",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/matklad/once_cell",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "opaque-debug",
+   "version": "0.3.1",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/RustCrypto/utils",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "openssl-macros",
+   "version": "0.1.1",
+   "license": "MIT/Apache-2.0",
+   "url": null,
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "partial-default",
+   "version": "0.1.0",
+   "license": "AGPL-3.0-only",
+   "url": "https://github.com/signalapp/partial-default",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "partial-default-derive",
+   "version": "0.1.0",
+   "license": "AGPL-3.0-only",
+   "url": "https://github.com/signalapp/partial-default",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "password-hash",
+   "version": "0.5.0",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/RustCrypto/traits/tree/master/password-hash",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "paste",
+   "version": "1.0.15",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/dtolnay/paste",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "pbjson",
+   "version": "0.9.0",
+   "license": "MIT",
+   "url": "https://github.com/influxdata/pbjson",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "pbjson-types",
+   "version": "0.9.0",
+   "license": "MIT",
+   "url": "https://github.com/influxdata/pbjson",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "percent-encoding",
+   "version": "2.3.2",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/servo/rust-url/",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "pin-project",
+   "version": "1.1.13",
+   "license": "Apache-2.0 OR MIT",
+   "url": "https://github.com/taiki-e/pin-project",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "pin-project-internal",
+   "version": "1.1.13",
+   "license": "Apache-2.0 OR MIT",
+   "url": "https://github.com/taiki-e/pin-project",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "pin-project-lite",
+   "version": "0.2.17",
+   "license": "Apache-2.0 OR MIT",
+   "url": "https://github.com/taiki-e/pin-project-lite",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "poly1305",
+   "version": "0.9.1",
+   "license": "Apache-2.0 OR MIT",
+   "url": "https://github.com/RustCrypto/universal-hashes",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "poly1305",
+   "version": "0.8.0",
+   "license": "Apache-2.0 OR MIT",
+   "url": "https://github.com/RustCrypto/universal-hashes",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "polyval",
+   "version": "0.7.3",
+   "license": "Apache-2.0 OR MIT",
+   "url": "https://github.com/RustCrypto/universal-hashes",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "polyval",
+   "version": "0.6.2",
+   "license": "Apache-2.0 OR MIT",
+   "url": "https://github.com/RustCrypto/universal-hashes",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "portable-atomic",
+   "version": "1.13.1",
+   "license": "Apache-2.0 OR MIT",
+   "url": "https://github.com/taiki-e/portable-atomic",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "powerfmt",
+   "version": "0.2.0",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/jhpratt/powerfmt",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "ppv-lite86",
+   "version": "0.2.21",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/cryptocorrosion/cryptocorrosion",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "proc-macro-crate",
+   "version": "3.5.0",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/bkchr/proc-macro-crate",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "proc-macro2",
+   "version": "1.0.106",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/dtolnay/proc-macro2",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "prost",
+   "version": "0.14.4",
+   "license": "Apache-2.0",
+   "url": "https://github.com/tokio-rs/prost",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "prost-derive",
+   "version": "0.14.4",
+   "license": "Apache-2.0",
+   "url": "https://github.com/tokio-rs/prost",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "prost-types",
+   "version": "0.14.4",
+   "license": "Apache-2.0",
+   "url": "https://github.com/tokio-rs/prost",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "protobuf",
+   "version": "3.7.2",
+   "license": "MIT",
+   "url": "https://github.com/stepancheg/rust-protobuf/",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "protobuf-support",
+   "version": "3.7.2",
+   "license": "MIT",
+   "url": "https://github.com/stepancheg/rust-protobuf/",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "quote",
+   "version": "1.0.46",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/dtolnay/quote",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "rand",
+   "version": "0.10.2",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/rust-random/rand",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "rand",
+   "version": "0.9.4",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/rust-random/rand",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "rand_chacha",
+   "version": "0.9.0",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/rust-random/rand",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "rand_core",
+   "version": "0.9.5",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/rust-random/rand",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "rand_core",
+   "version": "0.6.4",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/rust-random/rand",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "rand_core",
+   "version": "0.10.1",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/rust-random/rand_core",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "rand_distr",
+   "version": "0.5.1",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/rust-random/rand_distr",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "rangemap",
+   "version": "1.7.1",
+   "license": "MIT/Apache-2.0",
+   "url": "https://github.com/jeffparsons/rangemap",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "rayon",
+   "version": "1.12.0",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/rayon-rs/rayon",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "rayon-core",
+   "version": "1.13.0",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/rayon-rs/rayon",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "ref-cast",
+   "version": "1.0.25",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/dtolnay/ref-cast",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "ref-cast-impl",
+   "version": "1.0.25",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/dtolnay/ref-cast",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "regex",
+   "version": "1.12.4",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/rust-lang/regex",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "regex-automata",
+   "version": "0.4.14",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/rust-lang/regex",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "regex-syntax",
+   "version": "0.8.11",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/rust-lang/regex",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "ring",
+   "version": "0.17.14",
+   "license": "Apache-2.0 AND ISC",
+   "url": "https://github.com/briansmith/ring",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "rsc.io/qr",
+   "version": "v0.2.0",
+   "license": "BSD-3-Clause",
+   "url": "https://rsc.io/qr",
+   "usedFor": null
+  },
+  {
+   "name": "rustc-demangle",
+   "version": "0.1.27",
+   "license": "MIT/Apache-2.0",
+   "url": "https://github.com/rust-lang/rustc-demangle",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "rustls",
+   "version": "0.23.45",
+   "license": "Apache-2.0 OR ISC OR MIT",
+   "url": "https://github.com/rustls/rustls",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "rustls-pki-types",
+   "version": "1.15.0",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/rustls/pki-types",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "rustls-platform-verifier",
+   "version": "0.7.1",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/rustls/rustls-platform-verifier",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "rustls-platform-verifier-android",
+   "version": "0.2.0",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/rustls/rustls-platform-verifier",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "rustls-webpki",
+   "version": "0.103.15",
+   "license": "ISC",
+   "url": "https://github.com/rustls/webpki",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "rustversion",
+   "version": "1.0.23",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/dtolnay/rustversion",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "ryu",
+   "version": "1.0.23",
+   "license": "Apache-2.0 OR BSL-1.0",
+   "url": "https://github.com/dtolnay/ryu",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "schemars",
+   "version": "0.9.0",
+   "license": "MIT",
+   "url": "https://github.com/GREsau/schemars",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "schemars",
+   "version": "1.2.1",
+   "license": "MIT",
+   "url": "https://github.com/GREsau/schemars",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "scoped-tls",
+   "version": "1.0.1",
+   "license": "MIT/Apache-2.0",
+   "url": "https://github.com/alexcrichton/scoped-tls",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "scopeguard",
+   "version": "1.2.0",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/bluss/scopeguard",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "semver",
+   "version": "1.0.28",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/dtolnay/semver",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "send_wrapper",
+   "version": "0.6.0",
+   "license": "MIT/Apache-2.0",
+   "url": "https://github.com/thk1/send_wrapper",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "serde",
+   "version": "1.0.228",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/serde-rs/serde",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "serde_core",
+   "version": "1.0.228",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/serde-rs/serde",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "serde_derive",
+   "version": "1.0.228",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/serde-rs/serde",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "serde_json",
+   "version": "1.0.150",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/serde-rs/json",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "serde_urlencoded",
+   "version": "0.7.1",
+   "license": "MIT/Apache-2.0",
+   "url": "https://github.com/nox/serde_urlencoded",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "serde_with",
+   "version": "3.21.0",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/jonasbb/serde_with/",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "serde_with_macros",
+   "version": "3.21.0",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/jonasbb/serde_with/",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "sha1",
+   "version": "0.10.6",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/RustCrypto/hashes",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "sha1",
+   "version": "0.11.0",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/RustCrypto/hashes",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "sha1_smol",
+   "version": "1.0.1",
+   "license": "BSD-3-Clause",
+   "url": "https://github.com/mitsuhiko/sha1-smol",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "sha2",
+   "version": "0.10.9",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/RustCrypto/hashes",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "sha2",
+   "version": "0.11.0",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/RustCrypto/hashes",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "signature",
+   "version": "3.0.0",
+   "license": "Apache-2.0 OR MIT",
+   "url": "https://github.com/RustCrypto/traits",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "simd-adler32",
+   "version": "0.3.9",
+   "license": "MIT",
+   "url": "https://github.com/mcountryman/simd-adler32",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "simd_cesu8",
+   "version": "1.1.1",
+   "license": "Apache-2.0 OR MIT",
+   "url": "https://github.com/seancroach/simd_cesu8",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "simdutf8",
+   "version": "0.1.5",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/rusticstuff/simdutf8",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "slab",
+   "version": "0.4.12",
+   "license": "MIT",
+   "url": "https://github.com/tokio-rs/slab",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "smallvec",
+   "version": "1.15.2",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/servo/rust-smallvec",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "snow",
+   "version": "0.10.0",
+   "license": "Apache-2.0 OR MIT",
+   "url": "https://github.com/mcginty/snow",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "socket2",
+   "version": "0.6.4",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/rust-lang/socket2",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "sorted-vec",
+   "version": "0.8.10",
+   "license": "Apache-2.0",
+   "url": "https://gitlab.com/spearman/sorted-vec",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "spqr",
+   "version": "1.6.0",
+   "license": "AGPL-3.0-only",
+   "url": null,
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "static_assertions",
+   "version": "1.1.0",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/nvzqz/static-assertions-rs",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "strsim",
+   "version": "0.11.1",
+   "license": "MIT",
+   "url": "https://github.com/rapidfuzz/strsim-rs",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "strum",
+   "version": "0.28.0",
+   "license": "MIT",
+   "url": "https://github.com/Peternator7/strum",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "strum_macros",
+   "version": "0.28.0",
+   "license": "MIT",
+   "url": "https://github.com/Peternator7/strum",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "subtle",
+   "version": "2.6.1",
+   "license": "BSD-3-Clause",
+   "url": "https://github.com/dalek-cryptography/subtle",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "syn",
+   "version": "2.0.118",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/dtolnay/syn",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "syn-mid",
+   "version": "0.6.1",
+   "license": "Apache-2.0 OR MIT",
+   "url": "https://github.com/taiki-e/syn-mid",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "sync_wrapper",
+   "version": "1.0.2",
+   "license": "Apache-2.0",
+   "url": "https://github.com/Actyx/sync_wrapper",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "thiserror",
+   "version": "1.0.69",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/dtolnay/thiserror",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "thiserror",
+   "version": "2.0.18",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/dtolnay/thiserror",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "thiserror-impl",
+   "version": "2.0.18",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/dtolnay/thiserror",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "thiserror-impl",
+   "version": "1.0.69",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/dtolnay/thiserror",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "time",
+   "version": "0.3.53",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/time-rs/time",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "time-core",
+   "version": "0.1.9",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/time-rs/time",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "time-macros",
+   "version": "0.2.31",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/time-rs/time",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "tinyvec",
+   "version": "1.13.2",
+   "license": "Zlib OR Apache-2.0 OR MIT",
+   "url": "https://github.com/Lokathor/tinyvec",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "tinyvec_macros",
+   "version": "0.1.1",
+   "license": "MIT OR Apache-2.0 OR Zlib",
+   "url": "https://github.com/Soveu/tinyvec_macros",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "tokio",
+   "version": "1.52.3",
+   "license": "MIT",
+   "url": "https://github.com/tokio-rs/tokio",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "tokio-boring",
+   "version": "5.2.0",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/cloudflare/boring",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "tokio-macros",
+   "version": "2.7.0",
+   "license": "MIT",
+   "url": "https://github.com/tokio-rs/tokio",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "tokio-socks",
+   "version": "0.5.3",
+   "license": "MIT",
+   "url": "https://github.com/sticnarf/tokio-socks",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "tokio-stream",
+   "version": "0.1.18",
+   "license": "MIT",
+   "url": "https://github.com/tokio-rs/tokio",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "tokio-tungstenite",
+   "version": "0.29.0",
+   "license": "MIT",
+   "url": "https://github.com/snapview/tokio-tungstenite",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "tokio-util",
+   "version": "0.7.18",
+   "license": "MIT",
+   "url": "https://github.com/tokio-rs/tokio",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "toml_datetime",
+   "version": "1.1.1+spec-1.1.0",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/toml-rs/toml",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "toml_edit",
+   "version": "0.25.12+spec-1.1.0",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/toml-rs/toml",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "toml_parser",
+   "version": "1.1.2+spec-1.1.0",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/toml-rs/toml",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "tonic",
+   "version": "0.14.6",
+   "license": "MIT",
+   "url": "https://github.com/hyperium/tonic",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "tonic-prost",
+   "version": "0.14.6",
+   "license": "MIT",
+   "url": "https://github.com/hyperium/tonic",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "tower-layer",
+   "version": "0.3.3",
+   "license": "MIT",
+   "url": "https://github.com/tower-rs/tower",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "tower-service",
+   "version": "0.3.3",
+   "license": "MIT",
+   "url": "https://github.com/tower-rs/tower",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "tracing",
+   "version": "0.1.44",
+   "license": "MIT",
+   "url": "https://github.com/tokio-rs/tracing",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "tracing-attributes",
+   "version": "0.1.31",
+   "license": "MIT",
+   "url": "https://github.com/tokio-rs/tracing",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "tracing-core",
+   "version": "0.1.36",
+   "license": "MIT",
+   "url": "https://github.com/tokio-rs/tracing",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "try-lock",
+   "version": "0.2.5",
+   "license": "MIT",
+   "url": "https://github.com/seanmonstar/try-lock",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "tungstenite",
+   "version": "0.29.0",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/snapview/tungstenite-rs",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "typenum",
+   "version": "1.20.1",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/paholg/typenum",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "unicase",
+   "version": "2.9.0",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/seanmonstar/unicase",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "unicode-ident",
+   "version": "1.0.24",
+   "license": "(MIT OR Apache-2.0) AND Unicode-3.0",
+   "url": "https://github.com/dtolnay/unicode-ident",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "unicode-segmentation",
+   "version": "1.13.3",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/unicode-rs/unicode-segmentation",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "unicode-xid",
+   "version": "0.2.6",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/unicode-rs/unicode-xid",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "universal-hash",
+   "version": "0.6.1",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/RustCrypto/traits",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "universal-hash",
+   "version": "0.5.1",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/RustCrypto/traits",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "untrusted",
+   "version": "0.9.0",
+   "license": "ISC",
+   "url": "https://github.com/briansmith/untrusted",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "utf8parse",
+   "version": "0.2.2",
+   "license": "Apache-2.0 OR MIT",
+   "url": "https://github.com/alacritty/vte",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "uuid",
+   "version": "1.23.4",
+   "license": "Apache-2.0 OR MIT",
+   "url": "https://github.com/uuid-rs/uuid",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "visibility",
+   "version": "0.1.1",
+   "license": "Zlib OR MIT OR Apache-2.0",
+   "url": "https://github.com/danielhenrymantilla/visibility.rs",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "want",
+   "version": "0.3.1",
+   "license": "MIT",
+   "url": "https://github.com/seanmonstar/want",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "warp",
+   "version": "0.4.3",
+   "license": "MIT",
+   "url": "https://github.com/seanmonstar/warp",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "webpsan",
+   "version": "0.5.4",
+   "license": "MIT",
+   "url": "https://github.com/privacyresearchgroup/mp4san",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "winnow",
+   "version": "1.0.3",
+   "license": "MIT",
+   "url": "https://github.com/winnow-rs/winnow",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "x25519-dalek",
+   "version": "3.0.0",
+   "license": "BSD-3-Clause",
+   "url": "https://github.com/dalek-cryptography/curve25519-dalek/tree/main/x25519-dalek",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "zerocopy",
+   "version": "0.8.53",
+   "license": "BSD-2-Clause OR Apache-2.0 OR MIT",
+   "url": "https://github.com/google/zerocopy",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "zerocopy-derive",
+   "version": "0.8.53",
+   "license": "BSD-2-Clause OR Apache-2.0 OR MIT",
+   "url": "https://github.com/google/zerocopy",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "zeroize",
+   "version": "1.9.0",
+   "license": "Apache-2.0 OR MIT",
+   "url": "https://github.com/RustCrypto/utils",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "zeroize_derive",
+   "version": "1.5.0",
+   "license": "Apache-2.0 OR MIT",
+   "url": "https://github.com/RustCrypto/utils",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "zmij",
+   "version": "1.0.21",
+   "license": "MIT",
+   "url": "https://github.com/dtolnay/zmij",
+   "usedFor": "Signal (Rust)"
+  }
+ ]
+}

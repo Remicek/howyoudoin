@@ -1,0 +1,408 @@
+diff --git a/pkg/connector/connector.go b/pkg/connector/connector.go
+index 637daf7..e5d0da8 100644
+--- a/pkg/connector/connector.go
++++ b/pkg/connector/connector.go
+@@ -50,6 +50,7 @@ func (m *MetaConnector) Start(ctx context.Context) error {
+ 	if err != nil {
+ 		return bridgev2.DBUpgradeError{Err: err, Section: "meta"}
+ 	}
++	m.registerHistoryProvisioning()
+ 	return nil
+ }
+ 
+diff --git a/pkg/connector/handlemeta.go b/pkg/connector/handlemeta.go
+index c89357e..08e7320 100644
+--- a/pkg/connector/handlemeta.go
++++ b/pkg/connector/handlemeta.go
+@@ -293,6 +293,7 @@ func (m *MetaClient) parseTable(ctx context.Context, tbl *table.LSTable) (innerQ
+ 			},
+ 		})
+ 	}
++	innerQueue = append(innerQueue, m.handleOpenToE2EEThreadLinks(ctx, tbl.LSCreateOpenToE2EEThreadLink)...)
+ 	params := threadMaps{
+ 		ctx:           ctx,
+ 		m:             m,
+diff --git a/pkg/connector/threadbackfill.go b/pkg/connector/threadbackfill.go
+index 7720584..5c2087b 100644
+--- a/pkg/connector/threadbackfill.go
++++ b/pkg/connector/threadbackfill.go
+@@ -26,8 +26,22 @@ func (m *MetaClient) StartThreadBackfill(ctx context.Context) error {
+ 	return m.runThreadBackfill(ctx)
+ }
+ 
++// threadSyncGroups are the conversation lists to page through: 1 is the regular inbox, 95 holds
++// end-to-end encrypted chats. Without 95 only the first page of encrypted chats is ever bridged.
++var threadSyncGroups = []int64{1, 95}
++
+ func (m *MetaClient) runThreadBackfill(ctx context.Context) error {
+-	log := zerolog.Ctx(ctx)
++	for _, syncGroup := range threadSyncGroups {
++		if err := m.runThreadBackfillForSyncGroup(ctx, syncGroup); err != nil {
++			return err
++		}
++	}
++	m.markBackfillComplete(ctx, m.LoginMeta)
++	return nil
++}
++
++func (m *MetaClient) runThreadBackfillForSyncGroup(ctx context.Context, syncGroup int64) error {
++	log := zerolog.Ctx(ctx).With().Int64("sync_group", syncGroup).Logger()
+ 	delay := m.Main.Config.ThreadBackfill.BatchDelay
+ 	batchLimit := m.Main.Config.ThreadBackfill.BatchCount
+ 	batchCount := 0
+@@ -38,14 +52,12 @@ func (m *MetaClient) runThreadBackfill(ctx context.Context) error {
+ 			return ctx.Err()
+ 		}
+ 
+-		// Fetch next batch of threads, TODO: other SyncGroups?
+-		keyStore, tbl, err := m.Client.FetchMoreThreads(ctx, 1) // SyncGroup 1
++		keyStore, tbl, err := m.Client.FetchMoreThreads(ctx, syncGroup)
+ 		if err != nil {
+ 			log.Err(err).Msg("Failed to fetch more threads")
+ 			return err
+ 		} else if tbl == nil {
+ 			log.Info().Int("batches_processed", batchCount).Msg("Thread backfill complete - no more threads")
+-			m.markBackfillComplete(ctx, m.LoginMeta)
+ 			return nil
+ 		}
+ 
+@@ -61,19 +73,16 @@ func (m *MetaClient) runThreadBackfill(ctx context.Context) error {
+ 				Int("batches_processed", batchCount).
+ 				Any("keystore", keyStore).
+ 				Msg("Thread backfill complete - fully paginated (has no more)")
+-			m.markBackfillComplete(ctx, m.LoginMeta)
+ 			return nil
+ 		} else if keyStore.MinThreadKey == prevMinThreadKey {
+ 			log.Info().
+ 				Int("batches_processed", batchCount).
+ 				Any("keystore", keyStore).
+ 				Msg("Thread backfill complete - fully paginated (thread key did not change)")
+-			m.markBackfillComplete(ctx, m.LoginMeta)
+ 			return nil
+ 		} else if batchLimit > 0 && batchCount >= batchLimit {
+ 			log.Info().Int("batched_processed", batchCount).
+ 				Msg("Thread backfill complete - hit batch count limit")
+-			m.markBackfillComplete(ctx, m.LoginMeta)
+ 			return nil
+ 		}
+ 
+diff --git a/pkg/messagix/syncManager.go b/pkg/messagix/syncManager.go
+index 9f3f045..5ce3035 100644
+--- a/pkg/messagix/syncManager.go
++++ b/pkg/messagix/syncManager.go
+@@ -222,6 +222,8 @@ func (sm *SyncManager) recursivelySyncSocketData(
+ 
+ func (sm *SyncManager) SyncDataGraphQL(ctx context.Context, dbs []int64) (*table.LSTable, error) {
+ 	var tableData *table.LSTable
++	var e2eeLinks []*table.LSCreateOpenToE2EEThreadLink
++	var hybridThreads []*table.LSVerifyHybridThreadExists
+ 	for _, db := range dbs {
+ 		database, ok := sm.store[db]
+ 		if !ok {
+@@ -245,12 +247,21 @@ func (sm *SyncManager) SyncDataGraphQL(ctx context.Context, dbs []int64) (*table
+ 
+ 		if db == 1 {
+ 			tableData = lsTable
++		} else {
++			// Only database 1's table is handled, but 95 is the only source of encrypted chats that were
++			// never regular Facebook threads; keep their thread mappings.
++			e2eeLinks = append(e2eeLinks, lsTable.LSCreateOpenToE2EEThreadLink...)
++			hybridThreads = append(hybridThreads, lsTable.LSVerifyHybridThreadExists...)
+ 		}
+ 		err = sm.updateSyncGroupCursors(lsTable)
+ 		if err != nil {
+ 			return nil, err
+ 		}
+ 	}
++	if tableData != nil {
++		tableData.LSCreateOpenToE2EEThreadLink = append(tableData.LSCreateOpenToE2EEThreadLink, e2eeLinks...)
++		tableData.LSVerifyHybridThreadExists = append(tableData.LSVerifyHybridThreadExists, hybridThreads...)
++	}
+ 
+ 	return tableData, nil
+ }
+diff --git a/pkg/messagix/table/table.go b/pkg/messagix/table/table.go
+index ead075b..43b6801 100644
+--- a/pkg/messagix/table/table.go
++++ b/pkg/messagix/table/table.go
+@@ -155,6 +155,7 @@ type LSTable struct {
+ 	LSRemoveOptimisticGroupThread                    []*LSRemoveOptimisticGroupThread                    `json:",omitempty"`
+ 	LSUpdateOrInsertEditMessageHistory               []*LSUpdateOrInsertEditMessageHistory               `json:",omitempty"`
+ 	LSVerifyHybridThreadExists                       []*LSVerifyHybridThreadExists                       `json:",omitempty"`
++	LSCreateOpenToE2EEThreadLink                     []*LSCreateOpenToE2EEThreadLink                     `json:",omitempty"`
+ 	LSUpdateThreadAuthorityAndMappingWithOTIDFromJID []*LSUpdateThreadAuthorityAndMappingWithOTIDFromJID `json:",omitempty"`
+ 	LSVerifyContactParticipantExist                  []*LSVerifyContactParticipantExist                  `json:",omitempty"`
+ 	LSVerifyCommunityMemberContextualProfileExists   []*LSVerifyCommunityMemberContextualProfileExists   `json:",omitempty"`
+@@ -328,6 +329,7 @@ var SPTable = map[string]string{
+ 	"removeOptimisticGroupThread":                    "LSRemoveOptimisticGroupThread",
+ 	"updateOrInsertEditMessageHistory":               "LSUpdateOrInsertEditMessageHistory",
+ 	"verifyHybridThreadExists":                       "LSVerifyHybridThreadExists",
++	"createOpenToE2EEThreadLink":                     "LSCreateOpenToE2EEThreadLink",
+ 	"updateThreadAuthorityAndMappingWithOTIDFromJID": "LSUpdateThreadAuthorityAndMappingWithOTIDFromJID",
+ 	"verifyContactParticipantExist":                  "LSVerifyContactParticipantExist",
+ 	"verifyCommunityMemberContextualProfileExists":   "LSVerifyCommunityMemberContextualProfileExists",
+diff --git a/pkg/messagix/table/threads.go b/pkg/messagix/table/threads.go
+index 615b36b..40b14da 100644
+--- a/pkg/messagix/table/threads.go
++++ b/pkg/messagix/table/threads.go
+@@ -728,6 +728,18 @@ func (ls *LSUpdateThreadMuteSetting) GetThreadKey() int64 {
+ 	return ls.ThreadKey
+ }
+ 
++// LSCreateOpenToE2EEThreadLink links a Facebook 1:1 thread to its end-to-end encrypted (WhatsApp-protocol)
++// counterpart. Sent in sync group 95; for chats that were encrypted from the start it's the only record of
++// the thread, so without it those chats are never bridged until a new message arrives.
++type LSCreateOpenToE2EEThreadLink struct {
++	ThreadKey               int64 `index:"0" json:",omitempty"`
++	ThreadJID               int64 `index:"1" json:",omitempty"`
++	IsOpen                  bool  `index:"2" json:",omitempty"`
++	LastActivityTimestampMS int64 `index:"3" json:",omitempty"`
++
++	Unrecognized map[int]any `json:",omitempty"`
++}
++
+ type LSVerifyHybridThreadExists struct {
+ 	ThreadKey                    int64      `index:"0" json:",omitempty"`
+ 	ThreadJID                    int64      `index:"1" json:",omitempty"`
+diff --git a/pkg/connector/history_provisioning.go b/pkg/connector/history_provisioning.go
+new file mode 100644
+index 0000000..dfe09f4
+--- /dev/null
++++ b/pkg/connector/history_provisioning.go
+@@ -0,0 +1,175 @@
++package connector
++
++// HowYouDoin addition: restore end-to-end encrypted Messenger history with the secure storage PIN at any time,
++// not only as the last login step. Exposed on the provisioning API:
++//
++//	GET  /_matrix/provision/v3/messenger/history          -> {"restored": bool, "backup_available": bool}
++//	POST /_matrix/provision/v3/messenger/history/restore  {"pin": "123456"}
++//
++// After a successful restore, existing encrypted chats get a fresh Matrix room so the initial backfill brings in
++// the decrypted history (homeservers without batch sending can't insert history into an existing room).
++
++import (
++	"context"
++	"encoding/json"
++	"errors"
++	"net/http"
++
++	"maunium.net/go/mautrix"
++	"maunium.net/go/mautrix/bridgev2"
++	"maunium.net/go/mautrix/bridgev2/matrix"
++	"maunium.net/go/mautrix/bridgev2/simplevent"
++
++	"go.mau.fi/mautrix-meta/pkg/messagix/httpclient"
++	"go.mau.fi/mautrix-meta/pkg/messagix/securehistory"
++	"go.mau.fi/mautrix-meta/pkg/messagix/types"
++	"go.mau.fi/mautrix-meta/pkg/metaid"
++)
++
++var (
++	errHistoryWrongPIN = mautrix.RespError{ErrCode: "FI.MAU.META.HISTORY_WRONG_PIN", Err: "Couldn't verify your PIN", StatusCode: http.StatusForbidden}
++	errHistoryPINLimit = mautrix.RespError{ErrCode: "FI.MAU.META.HISTORY_PIN_LIMIT", Err: "No PIN attempts remaining", StatusCode: http.StatusForbidden}
++	errHistoryNoBackup = mautrix.RespError{ErrCode: "FI.MAU.META.HISTORY_NO_BACKUP", Err: "This account has no PIN-protected history backup", StatusCode: http.StatusNotFound}
++	errHistoryInvalid  = mautrix.RespError{ErrCode: "M_INVALID_PARAM", Err: "Enter your six-digit PIN", StatusCode: http.StatusBadRequest}
++	errHistoryNotMeta  = mautrix.RespError{ErrCode: "M_BAD_STATE", Err: "Encrypted history is only available for Messenger logins", StatusCode: http.StatusBadRequest}
++	errHistoryRelogin  = mautrix.RespError{ErrCode: "FI.MAU.META.TOKEN_INVALIDATED", Err: "The Messenger session expired, sign in again", StatusCode: http.StatusUnauthorized}
++)
++
++func (m *MetaConnector) registerHistoryProvisioning() {
++	withProv, ok := m.Bridge.Matrix.(bridgev2.MatrixConnectorWithProvisioning)
++	if !ok {
++		return
++	}
++	prov, ok := withProv.GetProvisioning().(*matrix.ProvisioningAPI)
++	if !ok || prov == nil || prov.Router == nil {
++		return
++	}
++	prov.Router.HandleFunc("GET /v3/messenger/history", func(w http.ResponseWriter, r *http.Request) {
++		client := historyClientForRequest(prov, w, r)
++		if client == nil {
++			return
++		}
++		restored := client.canBackfillEncrypted()
++		available := restored
++		if !restored {
++			_, err := client.Client.GetSecureHistoryClient().GetBackup(r.Context())
++			if err != nil && !errors.Is(err, securehistory.ErrNoPINBackup) {
++				writeHistoryError(w, client, err, "Failed to check Messenger encrypted history")
++				return
++			}
++			available = err == nil
++		}
++		writeJSON(w, http.StatusOK, map[string]bool{"restored": restored, "backup_available": available})
++	})
++	prov.Router.HandleFunc("POST /v3/messenger/history/restore", func(w http.ResponseWriter, r *http.Request) {
++		client := historyClientForRequest(prov, w, r)
++		if client == nil {
++			return
++		}
++		var req struct {
++			PIN string `json:"pin"`
++		}
++		if err := json.NewDecoder(r.Body).Decode(&req); err != nil || !historyPINPattern.MatchString(req.PIN) {
++			errHistoryInvalid.Write(w)
++			return
++		}
++		pin := []byte(req.PIN)
++		req.PIN = ""
++		if !client.canBackfillEncrypted() {
++			if err := (&MessengerHistoryLogin{}).restoreHistory(r.Context(), client, pin); err != nil {
++				writeHistoryError(w, client, err, "Failed to restore Messenger encrypted history")
++				return
++			} else if !client.canBackfillEncrypted() {
++				writeHistoryError(w, client, errors.New("history enrollment is unconfirmed"), "Messenger history enrollment unconfirmed")
++				return
++			}
++		}
++		go client.rebuildEncryptedPortals(context.WithoutCancel(r.Context()))
++		writeJSON(w, http.StatusOK, map[string]bool{"restored": true})
++	})
++}
++
++func historyClientForRequest(prov *matrix.ProvisioningAPI, w http.ResponseWriter, r *http.Request) *MetaClient {
++	login := prov.GetLoginForRequest(w, r)
++	if login == nil {
++		return nil
++	}
++	client, ok := login.Client.(*MetaClient)
++	if !ok || !client.LoginMeta.Platform.IsMessenger() || client.Client == nil {
++		errHistoryNotMeta.Write(w)
++		return nil
++	}
++	return client
++}
++
++func writeHistoryError(w http.ResponseWriter, client *MetaClient, err error, message string) {
++	client.UserLogin.Log.Warn().Err(err).Msg(message)
++	var recoveryErr *securehistory.RecoveryError
++	switch {
++	case errors.Is(err, securehistory.ErrNoPINBackup):
++		errHistoryNoBackup.Write(w)
++	case errors.Is(err, types.ErrPleaseLogIn), errors.Is(err, httpclient.ErrTokenInvalidated):
++		errHistoryRelogin.Write(w)
++	case errors.As(err, &recoveryErr) && recoveryErr.AttemptsRemaining != nil:
++		if *recoveryErr.AttemptsRemaining == 0 {
++			errHistoryPINLimit.Write(w)
++		} else {
++			writeJSON(w, errHistoryWrongPIN.StatusCode, map[string]any{
++				"errcode":            errHistoryWrongPIN.ErrCode,
++				"error":              errHistoryWrongPIN.Err,
++				"attempts_remaining": *recoveryErr.AttemptsRemaining,
++			})
++		}
++	default:
++		mautrix.MUnknown.WithMessage("Couldn't restore encrypted history").Write(w)
++	}
++}
++
++func writeJSON(w http.ResponseWriter, status int, body any) {
++	w.Header().Set("Content-Type", "application/json")
++	w.WriteHeader(status)
++	_ = json.NewEncoder(w).Encode(body)
++}
++
++// rebuildEncryptedPortals gives every existing encrypted chat a new room; the portal (and its thread metadata)
++// is kept, so the resync recreates the room and its initial backfill reads the restored history.
++func (m *MetaClient) rebuildEncryptedPortals(ctx context.Context) {
++	log := m.UserLogin.Log.With().Str("action", "rebuild encrypted portals").Logger()
++	ctx = log.WithContext(ctx)
++	userPortals, err := m.Main.Bridge.DB.UserPortal.GetAllForLogin(ctx, m.UserLogin.UserLogin)
++	if err != nil {
++		log.Err(err).Msg("Failed to list portals")
++		return
++	}
++	rebuilt := 0
++	for _, userPortal := range userPortals {
++		portal, err := m.Main.Bridge.GetExistingPortalByKey(ctx, userPortal.Portal)
++		if err != nil {
++			log.Err(err).Msg("Failed to get portal")
++			continue
++		} else if portal == nil || portal.MXID == "" || !portal.Metadata.(*metaid.PortalMetadata).ThreadType.IsWhatsApp() {
++			continue
++		}
++		oldMXID := portal.MXID
++		if err = m.Main.Bridge.Bot.DeleteRoom(ctx, oldMXID, false); err != nil {
++			log.Err(err).Stringer("room_id", oldMXID).Msg("Failed to clean up old room")
++		}
++		if err = portal.RemoveMXID(ctx); err != nil {
++			log.Err(err).Stringer("room_id", oldMXID).Msg("Failed to detach old room")
++			continue
++		}
++		if err = m.Main.Bridge.DB.Message.DeleteInChunks(ctx, portal.PortalKey); err != nil {
++			log.Err(err).Stringer("room_id", oldMXID).Msg("Failed to forget old messages")
++		}
++		m.UserLogin.QueueRemoteEvent(&simplevent.ChatResync{
++			EventMeta: simplevent.EventMeta{
++				Type:         bridgev2.RemoteEventChatResync,
++				PortalKey:    portal.PortalKey,
++				CreatePortal: true,
++			},
++		})
++		rebuilt++
++		log.Debug().Stringer("old_room_id", oldMXID).Msg("Queued encrypted portal rebuild")
++	}
++	log.Info().Int("count", rebuilt).Msg("Rebuilding encrypted portals with restored history")
++}
+diff --git a/pkg/connector/opene2ee.go b/pkg/connector/opene2ee.go
+new file mode 100644
+index 0000000..407fe1c
+--- /dev/null
++++ b/pkg/connector/opene2ee.go
+@@ -0,0 +1,55 @@
++package connector
++
++import (
++	"context"
++	"strconv"
++	"time"
++
++	"github.com/rs/zerolog"
++	"go.mau.fi/whatsmeow/types"
++	"maunium.net/go/mautrix/bridgev2"
++	"maunium.net/go/mautrix/bridgev2/simplevent"
++
++	"go.mau.fi/mautrix-meta/pkg/messagix/table"
++)
++
++// handleOpenToE2EEThreadLinks persists the Facebook thread ↔ encrypted chat mapping from
++// LSCreateOpenToE2EEThreadLink and creates portals for encrypted DMs the bridge doesn't have yet.
++func (m *MetaClient) handleOpenToE2EEThreadLinks(ctx context.Context, links []*table.LSCreateOpenToE2EEThreadLink) []bridgev2.RemoteEvent {
++	if len(links) == 0 {
++		return nil
++	}
++	m.UserLogin.Log.Debug().Int("count", len(links)).Msg("Got open-to-E2EE thread links")
++	events := make([]bridgev2.RemoteEvent, 0, len(links))
++	for _, link := range links {
++		if link.ThreadKey == 0 || link.ThreadJID == 0 {
++			continue
++		}
++		log := m.UserLogin.Log.With().Int64("thread_key", link.ThreadKey).Int64("thread_jid", link.ThreadJID).Logger()
++		if err := m.Main.DB.PutHybridThreadMapping(ctx, m.UserLogin.ID, link.ThreadKey, link.ThreadJID, int64(table.ENCRYPTED_OVER_WA_ONE_TO_ONE)); err != nil {
++			log.Warn().Err(err).Msg("Failed to persist open-to-E2EE thread mapping")
++		}
++		portalKey := m.makeFBPortalKey(link.ThreadJID, table.ENCRYPTED_OVER_WA_ONE_TO_ONE)
++		if portal, err := m.Main.Bridge.GetExistingPortalByKey(ctx, portalKey); err != nil {
++			log.Warn().Err(err).Msg("Failed to check for existing encrypted portal")
++			continue
++		} else if portal != nil && portal.MXID != "" {
++			continue
++		}
++		jid := types.NewJID(strconv.FormatInt(link.ThreadJID, 10), types.MessengerServer)
++		log.Debug().Msg("Creating portal for encrypted DM from open-to-E2EE thread link")
++		events = append(events, &simplevent.ChatResync{
++			EventMeta: simplevent.EventMeta{
++				Type:         bridgev2.RemoteEventChatResync,
++				PortalKey:    portalKey,
++				CreatePortal: true,
++				LogContext: func(c zerolog.Context) zerolog.Context {
++					return c.Str("resync_reason", "open-to-E2EE thread link")
++				},
++			},
++			ChatInfo:        m.makeWADirectChatInfo(ctx, jid),
++			LatestMessageTS: time.UnixMilli(link.LastActivityTimestampMS),
++		})
++	}
++	return events
++}
