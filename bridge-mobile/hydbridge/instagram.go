@@ -231,3 +231,47 @@ func (ig *Instagram) emit(event map[string]any) {
 		ig.listener.OnEvent(string(data))
 	}
 }
+
+// RequestOlder loads a page of a thread's messages: the newest ones when beforeMessageID is empty (the inbox sync
+// carries none), otherwise those older than it. They arrive as message events, then a range event telling whether
+// there's more.
+func (ig *Instagram) RequestOlder(threadKey string, beforeMessageID string) error {
+	rawID, ok := ig.igThreadIDs.Load(threadKey)
+	if !ok {
+		return errors.New("unknown thread")
+	}
+	igID := rawID.(string)
+	ctx := context.Background()
+	var page *slidetypes.SlideMessages
+	if beforeMessageID == "" {
+		resp, err := ig.client.GetThread(ctx, slidetypes.MakeGetThreadInfoRequest(igID))
+		if err != nil {
+			return fmt.Errorf("failed to load the thread: %w", err)
+		}
+		if thread := resp.ThreadInfo.AsIGDirectThread; thread != nil {
+			page = thread.SlideMessages
+		}
+	} else {
+		resp, err := ig.client.PaginateMessages(ctx, &slidetypes.PaginateMessagesRequest{
+			OlderThanMessageID:      &beforeMessageID,
+			ThreadID:                igID,
+			FirstN:                  instagramPageSize,
+			InitialMessagePageCount: instagramPageSize,
+		})
+		if err != nil {
+			return fmt.Errorf("failed to load older messages: %w", err)
+		}
+		page = resp.ThreadInfo.AsIGDirectThread.Messages
+	}
+	hasMore := false
+	if page != nil {
+		for _, edge := range page.Edges {
+			ig.emitMessage(threadKey, edge.Node)
+		}
+		hasMore = page.PageInfo.HasNextPage
+	}
+	ig.emit(map[string]any{"type": "range", "threadKey": threadKey, "hasMoreBefore": hasMore})
+	return nil
+}
+
+const instagramPageSize = 20

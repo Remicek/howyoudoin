@@ -333,7 +333,9 @@ class IosInstagramFactory : NativeMessengerFactory {
             }
             override fun sendText(threadKey: String, text: String) = call("sendText", "threadKey" to threadKey, "text" to text)
             override fun sendEncryptedText(threadKey: String, isGroup: Boolean, text: String): String = unsupported()
-            override fun requestOlder(threadKey: String, beforeTimestampMs: Long, beforeMessageId: String) = unsupported()
+            override fun requestOlder(threadKey: String, beforeTimestampMs: Long, beforeMessageId: String) {
+                call("requestOlder", "threadKey" to threadKey, "beforeMessageId" to beforeMessageId)
+            }
             override fun historyStatus(): String = unsupported()
             override fun restoreHistory(pin: String) = unsupported()
             override fun fetchEncryptedHistory(threadKey: String, isGroup: Boolean, beforeTimestampMs: Long, count: Long) = unsupported()

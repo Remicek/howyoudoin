@@ -158,6 +158,8 @@ func callInstagram(ig *hydbridge.Instagram, name string, a callArgs) (result str
 		ig.Disconnect()
 	case "sendText":
 		result, err = ig.SendText(a.ThreadKey, a.Text)
+	case "requestOlder":
+		err = ig.RequestOlder(a.ThreadKey, a.BeforeMessageID)
 	default:
 		err = fmt.Errorf("%q isn't supported for Instagram yet", name)
 	}
