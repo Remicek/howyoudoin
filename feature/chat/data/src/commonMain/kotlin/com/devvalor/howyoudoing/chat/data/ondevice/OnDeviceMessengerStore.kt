@@ -490,6 +490,8 @@ class OnDeviceMessengerStore(
         const val MESSENGER_CHAT_ID_PREFIX = "fbdevice:"
         const val WHATSAPP_CHAT_ID_PREFIX = "wadevice:"
         const val INSTAGRAM_CHAT_ID_PREFIX = "igdevice:"
+        const val TELEGRAM_CHAT_ID_PREFIX = "tgdevice:"
+        const val SIGNAL_CHAT_ID_PREFIX = "sgdevice:"
         private const val CACHE_WRITE_DELAY_MILLIS = 2_000L
         private val cacheJson = Json { ignoreUnknownKeys = true }
         private val MEDIA_TYPES = setOf(MessageType.IMAGE, MessageType.VIDEO, MessageType.AUDIO, MessageType.FILE, MessageType.STICKER)

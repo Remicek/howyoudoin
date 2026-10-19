@@ -12,6 +12,11 @@ import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceInstagram
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceMessenger
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceMessengerState
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceWhatsApp
+import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceLinkedAccount
+import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceLoginPrompt
+import com.devvalor.howyoudoing.core.domain.ondevice.OnDevicePairing
+import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceSignal
+import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceTelegram
 import com.devvalor.howyoudoing.core.presentation.util.UiText
 import com.devvalor.howyoudoing.networks.domain.DisplayType
 import com.devvalor.howyoudoing.networks.domain.LoginInputField
@@ -43,10 +48,14 @@ class ConnectNetworkViewModel(
     developerOptions: DeveloperOptions,
     private val onDeviceMessenger: OnDeviceMessenger,
     private val onDeviceWhatsApp: OnDeviceWhatsApp,
-    private val onDeviceInstagram: OnDeviceInstagram
+    private val onDeviceInstagram: OnDeviceInstagram,
+    private val onDeviceTelegram: OnDeviceTelegram,
+    private val onDeviceSignal: OnDeviceSignal
 ) : ViewModel() {
 
     private var pairingJob: Job? = null
+    /** The account being linked (WhatsApp, Telegram or Signal), while it is. */
+    private var linkingAccount: OnDeviceLinkedAccount? = null
 
     private val route = savedStateHandle.toRoute<NetworksRoutes.Connect>()
     private val network = ChatNetwork.valueOf(route.network)
@@ -82,8 +91,12 @@ class ConnectNetworkViewModel(
             }
             is ConnectNetworkAction.OnFlowClick -> when (action.flowId) {
                 ON_DEVICE_FLOW_ID -> showStep(if (network == ChatNetwork.INSTAGRAM) onDeviceInstagramCookiesStep() else onDeviceCookiesStep())
-                ON_DEVICE_WHATSAPP_QR_FLOW_ID -> linkWhatsAppOnDevice(phoneNumber = null)
-                ON_DEVICE_WHATSAPP_CODE_FLOW_ID -> showStep(onDeviceWhatsAppPhoneStep())
+                ON_DEVICE_WHATSAPP_QR_FLOW_ID -> linkAccountOnDevice(onDeviceWhatsApp, phoneNumber = null)
+                ON_DEVICE_WHATSAPP_CODE_FLOW_ID -> showStep(onDevicePhoneStep(ON_DEVICE_WHATSAPP_CODE_FLOW_ID, ""))
+                ON_DEVICE_TELEGRAM_FLOW_ID -> showStep(
+                    onDevicePhoneStep(ON_DEVICE_TELEGRAM_FLOW_ID, "Enter the phone number of your Telegram account. Telegram sends you a login code.")
+                )
+                ON_DEVICE_SIGNAL_FLOW_ID -> linkAccountOnDevice(onDeviceSignal, phoneNumber = null)
                 else -> runStep { bridgeRepository.startLogin(network, action.flowId) }
             }
             is ConnectNetworkAction.OnInputChange -> onInputChange(action.fieldId, action.value)
@@ -139,8 +152,12 @@ class ConnectNetworkViewModel(
     private fun submitInput() {
         val step = (state.value.phase as? ConnectPhase.Step)?.step as? BridgeLoginStep.UserInput ?: return
         if (!state.value.canSubmitInput) return
-        if (step.loginId == ON_DEVICE_WHATSAPP_CODE_FLOW_ID) {
-            return linkWhatsAppOnDevice(step.fields.firstOrNull()?.let { state.value.submittedValue(it) })
+        when (step.loginId) {
+            ON_DEVICE_WHATSAPP_CODE_FLOW_ID ->
+                return linkAccountOnDevice(onDeviceWhatsApp, step.fields.firstOrNull()?.let { state.value.submittedValue(it) })
+            ON_DEVICE_TELEGRAM_FLOW_ID ->
+                return linkAccountOnDevice(onDeviceTelegram, step.fields.firstOrNull()?.let { state.value.submittedValue(it) })
+            ON_DEVICE_PROMPT_FLOW_ID -> return submitPromptAnswer(step)
         }
         val values = step.fields.associate { it.id to state.value.submittedValue(it) }
         runStep { bridgeRepository.submitUserInput(network, step, values) }
@@ -265,6 +282,20 @@ class ConnectNetworkViewModel(
                 description = "Log in on instagram.com; your direct messages connect from this phone."
             )
         )
+        network == ChatNetwork.TELEGRAM && onDeviceTelegram.isSupported -> listOf(
+            BridgeLoginFlow(
+                id = ON_DEVICE_TELEGRAM_FLOW_ID,
+                name = "On this device",
+                description = "Log in with your phone number; chats connect from this phone."
+            )
+        )
+        network == ChatNetwork.SIGNAL && onDeviceSignal.isSupported -> listOf(
+            BridgeLoginFlow(
+                id = ON_DEVICE_SIGNAL_FLOW_ID,
+                name = "On this device",
+                description = "Link this app as a Signal device by scanning a QR code."
+            )
+        )
         network == ChatNetwork.WHATSAPP && onDeviceWhatsApp.isSupported -> listOf(
             BridgeLoginFlow(
                 id = ON_DEVICE_WHATSAPP_QR_FLOW_ID,
@@ -280,50 +311,41 @@ class ConnectNetworkViewModel(
         else -> emptyList()
     }
 
-    private fun onDeviceWhatsAppPhoneStep() = BridgeLoginStep.UserInput(
-        loginId = ON_DEVICE_WHATSAPP_CODE_FLOW_ID,
-        stepId = "on-device-whatsapp-phone",
-        instructions = "",
+    private fun onDevicePhoneStep(flowId: String, instructions: String) = BridgeLoginStep.UserInput(
+        loginId = flowId,
+        stepId = "on-device-phone",
+        instructions = instructions,
         fields = listOf(LoginInputField(id = "phone", name = "Phone number", description = "", type = InputFieldType.PHONE_NUMBER))
     )
 
     /**
-     * Links WhatsApp on this phone: shows the QR codes (or the pairing code) the native client produces until the
-     * phone confirms, then the connected account.
+     * Links an account on this phone: shows the QR codes or pairing code the native client produces, or asks for
+     * what it prompts for (Telegram's login code and password), until it's connected.
      */
-    private fun linkWhatsAppOnDevice(phoneNumber: String?) {
+    private fun linkAccountOnDevice(account: OnDeviceLinkedAccount, phoneNumber: String?) {
         stepJob?.cancel()
         pairingJob?.cancel()
+        linkingAccount = account
         stepJob = viewModelScope.launch {
             _state.update { it.copy(isSubmitting = true, error = null) }
-            val result = onDeviceWhatsApp.startLinking(phoneNumber)
+            val result = account.startLinking(phoneNumber)
             if (result is Result.Failure) {
-                _state.update { it.copy(isSubmitting = false, error = result.error.toUiText()) }
+                val message = (account.state.value as? OnDeviceMessengerState.Failed)?.message
+                _state.update { it.copy(isSubmitting = false, error = message?.let(UiText::DynamicString) ?: result.error.toUiText()) }
                 return@launch
             }
             pairingJob = viewModelScope.launch {
                 launch {
-                    onDeviceWhatsApp.pairing.collect { pairing ->
+                    account.pairing.collect { pairing ->
                         pairing ?: return@collect
-                        showStep(
-                            BridgeLoginStep.DisplayAndWait(
-                                loginId = ON_DEVICE_WHATSAPP_QR_FLOW_ID,
-                                stepId = "on-device-whatsapp-pairing",
-                                instructions = if (pairing.pairingCode != null) {
-                                    "On your phone open WhatsApp → Linked devices → Link a device → Link with phone number instead, and enter this code."
-                                } else {
-                                    "On your phone open WhatsApp → Linked devices → Link a device, and scan this code."
-                                },
-                                displayType = if (pairing.pairingCode != null) DisplayType.CODE else DisplayType.QR,
-                                data = pairing.pairingCode ?: pairing.qrCode
-                            )
-                        )
+                        showStep(pairingStep(account, pairing))
                     }
                 }
-                onDeviceWhatsApp.state.collect { linkState ->
+                account.state.collect { linkState ->
                     when (linkState) {
                         is OnDeviceMessengerState.Connected -> {
                             _state.update { it.copy(phase = ConnectPhase.Connected(linkState.accountName), isSubmitting = false) }
+                            linkingAccount = null
                             pairingJob?.cancel()
                         }
                         is OnDeviceMessengerState.Failed -> _state.update {
@@ -336,11 +358,71 @@ class ConnectNetworkViewModel(
         }
     }
 
+    private fun pairingStep(account: OnDeviceLinkedAccount, pairing: OnDevicePairing): BridgeLoginStep {
+        val prompt = pairing.prompt
+        if (prompt != null) {
+            val isCode = prompt.kind == OnDeviceLoginPrompt.Kind.CODE
+            val instructions = when {
+                isCode && prompt.isRetry -> "That code didn't work. Check it and try again."
+                isCode -> when (prompt.detail) {
+                    "app" -> "Telegram sent a login code to your Telegram app (in the chat from \"Telegram\")."
+                    "sms" -> "Telegram sent a login code by SMS."
+                    "email" -> "Telegram sent a login code to your email."
+                    else -> "Enter the login code Telegram sent you."
+                }
+                prompt.isRetry -> "Wrong password, try again."
+                else -> "Your account has two-step verification. Enter its password" +
+                    (prompt.detail?.let { " (hint: $it)" } ?: "") + "."
+            }
+            return BridgeLoginStep.UserInput(
+                loginId = ON_DEVICE_PROMPT_FLOW_ID,
+                stepId = if (isCode) "on-device-code" else "on-device-password",
+                instructions = instructions,
+                fields = listOf(
+                    if (isCode) LoginInputField(id = "code", name = "Login code", description = "", type = InputFieldType.TWO_FACTOR_CODE)
+                    else LoginInputField(id = "password", name = "Password", description = "", type = InputFieldType.PASSWORD)
+                )
+            )
+        }
+        val instructions = when {
+            account.network == ChatNetwork.SIGNAL ->
+                "On your phone open Signal → Settings → Linked devices → Link new device, and scan this code."
+            pairing.pairingCode != null ->
+                "On your phone open WhatsApp → Linked devices → Link a device → Link with phone number instead, and enter this code."
+            else -> "On your phone open WhatsApp → Linked devices → Link a device, and scan this code."
+        }
+        return BridgeLoginStep.DisplayAndWait(
+            loginId = ON_DEVICE_WHATSAPP_QR_FLOW_ID,
+            stepId = "on-device-pairing",
+            instructions = instructions,
+            displayType = if (pairing.pairingCode != null) DisplayType.CODE else DisplayType.QR,
+            data = pairing.pairingCode ?: pairing.qrCode
+        )
+    }
+
+    private fun submitPromptAnswer(step: BridgeLoginStep.UserInput) {
+        val account = linkingAccount ?: return
+        val value = step.fields.firstOrNull()?.let { state.value.submittedValue(it) } ?: return
+        stepJob?.cancel()
+        stepJob = viewModelScope.launch {
+            _state.update { it.copy(isSubmitting = true, error = null) }
+            if (account.submitLinkingInput(value) is Result.Failure) {
+                val message = (account.state.value as? OnDeviceMessengerState.Failed)?.message ?: "Couldn't log in, try again"
+                _state.update { it.copy(isSubmitting = false, error = UiText.DynamicString(message)) }
+            } else {
+                // The next prompt (or being connected) was announced before the call returned; a repeated wrong
+                // answer re-announces the same prompt, which the pairing flow doesn't repeat
+                _state.update { it.copy(isSubmitting = false) }
+            }
+        }
+    }
+
     override fun onCleared() {
         // Leaving the screen mid-linking stops showing codes; an already linked device stays connected.
         // viewModelScope is already cancelled here, so pairingJob only tells whether linking started.
-        if (pairingJob != null && onDeviceWhatsApp.state.value !is OnDeviceMessengerState.Connected) {
-            CoroutineScope(Dispatchers.Default).launch { onDeviceWhatsApp.cancelLinking() }
+        val account = linkingAccount
+        if (pairingJob != null && account != null && account.state.value !is OnDeviceMessengerState.Connected) {
+            CoroutineScope(Dispatchers.Default).launch { account.cancelLinking() }
         }
         super.onCleared()
     }
@@ -387,6 +469,10 @@ class ConnectNetworkViewModel(
         const val ON_DEVICE_FLOW_ID = "howyoudoin-on-device"
         const val ON_DEVICE_WHATSAPP_QR_FLOW_ID = "howyoudoin-on-device-whatsapp-qr"
         const val ON_DEVICE_WHATSAPP_CODE_FLOW_ID = "howyoudoin-on-device-whatsapp-code"
+        const val ON_DEVICE_TELEGRAM_FLOW_ID = "howyoudoin-on-device-telegram"
+        const val ON_DEVICE_SIGNAL_FLOW_ID = "howyoudoin-on-device-signal"
+        /** Answers to what a linking client asks for (Telegram's login code and password). */
+        const val ON_DEVICE_PROMPT_FLOW_ID = "howyoudoin-on-device-prompt"
     }
 }
 

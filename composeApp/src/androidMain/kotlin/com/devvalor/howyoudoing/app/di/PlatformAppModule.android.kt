@@ -13,6 +13,15 @@ import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceInstagram
 import com.devvalor.howyoudoing.app.ondevice.NativeOnDeviceInstagram
 import com.devvalor.howyoudoing.app.ondevice.AndroidInstagramFactory
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceWhatsApp
+import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceSignal
+import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceTelegram
+import com.devvalor.howyoudoing.app.BuildConfig
+import com.devvalor.howyoudoing.app.ondevice.AndroidSignalFactory
+import com.devvalor.howyoudoing.app.ondevice.AndroidTelegramFactory
+import com.devvalor.howyoudoing.app.ondevice.NativeOnDeviceSignal
+import com.devvalor.howyoudoing.app.ondevice.NativeOnDeviceTelegram
+import com.devvalor.howyoudoing.chat.data.di.ON_DEVICE_SIGNAL_CACHE
+import com.devvalor.howyoudoing.chat.data.di.ON_DEVICE_TELEGRAM_CACHE
 import org.koin.core.qualifier.named
 import com.devvalor.howyoudoing.app.ondevice.AndroidWhatsAppFactory
 import com.devvalor.howyoudoing.app.ondevice.NativeOnDeviceWhatsApp
@@ -30,8 +39,10 @@ actual val platformAppModule: Module = module {
     single(createdAtStart = true) {
         OnDeviceConnectionKeeper(
             context = androidContext(),
-            clients = listOf(get<OnDeviceMessenger>(), get<OnDeviceWhatsApp>(), get<OnDeviceInstagram>()),
-            whatsApp = get(),
+            clients = listOf(
+                get<OnDeviceMessenger>(), get<OnDeviceWhatsApp>(), get<OnDeviceInstagram>(), get<OnDeviceTelegram>(), get<OnDeviceSignal>()
+            ),
+            linkedAccounts = listOf(get<OnDeviceWhatsApp>(), get<OnDeviceTelegram>(), get<OnDeviceSignal>()),
             scope = get()
         )
     }
@@ -48,6 +59,16 @@ actual val platformAppModule: Module = module {
     single<OnDeviceWhatsApp>(createdAtStart = true) {
         NativeOnDeviceWhatsApp(AndroidWhatsAppFactory(), AndroidDataDirectory(androidContext(), WHATSAPP_DIR), get())
     }
+    single<OnDeviceInboxCache>(named(ON_DEVICE_TELEGRAM_CACHE)) { AndroidInboxCache(androidContext(), TELEGRAM_DIR) }
+    single<OnDeviceTelegram>(createdAtStart = true) {
+        val factory = BuildConfig.TELEGRAM_API_ID.takeIf { it != 0L && BuildConfig.TELEGRAM_API_HASH.isNotEmpty() }
+            ?.let { AndroidTelegramFactory(it, BuildConfig.TELEGRAM_API_HASH) }
+        NativeOnDeviceTelegram(factory, AndroidDataDirectory(androidContext(), TELEGRAM_DIR), get())
+    }
+    single<OnDeviceInboxCache>(named(ON_DEVICE_SIGNAL_CACHE)) { AndroidInboxCache(androidContext(), SIGNAL_DIR) }
+    single<OnDeviceSignal>(createdAtStart = true) {
+        NativeOnDeviceSignal(AndroidSignalFactory(), AndroidDataDirectory(androidContext(), SIGNAL_DIR), get())
+    }
     single<OnDeviceInboxCache> { AndroidInboxCache(androidContext()) }
     single<OnDeviceMessenger>(createdAtStart = true) {
         NativeOnDeviceMessenger(
@@ -61,3 +82,5 @@ actual val platformAppModule: Module = module {
 
 private const val WHATSAPP_DIR = "on_device_whatsapp"
 private const val INSTAGRAM_DIR = "on_device_instagram"
+private const val TELEGRAM_DIR = "on_device_telegram"
+private const val SIGNAL_DIR = "on_device_signal"

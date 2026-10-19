@@ -107,7 +107,10 @@ class OnDeviceChatRepository(
         val oldest = store.oldestMessage(key)
         if (client.network == ChatNetwork.WHATSAPP) return loadWhatsAppHistory(route, oldest)
         val thread = store.thread(key)
-        if (thread?.isEncrypted == true) return loadEncryptedHistory(route, thread.isGroup, oldest?.timestampMs)
+        // Messenger's encrypted chats load history from its PIN-protected backup; other networks page as usual
+        if (thread?.isEncrypted == true && client.network == ChatNetwork.MESSENGER) {
+            return loadEncryptedHistory(route, thread.isGroup, oldest?.timestampMs)
+        }
         val result = if (oldest == null) {
             // Nothing loaded for this chat yet: fetch the latest page
             client.requestOlder(key, Long.MAX_VALUE / 2, "")

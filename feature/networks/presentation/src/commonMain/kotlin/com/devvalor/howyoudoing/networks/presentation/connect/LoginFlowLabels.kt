@@ -42,6 +42,12 @@ object LoginFlowLabels {
             LoginFlowLabel("messenger-lite", "Email or phone & password via server bridge", "Sign in without a web page"),
             LoginFlowLabel("messenger-lite-android", "Email or phone & password (alternative)", "Use this if the first one is rejected"),
         ),
+        ChatNetwork.TELEGRAM to listOf(
+            LoginFlowLabel(ON_DEVICE_TELEGRAM, "Phone number", "Log in with a code Telegram sends you; chats connect from this phone", isRecommended = true),
+        ),
+        ChatNetwork.SIGNAL to listOf(
+            LoginFlowLabel(ON_DEVICE_SIGNAL, "QR code", "Link this app in Signal on your phone, like Signal Desktop", isRecommended = true),
+        ),
         ChatNetwork.INSTAGRAM to listOf(
             LoginFlowLabel(ON_DEVICE, "Instagram", "Log in on instagram.com; direct messages connect from this phone", isRecommended = true),
         ),
@@ -51,4 +57,6 @@ object LoginFlowLabels {
     private const val ON_DEVICE = "howyoudoin-on-device"
     private const val ON_DEVICE_WHATSAPP_QR = "howyoudoin-on-device-whatsapp-qr"
     private const val ON_DEVICE_WHATSAPP_CODE = "howyoudoin-on-device-whatsapp-code"
+    private const val ON_DEVICE_TELEGRAM = "howyoudoin-on-device-telegram"
+    private const val ON_DEVICE_SIGNAL = "howyoudoin-on-device-signal"
 }

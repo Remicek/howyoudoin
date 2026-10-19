@@ -97,32 +97,97 @@ class AndroidInboxCache(context: Context, directory: String = "on_device_messeng
 }
 
 /** hydbridge's WhatsApp client from the gomobile AAR. */
-class AndroidWhatsAppFactory : NativeWhatsAppFactory {
-    override fun create(dataDir: String, onEvent: (String) -> Unit): NativeWhatsAppClient {
-        val listener = object : Listener {
-            override fun onEvent(json: String) = onEvent(json)
-        }
-        val w = Hydbridge.newWhatsApp(dataDir, listener)
-        return object : NativeWhatsAppClient {
+class AndroidWhatsAppFactory : NativeLinkedClientFactory {
+    override fun create(dataDir: String, onEvent: (String) -> Unit): NativeLinkedClient {
+        val w = Hydbridge.newWhatsApp(dataDir, listener(onEvent))
+        return object : NativeLinkedClient {
             override fun isLinked() = w.isLinked
-            override fun connect(phoneNumber: String) = w.connect(phoneNumber)
+            override fun connect() = w.connect("")
+            // A phone number asks for a pairing code, none for QR codes
+            override fun startLinking(phoneNumber: String) = w.connect(phoneNumber)
+            override fun cancelLinking() = w.disconnect()
             override fun disconnect() = w.disconnect()
             override fun logout() = w.logout()
-            override fun sendText(chatJid: String, text: String): String = w.sendText(chatJid, text)
-            override fun sendReaction(chatJid: String, messageId: String, senderJid: String, emoji: String) =
-                w.sendReaction(chatJid, messageId, senderJid, emoji)
-            override fun markRead(chatJid: String, messageId: String, senderJid: String) = w.markRead(chatJid, messageId, senderJid)
-            override fun setTyping(chatJid: String, isTyping: Boolean) = w.setTyping(chatJid, isTyping)
-            override fun requestHistory(chatJid: String, oldestMessageId: String, oldestIsOutgoing: Boolean, oldestTimestampMs: Long, count: Long) =
-                w.requestHistory(chatJid, oldestMessageId, oldestIsOutgoing, oldestTimestampMs, count)
+            override fun sendText(chat: String, text: String): String = w.sendText(chat, text)
+            override fun sendReaction(chat: String, messageId: String, senderId: String, emoji: String) =
+                w.sendReaction(chat, messageId, senderId, emoji)
+            override fun markRead(chat: String, messageId: String, senderId: String) = w.markRead(chat, messageId, senderId)
+            override fun setTyping(chat: String, isTyping: Boolean) = w.setTyping(chat, isTyping)
+            // Older messages come from the user's own phone as an on-demand history sync
+            override fun requestOlder(chat: String, beforeMessageId: String, beforeIsOutgoing: Boolean, beforeTimestampMs: Long) =
+                w.requestHistory(chat, beforeMessageId, beforeIsOutgoing, beforeTimestampMs, WHATSAPP_HISTORY_PAGE)
             override fun sendMediaFile(
-                chatJid: String, path: String, mimeType: String, fileName: String, caption: String, width: Long, height: Long
-            ): String = w.sendMediaFile(chatJid, path, mimeType, fileName, caption, width, height)
-            override fun downloadMedia(chatJid: String, messageId: String, mediaRef: String): String =
-                w.downloadMedia(chatJid, messageId, mediaRef)
-            override fun fetchAvatars(chatJids: String) = w.fetchAvatars(chatJids)
+                chat: String, path: String, mimeType: String, fileName: String, caption: String, width: Long, height: Long
+            ): String = w.sendMediaFile(chat, path, mimeType, fileName, caption, width, height)
+            override fun downloadMedia(chat: String, messageId: String, mediaRef: String): String = w.downloadMedia(chat, messageId, mediaRef)
+            override fun fetchAvatars(chats: String) = w.fetchAvatars(chats)
         }
     }
+
+    private companion object {
+        const val WHATSAPP_HISTORY_PAGE = 50L
+    }
+}
+
+/** hydbridge's Telegram client; [apiId] and [apiHash] are the app's credentials from my.telegram.org. */
+class AndroidTelegramFactory(private val apiId: Long, private val apiHash: String) : NativeLinkedClientFactory {
+    override fun create(dataDir: String, onEvent: (String) -> Unit): NativeLinkedClient {
+        val t = Hydbridge.newTelegram(apiId, apiHash, dataDir, listener(onEvent))
+        return object : NativeLinkedClient {
+            override fun isLinked() = t.isLoggedIn
+            override fun connect() = t.connect()
+            override fun startLinking(phoneNumber: String) = t.startLogin(phoneNumber)
+            override fun submitCode(code: String) = t.submitCode(code)
+            override fun submitPassword(password: String) = t.submitPassword(password)
+            override fun cancelLinking() {
+                if (!t.isLoggedIn) t.disconnect()
+            }
+            override fun disconnect() = t.disconnect()
+            override fun logout() = t.logout()
+            override fun sendText(chat: String, text: String): String = t.sendText(chat, text)
+            override fun sendReaction(chat: String, messageId: String, senderId: String, emoji: String) =
+                t.sendReaction(chat, messageId, emoji)
+            override fun markRead(chat: String, messageId: String, senderId: String) = t.markRead(chat, messageId)
+            override fun setTyping(chat: String, isTyping: Boolean) = t.setTyping(chat, isTyping)
+            override fun requestOlder(chat: String, beforeMessageId: String, beforeIsOutgoing: Boolean, beforeTimestampMs: Long) =
+                t.requestOlder(chat, beforeMessageId)
+            override fun sendMediaFile(
+                chat: String, path: String, mimeType: String, fileName: String, caption: String, width: Long, height: Long
+            ): String = t.sendMediaFile(chat, path, mimeType, fileName, caption, width, height)
+            override fun downloadMedia(chat: String, messageId: String, mediaRef: String): String = t.downloadMedia(chat, messageId, mediaRef)
+            override fun fetchAvatars(chats: String) = t.fetchAvatars(chats)
+        }
+    }
+}
+
+/** hydbridge's Signal client (linked as a secondary device). */
+class AndroidSignalFactory : NativeLinkedClientFactory {
+    override fun create(dataDir: String, onEvent: (String) -> Unit): NativeLinkedClient {
+        val s = Hydbridge.newSignal(dataDir, listener(onEvent))
+        return object : NativeLinkedClient {
+            override fun isLinked() = s.isLinked
+            override fun connect() = s.connect()
+            override fun startLinking(phoneNumber: String) = s.link()
+            override fun cancelLinking() = s.cancelLink()
+            override fun disconnect() = s.disconnect()
+            override fun logout() = s.logout()
+            override fun sendText(chat: String, text: String): String = s.sendText(chat, text)
+            override fun sendReaction(chat: String, messageId: String, senderId: String, emoji: String) =
+                s.sendReaction(chat, messageId, emoji)
+            override fun markRead(chat: String, messageId: String, senderId: String) = s.markRead(chat, messageId)
+            override fun setTyping(chat: String, isTyping: Boolean) = s.setTyping(chat, isTyping)
+            override fun requestOlder(chat: String, beforeMessageId: String, beforeIsOutgoing: Boolean, beforeTimestampMs: Long) =
+                s.requestOlder(chat, beforeTimestampMs)
+            override fun sendMediaFile(
+                chat: String, path: String, mimeType: String, fileName: String, caption: String, width: Long, height: Long
+            ): String = s.sendMediaFile(chat, path, mimeType, fileName, caption, width, height)
+            override fun downloadMedia(chat: String, messageId: String, mediaRef: String): String = s.downloadMedia(chat, messageId, mediaRef)
+        }
+    }
+}
+
+private fun listener(onEvent: (String) -> Unit) = object : Listener {
+    override fun onEvent(json: String) = onEvent(json)
 }
 
 /** hydbridge's Instagram client from the gomobile AAR; only connecting and text are wired so far. */

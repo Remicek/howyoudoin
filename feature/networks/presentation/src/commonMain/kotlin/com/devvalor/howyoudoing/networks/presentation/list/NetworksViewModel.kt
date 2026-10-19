@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceInstagram
+import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceSignal
+import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceTelegram
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceMessenger
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceWhatsApp
 import com.devvalor.howyoudoing.core.domain.util.Result
@@ -27,10 +29,13 @@ class NetworksViewModel(
     onboardingRepository: OnboardingRepository,
     onDeviceMessenger: OnDeviceMessenger,
     onDeviceWhatsApp: OnDeviceWhatsApp,
-    onDeviceInstagram: OnDeviceInstagram
+    onDeviceInstagram: OnDeviceInstagram,
+    onDeviceTelegram: OnDeviceTelegram,
+    onDeviceSignal: OnDeviceSignal
 ) : ViewModel() {
 
-    private val onDeviceClients = listOf(onDeviceMessenger, onDeviceWhatsApp, onDeviceInstagram).associateBy { it.network }
+    private val onDeviceClients =
+        listOf(onDeviceMessenger, onDeviceWhatsApp, onDeviceInstagram, onDeviceTelegram, onDeviceSignal).associateBy { it.network }
 
     private val eventChannel = Channel<NetworksEvent>()
     val events = eventChannel.receiveAsFlow()

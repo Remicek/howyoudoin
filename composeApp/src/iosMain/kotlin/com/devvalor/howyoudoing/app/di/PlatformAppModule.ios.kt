@@ -12,6 +12,12 @@ import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceInstagram
 import com.devvalor.howyoudoing.app.ondevice.NativeOnDeviceInstagram
 import com.devvalor.howyoudoing.app.ondevice.IosInstagramFactory
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceWhatsApp
+import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceSignal
+import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceTelegram
+import com.devvalor.howyoudoing.core.domain.ondevice.UnsupportedOnDeviceSignal
+import com.devvalor.howyoudoing.core.domain.ondevice.UnsupportedOnDeviceTelegram
+import com.devvalor.howyoudoing.chat.data.di.ON_DEVICE_SIGNAL_CACHE
+import com.devvalor.howyoudoing.chat.data.di.ON_DEVICE_TELEGRAM_CACHE
 import org.koin.core.qualifier.named
 import com.devvalor.howyoudoing.app.ondevice.IosWhatsAppFactory
 import com.devvalor.howyoudoing.app.ondevice.NativeOnDeviceWhatsApp
@@ -33,6 +39,11 @@ actual val platformAppModule: Module = module {
     single<OnDeviceWhatsApp>(createdAtStart = true) {
         NativeOnDeviceWhatsApp(IosWhatsAppFactory(), IosDataDirectory(WHATSAPP_DIR), get())
     }
+    // Telegram and Signal aren't built for iOS yet
+    single<OnDeviceTelegram> { UnsupportedOnDeviceTelegram }
+    single<OnDeviceSignal> { UnsupportedOnDeviceSignal }
+    single<OnDeviceInboxCache>(named(ON_DEVICE_TELEGRAM_CACHE)) { IosInboxCache("on_device_telegram") }
+    single<OnDeviceInboxCache>(named(ON_DEVICE_SIGNAL_CACHE)) { IosInboxCache("on_device_signal") }
     single<OnDeviceInboxCache> { IosInboxCache() }
     single<OnDeviceMessenger>(createdAtStart = true) {
         NativeOnDeviceMessenger(

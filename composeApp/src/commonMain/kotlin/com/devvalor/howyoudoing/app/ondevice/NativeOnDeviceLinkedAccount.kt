@@ -1,9 +1,14 @@
 package com.devvalor.howyoudoing.app.ondevice
 
+import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceHistoryError
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceHistoryStatus
+import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceLinkedAccount
+import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceLoginPrompt
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceMessengerState
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDevicePairing
+import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceSignal
+import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceTelegram
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceWhatsApp
 import com.devvalor.howyoudoing.core.domain.util.DataError
 import com.devvalor.howyoudoing.core.domain.util.EmptyResult
@@ -26,37 +31,47 @@ import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 
-/** hydbridge's WhatsApp client as each platform's bindings expose it. Calls throw on failure. */
-interface NativeWhatsAppClient {
+/**
+ * One of hydbridge's linked-device clients (WhatsApp, Telegram, Signal) as each platform's bindings expose it.
+ * Calls throw on failure; what a network doesn't support throws too.
+ */
+interface NativeLinkedClient {
     fun isLinked(): Boolean
-    fun connect(phoneNumber: String)
+    /** Connects an existing login. */
+    fun connect()
+    /** Starts linking; what happens with the phone number depends on the network (see OnDeviceLinkedAccount). */
+    fun startLinking(phoneNumber: String)
+    fun submitCode(code: String): Unit = throw UnsupportedOperationException()
+    fun submitPassword(password: String): Unit = throw UnsupportedOperationException()
+    fun cancelLinking()
     fun disconnect()
     fun logout()
-    fun sendText(chatJid: String, text: String): String
-    fun sendReaction(chatJid: String, messageId: String, senderJid: String, emoji: String)
-    fun markRead(chatJid: String, messageId: String, senderJid: String)
-    fun setTyping(chatJid: String, isTyping: Boolean)
-    fun requestHistory(chatJid: String, oldestMessageId: String, oldestIsOutgoing: Boolean, oldestTimestampMs: Long, count: Long)
-    fun sendMediaFile(chatJid: String, path: String, mimeType: String, fileName: String, caption: String, width: Long, height: Long): String
+    fun sendText(chat: String, text: String): String
+    fun sendReaction(chat: String, messageId: String, senderId: String, emoji: String)
+    fun markRead(chat: String, messageId: String, senderId: String)
+    fun setTyping(chat: String, isTyping: Boolean)
+    /** Asks for messages older than the given one (newest page when [beforeMessageId] is empty). */
+    fun requestOlder(chat: String, beforeMessageId: String, beforeIsOutgoing: Boolean, beforeTimestampMs: Long)
+    fun sendMediaFile(chat: String, path: String, mimeType: String, fileName: String, caption: String, width: Long, height: Long): String
     /** Downloads media from a message event's mediaRef and returns the file's path. */
-    fun downloadMedia(chatJid: String, messageId: String, mediaRef: String): String
-    /** Queues profile pictures for these chats (comma-separated JIDs). */
-    fun fetchAvatars(chatJids: String)
+    fun downloadMedia(chat: String, messageId: String, mediaRef: String): String
+    /** Asks for these chats' pictures (comma-separated chat keys); they arrive as avatar events. */
+    fun fetchAvatars(chats: String) = Unit
 }
 
-fun interface NativeWhatsAppFactory {
-    fun create(dataDir: String, onEvent: (String) -> Unit): NativeWhatsAppClient
+fun interface NativeLinkedClientFactory {
+    fun create(dataDir: String, onEvent: (String) -> Unit): NativeLinkedClient
 }
 
-/** WhatsApp running in-process through hydbridge, shared by Android and iOS. */
-class NativeOnDeviceWhatsApp(
-    private val factory: NativeWhatsAppFactory,
+/** A linked-device network running in-process through hydbridge, shared by Android and iOS. */
+abstract class NativeOnDeviceLinkedAccount(
+    private val factory: NativeLinkedClientFactory?,
     private val dataDir: OnDeviceDataDirectory,
     scope: CoroutineScope
-) : OnDeviceWhatsApp {
+) : OnDeviceLinkedAccount {
 
     private val lock = Mutex()
-    private var client: NativeWhatsAppClient? = null
+    private var client: NativeLinkedClient? = null
 
     private val _state = MutableStateFlow<OnDeviceMessengerState>(OnDeviceMessengerState.NotLinked)
     override val state: StateFlow<OnDeviceMessengerState> = _state.asStateFlow()
@@ -67,19 +82,26 @@ class NativeOnDeviceWhatsApp(
     private val _events = MutableSharedFlow<String>(replay = EVENT_REPLAY, extraBufferCapacity = 256)
     override val events: Flow<String> = _events.asSharedFlow()
 
-    override val isSupported = true
+    /** False when the network's client isn't available (e.g. Telegram without API credentials in the build). */
+    override val isSupported = factory != null
+
+    private var accountName: String? = null
 
     init {
         scope.launch { connectIfLinked() }
     }
 
+    private fun createClient(): NativeLinkedClient =
+        client ?: factory!!.create(dataDir.path, ::onNativeEvent).also { client = it }
+
     override suspend fun connectIfLinked() {
+        if (factory == null) return
         lock.withLock {
             withContext(Dispatchers.IO) {
-                val current = client ?: runCatching { factory.create(dataDir.path, ::onNativeEvent) }.getOrNull()?.also { client = it }
+                val current = runCatching { createClient() }.getOrNull()
                 if (current == null || !current.isLinked()) return@withContext
                 _state.value = OnDeviceMessengerState.Connecting
-                runCatching { current.connect("") }.onFailure { failed(it) }
+                runCatching { current.connect() }.onFailure { failed(it) }
             }
         }
     }
@@ -87,12 +109,29 @@ class NativeOnDeviceWhatsApp(
     override suspend fun startLinking(phoneNumber: String?): EmptyResult<DataError.Remote> = lock.withLock {
         withContext(Dispatchers.IO) {
             try {
-                client?.disconnect()
+                client?.cancelLinking()
                 _pairing.value = null
                 _events.resetReplayCache()
-                val created = client ?: factory.create(dataDir.path, ::onNativeEvent).also { client = it }
+                val created = createClient()
                 _state.value = OnDeviceMessengerState.Connecting
-                created.connect(phoneNumber.orEmpty())
+                created.startLinking(phoneNumber.orEmpty())
+                Result.Success(Unit)
+            } catch (e: Exception) {
+                failed(e)
+                Result.Failure(DataError.Remote.UNKNOWN)
+            }
+        }
+    }
+
+    override suspend fun submitLinkingInput(value: String): EmptyResult<DataError.Remote> {
+        val prompt = _pairing.value?.prompt ?: return Result.Failure(DataError.Remote.BAD_REQUEST)
+        val current = client ?: return Result.Failure(DataError.Remote.SERVICE_UNAVAILABLE)
+        return withContext(Dispatchers.IO) {
+            try {
+                when (prompt.kind) {
+                    OnDeviceLoginPrompt.Kind.CODE -> current.submitCode(value)
+                    OnDeviceLoginPrompt.Kind.PASSWORD -> current.submitPassword(value)
+                }
                 Result.Success(Unit)
             } catch (e: Exception) {
                 failed(e)
@@ -103,7 +142,7 @@ class NativeOnDeviceWhatsApp(
 
     override suspend fun cancelLinking() {
         lock.withLock {
-            withContext(Dispatchers.IO) { client?.disconnect() }
+            withContext(Dispatchers.IO) { runCatching { client?.cancelLinking() } }
             _pairing.value = null
             if (_state.value !is OnDeviceMessengerState.Connected) _state.value = OnDeviceMessengerState.NotLinked
         }
@@ -116,11 +155,12 @@ class NativeOnDeviceWhatsApp(
             dataDir.clear()
             _events.resetReplayCache()
             _pairing.value = null
+            accountName = null
             _state.value = OnDeviceMessengerState.NotLinked
         }
     }
 
-    // WhatsApp links by pairing, not with web cookies
+    // These networks link by pairing or prompts, not with web cookies
     override suspend fun link(cookies: Map<String, String>): EmptyResult<DataError.Remote> = Result.Failure(DataError.Remote.BAD_REQUEST)
 
     override suspend fun sendText(threadKey: String, text: String, isEncrypted: Boolean, isGroup: Boolean): Result<String, DataError.Remote> =
@@ -156,11 +196,10 @@ class NativeOnDeviceWhatsApp(
     override suspend fun setTyping(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, isTyping: Boolean): EmptyResult<DataError.Remote> =
         native("Sending typing") { setTyping(threadKey, isTyping) }
 
-    // Older messages come from the user's own phone as an on-demand history sync
     override suspend fun requestOlder(
         threadKey: String, beforeTimestampMs: Long, beforeMessageId: String, beforeMessageIsOutgoing: Boolean
     ): EmptyResult<DataError.Remote> = native("Requesting history") {
-        requestHistory(threadKey, beforeMessageId, beforeMessageIsOutgoing, beforeTimestampMs, HISTORY_PAGE_SIZE)
+        requestOlder(threadKey, beforeMessageId, beforeMessageIsOutgoing, beforeTimestampMs)
     }
 
     override suspend fun historyStatus(): Result<OnDeviceHistoryStatus, DataError.Remote> =
@@ -171,7 +210,7 @@ class NativeOnDeviceWhatsApp(
     override suspend fun fetchEncryptedHistory(threadKey: String, isGroup: Boolean, beforeTimestampMs: Long): EmptyResult<DataError.Remote> =
         Result.Failure(DataError.Remote.BAD_REQUEST)
 
-    private suspend fun <T> native(description: String, block: NativeWhatsAppClient.() -> T): Result<T, DataError.Remote> {
+    private suspend fun <T> native(description: String, block: NativeLinkedClient.() -> T): Result<T, DataError.Remote> {
         val current = client ?: return Result.Failure(DataError.Remote.SERVICE_UNAVAILABLE)
         return withContext(Dispatchers.IO) {
             try {
@@ -185,7 +224,7 @@ class NativeOnDeviceWhatsApp(
 
     private fun failed(e: Throwable) {
         log("Connecting failed: ${e.message}")
-        _state.value = OnDeviceMessengerState.Failed(e.message ?: "Couldn't connect")
+        _state.value = OnDeviceMessengerState.Failed(e.message?.replaceFirstChar { it.uppercase() } ?: "Couldn't connect")
     }
 
     private fun onNativeEvent(json: String) {
@@ -193,15 +232,29 @@ class NativeOnDeviceWhatsApp(
         fun str(key: String) = event[key]?.jsonPrimitive?.contentOrNull
         when (str("type")) {
             "pairing" -> _pairing.value = OnDevicePairing(qrCode = str("qr"), pairingCode = str("code"))
+            "login" -> {
+                val kind = if (str("step") == "password") OnDeviceLoginPrompt.Kind.PASSWORD else OnDeviceLoginPrompt.Kind.CODE
+                val detail = if (kind == OnDeviceLoginPrompt.Kind.PASSWORD) str("hint") else str("codeType")
+                _pairing.value = OnDevicePairing(prompt = OnDeviceLoginPrompt(kind, detail?.ifBlank { null }, isRetry = str("error") == "invalid"))
+                if (_state.value !is OnDeviceMessengerState.Connected) _state.value = OnDeviceMessengerState.Connecting
+            }
             "debug" -> log("debug $json")
             "self" -> {
                 _pairing.value = null
-                _state.value = OnDeviceMessengerState.Connected(str("name")?.takeIf { it.isNotBlank() })
+                str("name")?.takeIf { it.isNotBlank() }?.let { accountName = it }
+                _state.value = OnDeviceMessengerState.Connected(accountName)
             }
             "state" -> {
                 log("state ${str("state")} ${str("error").orEmpty()}")
                 when (str("state")) {
                     "reconnecting" -> if (_state.value is OnDeviceMessengerState.Connected) _state.value = OnDeviceMessengerState.Connecting
+                    "connected" -> if (_state.value == OnDeviceMessengerState.Connecting && _pairing.value == null) {
+                        _state.value = OnDeviceMessengerState.Connected(accountName)
+                    }
+                    // Telegram connected without a login, and nobody is logging in
+                    "needs_login" -> if (_pairing.value == null && _state.value !is OnDeviceMessengerState.Failed) {
+                        _state.value = OnDeviceMessengerState.NotLinked
+                    }
                     "pairing_failed" -> if (_state.value !is OnDeviceMessengerState.Connected) {
                         _pairing.value = null
                         _state.value = OnDeviceMessengerState.Failed(
@@ -213,6 +266,7 @@ class NativeOnDeviceWhatsApp(
                     }
                     "logged_out" -> {
                         _state.value = OnDeviceMessengerState.NotLinked
+                        accountName = null
                         dataDir.clear()
                     }
                 }
@@ -221,10 +275,24 @@ class NativeOnDeviceWhatsApp(
         _events.tryEmit(json)
     }
 
-    private fun log(message: String) = println("OnDeviceWhatsApp: $message")
+    private fun log(message: String) = println("OnDevice${network.name}: $message")
 
     private companion object {
         const val EVENT_REPLAY = 5_000
-        const val HISTORY_PAGE_SIZE = 50L
     }
+}
+
+class NativeOnDeviceWhatsApp(factory: NativeLinkedClientFactory?, dataDir: OnDeviceDataDirectory, scope: CoroutineScope) :
+    NativeOnDeviceLinkedAccount(factory, dataDir, scope), OnDeviceWhatsApp {
+    override val network: ChatNetwork get() = ChatNetwork.WHATSAPP
+}
+
+class NativeOnDeviceTelegram(factory: NativeLinkedClientFactory?, dataDir: OnDeviceDataDirectory, scope: CoroutineScope) :
+    NativeOnDeviceLinkedAccount(factory, dataDir, scope), OnDeviceTelegram {
+    override val network: ChatNetwork get() = ChatNetwork.TELEGRAM
+}
+
+class NativeOnDeviceSignal(factory: NativeLinkedClientFactory?, dataDir: OnDeviceDataDirectory, scope: CoroutineScope) :
+    NativeOnDeviceLinkedAccount(factory, dataDir, scope), OnDeviceSignal {
+    override val network: ChatNetwork get() = ChatNetwork.SIGNAL
 }

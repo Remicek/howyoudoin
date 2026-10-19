@@ -3,6 +3,9 @@
 #   bridge-mobile/scripts/build-android.sh
 # Needs Go, gomobile/gobind (go install golang.org/x/mobile/cmd/gomobile@latest, same for gobind), the Android
 # NDK, and the patched mautrix-meta checkout in ../howyoudoin-bridges (howyoudoin-api/scripts/setup-mautrix-meta.sh).
+# Telegram and Signal need mautrix-telegram and mautrix-signal (with its libsignal submodule) checked out there too;
+# Signal's Rust library is built for Android with Rust + cargo-ndk (rustup target add aarch64-linux-android,
+# cargo install cargo-ndk; also cmake and protoc).
 set -euo pipefail
 MODULE_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 OUT="$MODULE_DIR/../composeApp/libs/hydbridge.aar"
@@ -10,7 +13,14 @@ SDK="${ANDROID_HOME:-$HOME/Library/Android/sdk}"
 NDK="${ANDROID_NDK_HOME:-$(ls -d "$SDK"/ndk/* 2>/dev/null | sort -V | tail -1)}"
 [ -d "$MODULE_DIR/../../howyoudoin-bridges/mautrix-meta" ] || { echo "mautrix-meta checkout missing" >&2; exit 1; }
 [ -d "$NDK" ] || { echo "Android NDK not found under $SDK/ndk" >&2; exit 1; }
-export PATH="$HOME/go/bin:$PATH" ANDROID_HOME="$SDK" ANDROID_NDK_HOME="$NDK"
+export PATH="$HOME/go/bin:/opt/homebrew/opt/rustup/bin:$HOME/.cargo/bin:$PATH" ANDROID_HOME="$SDK" ANDROID_NDK_HOME="$NDK"
+
+LIBSIGNAL="$MODULE_DIR/../../howyoudoin-bridges/mautrix-signal/pkg/libsignalgo/libsignal"
+LIBSIGNAL_OUT="$LIBSIGNAL/target/aarch64-linux-android/release"
+if [ ! -f "$LIBSIGNAL_OUT/libsignal_ffi.a" ]; then
+    (cd "$LIBSIGNAL" && RUSTFLAGS="-Ctarget-feature=-crt-static" cargo ndk -t arm64-v8a -P 26 build -p libsignal-ffi --release)
+fi
+export CGO_LDFLAGS="-L$LIBSIGNAL_OUT"
 mkdir -p "$(dirname "$OUT")"
 cd "$MODULE_DIR"
 # arm64 covers current phones; add android/amd64 for emulators when needed

@@ -225,8 +225,8 @@ class IosInboxCache(private val directory: String = "on_device_messenger") : OnD
 }
 
 /** hydbridge's WhatsApp client through the static C library. */
-class IosWhatsAppFactory : NativeWhatsAppFactory {
-    override fun create(dataDir: String, onEvent: (String) -> Unit): NativeWhatsAppClient {
+class IosWhatsAppFactory : NativeLinkedClientFactory {
+    override fun create(dataDir: String, onEvent: (String) -> Unit): NativeLinkedClient {
         val callback = StableRef.create(onEvent)
         val handle = memScoped {
             val error = alloc<CPointerVar<ByteVar>>()
@@ -240,10 +240,17 @@ class IosWhatsAppFactory : NativeWhatsAppFactory {
             handle
         }
         val call = HandleCaller(handle)
-        return object : NativeWhatsAppClient {
+        return object : NativeLinkedClient {
             override fun isLinked() = call("isLinked") == "true"
-            override fun connect(phoneNumber: String) {
+            override fun connect() {
+                call("connect", "phone" to "")
+            }
+            // A phone number asks for a pairing code, none for QR codes
+            override fun startLinking(phoneNumber: String) {
                 call("connect", "phone" to phoneNumber)
+            }
+            override fun cancelLinking() {
+                call("disconnect")
             }
             override fun disconnect() {
                 call("disconnect")
@@ -253,31 +260,32 @@ class IosWhatsAppFactory : NativeWhatsAppFactory {
                 hyd_release(handle)
                 callback.dispose()
             }
-            override fun sendText(chatJid: String, text: String) = call("sendText", "threadKey" to chatJid, "text" to text)
-            override fun sendReaction(chatJid: String, messageId: String, senderJid: String, emoji: String) {
-                call("sendReaction", "threadKey" to chatJid, "messageId" to messageId, "senderId" to senderJid, "emoji" to emoji)
+            override fun sendText(chat: String, text: String) = call("sendText", "threadKey" to chat, "text" to text)
+            override fun sendReaction(chat: String, messageId: String, senderId: String, emoji: String) {
+                call("sendReaction", "threadKey" to chat, "messageId" to messageId, "senderId" to senderId, "emoji" to emoji)
             }
-            override fun markRead(chatJid: String, messageId: String, senderJid: String) {
-                call("markRead", "threadKey" to chatJid, "messageId" to messageId, "senderId" to senderJid)
+            override fun markRead(chat: String, messageId: String, senderId: String) {
+                call("markRead", "threadKey" to chat, "messageId" to messageId, "senderId" to senderId)
             }
-            override fun setTyping(chatJid: String, isTyping: Boolean) {
-                call("setTyping", "threadKey" to chatJid, "isTyping" to isTyping)
+            override fun setTyping(chat: String, isTyping: Boolean) {
+                call("setTyping", "threadKey" to chat, "isTyping" to isTyping)
             }
             override fun sendMediaFile(
-                chatJid: String, path: String, mimeType: String, fileName: String, caption: String, width: Long, height: Long
+                chat: String, path: String, mimeType: String, fileName: String, caption: String, width: Long, height: Long
             ) = call(
-                "sendMediaFile", "threadKey" to chatJid, "path" to path, "mimeType" to mimeType, "fileName" to fileName,
+                "sendMediaFile", "threadKey" to chat, "path" to path, "mimeType" to mimeType, "fileName" to fileName,
                 "text" to caption, "width" to width, "height" to height
             )
-            override fun downloadMedia(chatJid: String, messageId: String, mediaRef: String) =
-                call("downloadMedia", "threadKey" to chatJid, "messageId" to messageId, "mediaRef" to mediaRef)
-            override fun fetchAvatars(chatJids: String) {
-                call("fetchAvatars", "text" to chatJids)
+            override fun downloadMedia(chat: String, messageId: String, mediaRef: String) =
+                call("downloadMedia", "threadKey" to chat, "messageId" to messageId, "mediaRef" to mediaRef)
+            override fun fetchAvatars(chats: String) {
+                call("fetchAvatars", "text" to chats)
             }
-            override fun requestHistory(chatJid: String, oldestMessageId: String, oldestIsOutgoing: Boolean, oldestTimestampMs: Long, count: Long) {
+            // Older messages come from the user's own phone as an on-demand history sync
+            override fun requestOlder(chat: String, beforeMessageId: String, beforeIsOutgoing: Boolean, beforeTimestampMs: Long) {
                 call(
-                    "requestHistory", "threadKey" to chatJid, "beforeMessageId" to oldestMessageId, "isOutgoing" to oldestIsOutgoing,
-                    "beforeTimestampMs" to oldestTimestampMs, "count" to count
+                    "requestHistory", "threadKey" to chat, "beforeMessageId" to beforeMessageId, "isOutgoing" to beforeIsOutgoing,
+                    "beforeTimestampMs" to beforeTimestampMs, "count" to 50L
                 )
             }
         }

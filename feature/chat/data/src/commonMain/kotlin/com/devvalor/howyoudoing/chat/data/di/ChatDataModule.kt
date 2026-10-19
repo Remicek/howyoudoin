@@ -11,6 +11,8 @@ import com.devvalor.howyoudoing.chat.data.ondevice.OnDeviceSource
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceInstagram
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceMessenger
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceWhatsApp
+import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceSignal
+import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceTelegram
 import org.koin.core.qualifier.named
 import com.devvalor.howyoudoing.chat.data.matrix.MatrixSyncEngine
 import com.devvalor.howyoudoing.chat.domain.ChatRepository
@@ -42,13 +44,25 @@ val chatDataModule = module {
             get<OnDeviceInstagram>(), get(named(ON_DEVICE_INSTAGRAM_CACHE)), get(), OnDeviceMessengerStore.INSTAGRAM_CHAT_ID_PREFIX
         )
     }
+    single(named(TELEGRAM_STORE), createdAtStart = true) {
+        OnDeviceMessengerStore(
+            get<OnDeviceTelegram>(), get(named(ON_DEVICE_TELEGRAM_CACHE)), get(), OnDeviceMessengerStore.TELEGRAM_CHAT_ID_PREFIX
+        )
+    }
+    single(named(SIGNAL_STORE), createdAtStart = true) {
+        OnDeviceMessengerStore(
+            get<OnDeviceSignal>(), get(named(ON_DEVICE_SIGNAL_CACHE)), get(), OnDeviceMessengerStore.SIGNAL_CHAT_ID_PREFIX
+        )
+    }
     single {
         OnDeviceChatRepository(
             server = get(),
             sources = listOf(
                 OnDeviceSource(get<OnDeviceMessenger>(), get(named(MESSENGER_STORE))),
                 OnDeviceSource(get<OnDeviceWhatsApp>(), get(named(WHATSAPP_STORE))),
-                OnDeviceSource(get<OnDeviceInstagram>(), get(named(INSTAGRAM_STORE)))
+                OnDeviceSource(get<OnDeviceInstagram>(), get(named(INSTAGRAM_STORE))),
+                OnDeviceSource(get<OnDeviceTelegram>(), get(named(TELEGRAM_STORE))),
+                OnDeviceSource(get<OnDeviceSignal>(), get(named(SIGNAL_STORE)))
             ),
             httpClient = get()
         )
@@ -58,9 +72,17 @@ val chatDataModule = module {
 private const val MESSENGER_STORE = "onDeviceMessengerStore"
 private const val WHATSAPP_STORE = "onDeviceWhatsAppStore"
 private const val INSTAGRAM_STORE = "onDeviceInstagramStore"
+private const val TELEGRAM_STORE = "onDeviceTelegramStore"
+private const val SIGNAL_STORE = "onDeviceSignalStore"
 
 /** Koin name of the WhatsApp inbox cache (the Messenger one is unnamed). */
 const val ON_DEVICE_WHATSAPP_CACHE = "onDeviceWhatsAppCache"
 
 /** Koin name of the Instagram inbox cache. */
 const val ON_DEVICE_INSTAGRAM_CACHE = "onDeviceInstagramCache"
+
+/** Koin name of the Telegram inbox cache. */
+const val ON_DEVICE_TELEGRAM_CACHE = "onDeviceTelegramCache"
+
+/** Koin name of the Signal inbox cache. */
+const val ON_DEVICE_SIGNAL_CACHE = "onDeviceSignalCache"

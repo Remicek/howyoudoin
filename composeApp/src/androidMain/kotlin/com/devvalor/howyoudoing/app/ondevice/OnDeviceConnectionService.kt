@@ -16,7 +16,7 @@ import androidx.core.content.ContextCompat
 import com.devvalor.howyoudoing.app.MainActivity
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceMessenger
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceMessengerState
-import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceWhatsApp
+import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceLinkedAccount
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -86,12 +86,12 @@ class OnDeviceConnectionService : Service() {
 class OnDeviceConnectionKeeper(
     context: Context,
     clients: List<OnDeviceMessenger>,
-    whatsApp: OnDeviceWhatsApp,
+    linkedAccounts: List<OnDeviceLinkedAccount>,
     scope: CoroutineScope
 ) {
     init {
         val appContext = context.applicationContext
-        combine(clients.map { client -> client.state.combineName(client) } + whatsApp.pairing.combineName()) { active ->
+        combine(clients.map { client -> client.state.combineName(client) } + linkedAccounts.map { it.pairing.combineName(it) }) { active ->
             active.filterNotNull()
         }
             .distinctUntilChanged()
@@ -110,6 +110,6 @@ class OnDeviceConnectionKeeper(
             name.takeIf { state != OnDeviceMessengerState.NotLinked }
         }
 
-    private fun kotlinx.coroutines.flow.Flow<Any?>.combineName() =
-        combine(this, kotlinx.coroutines.flow.flowOf("WhatsApp")) { pairing, name -> name.takeIf { pairing != null } }
+    private fun kotlinx.coroutines.flow.Flow<Any?>.combineName(account: OnDeviceLinkedAccount) =
+        combine(this, kotlinx.coroutines.flow.flowOf(account.network.displayName)) { pairing, name -> name.takeIf { pairing != null } }
 }

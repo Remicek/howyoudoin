@@ -1,5 +1,23 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.convention.cmp.application)
+}
+
+// Telegram API credentials (my.telegram.org) stay out of git: telegram.apiId / telegram.apiHash in local.properties.
+// Without them the app builds without on-device Telegram.
+val localProperties = Properties().apply {
+    rootProject.file("local.properties").takeIf { it.exists() }?.inputStream()?.use { load(it) }
+}
+
+android {
+    buildFeatures {
+        buildConfig = true
+    }
+    defaultConfig {
+        buildConfigField("long", "TELEGRAM_API_ID", "${localProperties.getProperty("telegram.apiId")?.trim()?.toLongOrNull() ?: 0}L")
+        buildConfigField("String", "TELEGRAM_API_HASH", "\"${localProperties.getProperty("telegram.apiHash")?.trim().orEmpty()}\"")
+    }
 }
 
 kotlin {
