@@ -1,16 +1,20 @@
 package com.devvalor.howyoudoing.core.domain.auth
 
 /**
- * A Matrix session. HowYouDoin talks to a Matrix homeserver; WhatsApp, Messenger and other
- * networks are reached through mautrix bridges running next to that homeserver.
+ * A session: a Matrix homeserver (whose mautrix bridges reach WhatsApp, Messenger and other networks), the demo
+ * data set, or [isLocal] — no server at all, with every network connected on the phone itself.
  */
 data class AuthInfo(
     val homeserverUrl: String,
     val userId: String,
     val accessToken: String,
     val deviceId: String,
-    val isDemo: Boolean = false
+    val isDemo: Boolean = false,
+    val isLocal: Boolean = false
 ) {
+    /** Talks to a real homeserver. */
+    val hasServer: Boolean get() = !isDemo && !isLocal
+
     companion object {
         fun demo() = AuthInfo(
             homeserverUrl = "https://demo.howyoudoin.local",
@@ -18,6 +22,14 @@ data class AuthInfo(
             accessToken = "demo-access-token",
             deviceId = "DEMO",
             isDemo = true
+        )
+
+        fun localOnly() = AuthInfo(
+            homeserverUrl = "",
+            userId = "@you:this-phone",
+            accessToken = "",
+            deviceId = "LOCAL",
+            isLocal = true
         )
     }
 }

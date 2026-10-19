@@ -25,6 +25,8 @@ import androidx.compose.material.icons.rounded.Visibility
 import androidx.compose.material.icons.rounded.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -118,8 +120,27 @@ fun LoginScreen(
 
             Spacer(Modifier.height(HowYouDoinSpacing.xl))
 
+            Button(
+                onClick = { onAction(LoginAction.OnLocalClick) },
+                enabled = !state.isLoggingIn,
+                modifier = Modifier.fillMaxWidth().height(52.dp),
+            ) {
+                Text("Get started on this phone", style = MaterialTheme.typography.titleMedium)
+            }
+            Spacer(Modifier.height(HowYouDoinSpacing.xs))
             Text(
-                "Sign in to the Matrix homeserver that runs your bridges.",
+                "Connect WhatsApp, Messenger and Instagram right here. No server or account needed.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+            )
+
+            Spacer(Modifier.height(HowYouDoinSpacing.xl))
+            HorizontalDivider()
+            Spacer(Modifier.height(HowYouDoinSpacing.lg))
+
+            Text(
+                "Or sign in to your own Matrix homeserver with bridges.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
@@ -174,7 +195,7 @@ fun LoginScreen(
 
             Spacer(Modifier.height(HowYouDoinSpacing.lg))
 
-            Button(
+            FilledTonalButton(
                 onClick = { onAction(LoginAction.OnLoginClick) },
                 enabled = state.canLogin && !state.isLoggingIn,
                 modifier = Modifier.fillMaxWidth().height(52.dp),
@@ -182,11 +203,11 @@ fun LoginScreen(
                 if (state.isLoggingIn) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(22.dp),
-                        color = MaterialTheme.colorScheme.onPrimary,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer,
                         strokeWidth = 2.dp,
                     )
                 } else {
-                    Text("Sign in", style = MaterialTheme.typography.titleMedium)
+                    Text("Sign in to server", style = MaterialTheme.typography.titleMedium)
                 }
             }
             Spacer(Modifier.height(HowYouDoinSpacing.sm))

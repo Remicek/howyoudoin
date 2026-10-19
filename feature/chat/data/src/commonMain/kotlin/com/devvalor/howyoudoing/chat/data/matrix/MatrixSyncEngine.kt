@@ -72,7 +72,7 @@ class MatrixSyncEngine(
     private val syncJob by lazy {
         applicationScope.launch {
             sessionStorage.observeAuthInfo()
-                .map { it?.takeUnless { session -> session.isDemo } }
+                .map { it?.takeIf { session -> session.hasServer } }
                 .distinctUntilChanged()
                 .collectLatest { session ->
                     _rooms.value = emptyMap()

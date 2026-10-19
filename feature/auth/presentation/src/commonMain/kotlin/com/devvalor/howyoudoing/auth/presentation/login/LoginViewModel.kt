@@ -42,6 +42,7 @@ class LoginViewModel(
             }
             LoginAction.OnLoginClick -> login()
             LoginAction.OnDemoClick -> startDemo()
+            LoginAction.OnLocalClick -> startLocal()
         }
     }
 
@@ -70,6 +71,13 @@ class LoginViewModel(
                         )
                     }
                 }
+        }
+    }
+
+    private fun startLocal() {
+        viewModelScope.launch {
+            sessionStorage.set(AuthInfo.localOnly())
+            eventChannel.send(LoginEvent.Success)
         }
     }
 

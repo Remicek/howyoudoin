@@ -7,4 +7,6 @@ sealed interface LoginAction {
     data object OnTogglePasswordVisibility : LoginAction
     data object OnLoginClick : LoginAction
     data object OnDemoClick : LoginAction
+    /** Start without a server: chats connect from the phone itself. */
+    data object OnLocalClick : LoginAction
 }

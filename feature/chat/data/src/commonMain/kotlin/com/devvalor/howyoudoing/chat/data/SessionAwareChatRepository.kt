@@ -7,6 +7,7 @@ import com.devvalor.howyoudoing.chat.domain.MediaRequest
 import com.devvalor.howyoudoing.chat.domain.ChatRepository
 import com.devvalor.howyoudoing.chat.domain.Message
 import com.devvalor.howyoudoing.chat.domain.SyncState
+import com.devvalor.howyoudoing.core.domain.auth.AuthInfo
 import com.devvalor.howyoudoing.core.domain.auth.SessionStorage
 import com.devvalor.howyoudoing.core.domain.util.DataError
 import com.devvalor.howyoudoing.core.domain.util.EmptyResult
@@ -18,18 +19,33 @@ import kotlinx.coroutines.flow.map
 /** Routes to the demo data set for demo sessions and to Matrix for everything else. */
 class SessionAwareChatRepository(
     private val matrix: MatrixChatRepository,
+    private val local: LocalOnlyChatRepository,
     private val demo: DemoChatRepository,
     private val sessionStorage: SessionStorage
 ) : ChatRepository {
 
     private fun <T> select(block: ChatRepository.() -> Flow<T>): Flow<T> =
         sessionStorage.observeAuthInfo()
-            .map { it?.isDemo == true }
+            .map { it.kind() }
             .distinctUntilChanged()
-            .flatMapLatest { isDemo -> if (isDemo) demo.block() else matrix.block() }
+            .flatMapLatest { kind -> repositoryFor(kind).block() }
 
     private suspend fun current(): ChatRepository =
-        if (sessionStorage.get()?.isDemo == true) demo else matrix
+        repositoryFor(sessionStorage.get().kind())
+
+    private enum class Kind { SERVER, DEMO, LOCAL }
+
+    private fun AuthInfo?.kind() = when {
+        this?.isDemo == true -> Kind.DEMO
+        this?.isLocal == true -> Kind.LOCAL
+        else -> Kind.SERVER
+    }
+
+    private fun repositoryFor(kind: Kind) = when (kind) {
+        Kind.SERVER -> matrix
+        Kind.DEMO -> demo
+        Kind.LOCAL -> local
+    }
 
     override fun observeSyncState(): Flow<SyncState> = select { observeSyncState() }
     override fun observeChats(): Flow<List<Chat>> = select { observeChats() }

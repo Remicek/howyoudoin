@@ -9,7 +9,8 @@ fun AuthInfoSerializable.toDomain(): AuthInfo {
         userId = userId,
         accessToken = accessToken,
         deviceId = deviceId,
-        isDemo = isDemo
+        isDemo = isDemo,
+        isLocal = isLocal
     )
 }
 
@@ -19,6 +20,7 @@ fun AuthInfo.toSerializable(): AuthInfoSerializable {
         userId = userId,
         accessToken = accessToken,
         deviceId = deviceId,
-        isDemo = isDemo
+        isDemo = isDemo,
+        isLocal = isLocal
     )
 }

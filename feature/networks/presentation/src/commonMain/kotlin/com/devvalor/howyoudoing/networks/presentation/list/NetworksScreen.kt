@@ -146,7 +146,7 @@ private fun NetworkCard(
                     Text(network.displayName, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                     Text(
                         // Connected on the phone, the server bridge is optional: its trouble isn't this network's
-                        if (onDevice != OnDeviceMessengerState.NotLinked && item.status !is NetworkStatus.Ready) {
+                        if (onDevice != OnDeviceMessengerState.NotLinked && (item.status as? NetworkStatus.Ready)?.logins.isNullOrEmpty()) {
                             "Connected on this device"
                         } else item.status.summary(),
                         style = MaterialTheme.typography.bodySmall,

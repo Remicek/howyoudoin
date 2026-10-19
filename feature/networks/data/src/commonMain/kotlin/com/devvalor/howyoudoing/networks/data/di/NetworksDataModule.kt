@@ -3,6 +3,7 @@ package com.devvalor.howyoudoing.networks.data.di
 import com.devvalor.howyoudoing.networks.data.BridgeEndpointStorage
 import com.devvalor.howyoudoing.networks.data.DataStoreOnboardingRepository
 import com.devvalor.howyoudoing.networks.data.ProvisioningBridgeRepository
+import com.devvalor.howyoudoing.networks.data.LocalOnlyBridgeRepository
 import com.devvalor.howyoudoing.networks.data.SessionAwareBridgeRepository
 import com.devvalor.howyoudoing.networks.data.demo.DemoBridgeRepository
 import com.devvalor.howyoudoing.networks.domain.BridgeRepository
@@ -15,6 +16,7 @@ val networksDataModule = module {
     singleOf(::BridgeEndpointStorage)
     singleOf(::ProvisioningBridgeRepository)
     singleOf(::DemoBridgeRepository)
+    singleOf(::LocalOnlyBridgeRepository)
     singleOf(::SessionAwareBridgeRepository) bind BridgeRepository::class
     singleOf(::DataStoreOnboardingRepository) bind OnboardingRepository::class
 }

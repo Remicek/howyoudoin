@@ -51,7 +51,7 @@ class MatrixAuthService(
 
     override suspend fun logout(): EmptyResult<DataError.Remote> {
         val session = sessionStorage.get()
-        if (session != null && !session.isDemo) {
+        if (session != null && session.hasServer) {
             // Best effort: the local session is dropped even if the server call fails.
             safeCall<JsonObject> {
                 httpClient.post("${session.homeserverUrl}/_matrix/client/v3/logout") {

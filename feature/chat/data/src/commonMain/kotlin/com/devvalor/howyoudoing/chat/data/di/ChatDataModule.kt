@@ -1,6 +1,7 @@
 package com.devvalor.howyoudoing.chat.data.di
 
 import com.devvalor.howyoudoing.chat.data.MatrixChatRepository
+import com.devvalor.howyoudoing.chat.data.LocalOnlyChatRepository
 import com.devvalor.howyoudoing.chat.data.SessionAwareChatRepository
 import com.devvalor.howyoudoing.chat.data.demo.DemoChatRepository
 import com.devvalor.howyoudoing.chat.data.matrix.MatrixApi
@@ -25,6 +26,7 @@ val chatDataModule = module {
     singleOf(::MatrixSyncEngine)
     singleOf(::MatrixChatRepository)
     singleOf(::DemoChatRepository)
+    singleOf(::LocalOnlyChatRepository)
     singleOf(::SessionAwareChatRepository)
     singleOf(::OpenChatTracker)
     singleOf(::DataStoreNotificationPreferences) bind NotificationPreferences::class

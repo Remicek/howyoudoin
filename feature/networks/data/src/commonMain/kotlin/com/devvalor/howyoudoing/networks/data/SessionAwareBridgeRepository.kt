@@ -1,5 +1,6 @@
 package com.devvalor.howyoudoing.networks.data
 
+import com.devvalor.howyoudoing.core.domain.auth.AuthInfo
 import com.devvalor.howyoudoing.core.domain.auth.SessionStorage
 import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
 import com.devvalor.howyoudoing.core.domain.util.DataError
@@ -19,18 +20,33 @@ import kotlinx.coroutines.flow.map
 /** Routes to the simulated bridges for demo sessions and to real provisioning APIs otherwise. */
 class SessionAwareBridgeRepository(
     private val provisioning: ProvisioningBridgeRepository,
+    private val local: LocalOnlyBridgeRepository,
     private val demo: DemoBridgeRepository,
     private val sessionStorage: SessionStorage
 ) : BridgeRepository {
 
     private fun <T> select(block: BridgeRepository.() -> Flow<T>): Flow<T> =
         sessionStorage.observeAuthInfo()
-            .map { it?.isDemo == true }
+            .map { it.kind() }
             .distinctUntilChanged()
-            .flatMapLatest { isDemo -> if (isDemo) demo.block() else provisioning.block() }
+            .flatMapLatest { kind -> repositoryFor(kind).block() }
 
     private suspend fun current(): BridgeRepository =
-        if (sessionStorage.get()?.isDemo == true) demo else provisioning
+        repositoryFor(sessionStorage.get().kind())
+
+    private enum class Kind { SERVER, DEMO, LOCAL }
+
+    private fun AuthInfo?.kind() = when {
+        this?.isDemo == true -> Kind.DEMO
+        this?.isLocal == true -> Kind.LOCAL
+        else -> Kind.SERVER
+    }
+
+    private fun repositoryFor(kind: Kind) = when (kind) {
+        Kind.SERVER -> provisioning
+        Kind.DEMO -> demo
+        Kind.LOCAL -> local
+    }
 
     override fun observeIsConfigured(network: ChatNetwork): Flow<Boolean> = select { observeIsConfigured(network) }
     override fun observeBridgeUrl(network: ChatNetwork): Flow<String?> = select { observeBridgeUrl(network) }
