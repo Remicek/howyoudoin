@@ -1,0 +1,76 @@
+package com.devvalor.howyoudoing.app.notifications
+
+import com.devvalor.howyoudoing.chat.domain.ChatRepository
+import com.devvalor.howyoudoing.chat.domain.NotificationPreferences
+import com.devvalor.howyoudoing.chat.domain.OpenChatTracker
+import com.devvalor.howyoudoing.chat.presentation.model.toChatUi
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
+
+/** Shows and clears message notifications (Android notifications; nothing yet on iOS). */
+interface MessageNotificationPresenter {
+    fun show(chatId: String, title: String, text: String, timestampMs: Long)
+    fun cancel(chatId: String)
+}
+
+/** A notification the user tapped: the app opens this chat. */
+object NotificationRouter {
+    val pendingChatId = MutableStateFlow<String?>(null)
+}
+
+/**
+ * Notifies about new incoming messages in any chat (server or on-device) that isn't muted or open on screen.
+ * Chats are compared with what was seen before, so already-known messages (and the first load after starting)
+ * never notify.
+ */
+@OptIn(ExperimentalTime::class)
+class IncomingMessageNotifier(
+    chatRepository: ChatRepository,
+    private val openChatTracker: OpenChatTracker,
+    notificationPreferences: NotificationPreferences,
+    private val presenter: MessageNotificationPresenter,
+    scope: CoroutineScope
+) {
+    private val lastSeenMessage = HashMap<String, String>()
+    private val startedAt = now()
+
+    init {
+        combine(chatRepository.observeChats(), notificationPreferences.observeMutedChats()) { chats, muted -> chats to muted }
+            .onEach { (chats, muted) ->
+                val warmingUp = now() - startedAt < WARM_UP_MILLIS
+                for (chat in chats) {
+                    val message = chat.lastMessage ?: continue
+                    val previous = lastSeenMessage.put(chat.id, message.id)
+                    if (warmingUp || previous == message.id || message.isOutgoing) continue
+                    if (now() - message.timestamp > MAX_AGE_MILLIS) continue
+                    if (chat.id in muted || openChatTracker.isWatching(chat.id)) continue
+                    val preview = chat.toChatUi().preview
+                    presenter.show(chat.id, chat.name, preview, message.timestamp)
+                }
+            }
+            .launchIn(scope)
+        // Opening a chat clears its notification
+        openChatTracker.openChatId.filterNotNull().onEach(presenter::cancel).launchIn(scope)
+    }
+
+    private fun now() = Clock.System.now().toEpochMilliseconds()
+
+    private companion object {
+        /** The inbox loads in bursts after starting; those aren't new messages. */
+        const val WARM_UP_MILLIS = 15_000L
+        /** Older messages showing up (history, reconnect catch-up) don't notify. */
+        const val MAX_AGE_MILLIS = 5 * 60_000L
+    }
+}
+
+/** Used where notifications aren't wired up yet. */
+object NoOpNotificationPresenter : MessageNotificationPresenter {
+    override fun show(chatId: String, title: String, text: String, timestampMs: Long) = Unit
+    override fun cancel(chatId: String) = Unit
+}

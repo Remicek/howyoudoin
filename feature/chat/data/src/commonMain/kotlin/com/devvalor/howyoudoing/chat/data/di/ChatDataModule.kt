@@ -13,6 +13,9 @@ import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceWhatsApp
 import org.koin.core.qualifier.named
 import com.devvalor.howyoudoing.chat.data.matrix.MatrixSyncEngine
 import com.devvalor.howyoudoing.chat.domain.ChatRepository
+import com.devvalor.howyoudoing.chat.domain.NotificationPreferences
+import com.devvalor.howyoudoing.chat.domain.OpenChatTracker
+import com.devvalor.howyoudoing.chat.data.DataStoreNotificationPreferences
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.bind
 import org.koin.dsl.module
@@ -23,6 +26,8 @@ val chatDataModule = module {
     singleOf(::MatrixChatRepository)
     singleOf(::DemoChatRepository)
     singleOf(::SessionAwareChatRepository)
+    singleOf(::OpenChatTracker)
+    singleOf(::DataStoreNotificationPreferences) bind NotificationPreferences::class
     // Created eagerly so they collect the on-device inboxes from the start
     single(named(MESSENGER_STORE), createdAtStart = true) { OnDeviceMessengerStore(get<OnDeviceMessenger>(), get(), get()) }
     single(named(WHATSAPP_STORE), createdAtStart = true) {

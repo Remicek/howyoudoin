@@ -6,6 +6,8 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.devvalor.howyoudoing.chat.domain.Attachment
 import com.devvalor.howyoudoing.chat.domain.ChatRepository
+import com.devvalor.howyoudoing.chat.domain.NotificationPreferences
+import com.devvalor.howyoudoing.chat.domain.OpenChatTracker
 import com.devvalor.howyoudoing.chat.domain.MediaRequest
 import com.devvalor.howyoudoing.chat.domain.MessageType
 import com.devvalor.howyoudoing.chat.presentation.model.toMessageUis
@@ -30,10 +32,17 @@ import kotlinx.coroutines.launch
 
 class ConversationViewModel(
     savedStateHandle: SavedStateHandle,
-    private val chatRepository: ChatRepository
+    private val chatRepository: ChatRepository,
+    private val openChatTracker: OpenChatTracker,
+    private val notificationPreferences: NotificationPreferences
 ) : ViewModel() {
 
     private val chatId = savedStateHandle.toRoute<ChatRoutes.Conversation>().chatId
+
+    override fun onCleared() {
+        if (openChatTracker.openChatId.value == chatId) openChatTracker.openChatId.value = null
+        super.onCleared()
+    }
 
     private val eventChannel = Channel<ConversationEvent>()
     val events = eventChannel.receiveAsFlow()
@@ -55,6 +64,14 @@ class ConversationViewModel(
             started = SharingStarted.WhileSubscribed(5_000L),
             initialValue = ConversationState()
         )
+
+    init {
+        // This chat's messages are seen here, so they don't need a notification (or an old one) meanwhile
+        openChatTracker.openChatId.value = chatId
+        notificationPreferences.observeMutedChats()
+            .onEach { muted -> _state.update { it.copy(isMuted = chatId in muted) } }
+            .launchIn(viewModelScope)
+    }
 
     fun onAction(action: ConversationAction) {
         when (action) {
@@ -84,6 +101,9 @@ class ConversationViewModel(
             }
             is ConversationAction.OnMediaClick -> openMedia(action.messageId)
             ConversationAction.OnCloseImage -> _state.update { it.copy(viewingImage = null) }
+            ConversationAction.OnToggleMute -> viewModelScope.launch {
+                notificationPreferences.setMuted(chatId, !state.value.isMuted)
+            }
             ConversationAction.OnBackClick -> Unit
         }
     }

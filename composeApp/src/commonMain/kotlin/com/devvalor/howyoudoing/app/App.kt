@@ -2,6 +2,8 @@ package com.devvalor.howyoudoing.app
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import com.devvalor.howyoudoing.app.notifications.NotificationRouter
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.rememberNavController
@@ -19,6 +21,15 @@ fun App(
 ) {
     val navController = rememberNavController()
     val state by viewModel.state.collectAsStateWithLifecycle()
+
+    // A tapped notification opens its chat (once signed in)
+    val pendingChatId by NotificationRouter.pendingChatId.collectAsStateWithLifecycle()
+    LaunchedEffect(pendingChatId, state.isLoggedIn, state.isCheckingAuth) {
+        val chatId = pendingChatId ?: return@LaunchedEffect
+        if (state.isCheckingAuth || !state.isLoggedIn) return@LaunchedEffect
+        NotificationRouter.pendingChatId.value = null
+        navController.navigate(ChatRoutes.Conversation(chatId)) { launchSingleTop = true }
+    }
 
     ObserveAsEvents(viewModel.events) { event ->
         when (event) {

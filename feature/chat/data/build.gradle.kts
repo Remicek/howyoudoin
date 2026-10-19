@@ -12,6 +12,8 @@ kotlin {
                 implementation(projects.feature.chat.domain)
                 implementation(libs.koin.core)
                 implementation(libs.kotlinx.coroutines.core)
+                implementation(libs.datastore)
+                implementation(libs.datastore.preferences)
             }
         }
     }

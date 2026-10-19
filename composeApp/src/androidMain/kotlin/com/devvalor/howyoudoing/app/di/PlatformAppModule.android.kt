@@ -18,10 +18,15 @@ import com.devvalor.howyoudoing.app.ondevice.AndroidWhatsAppFactory
 import com.devvalor.howyoudoing.app.ondevice.NativeOnDeviceWhatsApp
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceMessenger
 import org.koin.android.ext.koin.androidContext
+import com.devvalor.howyoudoing.app.notifications.IncomingMessageNotifier
+import com.devvalor.howyoudoing.app.notifications.MessageNotificationPresenter
+import com.devvalor.howyoudoing.app.notifications.AndroidNotificationPresenter
 import org.koin.core.module.Module
 import org.koin.dsl.module
 
 actual val platformAppModule: Module = module {
+    single<MessageNotificationPresenter> { AndroidNotificationPresenter(androidContext()) }
+    single(createdAtStart = true) { IncomingMessageNotifier(get(), get(), get(), get(), get()) }
     single(createdAtStart = true) {
         OnDeviceConnectionKeeper(
             context = androidContext(),

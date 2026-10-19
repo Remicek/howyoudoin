@@ -22,6 +22,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.Notifications
+import androidx.compose.material.icons.rounded.NotificationsOff
 import androidx.compose.material.icons.automirrored.rounded.Send
 import androidx.compose.material.icons.rounded.ErrorOutline
 import androidx.compose.material.icons.rounded.Schedule
@@ -132,6 +134,14 @@ fun ConversationScreen(
     Scaffold(
         topBar = {
             TopAppBar(
+                actions = {
+                    IconButton(onClick = { onAction(ConversationAction.OnToggleMute) }) {
+                        Icon(
+                            if (state.isMuted) Icons.Rounded.NotificationsOff else Icons.Rounded.Notifications,
+                            contentDescription = if (state.isMuted) "Unmute notifications" else "Mute notifications",
+                        )
+                    }
+                },
                 navigationIcon = {
                     IconButton(onClick = { onAction(ConversationAction.OnBackClick) }) {
                         Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back")

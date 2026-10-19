@@ -19,4 +19,5 @@ sealed interface ConversationAction {
     data class OnAttachmentError(val message: String) : ConversationAction
     data class OnMediaClick(val messageId: String) : ConversationAction
     data object OnCloseImage : ConversationAction
+    data object OnToggleMute : ConversationAction
 }

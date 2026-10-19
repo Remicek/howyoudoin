@@ -16,10 +16,15 @@ import org.koin.core.qualifier.named
 import com.devvalor.howyoudoing.app.ondevice.IosWhatsAppFactory
 import com.devvalor.howyoudoing.app.ondevice.NativeOnDeviceWhatsApp
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceMessenger
+import com.devvalor.howyoudoing.app.notifications.IncomingMessageNotifier
+import com.devvalor.howyoudoing.app.notifications.MessageNotificationPresenter
+import com.devvalor.howyoudoing.app.notifications.NoOpNotificationPresenter
 import org.koin.core.module.Module
 import org.koin.dsl.module
 
 actual val platformAppModule: Module = module {
+    single<MessageNotificationPresenter> { NoOpNotificationPresenter }
+    single(createdAtStart = true) { IncomingMessageNotifier(get(), get(), get(), get(), get()) }
     single<OnDeviceInboxCache>(named(ON_DEVICE_INSTAGRAM_CACHE)) { IosInboxCache(INSTAGRAM_DIR) }
     single<OnDeviceInstagram>(createdAtStart = true) {
         NativeOnDeviceInstagram(IosInstagramFactory(), IosSecretStore(INSTAGRAM_DIR), IosDataDirectory(INSTAGRAM_DIR), get())
