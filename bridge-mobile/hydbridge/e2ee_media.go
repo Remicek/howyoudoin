@@ -41,6 +41,11 @@ func (m *Messenger) downloadEncryptedMedia(threadKey, messageID string, content 
 		if err != nil {
 			return
 		}
+		// Messenger's own stickers aren't uploaded with the message; their image is fetched by ID
+		if fetchID := t.GetAncillary().GetReceiverFetchID(); fetchID != "" {
+			go m.fetchSticker(threadKey, messageID, fetchID)
+			return
+		}
 		transport, mediaType, kind = t.GetIntegral().GetTransport(), whatsmeow.MediaImage, "sticker"
 	case content.GetVideoMessage() != nil:
 		t, err := content.GetVideoMessage().Decode()
@@ -136,4 +141,19 @@ func (m *Messenger) SendEncryptedReaction(threadKey string, isGroup bool, messag
 	// Our own reactions aren't echoed back by the encrypted protocol
 	m.emit(map[string]any{"type": "reaction", "threadKey": threadKey, "targetId": messageID, "senderId": m.SelfID(), "emoji": emoji})
 	return nil
+}
+
+// fetchSticker resolves a Messenger sticker to its CDN image and emits it as the message's attachment.
+func (m *Messenger) fetchSticker(threadKey, messageID, fetchID string) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+	defer cancel()
+	media, err := m.client.FetchReceiverFetchMedia(ctx, fetchID)
+	if err != nil || media == nil || media.URL == "" {
+		m.log.Err(err).Msg("Failed to fetch sticker")
+		return
+	}
+	m.emit(map[string]any{
+		"type": "attachment", "threadKey": threadKey, "messageId": messageID, "kind": "sticker",
+		"url": media.URL, "previewUrl": media.URL, "mimeType": media.MimeType, "width": media.Width, "height": media.Height,
+	})
 }
