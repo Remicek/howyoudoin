@@ -44,6 +44,36 @@ type WhatsApp struct {
 
 	avatarQueue   chan string
 	avatarsQueued sync.Map
+	groupsKnown   sync.Map
+}
+
+// ensureGroup looks up the name of a group seen for the first time (e.g. one created after connecting).
+func (w *WhatsApp) ensureGroup(jid types.JID) {
+	if _, known := w.groupsKnown.LoadOrStore(jid.String(), true); known {
+		return
+	}
+	go func() {
+		client := w.client
+		if client == nil {
+			w.groupsKnown.Delete(jid.String())
+			return
+		}
+		ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+		defer cancel()
+		info, err := client.GetGroupInfo(ctx, jid)
+		if err != nil {
+			w.groupsKnown.Delete(jid.String())
+			w.log.Err(err).Msg("Failed to get WhatsApp group info")
+			return
+		}
+		w.emitGroupName(jid, info.Name)
+	}()
+}
+
+func (w *WhatsApp) emitGroupName(jid types.JID, name string) {
+	w.groupsKnown.Store(jid.String(), true)
+	w.emit(map[string]any{"type": "thread", "key": jid.String(), "name": name, "isGroup": true,
+		"isEncrypted": true, "lastActivityMs": 0, "nameOnly": true})
 }
 
 // NewWhatsApp opens (or creates) the device store in dataDir.
@@ -260,6 +290,12 @@ func (w *WhatsApp) handleEvent(rawEvt any) {
 			"isTyping": evt.State == types.ChatPresenceComposing})
 	case *events.PushName:
 		w.emitContact(evt.JID, evt.NewPushName)
+	case *events.JoinedGroup:
+		w.emitGroupName(evt.JID, evt.GroupName.Name)
+	case *events.GroupInfo:
+		if evt.Name != nil {
+			w.emitGroupName(evt.JID, evt.Name.Name)
+		}
 	}
 }
 
@@ -284,8 +320,7 @@ func (w *WhatsApp) syncNames() {
 	}
 	if groups, err := client.GetJoinedGroups(ctx); err == nil {
 		for _, group := range groups {
-			w.emit(map[string]any{"type": "thread", "key": group.JID.String(), "name": group.Name, "isGroup": true,
-				"isEncrypted": true, "lastActivityMs": 0, "nameOnly": true})
+			w.emitGroupName(group.JID, group.Name)
 			w.queueAvatar(group.JID.String())
 		}
 	} else {
@@ -360,6 +395,9 @@ func (w *WhatsApp) emitWAMessage(evt *events.Message, live bool) {
 	}
 	chat := w.pnJID(chatJID).String()
 	w.queueAvatar(chat)
+	if chatJID.Server == types.GroupServer {
+		w.ensureGroup(chatJID)
+	}
 	senderJID := evt.Info.Sender
 	if senderJID.Server == types.HiddenUserServer && !evt.Info.SenderAlt.IsEmpty() {
 		senderJID = evt.Info.SenderAlt

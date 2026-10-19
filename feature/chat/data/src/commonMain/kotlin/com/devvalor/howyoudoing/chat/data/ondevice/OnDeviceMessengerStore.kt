@@ -340,7 +340,8 @@ class OnDeviceMessengerStore(
             .mapNotNull { (key, messages) ->
                 val newest = messages.values.maxByOrNull { it.timestampMs } ?: return@mapNotNull null
                 if (!newest.isEncrypted) return@mapNotNull null
-                key to Thread(key, "", false, true, newest.timestampMs, 0L, "", "")
+                // WhatsApp group JIDs are on g.us; Messenger's encrypted groups are known from their links
+                key to Thread(key, "", key.endsWith("@g.us"), true, newest.timestampMs, 0L, "", "")
             }
             .toMap()
         return s.threads + fromLinks + fromMessages
