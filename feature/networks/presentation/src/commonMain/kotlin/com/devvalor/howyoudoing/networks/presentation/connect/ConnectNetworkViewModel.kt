@@ -292,14 +292,14 @@ class ConnectNetworkViewModel(
             BridgeLoginFlow(
                 id = ON_DEVICE_TELEGRAM_QR_FLOW_ID,
                 name = "On this device · QR code",
-                description = "Scan a code with Telegram on another phone or tablet, without a login code."
+                description = "Scan a code with Telegram; needs this code on a second screen."
             )
         )
         network == ChatNetwork.SIGNAL && onDeviceSignal.isSupported -> listOf(
             BridgeLoginFlow(
                 id = ON_DEVICE_SIGNAL_FLOW_ID,
                 name = "On this device",
-                description = "Link this app as a Signal device by scanning a QR code."
+                description = "Link this app as a Signal device by scanning a QR code; the code has to be on a different screen from the phone with Signal."
             )
         )
         network == ChatNetwork.WHATSAPP && onDeviceWhatsApp.isSupported -> listOf(
@@ -394,10 +394,12 @@ class ConnectNetworkViewModel(
         }
         val instructions = when {
             account.network == ChatNetwork.SIGNAL ->
-                "On your phone open Signal → Settings → Linked devices → Link new device, and scan this code."
+                "In Signal open Settings → Linked devices → Link a new device, and scan this code. Signal's scanner " +
+                    "uses the camera, so it needs this code on a different screen than the phone it runs on."
             account.network == ChatNetwork.TELEGRAM ->
-                "On another phone or tablet where you use Telegram, open Settings → Devices → Link Desktop Device, " +
-                    "and scan this code."
+                "In Telegram open Settings → Devices → Link Desktop Device, and scan this code. Telegram's scanner " +
+                    "needs the code on another screen: if Telegram is only on this phone, go back and log in with your " +
+                    "phone number instead."
             pairing.pairingCode != null ->
                 "On your phone open WhatsApp → Linked devices → Link a device → Link with phone number instead, and enter this code."
             else -> "On your phone open WhatsApp → Linked devices → Link a device, and scan this code."
