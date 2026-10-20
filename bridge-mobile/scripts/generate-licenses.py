@@ -160,7 +160,7 @@ def rust_libraries():
 def main():
     libraries = go_libraries() + rust_libraries()
     # The network clients first, then everything else by name
-    libraries.sort(key=lambda l: (l["usedFor"] is None or l["usedFor"].endswith("(Rust)"), l["name"].lower()))
+    libraries.sort(key=lambda l: (l["usedFor"] is None or l["usedFor"].endswith("(Rust)"), l["name"].lower(), l.get("version") or ""))
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
     with open(OUT, "w", encoding="utf-8") as f:
         json.dump({"libraries": libraries}, f, indent=1, ensure_ascii=False)
