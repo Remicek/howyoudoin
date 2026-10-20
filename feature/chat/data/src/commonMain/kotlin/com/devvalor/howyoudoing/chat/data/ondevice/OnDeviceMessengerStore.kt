@@ -257,7 +257,12 @@ class OnDeviceMessengerStore(
                     else {
                         val current = s.readWatermarks[key].orEmpty()
                         val watermark = maxOf(current[contact] ?: 0L, event.long("watermarkMs"))
-                        s.copy(readWatermarks = s.readWatermarks + (key to (current + (contact to watermark))))
+                        val read = s.copy(readWatermarks = s.readWatermarks + (key to (current + (contact to watermark))))
+                        // Our own receipt: the chat was read on another device (e.g. the network's own app)
+                        val ownThread = s.threads[key]
+                        if (contact == s.selfId && ownThread != null && watermark > ownThread.lastReadMs) {
+                            read.copy(threads = s.threads + (key to ownThread.copy(lastReadMs = watermark)))
+                        } else read
                     }
                 }
                 "link" -> {
@@ -304,12 +309,27 @@ class OnDeviceMessengerStore(
                     val thread = s.messages[message.threadKey].orEmpty()
                     s.copy(
                         messages = s.messages + (message.threadKey to (thread + (message.id to message))),
-                        pending = s.pending - message.otid
+                        pending = s.pending - message.otid,
+                        threads = s.threads.withMessage(message, isOutgoing = message.senderId.isNotEmpty() && message.senderId == s.selfId)
                     )
                 }
                 else -> s
             }
         }
+    }
+
+    /**
+     * A new message moves its chat's last activity on, so it counts as unread (or, sent by us, as read). Some
+     * networks (Instagram) only report a chat's activity when the inbox is loaded.
+     */
+    private fun Map<String, Thread>.withMessage(message: StoredMessage, isOutgoing: Boolean): Map<String, Thread> {
+        val thread = this[message.threadKey] ?: return this
+        if (message.timestampMs <= thread.lastActivityMs) return this
+        val updated = thread.copy(
+            lastActivityMs = message.timestampMs,
+            lastReadMs = if (isOutgoing) maxOf(thread.lastReadMs, message.timestampMs) else thread.lastReadMs
+        )
+        return this + (message.threadKey to updated)
     }
 
     fun chats(): List<Chat> {

@@ -187,10 +187,23 @@ func (ig *Instagram) emitThread(thread *slidetypes.ThreadInfo) {
 		}
 	}
 	lastActivity := thread.LastActivityTimestampMS.UnixMilli()
+	// Read up to our own read receipt (like mautrix-meta); without one, only "marked as unread" counts as unread
+	lastRead := lastReadFromUnread(boolToUnread(thread.MarkedAsUnread), lastActivity)
+	for _, rr := range thread.SlideReadReceipts {
+		if rr.ParticipantFBID == ig.selfID && ig.selfID != 0 && !thread.MarkedAsUnread {
+			lastRead = rr.WatermarkTimestampMS.UnixMilli()
+		}
+	}
 	ig.emit(map[string]any{
 		"type": "thread", "key": key, "name": thread.ThreadTitle, "isGroup": thread.IsGroup, "isEncrypted": false,
-		"lastActivityMs": lastActivity, "lastReadMs": lastReadFromUnread(boolToUnread(thread.MarkedAsUnread), lastActivity),
+		"lastActivityMs": lastActivity, "lastReadMs": lastRead,
 	})
+	for _, rr := range thread.SlideReadReceipts {
+		if rr.ParticipantFBID != ig.selfID && rr.ParticipantFBID != 0 {
+			ig.emit(map[string]any{"type": "read", "threadKey": key, "contactId": strconv.FormatInt(rr.ParticipantFBID, 10),
+				"watermarkMs": rr.WatermarkTimestampMS.UnixMilli()})
+		}
+	}
 	if thread.SlideMessages != nil {
 		for _, edge := range thread.SlideMessages.Edges {
 			ig.emitMessage(key, edge.Node)
