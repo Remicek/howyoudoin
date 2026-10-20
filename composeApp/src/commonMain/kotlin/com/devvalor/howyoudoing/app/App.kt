@@ -13,6 +13,8 @@ import com.devvalor.howyoudoing.chat.presentation.navigation.ChatRoutes
 import com.devvalor.howyoudoing.core.designsystem.theme.HowYouDoinTheme
 import com.devvalor.howyoudoing.core.presentation.util.ObserveAsEvents
 import com.devvalor.howyoudoing.settings.presentation.lock.AppLockGate
+import com.devvalor.howyoudoing.settings.presentation.lock.AppLockOfferRoot
+import com.devvalor.howyoudoing.settings.presentation.navigation.SettingsRoutes
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -50,6 +52,12 @@ fun App(
                     navController = navController,
                     startDestination = if (state.isLoggedIn) ChatRoutes.Graph else AuthGraphRoutes.Graph
                 )
+                // Once after signing in: offer the lock, which stays off unless chosen
+                if (state.isLoggedIn) {
+                    AppLockOfferRoot(onSetUp = {
+                        navController.navigate(SettingsRoutes.AppLockSetup) { launchSingleTop = true }
+                    })
+                }
             }
         }
     }

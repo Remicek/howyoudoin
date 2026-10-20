@@ -15,6 +15,8 @@ sealed interface SettingsRoutes {
     @Serializable data object Graph : SettingsRoutes
     @Serializable data object Main : SettingsRoutes
     @Serializable data object AppLock : SettingsRoutes
+    /** Choosing a PIN straight away, from the prompt after signing in. */
+    @Serializable data object AppLockSetup : SettingsRoutes
     @Serializable data object CrashReports : SettingsRoutes
     @Serializable data object Licenses : SettingsRoutes
     @Serializable data object About : SettingsRoutes
@@ -37,6 +39,9 @@ fun NavGraphBuilder.settingsGraph(
             )
         }
         composable<SettingsRoutes.AppLock> { AppLockSettingsRoot(onBack = { navController.navigateUp() }) }
+        composable<SettingsRoutes.AppLockSetup> {
+            AppLockSettingsRoot(onBack = { navController.navigateUp() }, startSetup = true)
+        }
         composable<SettingsRoutes.CrashReports> { CrashReportsRoot(onBack = { navController.navigateUp() }) }
         composable<SettingsRoutes.Licenses> { LicensesRoot(onBack = { navController.navigateUp() }) }
         composable<SettingsRoutes.About> {

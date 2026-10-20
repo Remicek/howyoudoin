@@ -30,10 +30,14 @@ data class AppLockSettingsState(
     val pinMessage: String? = null,
     val pinError: Boolean = false,
     val isTimeoutDialogOpen: Boolean = false,
+    /** Setup started from the sign-in prompt is over (PIN set, or cancelled); the screen closes. */
+    val isSetupFinished: Boolean = false,
 )
 
 sealed interface AppLockSettingsAction {
     data object OnTurnOnClick : AppLockSettingsAction
+    /** Opened from the prompt after signing in: go straight to choosing a PIN, then offer the fingerprint. */
+    data object OnStartSetup : AppLockSettingsAction
     data object OnTurnOffClick : AppLockSettingsAction
     data object OnChangePinClick : AppLockSettingsAction
     data class OnBiometricChange(val enabled: Boolean) : AppLockSettingsAction
@@ -57,6 +61,7 @@ class AppLockSettingsViewModel(
     val state = _state.asStateFlow()
 
     private var pin = ""
+    private var isSetup = false
 
     init {
         viewModelScope.launch {
@@ -67,6 +72,10 @@ class AppLockSettingsViewModel(
     fun onAction(action: AppLockSettingsAction) {
         when (action) {
             AppLockSettingsAction.OnTurnOnClick -> startPin(PinStep.New)
+            AppLockSettingsAction.OnStartSetup -> if (!isSetup) {
+                isSetup = true
+                startPin(PinStep.New)
+            }
             AppLockSettingsAction.OnTurnOffClick -> startPin(PinStep.Current(PinPurpose.TURN_OFF))
             AppLockSettingsAction.OnChangePinClick -> startPin(PinStep.Current(PinPurpose.CHANGE))
             is AppLockSettingsAction.OnBiometricChange -> viewModelScope.launch {
@@ -94,11 +103,16 @@ class AppLockSettingsViewModel(
             }
             AppLockSettingsAction.OnSubmit -> submitPin()
             AppLockSettingsAction.OnCancelPin -> {
-                pin = ""
-                _state.update { it.copy(pinStep = null, pinLength = 0, pinMessage = null, pinError = false) }
+                closePin()
+                if (isSetup) _state.update { it.copy(isSetupFinished = true) }
             }
             AppLockSettingsAction.OnBackClick -> Unit
         }
+    }
+
+    private fun closePin() {
+        pin = ""
+        _state.update { it.copy(pinStep = null, pinLength = 0, pinMessage = null, pinError = false) }
     }
 
     private fun startPin(step: PinStep, message: String? = null, isError: Boolean = false) {
@@ -116,7 +130,7 @@ class AppLockSettingsViewModel(
                         PinPurpose.CHANGE -> startPin(PinStep.New)
                         PinPurpose.TURN_OFF -> {
                             repository.disable()
-                            onAction(AppLockSettingsAction.OnCancelPin)
+                            closePin()
                         }
                     }
                     is PinCheck.Wrong -> startPin(step, "Wrong PIN", isError = true)
@@ -127,7 +141,13 @@ class AppLockSettingsViewModel(
             is PinStep.Confirm -> if (entered == step.first) {
                 viewModelScope.launch {
                     repository.setPin(entered)
-                    onAction(AppLockSettingsAction.OnCancelPin)
+                    closePin()
+                    if (isSetup) {
+                        if (biometrics.isAvailable() && biometrics.authenticate("Use fingerprint for HowYouDoin", "Unlock with your fingerprint instead of the PIN")) {
+                            repository.setBiometricEnabled(true)
+                        }
+                        _state.update { it.copy(isSetupFinished = true) }
+                    }
                 }
             } else {
                 startPin(PinStep.New, "The PINs didn't match. Choose a PIN again.", isError = true)

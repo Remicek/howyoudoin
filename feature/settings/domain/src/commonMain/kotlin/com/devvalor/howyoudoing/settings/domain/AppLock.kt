@@ -43,6 +43,11 @@ interface AppLockRepository {
 
     /** Turns the lock off and forgets the PIN. */
     suspend fun disable()
+
+    /** Whether the user has been asked once, after signing in, if they want the lock. */
+    fun observeLockOffered(): Flow<Boolean>
+
+    suspend fun setLockOffered()
 }
 
 /** Derives a slow, salted hash of a PIN (platform crypto). */

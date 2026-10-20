@@ -90,6 +90,12 @@ class DataStoreAppLockRepository(
         }
     }
 
+    override fun observeLockOffered(): Flow<Boolean> = dataStore.data.map { it[LOCK_OFFERED] ?: false }
+
+    override suspend fun setLockOffered() {
+        dataStore.edit { it[LOCK_OFFERED] = true }
+    }
+
     private fun constantTimeEquals(a: ByteArray, b: ByteArray): Boolean {
         if (a.size != b.size) return false
         var diff = 0
@@ -105,6 +111,7 @@ class DataStoreAppLockRepository(
         val HIDE_NOTIFICATION_CONTENT = booleanPreferencesKey("app_lock_hide_notification_content")
         val FAILED_ATTEMPTS = intPreferencesKey("app_lock_failed_attempts")
         val LOCKED_OUT_UNTIL = longPreferencesKey("app_lock_locked_out_until")
+        val LOCK_OFFERED = booleanPreferencesKey("app_lock_offered")
 
         const val FREE_ATTEMPTS = 5
         const val BASE_WAIT_SECONDS = 30L

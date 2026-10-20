@@ -68,9 +68,9 @@ fun EncryptedHistoryBanner(
         )
         state.isOffered -> BannerCard(
             title = if (state.isOnDevice) "Restore encrypted messages on this device" else "Restore older encrypted messages",
-            body = "Your end-to-end encrypted Messenger chats only show new messages. Enter your Messenger PIN to bring " +
-                "back their history.",
-            primary = "Enter PIN" to { onAction(EncryptedHistoryAction.OnEnterPinClick) },
+            body = "Your end-to-end encrypted Messenger chats only show new messages. To bring back their history, enter " +
+                "the PIN you set in Messenger, not your phone's or this app's PIN.",
+            primary = "Enter Messenger PIN" to { onAction(EncryptedHistoryAction.OnEnterPinClick) },
             secondary = "Not now" to { onAction(EncryptedHistoryAction.OnNotNowClick) },
         )
     }
@@ -113,14 +113,15 @@ private fun PinDialog(state: EncryptedHistoryState, onAction: (EncryptedHistoryA
         text = {
             Column {
                 Text(
-                    "The 6-digit PIN you set in Messenger for end-to-end encrypted chats (not your Facebook password).",
+                    "The 6-digit PIN you set in Messenger for end-to-end encrypted chats. It's not your phone's PIN, " +
+                        "HowYouDoin's app lock PIN or your Facebook password.",
                     style = MaterialTheme.typography.bodyMedium,
                 )
                 Spacer(Modifier.padding(top = HowYouDoinSpacing.sm))
                 OutlinedTextField(
                     value = state.pin,
                     onValueChange = { onAction(EncryptedHistoryAction.OnPinChange(it)) },
-                    label = { Text("PIN") },
+                    label = { Text("Messenger PIN") },
                     singleLine = true,
                     enabled = !state.isSubmitting,
                     isError = state.error != null,

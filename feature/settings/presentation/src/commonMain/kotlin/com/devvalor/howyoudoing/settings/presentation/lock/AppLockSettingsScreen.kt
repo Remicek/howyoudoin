@@ -21,6 +21,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -39,9 +40,12 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun AppLockSettingsRoot(
     onBack: () -> Unit,
+    startSetup: Boolean = false,
     viewModel: AppLockSettingsViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    LaunchedEffect(Unit) { if (startSetup) viewModel.onAction(AppLockSettingsAction.OnStartSetup) }
+    LaunchedEffect(state.isSetupFinished) { if (state.isSetupFinished) onBack() }
     AppLockSettingsScreen(
         state = state,
         onAction = { action ->
