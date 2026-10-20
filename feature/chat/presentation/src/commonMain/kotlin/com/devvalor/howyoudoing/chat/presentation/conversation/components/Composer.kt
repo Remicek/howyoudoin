@@ -58,13 +58,14 @@ fun Composer(
     /** One of our messages being edited: shown above the field, and send saves the edit. */
     editing: MessageUi? = null,
     onCancelEdit: () -> Unit = {},
+    chatName: String? = null,
 ) {
     Surface(color = MaterialTheme.colorScheme.surface, tonalElevation = 2.dp) {
         Column(Modifier.fillMaxWidth().navigationBarsPadding()) {
             if (editing != null) {
                 ReplyBar(editing, onCancelEdit, label = "Editing message", cancelDescription = "Cancel editing")
             } else {
-                replyingTo?.let { ReplyBar(it, onCancelReply) }
+                replyingTo?.let { ReplyBar(it, onCancelReply, chatName = chatName) }
             }
             Row(
                 verticalAlignment = Alignment.Bottom,
@@ -127,6 +128,8 @@ private fun ReplyBar(
     onCancel: () -> Unit,
     label: String? = null,
     cancelDescription: String = "Cancel reply",
+    /** Who the other person is in a one-to-one chat, where messages carry no sender name. */
+    chatName: String? = null,
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -139,7 +142,7 @@ private fun ReplyBar(
         Spacer(Modifier.width(HowYouDoinSpacing.sm))
         Column(Modifier.weight(1f)) {
             Text(
-                label ?: if (message.isOutgoing) "Replying to yourself" else "Replying to ${message.senderName ?: "message"}",
+                label ?: if (message.isOutgoing) "Replying to yourself" else "Replying to ${message.senderName ?: chatName ?: "message"}",
                 style = MaterialTheme.typography.labelMedium,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.primary,

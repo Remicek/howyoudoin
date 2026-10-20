@@ -25,6 +25,8 @@ func (s *Signal) SendReply(threadKey, text, replyToID, quotedText string) (strin
 	if err := s.send(ctx, threadKey, signalmeow.WrapDataMessage(msg)); err != nil {
 		return "", err
 	}
+	// Signal shows an edit as the whole new message, so edits of this reply repeat its quote
+	s.sentQuotes.Store(ts, msg.Quote)
 	s.echoReply(threadKey, ts, text, replyToID)
 	return strconv.FormatUint(ts, 10), nil
 }
@@ -36,10 +38,11 @@ func (s *Signal) EditMessage(threadKey, messageID, text string) error {
 		return err
 	}
 	ts := uint64(time.Now().UnixMilli())
-	content := signalmeow.WrapEditMessage(&signalpb.EditMessage{
-		TargetSentTimestamp: &target,
-		DataMessage:         &signalpb.DataMessage{Body: &text, Timestamp: &ts},
-	})
+	edited := &signalpb.DataMessage{Body: &text, Timestamp: &ts}
+	if quote, ok := s.sentQuotes.Load(target); ok {
+		edited.Quote = quote.(*signalpb.DataMessage_Quote)
+	}
+	content := signalmeow.WrapEditMessage(&signalpb.EditMessage{TargetSentTimestamp: &target, DataMessage: edited})
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 	if err := s.send(ctx, threadKey, content); err != nil {

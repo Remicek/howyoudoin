@@ -329,6 +329,16 @@ class OnDeviceMessengerStore(
         }
     }
 
+    /** How a quote describes a message without text. */
+    private fun quotedKind(message: StoredMessage, s: Snapshot): String = when (s.attachments[message.id]?.kind ?: message.kind) {
+        "image" -> "📷 Photo"
+        "video" -> "🎬 Video"
+        "audio" -> "🎤 Voice message"
+        "sticker" -> "Sticker"
+        "file" -> "📎 File"
+        else -> "Message"
+    }
+
     /**
      * A new message moves its chat's last activity on, so it counts as unread (or, sent by us, as read). Some
      * networks (Instagram) only report a chat's activity when the inbox is loaded.
@@ -514,12 +524,13 @@ class OnDeviceMessengerStore(
             reactions = reactions,
             media = media,
             isEdited = isEdited,
-            replyTo = replyToId?.let { replyId ->
+            replyTo = replyToId?.takeIf { !isUnsent }?.let { replyId ->
                 val target = s.messages[threadKey]?.get(replyId)
                 ReplyPreview(
                     messageId = replyId,
                     senderName = target?.let { if (it.senderId == s.selfId) "You" else s.contacts[it.senderId]?.firstName ?: s.contacts[it.senderId]?.name }.orEmpty(),
-                    body = target?.let { if (it.isUnsent) "Message unsent" else it.text.ifBlank { "Attachment" } } ?: "Original message"
+                    body = target?.let { quoted -> if (quoted.isUnsent) "Message unsent" else quoted.text.ifBlank { quotedKind(quoted, s) } }
+                        ?: "Original message"
                 )
             },
             isReadByOthers = isOutgoing && s.readWatermarks[threadKey].orEmpty()

@@ -254,6 +254,7 @@ fun ConversationScreen(
                 onCancelReply = { onAction(ConversationAction.OnCancelReply) },
                 editing = state.editing,
                 onCancelEdit = { onAction(ConversationAction.OnCancelEdit) },
+                chatName = state.chatName.takeIf { !state.isGroup },
                 canRecord = voice?.canRecord == true,
                 recording = voice?.recording,
                 onRecordStart = { voice?.start?.invoke() },

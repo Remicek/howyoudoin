@@ -34,9 +34,11 @@ import (
 // Linking emits {"type":"pairing","qr":...} events with the code to scan in Signal on the phone; recent history
 // can be transferred from the phone during linking.
 type Signal struct {
-	dataDir  string
-	listener Listener
-	log      zerolog.Logger
+	// Timestamp of a reply we sent → its quote, repeated in edits
+	sentQuotes sync.Map
+	dataDir    string
+	listener   Listener
+	log        zerolog.Logger
 
 	db        *dbutil.Database
 	container *store.Container
