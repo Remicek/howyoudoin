@@ -455,6 +455,9 @@ func (w *WhatsApp) emitWAMessage(evt *events.Message, live bool) {
 		"type": "message", "threadKey": chat, "id": evt.Info.ID, "otid": evt.Info.ID, "senderId": sender, "text": text,
 		"kind": kind, "timestampMs": evt.Info.Timestamp.UnixMilli(), "isEncrypted": true,
 	}
+	if replyTo := waReplyTo(msg); replyTo != "" {
+		event["replyToId"] = replyTo
+	}
 	if seconds := msg.GetAudioMessage().GetSeconds(); seconds > 0 {
 		event["durationMs"] = int64(seconds) * 1000
 	} else if seconds := msg.GetVideoMessage().GetSeconds(); seconds > 0 {

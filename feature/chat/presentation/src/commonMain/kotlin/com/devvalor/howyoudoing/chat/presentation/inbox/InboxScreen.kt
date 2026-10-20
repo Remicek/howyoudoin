@@ -28,6 +28,7 @@ import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Groups
 import androidx.compose.material.icons.rounded.Hub
 import androidx.compose.material.icons.rounded.Lock
+import androidx.compose.material.icons.rounded.NotificationsOff
 import androidx.compose.material.icons.rounded.PhoneAndroid
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.Settings
@@ -305,6 +306,15 @@ private fun ChatRow(chat: ChatUi, resolver: MediaResolver, onClick: () -> Unit) 
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f),
                 )
+                if (chat.isMuted) {
+                    Icon(
+                        Icons.Rounded.NotificationsOff,
+                        contentDescription = "Muted",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(14.dp),
+                    )
+                    Spacer(Modifier.width(HowYouDoinSpacing.xs))
+                }
                 Text(
                     chat.timestamp,
                     style = MaterialTheme.typography.labelSmall,

@@ -39,6 +39,28 @@ interface OnDeviceMessenger {
     suspend fun sendText(threadKey: String, text: String, isEncrypted: Boolean = false, isGroup: Boolean = false): Result<String, DataError.Remote>
 
     /**
+     * Sends text replying to a message: its [replyToId], who sent it and its text (some networks show that in the
+     * quote). Networks without replies send plain text.
+     */
+    suspend fun sendReply(
+        threadKey: String,
+        text: String,
+        isEncrypted: Boolean,
+        isGroup: Boolean,
+        replyToId: String,
+        replySenderId: String,
+        quotedText: String
+    ): Result<String, DataError.Remote> = sendText(threadKey, text, isEncrypted, isGroup)
+
+    /** Changes the text of one of our messages. */
+    suspend fun editMessage(threadKey: String, messageId: String, text: String, isEncrypted: Boolean, isGroup: Boolean): EmptyResult<DataError.Remote> =
+        Result.Failure(DataError.Remote.BAD_REQUEST)
+
+    /** Deletes one of our messages for everyone. */
+    suspend fun unsend(threadKey: String, messageId: String, isEncrypted: Boolean, isGroup: Boolean): EmptyResult<DataError.Remote> =
+        Result.Failure(DataError.Remote.BAD_REQUEST)
+
+    /**
      * Sends a photo, video, audio or file; returns the ID the echoed message carries. With [voiceDurationMillis] it's a
      * recorded voice message, sent as the network's voice note ([waveform]: loudness 0–255 over the recording).
      */

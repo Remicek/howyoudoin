@@ -198,3 +198,64 @@ func (ig *Instagram) lookUpThreadIDs(threadKey string) (string, error) {
 	ig.threadKeys.Store(ids.LongID, threadKey)
 	return ids.LongID, nil
 }
+
+// SendReply sends text replying to a message and returns its offline threading ID.
+func (ig *Instagram) SendReply(threadKey, text, replyToID string) (string, error) {
+	igID, err := ig.shortThreadID(threadKey)
+	if err != nil {
+		return "", err
+	}
+	otid := strconv.FormatInt(methods.GenerateEpochID(), 10)
+	req := &slidetypes.SendTextRequest{
+		IGThreadIGID:       &igID,
+		OfflineThreadingID: otid,
+		Text:               slidetypes.SensitiveString{Value: text},
+	}
+	if replyToID != "" {
+		req.ReplyToMessageID = &replyToID
+	}
+	if _, err := ig.client.SendMessage(context.Background(), req); err != nil {
+		return "", err
+	}
+	return otid, nil
+}
+
+// EditMessage changes the text of one of our messages.
+func (ig *Instagram) EditMessage(threadKey, messageID, text string) error {
+	igID, err := ig.shortThreadID(threadKey)
+	if err != nil {
+		return err
+	}
+	_, err = ig.client.EditMessage(context.Background(), &slidetypes.EditMessageRequest{
+		ThreadID:           igID,
+		Body:               slidetypes.SensitiveString{Value: text},
+		OfflineThreadingID: strconv.FormatInt(methods.GenerateEpochID(), 10),
+		TargetMessageID:    messageID,
+	})
+	if err != nil {
+		return err
+	}
+	ig.emit(map[string]any{"type": "edit", "threadKey": threadKey, "messageId": messageID, "text": text})
+	return nil
+}
+
+// Unsend deletes one of our messages for everyone.
+func (ig *Instagram) Unsend(threadKey, messageID string) error {
+	rawID, ok := ig.igLongThreadIDs.Load(threadKey)
+	if !ok {
+		longID, err := ig.lookUpThreadIDs(threadKey)
+		if err != nil {
+			return err
+		}
+		rawID = longID
+	}
+	_, err := ig.client.UnsendMessage(context.Background(), &slidetypes.UnsendMessageRequest{
+		MessageID: messageID,
+		SendData:  slidetypes.SendData{ThreadID: rawID.(string)},
+	})
+	if err != nil {
+		return err
+	}
+	ig.emit(map[string]any{"type": "unsend", "threadKey": threadKey, "messageId": messageID})
+	return nil
+}

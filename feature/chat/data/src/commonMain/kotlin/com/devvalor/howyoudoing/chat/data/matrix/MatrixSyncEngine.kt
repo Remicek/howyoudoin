@@ -240,6 +240,29 @@ class MatrixSyncEngine(
         }
     }
 
+    /** Sends an `m.replace` edit of one of our messages. */
+    suspend fun editMessage(roomId: String, eventId: String, body: String): EmptyResult<DataError.Remote> {
+        val session = _session.value ?: return Result.Failure(DataError.Remote.UNAUTHORIZED)
+        return api.sendEvent(session, roomId, "m.room.message", newTransactionId(), buildJsonObject {
+            put("msgtype", "m.text")
+            put("body", "* $body")
+            putJsonObject("m.new_content") {
+                put("msgtype", "m.text")
+                put("body", body)
+            }
+            putJsonObject("m.relates_to") {
+                put("rel_type", "m.replace")
+                put("event_id", eventId)
+            }
+        }).asEmptyResult()
+    }
+
+    /** Redacts one of our messages; bridges delete it on the network. */
+    suspend fun deleteMessage(roomId: String, eventId: String): EmptyResult<DataError.Remote> {
+        val session = _session.value ?: return Result.Failure(DataError.Remote.UNAUTHORIZED)
+        return api.redact(session, roomId, eventId, newTransactionId()).asEmptyResult()
+    }
+
     /** Adds an `m.annotation` reaction, or redacts the user's existing one with the same key. */
     suspend fun toggleReaction(roomId: String, messageId: String, key: String, ownReactionId: String?): EmptyResult<DataError.Remote> {
         val session = _session.value ?: return Result.Failure(DataError.Remote.UNAUTHORIZED)

@@ -20,6 +20,10 @@ data class ConversationState(
     val typingText: String? = null,
     /** Message the composer replies to. */
     val replyingTo: MessageUi? = null,
+    /** One of our messages being edited in the composer. */
+    val editing: MessageUi? = null,
+    /** One of our messages waiting for the user to confirm deleting it for everyone. */
+    val confirmingDelete: MessageUi? = null,
     /** Message whose long-press actions (react, reply, copy) are open. */
     val actionsFor: MessageUi? = null,
     /** Image shown full screen. */

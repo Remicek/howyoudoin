@@ -10,6 +10,7 @@ import com.devvalor.howyoudoing.core.domain.auth.AuthService
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import com.devvalor.howyoudoing.chat.domain.NotificationPreferences
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
@@ -19,7 +20,8 @@ import kotlinx.coroutines.launch
 
 class InboxViewModel(
     private val chatRepository: ChatRepository,
-    private val authService: AuthService
+    private val authService: AuthService,
+    private val notificationPreferences: NotificationPreferences
 ) : ViewModel() {
 
     private var hasLoadedInitialData = false
@@ -59,11 +61,11 @@ class InboxViewModel(
     }
 
     private fun observeChats() {
-        combine(chatRepository.observeChats(), query, filter) { chats, query, filter ->
+        combine(chatRepository.observeChats(), query, filter, notificationPreferences.observeMutedChats()) { chats, query, filter, muted ->
             val visible = chats
                 .filter { chat -> filter.matches(chat) }
                 .filter { chat -> query.isBlank() || chat.name.contains(query.trim(), ignoreCase = true) }
-                .map { it.toChatUi() }
+                .map { it.toChatUi().copy(isMuted = it.id in muted) }
             val networks = chats.map { it.network }.distinct().sortedBy { it.ordinal }
             val encrypted = chats.filter { it.isEncrypted }.mapTo(HashSet()) { it.network }
             Triple(visible, networks, encrypted)

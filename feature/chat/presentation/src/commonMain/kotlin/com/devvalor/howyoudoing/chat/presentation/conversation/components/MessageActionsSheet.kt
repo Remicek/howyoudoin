@@ -16,6 +16,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Reply
 import androidx.compose.material.icons.rounded.ContentCopy
+import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -41,6 +43,9 @@ fun MessageActionsSheet(
     onReply: () -> Unit,
     onCopy: () -> Unit,
     onDismiss: () -> Unit,
+    /** Set for our own messages that can be edited / deleted for everyone. */
+    onEdit: (() -> Unit)? = null,
+    onDelete: (() -> Unit)? = null,
 ) {
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(Modifier.navigationBarsPadding().padding(bottom = HowYouDoinSpacing.md)) {
@@ -65,6 +70,8 @@ fun MessageActionsSheet(
             if (message.text.isNotBlank() && message.media == null) {
                 ActionRow(Icons.Rounded.ContentCopy, "Copy text", onCopy)
             }
+            onEdit?.let { ActionRow(Icons.Rounded.Edit, "Edit", it) }
+            onDelete?.let { ActionRow(Icons.Rounded.Delete, "Delete for everyone", it) }
         }
     }
 }

@@ -165,9 +165,17 @@ class OnDeviceChatRepository(
         val route = route(chatId) ?: return server.sendMessage(chatId, body, replyToId)
         val store = route.store
         val pendingId = store.newPendingId()
-        store.addPending(route.key, pendingId, body)
+        val replyTo = replyToId?.let { store.message(route.key, it) }
+        store.addPending(route.key, pendingId, body, replyTo?.id)
         val thread = store.thread(route.key)
-        return when (val result = route.client.sendText(route.key, body, thread?.isEncrypted == true, thread?.isGroup == true)) {
+        val isEncrypted = thread?.isEncrypted == true
+        val isGroup = thread?.isGroup == true
+        val sent = if (replyTo != null) {
+            route.client.sendReply(route.key, body, isEncrypted, isGroup, replyTo.id, replyTo.senderId, replyTo.body)
+        } else {
+            route.client.sendText(route.key, body, isEncrypted, isGroup)
+        }
+        return when (val result = sent) {
             is Result.Success -> {
                 // The network's copy carries this ID and replaces the echo
                 store.rekeyPending(pendingId, result.data)
@@ -218,6 +226,18 @@ class OnDeviceChatRepository(
         val route = route(chatId) ?: return server.setTyping(chatId, isTyping)
         val thread = route.store.thread(route.key) ?: return Result.Success(Unit)
         return route.client.setTyping(route.key, thread.isEncrypted, thread.isGroup, isTyping)
+    }
+
+    override suspend fun editMessage(chatId: String, messageId: String, body: String): EmptyResult<DataError.Remote> {
+        val route = route(chatId) ?: return server.editMessage(chatId, messageId, body)
+        val thread = route.store.thread(route.key)
+        return route.client.editMessage(route.key, messageId, body, thread?.isEncrypted == true, thread?.isGroup == true)
+    }
+
+    override suspend fun deleteMessage(chatId: String, messageId: String): EmptyResult<DataError.Remote> {
+        val route = route(chatId) ?: return server.deleteMessage(chatId, messageId)
+        val thread = route.store.thread(route.key)
+        return route.client.unsend(route.key, messageId, thread?.isEncrypted == true, thread?.isGroup == true)
     }
 
     override suspend fun markAsRead(chatId: String): EmptyResult<DataError.Remote> {

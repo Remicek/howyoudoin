@@ -21,6 +21,12 @@ private class AndroidMessengerClient(private val m: Messenger) : NativeMessenger
     override fun connect() = m.connect()
     override fun disconnect() = m.disconnect()
     override fun sendText(threadKey: String, text: String): String = m.sendText(threadKey, text)
+    override fun sendReply(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, text: String, replyToId: String, replySenderId: String): String =
+        m.sendReply(threadKey, isEncrypted, isGroup, text, replyToId, replySenderId)
+    override fun editMessage(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, messageId: String, text: String) =
+        m.editMessage(threadKey, isEncrypted, isGroup, messageId, text)
+    override fun unsend(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, messageId: String) =
+        m.unsend(threadKey, isEncrypted, isGroup, messageId)
     override fun sendEncryptedText(threadKey: String, isGroup: Boolean, text: String): String = m.sendEncryptedText(threadKey, isGroup, text)
     override fun sendMediaFile(
         threadKey: String, isEncrypted: Boolean, isGroup: Boolean, path: String, mimeType: String, fileName: String,
@@ -112,6 +118,10 @@ class AndroidWhatsAppFactory : NativeLinkedClientFactory {
             override fun disconnect() = w.disconnect()
             override fun logout() = w.logout()
             override fun sendText(chat: String, text: String): String = w.sendText(chat, text)
+            override fun sendReply(chat: String, text: String, replyToId: String, replySenderId: String, quotedText: String): String =
+                w.sendReply(chat, text, replyToId, replySenderId, quotedText)
+            override fun editMessage(chat: String, messageId: String, text: String) = w.editMessage(chat, messageId, text)
+            override fun unsend(chat: String, messageId: String) = w.unsend(chat, messageId)
             override fun sendReaction(chat: String, messageId: String, senderId: String, emoji: String) =
                 w.sendReaction(chat, messageId, senderId, emoji)
             override fun markRead(chat: String, messageId: String, senderId: String) = w.markRead(chat, messageId, senderId)
@@ -151,6 +161,10 @@ class AndroidTelegramFactory(private val apiId: Long, private val apiHash: Strin
             override fun disconnect() = t.disconnect()
             override fun logout() = t.logout()
             override fun sendText(chat: String, text: String): String = t.sendText(chat, text)
+            override fun sendReply(chat: String, text: String, replyToId: String, replySenderId: String, quotedText: String): String =
+                t.sendReply(chat, text, replyToId)
+            override fun editMessage(chat: String, messageId: String, text: String) = t.editMessage(chat, messageId, text)
+            override fun unsend(chat: String, messageId: String) = t.unsend(chat, messageId)
             override fun sendReaction(chat: String, messageId: String, senderId: String, emoji: String) =
                 t.sendReaction(chat, messageId, emoji)
             override fun markRead(chat: String, messageId: String, senderId: String) = t.markRead(chat, messageId)
@@ -180,6 +194,10 @@ class AndroidSignalFactory : NativeLinkedClientFactory {
             override fun disconnect() = s.disconnect()
             override fun logout() = s.logout()
             override fun sendText(chat: String, text: String): String = s.sendText(chat, text)
+            override fun sendReply(chat: String, text: String, replyToId: String, replySenderId: String, quotedText: String): String =
+                s.sendReply(chat, text, replyToId, quotedText)
+            override fun editMessage(chat: String, messageId: String, text: String) = s.editMessage(chat, messageId, text)
+            override fun unsend(chat: String, messageId: String) = s.unsend(chat, messageId)
             override fun sendReaction(chat: String, messageId: String, senderId: String, emoji: String) =
                 s.sendReaction(chat, messageId, emoji)
             override fun markRead(chat: String, messageId: String, senderId: String) = s.markRead(chat, messageId)
@@ -208,6 +226,12 @@ class AndroidInstagramFactory : NativeMessengerFactory {
             override fun connect() = ig.connect()
             override fun disconnect() = ig.disconnect()
             override fun sendText(threadKey: String, text: String): String = ig.sendText(threadKey, text)
+            override fun sendReply(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, text: String, replyToId: String, replySenderId: String): String =
+                ig.sendReply(threadKey, text, replyToId)
+            override fun editMessage(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, messageId: String, text: String) =
+                ig.editMessage(threadKey, messageId, text)
+            override fun unsend(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, messageId: String) =
+                ig.unsend(threadKey, messageId)
             override fun sendEncryptedText(threadKey: String, isGroup: Boolean, text: String): String = unsupported()
             override fun requestOlder(threadKey: String, beforeTimestampMs: Long, beforeMessageId: String) = ig.requestOlder(threadKey, beforeMessageId)
             override fun historyStatus(): String = unsupported()

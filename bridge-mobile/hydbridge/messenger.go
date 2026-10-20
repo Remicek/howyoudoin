@@ -229,10 +229,10 @@ func (m *Messenger) emitTable(tbl *table.LSTable) {
 		m.emit(map[string]any{"type": "participant", "threadKey": id(p.ThreadKey), "contactId": id(p.ContactId)})
 	}
 	for _, msg := range tbl.LSInsertMessage {
-		m.emitMessage(msg.ThreadKey, msg.MessageId, msg.OfflineThreadingId, msg.SenderId, msg.Text, msg.TimestampMs, msg.IsUnsent)
+		m.emitMessage(msg.ThreadKey, msg.MessageId, msg.OfflineThreadingId, msg.SenderId, msg.Text, msg.TimestampMs, msg.IsUnsent, msg.ReplySourceId)
 	}
 	for _, msg := range tbl.LSUpsertMessage {
-		m.emitMessage(msg.ThreadKey, msg.MessageId, msg.OfflineThreadingId, msg.SenderId, msg.Text, msg.TimestampMs, msg.IsUnsent)
+		m.emitMessage(msg.ThreadKey, msg.MessageId, msg.OfflineThreadingId, msg.SenderId, msg.Text, msg.TimestampMs, msg.IsUnsent, msg.ReplySourceId)
 	}
 	for _, e := range tbl.LSEditMessage {
 		// No thread key here: the app finds the message by its ID
@@ -280,11 +280,11 @@ func (m *Messenger) emitThread(key int64, name string, threadType table.ThreadTy
 	})
 }
 
-func (m *Messenger) emitMessage(threadKey int64, messageID, otid string, sender int64, text string, timestamp int64, unsent bool) {
+func (m *Messenger) emitMessage(threadKey int64, messageID, otid string, sender int64, text string, timestamp int64, unsent bool, replyTo string) {
 	if messageID == "" {
 		return
 	}
-	m.emit(map[string]any{
+	event := map[string]any{
 		"type":        "message",
 		"threadKey":   id(threadKey),
 		"id":          messageID,
@@ -293,7 +293,11 @@ func (m *Messenger) emitMessage(threadKey int64, messageID, otid string, sender 
 		"text":        text,
 		"timestampMs": timestamp,
 		"isUnsent":    unsent,
-	})
+	}
+	if replyTo != "" {
+		event["replyToId"] = replyTo
+	}
+	m.emit(event)
 }
 
 func (m *Messenger) emitState(state, err string) {

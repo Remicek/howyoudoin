@@ -55,10 +55,17 @@ fun Composer(
     onRecordStart: () -> Unit = {},
     onRecordCancel: () -> Unit = {},
     onRecordSend: () -> Unit = {},
+    /** One of our messages being edited: shown above the field, and send saves the edit. */
+    editing: MessageUi? = null,
+    onCancelEdit: () -> Unit = {},
 ) {
     Surface(color = MaterialTheme.colorScheme.surface, tonalElevation = 2.dp) {
         Column(Modifier.fillMaxWidth().navigationBarsPadding()) {
-            replyingTo?.let { ReplyBar(it, onCancelReply) }
+            if (editing != null) {
+                ReplyBar(editing, onCancelEdit, label = "Editing message", cancelDescription = "Cancel editing")
+            } else {
+                replyingTo?.let { ReplyBar(it, onCancelReply) }
+            }
             Row(
                 verticalAlignment = Alignment.Bottom,
                 modifier = Modifier.fillMaxWidth().padding(horizontal = HowYouDoinSpacing.sm, vertical = HowYouDoinSpacing.sm),
@@ -95,7 +102,7 @@ fun Composer(
                     modifier = Modifier.weight(1f),
                 )
                 Spacer(Modifier.width(HowYouDoinSpacing.sm))
-                if (canRecord && draft.isBlank()) {
+                if (canRecord && draft.isBlank() && editing == null) {
                     FilledIconButton(
                         onClick = onRecordStart,
                         enabled = !isSendingAttachment,
@@ -115,7 +122,12 @@ fun Composer(
 }
 
 @Composable
-private fun ReplyBar(message: MessageUi, onCancel: () -> Unit) {
+private fun ReplyBar(
+    message: MessageUi,
+    onCancel: () -> Unit,
+    label: String? = null,
+    cancelDescription: String = "Cancel reply",
+) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
@@ -127,13 +139,13 @@ private fun ReplyBar(message: MessageUi, onCancel: () -> Unit) {
         Spacer(Modifier.width(HowYouDoinSpacing.sm))
         Column(Modifier.weight(1f)) {
             Text(
-                if (message.isOutgoing) "Replying to yourself" else "Replying to ${message.senderName ?: "message"}",
+                label ?: if (message.isOutgoing) "Replying to yourself" else "Replying to ${message.senderName ?: "message"}",
                 style = MaterialTheme.typography.labelMedium,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.primary,
             )
             Text(message.body, style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
-        IconButton(onClick = onCancel) { Icon(Icons.Rounded.Close, contentDescription = "Cancel reply") }
+        IconButton(onClick = onCancel) { Icon(Icons.Rounded.Close, contentDescription = cancelDescription) }
     }
 }

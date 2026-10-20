@@ -2,6 +2,7 @@ package com.devvalor.howyoudoing.chat.domain
 
 import com.devvalor.howyoudoing.core.domain.util.DataError
 import com.devvalor.howyoudoing.core.domain.util.EmptyResult
+import com.devvalor.howyoudoing.core.domain.util.Result
 import kotlinx.coroutines.flow.Flow
 
 interface ChatRepository {
@@ -20,6 +21,14 @@ interface ChatRepository {
     /** @param replyToId message being replied to, if any */
     suspend fun sendMessage(chatId: String, body: String, replyToId: String? = null): EmptyResult<DataError.Remote>
     suspend fun sendAttachment(chatId: String, attachment: Attachment, caption: String? = null): EmptyResult<DataError.Remote>
+
+    /** Changes the text of one of the user's own messages. */
+    suspend fun editMessage(chatId: String, messageId: String, body: String): EmptyResult<DataError.Remote> =
+        Result.Failure(DataError.Remote.BAD_REQUEST)
+
+    /** Deletes one of the user's own messages for everyone. */
+    suspend fun deleteMessage(chatId: String, messageId: String): EmptyResult<DataError.Remote> =
+        Result.Failure(DataError.Remote.BAD_REQUEST)
 
     /** Adds the reaction, or removes it if the user already reacted with [key]. */
     suspend fun toggleReaction(chatId: String, messageId: String, key: String): EmptyResult<DataError.Remote>

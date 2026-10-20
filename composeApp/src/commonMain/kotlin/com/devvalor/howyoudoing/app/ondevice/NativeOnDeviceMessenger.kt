@@ -38,6 +38,13 @@ interface NativeMessengerClient {
     fun disconnect()
     fun sendText(threadKey: String, text: String): String
     fun sendEncryptedText(threadKey: String, isGroup: Boolean, text: String): String
+    /** Sends text replying to a message (regular or encrypted chat). */
+    fun sendReply(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, text: String, replyToId: String, replySenderId: String): String =
+        if (isEncrypted) sendEncryptedText(threadKey, isGroup, text) else sendText(threadKey, text)
+    fun editMessage(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, messageId: String, text: String): Unit =
+        throw UnsupportedOperationException("Editing isn't supported here")
+    fun unsend(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, messageId: String): Unit =
+        throw UnsupportedOperationException("Deleting isn't supported here")
     fun requestOlder(threadKey: String, beforeTimestampMs: Long, beforeMessageId: String)
     fun historyStatus(): String
     fun restoreHistory(pin: String)
@@ -155,6 +162,16 @@ open class NativeOnDeviceMessenger(
 
     override suspend fun sendText(threadKey: String, text: String, isEncrypted: Boolean, isGroup: Boolean): Result<String, DataError.Remote> =
         native("Sending a message") { if (isEncrypted) sendEncryptedText(threadKey, isGroup, text) else sendText(threadKey, text) }
+
+    override suspend fun sendReply(
+        threadKey: String, text: String, isEncrypted: Boolean, isGroup: Boolean, replyToId: String, replySenderId: String, quotedText: String
+    ): Result<String, DataError.Remote> = native("Sending a reply") { sendReply(threadKey, isEncrypted, isGroup, text, replyToId, replySenderId) }
+
+    override suspend fun editMessage(threadKey: String, messageId: String, text: String, isEncrypted: Boolean, isGroup: Boolean): EmptyResult<DataError.Remote> =
+        native("Editing a message") { editMessage(threadKey, isEncrypted, isGroup, messageId, text) }
+
+    override suspend fun unsend(threadKey: String, messageId: String, isEncrypted: Boolean, isGroup: Boolean): EmptyResult<DataError.Remote> =
+        native("Deleting a message") { unsend(threadKey, isEncrypted, isGroup, messageId) }
 
     override suspend fun sendAttachment(
         threadKey: String, bytes: ByteArray, fileName: String, mimeType: String, width: Int?, height: Int?, caption: String?,

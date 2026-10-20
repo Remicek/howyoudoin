@@ -80,6 +80,12 @@ class MatrixChatRepository(
 
     override suspend fun refresh() = engine.refresh()
 
+    override suspend fun editMessage(chatId: String, messageId: String, body: String): EmptyResult<DataError.Remote> =
+        engine.editMessage(chatId, messageId, body)
+
+    override suspend fun deleteMessage(chatId: String, messageId: String): EmptyResult<DataError.Remote> =
+        engine.deleteMessage(chatId, messageId)
+
     override suspend fun markAsRead(chatId: String): EmptyResult<DataError.Remote> =
         engine.markAsRead(chatId)
 

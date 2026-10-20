@@ -13,6 +13,11 @@ sealed interface ConversationAction {
     data class OnReactionClick(val messageId: String, val key: String) : ConversationAction
     data class OnReplyClick(val messageId: String) : ConversationAction
     data object OnCancelReply : ConversationAction
+    data class OnEditClick(val messageId: String) : ConversationAction
+    data object OnCancelEdit : ConversationAction
+    data class OnDeleteClick(val messageId: String) : ConversationAction
+    data object OnConfirmDelete : ConversationAction
+    data object OnDismissDelete : ConversationAction
     data class OnCopyClick(val messageId: String) : ConversationAction
 
     data class OnAttachmentPicked(val attachment: Attachment) : ConversationAction

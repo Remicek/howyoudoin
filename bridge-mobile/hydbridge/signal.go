@@ -538,6 +538,9 @@ func (s *Signal) emitDataMessage(key, sender string, msg *signalpb.DataMessage) 
 	if msg.Contact != nil {
 		event["text"] = "👤 Contact"
 	}
+	if replyTo := signalReplyTo(msg); replyTo != "" {
+		event["replyToId"] = replyTo
+	}
 	if msg.Sticker != nil && msg.Sticker.Data != nil {
 		event["kind"] = "sticker"
 		go s.downloadAttachment(key, id, "sticker", msg.Sticker.Data)

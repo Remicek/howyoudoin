@@ -6,6 +6,7 @@ import com.devvalor.howyoudoing.chat.domain.Message
 import com.devvalor.howyoudoing.chat.domain.MessageStatus
 import com.devvalor.howyoudoing.chat.domain.MessageType
 import com.devvalor.howyoudoing.chat.domain.Reaction
+import com.devvalor.howyoudoing.chat.domain.ReplyPreview
 import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceMessenger
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceMessengerState
@@ -123,7 +124,9 @@ class OnDeviceMessengerStore(
         val mediaRef: String? = null,
         val isEdited: Boolean = false,
         /** Length of audio or video, when the network says. */
-        val durationMs: Long? = null
+        val durationMs: Long? = null,
+        /** The message this one replies to. */
+        val replyToId: String? = null
     )
 
     private val _snapshot = MutableStateFlow(Snapshot())
@@ -161,11 +164,18 @@ class OnDeviceMessengerStore(
             .launchIn(scope)
     }
 
-    fun addPending(threadKey: String, otid: String, text: String) = _snapshot.update { s ->
+    fun addPending(threadKey: String, otid: String, text: String, replyToId: String? = null) = _snapshot.update { s ->
         s.copy(pending = s.pending + (otid to StoredMessage(
             id = "pending-$otid", threadKey = threadKey, otid = otid, senderId = s.selfId.orEmpty(), text = text,
-            timestampMs = Clock.System.now().toEpochMilliseconds(), isUnsent = false, status = MessageStatus.SENDING
+            timestampMs = Clock.System.now().toEpochMilliseconds(), isUnsent = false, status = MessageStatus.SENDING,
+            replyToId = replyToId
         )))
+    }
+
+    /** A stored message of a chat, by ID. */
+    fun message(threadKey: String, messageId: String): Message? {
+        val s = _snapshot.value
+        return s.messages[threadKey]?.get(messageId)?.toMessage(s)
     }
 
     fun failPending(otid: String) = _snapshot.update { s ->
@@ -304,7 +314,8 @@ class OnDeviceMessengerStore(
                         senderId = event.str("senderId"), text = event.str("text"), timestampMs = event.long("timestampMs"),
                         isUnsent = event.bool("isUnsent"), kind = event.str("kind").ifEmpty { "text" },
                         isEncrypted = event.bool("isEncrypted"), mediaRef = event.str("mediaRef").ifEmpty { null },
-                        durationMs = event.long("durationMs").takeIf { it > 0 }
+                        durationMs = event.long("durationMs").takeIf { it > 0 },
+                        replyToId = event.str("replyToId").ifEmpty { null }
                     )
                     val thread = s.messages[message.threadKey].orEmpty()
                     s.copy(
@@ -503,6 +514,14 @@ class OnDeviceMessengerStore(
             reactions = reactions,
             media = media,
             isEdited = isEdited,
+            replyTo = replyToId?.let { replyId ->
+                val target = s.messages[threadKey]?.get(replyId)
+                ReplyPreview(
+                    messageId = replyId,
+                    senderName = target?.let { if (it.senderId == s.selfId) "You" else s.contacts[it.senderId]?.firstName ?: s.contacts[it.senderId]?.name }.orEmpty(),
+                    body = target?.let { if (it.isUnsent) "Message unsent" else it.text.ifBlank { "Attachment" } } ?: "Original message"
+                )
+            },
             isReadByOthers = isOutgoing && s.readWatermarks[threadKey].orEmpty()
                 .any { (contact, watermark) -> contact != s.selfId && watermark >= timestampMs }
         )

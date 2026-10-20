@@ -22,7 +22,9 @@ data class ChatUi(
     val isOnDevice: Boolean = false,
     /** "Anna is typing…" replaces the preview while someone types. */
     val typingText: String? = null,
-    val avatarUrl: String? = null
+    val avatarUrl: String? = null,
+    /** No notifications for this chat. */
+    val isMuted: Boolean = false
 )
 
 data class MessageUi(

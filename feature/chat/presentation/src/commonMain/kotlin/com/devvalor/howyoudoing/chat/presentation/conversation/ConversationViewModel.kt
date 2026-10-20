@@ -90,6 +90,17 @@ class ConversationViewModel(
                 state.copy(replyingTo = state.messages.firstOrNull { it.id == action.messageId }, actionsFor = null)
             }
             ConversationAction.OnCancelReply -> _state.update { it.copy(replyingTo = null) }
+            is ConversationAction.OnEditClick -> _state.update { state ->
+                val message = state.messages.firstOrNull { it.id == action.messageId }
+                if (message == null) state.copy(actionsFor = null)
+                else state.copy(editing = message, draft = message.text, replyingTo = null, actionsFor = null)
+            }
+            ConversationAction.OnCancelEdit -> _state.update { it.copy(editing = null, draft = "") }
+            is ConversationAction.OnDeleteClick -> _state.update { state ->
+                state.copy(confirmingDelete = state.messages.firstOrNull { it.id == action.messageId }, actionsFor = null)
+            }
+            ConversationAction.OnDismissDelete -> _state.update { it.copy(confirmingDelete = null) }
+            ConversationAction.OnConfirmDelete -> deleteForEveryone()
             is ConversationAction.OnCopyClick -> {
                 val text = state.value.messages.firstOrNull { it.id == action.messageId }?.text
                 _state.update { it.copy(actionsFor = null) }
@@ -162,11 +173,30 @@ class ConversationViewModel(
     private fun send() {
         val body = state.value.draft.trim()
         if (body.isEmpty()) return
+        state.value.editing?.let { editing ->
+            _state.update { it.copy(draft = "", editing = null) }
+            if (body != editing.text) {
+                viewModelScope.launch {
+                    chatRepository.editMessage(chatId, editing.id, body)
+                        .onFailure { error -> eventChannel.send(ConversationEvent.Error(error.toUiText())) }
+                }
+            }
+            return
+        }
         val replyTo = state.value.replyingTo?.id
         _state.update { it.copy(draft = "", replyingTo = null) }
         updateTyping(false)
         viewModelScope.launch {
             chatRepository.sendMessage(chatId, body, replyTo)
+                .onFailure { error -> eventChannel.send(ConversationEvent.Error(error.toUiText())) }
+        }
+    }
+
+    private fun deleteForEveryone() {
+        val message = state.value.confirmingDelete ?: return
+        _state.update { it.copy(confirmingDelete = null) }
+        viewModelScope.launch {
+            chatRepository.deleteMessage(chatId, message.id)
                 .onFailure { error -> eventChannel.send(ConversationEvent.Error(error.toUiText())) }
         }
     }

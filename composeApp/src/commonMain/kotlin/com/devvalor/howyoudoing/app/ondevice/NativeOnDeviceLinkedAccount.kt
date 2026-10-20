@@ -49,6 +49,10 @@ interface NativeLinkedClient {
     fun disconnect()
     fun logout()
     fun sendText(chat: String, text: String): String
+    /** Sends text replying to a message (its ID, sender and text, which some networks quote). */
+    fun sendReply(chat: String, text: String, replyToId: String, replySenderId: String, quotedText: String): String = sendText(chat, text)
+    fun editMessage(chat: String, messageId: String, text: String): Unit = throw UnsupportedOperationException("Editing isn't supported here")
+    fun unsend(chat: String, messageId: String): Unit = throw UnsupportedOperationException("Deleting isn't supported here")
     fun sendReaction(chat: String, messageId: String, senderId: String, emoji: String)
     fun markRead(chat: String, messageId: String, senderId: String)
     fun setTyping(chat: String, isTyping: Boolean)
@@ -191,6 +195,16 @@ abstract class NativeOnDeviceLinkedAccount(
 
     override suspend fun sendText(threadKey: String, text: String, isEncrypted: Boolean, isGroup: Boolean): Result<String, DataError.Remote> =
         native("Sending a message") { sendText(threadKey, text) }
+
+    override suspend fun sendReply(
+        threadKey: String, text: String, isEncrypted: Boolean, isGroup: Boolean, replyToId: String, replySenderId: String, quotedText: String
+    ): Result<String, DataError.Remote> = native("Sending a reply") { sendReply(threadKey, text, replyToId, replySenderId, quotedText) }
+
+    override suspend fun editMessage(threadKey: String, messageId: String, text: String, isEncrypted: Boolean, isGroup: Boolean): EmptyResult<DataError.Remote> =
+        native("Editing a message") { editMessage(threadKey, messageId, text) }
+
+    override suspend fun unsend(threadKey: String, messageId: String, isEncrypted: Boolean, isGroup: Boolean): EmptyResult<DataError.Remote> =
+        native("Deleting a message") { unsend(threadKey, messageId) }
 
     override suspend fun sendAttachment(
         threadKey: String, bytes: ByteArray, fileName: String, mimeType: String, width: Int?, height: Int?, caption: String?,

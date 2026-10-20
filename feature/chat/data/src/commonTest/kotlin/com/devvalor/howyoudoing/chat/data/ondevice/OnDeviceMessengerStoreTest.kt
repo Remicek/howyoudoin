@@ -187,4 +187,91 @@ class OnDeviceMessengerStoreTest {
         val restarted = store(cache)
         assertEquals(first.chats().map { it.name }, restarted.chats().map { it.name })
     }
+
+    private suspend fun thread(key: String, lastActivity: Long, lastRead: Long) =
+        emit("""{"type":"thread","key":"$key","name":"Anna","isGroup":false,"isEncrypted":false,"lastActivityMs":$lastActivity,"lastReadMs":$lastRead}""")
+
+    @Test
+    fun a_new_message_after_the_chat_was_read_makes_it_unread() = runTest {
+        val store = store()
+        self()
+        thread("2", lastActivity = 1_000, lastRead = 1_000)
+        assertEquals(0, store.chats().single().unreadCount)
+
+        // Instagram only reports a chat's activity when the inbox loads; the message itself has to move it on
+        message("2", "m1", "2", "Hi", 2_000)
+        assertEquals(1, store.chats().single().unreadCount)
+    }
+
+    @Test
+    fun a_message_we_send_leaves_the_chat_read() = runTest {
+        val store = store()
+        self()
+        thread("2", lastActivity = 1_000, lastRead = 1_000)
+        message("2", "m1", "1", "Hello", 2_000)
+        assertEquals(0, store.chats().single().unreadCount)
+    }
+
+    @Test
+    fun our_own_read_receipt_from_another_device_marks_the_chat_read() = runTest {
+        val store = store()
+        self()
+        thread("2", lastActivity = 1_000, lastRead = 1_000)
+        message("2", "m1", "2", "Hi", 2_000)
+        assertEquals(1, store.chats().single().unreadCount)
+
+        emit("""{"type":"read","threadKey":"2","contactId":"1","watermarkMs":2000}""")
+        assertEquals(0, store.chats().single().unreadCount)
+    }
+
+    @Test
+    fun someone_elses_read_receipt_marks_our_messages_read_but_not_the_chat() = runTest {
+        val store = store()
+        self()
+        thread("2", lastActivity = 1_000, lastRead = 1_000)
+        message("2", "m1", "1", "Hello", 2_000)
+        emit("""{"type":"read","threadKey":"2","contactId":"2","watermarkMs":2000}""")
+
+        assertTrue(store.messages("2").single().isReadByOthers)
+        assertEquals(0, store.chats().single().unreadCount)
+    }
+
+    @Test
+    fun a_reply_shows_what_it_replies_to() = runTest {
+        val store = store()
+        self()
+        contact("2", "Anna Nowak")
+        message("2", "m1", "2", "Lunch?", 1_000)
+        message("2", "m2", "1", "Sure", 2_000, extra = ""","replyToId":"m1"""")
+        message("2", "m3", "2", "Great", 3_000, extra = ""","replyToId":"m2"""")
+
+        val (_, toAnna, toUs) = store.messages("2")
+        assertEquals("m1", toAnna.replyTo?.messageId)
+        assertEquals("Anna", toAnna.replyTo?.senderName)
+        assertEquals("Lunch?", toAnna.replyTo?.body)
+        assertEquals("You", toUs.replyTo?.senderName)
+        assertEquals("Sure", toUs.replyTo?.body)
+    }
+
+    @Test
+    fun a_reply_to_a_message_not_loaded_says_so() = runTest {
+        val store = store()
+        self()
+        message("2", "m2", "2", "Yes", 2_000, extra = ""","replyToId":"old"""")
+
+        val reply = store.messages("2").single().replyTo
+        assertNotNull(reply)
+        assertEquals("Original message", reply.body)
+    }
+
+    @Test
+    fun a_reply_to_an_unsent_message_says_it_was_unsent() = runTest {
+        val store = store()
+        self()
+        message("2", "m1", "2", "Oops", 1_000)
+        message("2", "m2", "1", "What?", 2_000, extra = ""","replyToId":"m1"""")
+        emit("""{"type":"unsend","threadKey":"2","messageId":"m1"}""")
+
+        assertEquals("Message unsent", store.messages("2").last().replyTo?.body)
+    }
 }

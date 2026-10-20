@@ -51,6 +51,8 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.AlertDialog
 import androidx.compose.foundation.interaction.DragInteraction
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
@@ -250,6 +252,8 @@ fun ConversationScreen(
                 onSend = { onAction(ConversationAction.OnSendClick) },
                 onAttach = onAttach,
                 onCancelReply = { onAction(ConversationAction.OnCancelReply) },
+                editing = state.editing,
+                onCancelEdit = { onAction(ConversationAction.OnCancelEdit) },
                 canRecord = voice?.canRecord == true,
                 recording = voice?.recording,
                 onRecordStart = { voice?.start?.invoke() },
@@ -266,6 +270,21 @@ fun ConversationScreen(
             onReply = { onAction(ConversationAction.OnReplyClick(message.id)) },
             onCopy = { onAction(ConversationAction.OnCopyClick(message.id)) },
             onDismiss = { onAction(ConversationAction.OnDismissActions) },
+            onEdit = if (message.canEdit()) ({ onAction(ConversationAction.OnEditClick(message.id)) }) else null,
+            onDelete = if (message.canDelete()) ({ onAction(ConversationAction.OnDeleteClick(message.id)) }) else null,
+        )
+    }
+    state.confirmingDelete?.let {
+        AlertDialog(
+            onDismissRequest = { onAction(ConversationAction.OnDismissDelete) },
+            title = { Text("Delete for everyone?") },
+            text = { Text("The message is removed for everyone in the chat. Some apps show that a message was deleted.") },
+            confirmButton = {
+                TextButton(onClick = { onAction(ConversationAction.OnConfirmDelete) }) {
+                    Text("Delete", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = { TextButton(onClick = { onAction(ConversationAction.OnDismissDelete) }) { Text("Cancel") } },
         )
     }
     state.viewingImage?.media?.let { media ->
@@ -443,3 +462,11 @@ private fun DayHeader(label: String) {
         )
     }
 }
+
+/** Our own sent text messages can be edited. */
+private fun MessageUi.canEdit(): Boolean =
+    isOutgoing && type == MessageType.TEXT && status == MessageStatus.SENT && !id.startsWith("pending-") && text.isNotBlank()
+
+/** Our own sent messages can be deleted for everyone (not ones already unsent). */
+private fun MessageUi.canDelete(): Boolean =
+    isOutgoing && type != MessageType.NOTICE && status == MessageStatus.SENT && !id.startsWith("pending-")

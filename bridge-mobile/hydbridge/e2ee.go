@@ -65,7 +65,8 @@ func (m *Messenger) connectE2EE(ctx context.Context) error {
 func (m *Messenger) handleE2EEEvent(rawEvt any) {
 	switch evt := rawEvt.(type) {
 	case *events.FBMessage:
-		m.emitFBMessage(evt.Info.Chat.User, evt.Info.ID, evt.Info.Sender.User, evt.Info.Timestamp.UnixMilli(), evt.GetConsumerApplication(), nil)
+		m.emitFBMessage(evt.Info.Chat.User, evt.Info.ID, evt.Info.Sender.User, evt.Info.Timestamp.UnixMilli(), evt.GetConsumerApplication(), nil,
+			evt.FBApplication.GetMetadata().GetQuotedMessage().GetStanzaID())
 	case *events.ChatPresence:
 		m.emit(map[string]any{"type": "typing", "threadKey": evt.Chat.User, "senderId": evt.Sender.User,
 			"isTyping": evt.State == types.ChatPresenceComposing})
@@ -82,7 +83,7 @@ func (m *Messenger) handleE2EEEvent(rawEvt any) {
 }
 
 // emitFBMessage turns a decrypted Messenger (consumer application) message into a message or reaction event.
-func (m *Messenger) emitFBMessage(threadKey, messageID, senderID string, timestamp int64, app *waConsumerApplication.ConsumerApplication, mediaPaths map[string]string) {
+func (m *Messenger) emitFBMessage(threadKey, messageID, senderID string, timestamp int64, app *waConsumerApplication.ConsumerApplication, mediaPaths map[string]string, replyTo ...string) {
 	if revoke := app.GetPayload().GetApplicationData().GetRevoke(); revoke != nil {
 		m.emit(map[string]any{"type": "unsend", "threadKey": threadKey, "messageId": revoke.GetKey().GetID()})
 		return
@@ -109,7 +110,7 @@ func (m *Messenger) emitFBMessage(threadKey, messageID, senderID string, timesta
 	}
 	m.ensureContact(senderID)
 	m.ensureContact(threadKey)
-	m.emit(map[string]any{
+	event := map[string]any{
 		"type":        "message",
 		"threadKey":   threadKey,
 		"id":          messageID,
@@ -118,7 +119,11 @@ func (m *Messenger) emitFBMessage(threadKey, messageID, senderID string, timesta
 		"kind":        kind,
 		"timestampMs": timestamp,
 		"isEncrypted": true,
-	})
+	}
+	if len(replyTo) > 0 && replyTo[0] != "" {
+		event["replyToId"] = replyTo[0]
+	}
+	m.emit(event)
 	m.downloadEncryptedMedia(threadKey, messageID, content, mediaPaths)
 }
 

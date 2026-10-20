@@ -66,6 +66,8 @@ type Telegram struct {
 	typing     sync.Map // thread key + sender → *time.Timer that ends the typing indicator
 	// Message ID → random ID of a media message we sent, so its echo (from the update stream) carries it as otid
 	sentRandomIDs sync.Map
+	// Random ID of a reply we sent → the message it replies to, for its echo
+	pendingReplies sync.Map
 }
 
 // NewTelegram creates the client; apiID and apiHash are the app's credentials from my.telegram.org. The login
@@ -697,6 +699,9 @@ func (t *Telegram) emitMessage(raw tg.MessageClass) {
 	if rid, ok := t.sentRandomIDs.LoadAndDelete(id); ok {
 		event["otid"] = rid
 	}
+	if replyTo := telegramReplyTo(key, msg); replyTo != "" {
+		event["replyToId"] = replyTo
+	}
 	if msg.Media != nil {
 		t.describeMedia(key, id, msg, event)
 	}
@@ -814,10 +819,14 @@ func (t *Telegram) echoSent(ctx context.Context, threadKey string, rid int64, te
 		if !strings.HasPrefix(threadKey, "c") {
 			t.msgThreads.Store(msgID, threadKey)
 		}
-		t.emit(map[string]any{
+		event := map[string]any{
 			"type": "message", "threadKey": threadKey, "id": id, "otid": strconv.FormatInt(rid, 10),
 			"senderId": strconv.FormatInt(t.selfID.Load(), 10), "text": text, "kind": "text", "timestampMs": int64(date) * 1000,
-		})
+		}
+		if replyTo, ok := t.pendingReplies.LoadAndDelete(rid); ok {
+			event["replyToId"] = replyTo
+		}
+		t.emit(event)
 	}
 	if _, short := resp.(*tg.UpdateShortSentMessage); !short {
 		_ = t.updates.Handle(ctx, resp)

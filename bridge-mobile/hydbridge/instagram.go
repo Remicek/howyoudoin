@@ -160,6 +160,11 @@ func (ig *Instagram) handleDelta(delta *slidetypes.Delta) {
 		ig.trackOwnReaction(threadKey, evt.MessageID, evt.Reaction.SenderFBID, "")
 		ig.emit(map[string]any{"type": "reaction", "threadKey": threadKey, "targetId": evt.MessageID,
 			"senderId": strconv.FormatInt(evt.Reaction.SenderFBID, 10), "emoji": ""})
+	case *slidetypes.EditMessageEvent:
+		ig.emit(map[string]any{"type": "edit", "threadKey": threadKey, "messageId": evt.MessageID,
+			"text": firstNonEmpty(evt.TextBody, evt.IGDSnippet)})
+	case *slidetypes.DeleteMessageEvent:
+		ig.emit(map[string]any{"type": "unsend", "threadKey": threadKey, "messageId": evt.MessageID})
 	case *slidetypes.ReadReceiptEvent:
 		ig.emit(map[string]any{"type": "read", "threadKey": threadKey,
 			"contactId":   strconv.FormatInt(evt.ReadReceipt.ParticipantFBID, 10),
@@ -255,11 +260,15 @@ func (ig *Instagram) emitMessage(threadKey string, msg *slidetypes.Message) {
 		// The snippet only describes the media ("You sent a photo."), which the bubble already shows
 		text = msg.TextBody
 	}
-	ig.emit(map[string]any{
+	event := map[string]any{
 		"type": "message", "threadKey": threadKey, "id": msg.MessageID, "otid": msg.OfflineThreadingID,
 		"senderId": strconv.FormatInt(msg.SenderFBID, 10), "text": text,
 		"kind": kind, "timestampMs": msg.TimestampMS.UnixMilli(),
-	})
+	}
+	if msg.RepliedToMessageID != "" {
+		event["replyToId"] = msg.RepliedToMessageID
+	}
+	ig.emit(event)
 	if url != "" || preview != "" {
 		attachment := map[string]any{
 			"type": "attachment", "threadKey": threadKey, "messageId": msg.MessageID, "kind": kind,

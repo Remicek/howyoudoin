@@ -16,5 +16,10 @@ kotlin {
                 implementation(libs.datastore.preferences)
             }
         }
+        commonTest {
+            dependencies {
+                implementation(libs.kotlinx.coroutines.test)
+            }
+        }
     }
 }
