@@ -5,6 +5,7 @@ import androidx.compose.material.icons.rounded.BugReport
 import androidx.compose.material.icons.rounded.Gavel
 import androidx.compose.material.icons.rounded.Hub
 import androidx.compose.material.icons.rounded.Info
+import androidx.compose.material.icons.automirrored.rounded.HelpOutline
 import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -39,6 +40,7 @@ fun SettingsRoot(
     onCrashReportsClick: () -> Unit,
     onLicensesClick: () -> Unit,
     onAboutClick: () -> Unit,
+    onGuideClick: () -> Unit,
     onBack: () -> Unit,
     viewModel: SettingsViewModel = koinViewModel(),
 ) {
@@ -50,6 +52,14 @@ fun SettingsRoot(
                 subtitle = "Connect or disconnect your accounts",
                 icon = Icons.Rounded.Hub,
                 onClick = onNetworksClick,
+            )
+        }
+        item {
+            SettingsRow(
+                title = "How connecting works",
+                subtitle = "Which login to use for each network",
+                icon = Icons.AutoMirrored.Rounded.HelpOutline,
+                onClick = onGuideClick,
             )
         }
         item { SettingsSectionHeader("Privacy") }

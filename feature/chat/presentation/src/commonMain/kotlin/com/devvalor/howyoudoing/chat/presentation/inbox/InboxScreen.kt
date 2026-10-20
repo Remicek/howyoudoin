@@ -46,6 +46,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
@@ -76,6 +77,7 @@ fun InboxRoot(
     onChatClick: (chatId: String) -> Unit,
     onNetworksClick: () -> Unit,
     onSettingsClick: () -> Unit,
+    onGuideClick: () -> Unit = {},
     banner: @Composable (encryptedNetworks: Set<ChatNetwork>) -> Unit = {},
     viewModel: InboxViewModel = koinViewModel()
 ) {
@@ -90,6 +92,7 @@ fun InboxRoot(
                 is InboxAction.OnChatClick -> onChatClick(action.chatId)
                 InboxAction.OnNetworksClick -> onNetworksClick()
                 InboxAction.OnSettingsClick -> onSettingsClick()
+                InboxAction.OnGuideClick -> onGuideClick()
                 else -> viewModel.onAction(action)
             }
         }
@@ -164,6 +167,7 @@ fun InboxScreen(
                 state.chats.isEmpty() -> EmptyInbox(
                     isFiltered = state.query.isNotBlank() || state.filter != InboxFilter.All,
                     onNetworksClick = { onAction(InboxAction.OnNetworksClick) },
+                    onGuideClick = { onAction(InboxAction.OnGuideClick) },
                 )
                 else -> PullToRefreshBox(
                     isRefreshing = state.isRefreshing,
@@ -368,7 +372,7 @@ private fun UnreadBadge(count: Int) {
 }
 
 @Composable
-private fun EmptyInbox(isFiltered: Boolean, onNetworksClick: () -> Unit) {
+private fun EmptyInbox(isFiltered: Boolean, onNetworksClick: () -> Unit, onGuideClick: () -> Unit) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
@@ -382,7 +386,7 @@ private fun EmptyInbox(isFiltered: Boolean, onNetworksClick: () -> Unit) {
         Spacer(Modifier.height(HowYouDoinSpacing.sm))
         if (!isFiltered) {
             Text(
-                "Connect WhatsApp, Messenger or Instagram and your conversations will show up here.",
+                "Connect WhatsApp, Messenger, Instagram, Telegram or Signal and your conversations will show up here.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
@@ -390,6 +394,9 @@ private fun EmptyInbox(isFiltered: Boolean, onNetworksClick: () -> Unit) {
             Spacer(Modifier.height(HowYouDoinSpacing.lg))
             FilledTonalButton(onClick = onNetworksClick) {
                 Text("Connect a network")
+            }
+            TextButton(onClick = onGuideClick) {
+                Text("How connecting works")
             }
         }
     }

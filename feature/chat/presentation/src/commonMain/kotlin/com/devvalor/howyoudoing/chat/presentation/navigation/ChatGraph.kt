@@ -13,6 +13,7 @@ fun NavGraphBuilder.chatGraph(
     navController: NavController,
     onNetworksClick: () -> Unit,
     onSettingsClick: () -> Unit,
+    onGuideClick: () -> Unit = {},
     inboxBanner: @Composable (encryptedNetworks: Set<ChatNetwork>) -> Unit = {},
 ) {
     navigation<ChatRoutes.Graph>(startDestination = ChatRoutes.Inbox) {
@@ -23,6 +24,7 @@ fun NavGraphBuilder.chatGraph(
                 },
                 onNetworksClick = onNetworksClick,
                 onSettingsClick = onSettingsClick,
+                onGuideClick = onGuideClick,
                 banner = inboxBanner,
             )
         }

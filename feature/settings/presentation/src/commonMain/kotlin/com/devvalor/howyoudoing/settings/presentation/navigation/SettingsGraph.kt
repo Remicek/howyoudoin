@@ -6,6 +6,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navigation
 import com.devvalor.howyoudoing.settings.presentation.about.AboutRoot
 import com.devvalor.howyoudoing.settings.presentation.crash.CrashReportsRoot
+import com.devvalor.howyoudoing.settings.presentation.guide.ConnectGuideRoot
 import com.devvalor.howyoudoing.settings.presentation.licenses.LicensesRoot
 import com.devvalor.howyoudoing.settings.presentation.lock.AppLockSettingsRoot
 import com.devvalor.howyoudoing.settings.presentation.main.SettingsRoot
@@ -20,6 +21,8 @@ sealed interface SettingsRoutes {
     @Serializable data object CrashReports : SettingsRoutes
     @Serializable data object Licenses : SettingsRoutes
     @Serializable data object About : SettingsRoutes
+    /** Which login to use for each network. */
+    @Serializable data object ConnectGuide : SettingsRoutes
 }
 
 fun NavGraphBuilder.settingsGraph(
@@ -35,6 +38,7 @@ fun NavGraphBuilder.settingsGraph(
                 onCrashReportsClick = { open(SettingsRoutes.CrashReports) },
                 onLicensesClick = { open(SettingsRoutes.Licenses) },
                 onAboutClick = { open(SettingsRoutes.About) },
+                onGuideClick = { open(SettingsRoutes.ConnectGuide) },
                 onBack = { navController.navigateUp() },
             )
         }
@@ -44,6 +48,9 @@ fun NavGraphBuilder.settingsGraph(
         }
         composable<SettingsRoutes.CrashReports> { CrashReportsRoot(onBack = { navController.navigateUp() }) }
         composable<SettingsRoutes.Licenses> { LicensesRoot(onBack = { navController.navigateUp() }) }
+        composable<SettingsRoutes.ConnectGuide> {
+            ConnectGuideRoot(onNetworksClick = onNetworksClick, onBack = { navController.navigateUp() })
+        }
         composable<SettingsRoutes.About> {
             AboutRoot(onLicensesClick = { open(SettingsRoutes.Licenses) }, onBack = { navController.navigateUp() })
         }
