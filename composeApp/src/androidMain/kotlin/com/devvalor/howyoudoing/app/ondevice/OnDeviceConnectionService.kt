@@ -19,6 +19,14 @@ import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceMessenger
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceMessengerState
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceLinkedAccount
 import kotlinx.coroutines.CoroutineScope
+import org.koin.core.context.GlobalContext
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.combine
@@ -43,11 +51,25 @@ class OnDeviceConnectionService : Service() {
             0
         }
         ServiceCompat.startForeground(this, NOTIFICATION_ID, notification, type)
+        if (follow == null) {
+            // Keep the notification in step with what's connected, whoever started the service
+            val keeper = GlobalContext.get().get<OnDeviceConnectionKeeper>()
+            follow = keeper.active
+                .drop(1)
+                .onEach { active ->
+                    getSystemService(NotificationManager::class.java).notify(NOTIFICATION_ID, notification(this, keeper.text(active)))
+                }
+                .launchIn(serviceScope)
+        }
         return START_STICKY
     }
 
+    private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    private var follow: Job? = null
+
     override fun onDestroy() {
         isRunning = false
+        serviceScope.cancel()
         super.onDestroy()
     }
 
@@ -116,6 +138,12 @@ class OnDeviceConnectionKeeper(
     linkedAccounts: List<OnDeviceLinkedAccount>,
     scope: CoroutineScope
 ) {
+    // Declared before init: its collector may run straight away
+    private val appContext = context.applicationContext
+
+    /** Networks currently linked, connecting or pairing; the service's notification follows it. */
+    val active = MutableStateFlow<List<String>>(emptyList())
+
     init {
         combine(clients.map { client -> client.state.combineName(client) } + linkedAccounts.map { it.pairing.combineName(it) }) { active ->
             active.filterNotNull()
@@ -124,7 +152,7 @@ class OnDeviceConnectionKeeper(
             // Each change cancels a pending stop: accounts report their state a moment after start-up, so the
             // service only stops once nothing has been active for a while
             .mapLatest { active ->
-                this.active = active
+                this.active.value = active
                 if (active.isNotEmpty()) {
                     OnDeviceConnectionService.start(appContext, text(active))
                 } else {
@@ -135,22 +163,17 @@ class OnDeviceConnectionKeeper(
             .launchIn(scope)
     }
 
-    private val appContext = context.applicationContext
-
-    /** Networks currently linked, connecting or pairing. */
-    @Volatile
-    private var active: List<String> = emptyList()
-
     /**
      * Starts the service now, while the app may still do so from the background (a boot or app-update broadcast is
      * being handled): states that changed before then couldn't start it. If nothing turns out to be linked, it stops
      * again after a while.
      */
     fun startNow() {
-        OnDeviceConnectionService.start(appContext, active.takeIf { it.isNotEmpty() }?.let(::text) ?: "Connecting…")
+        OnDeviceConnectionService.start(appContext, text(active.value))
     }
 
-    private fun text(active: List<String>) = "Connected on this device: ${active.distinct().joinToString(", ")}"
+    fun text(active: List<String>) =
+        if (active.isEmpty()) "Connecting…" else "Connected on this device: ${active.distinct().joinToString(", ")}"
 
     private companion object {
         const val STOP_DELAY_MILLIS = 15_000L
