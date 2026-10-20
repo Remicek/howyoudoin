@@ -145,15 +145,14 @@ fun ConversationRoot(
 }
 
 /**
- * The voice note format the chat's network expects, or null where voice messages can't be sent from here
- * (on-device Instagram doesn't send attachments yet).
+ * The voice note format the chat's network expects, or null where voice messages can't be sent from here.
  */
 private fun voiceFormatFor(network: ChatNetwork?, isOnDevice: Boolean): VoiceFormat? = when {
     // Through the server, bridges convert Matrix voice messages (Ogg/Opus) for their network
     !isOnDevice -> VoiceFormat.OGG_OPUS
     network == ChatNetwork.WHATSAPP || network == ChatNetwork.TELEGRAM -> VoiceFormat.OGG_OPUS
     network == ChatNetwork.SIGNAL -> VoiceFormat.AAC_ADTS
-    network == ChatNetwork.MESSENGER -> VoiceFormat.M4A_AAC
+    network == ChatNetwork.MESSENGER || network == ChatNetwork.INSTAGRAM -> VoiceFormat.M4A_AAC
     else -> null
 }
 

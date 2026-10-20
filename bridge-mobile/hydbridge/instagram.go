@@ -31,6 +31,12 @@ type Instagram struct {
 	// IG thread ID → thread key, for typing notifications (which use the IG ID), and back, for sending
 	threadKeys  sync.Map
 	igThreadIDs sync.Map
+	// Thread key → the long IG thread ID that read receipts use
+	igLongThreadIDs sync.Map
+	// Message ID → time sent, for read receipts; "threadKey/messageID" → our own reaction there, to remove it
+	messageTimes sync.Map
+	ownReactions sync.Map
+	selfID       int64
 	// Threads being fetched because a message arrived for one the inbox sync didn't have
 	threadsLoading sync.Map
 }
@@ -69,7 +75,8 @@ func (ig *Instagram) Connect() error {
 		ig.resetCancel()
 		return fmt.Errorf("failed to load inbox: %w", err)
 	}
-	selfID := strconv.FormatInt(ig.client.GetOwnFBID(), 10)
+	ig.selfID = ig.client.GetOwnFBID()
+	selfID := strconv.FormatInt(ig.selfID, 10)
 	ig.emit(map[string]any{"type": "self", "id": selfID, "name": viewer.Data.Username})
 	for _, edge := range mailbox.ThreadsByFolder.Edges {
 		ig.emitThread(edge.Node.AsIGDirectThread)
@@ -146,9 +153,11 @@ func (ig *Instagram) handleDelta(delta *slidetypes.Delta) {
 			go ig.loadNewThread(threadKey)
 		}
 	case *slidetypes.CreateReactionEvent:
+		ig.trackOwnReaction(threadKey, evt.MessageID, evt.Reaction.SenderFBID, evt.Reaction.Reaction)
 		ig.emit(map[string]any{"type": "reaction", "threadKey": threadKey, "targetId": evt.MessageID,
 			"senderId": strconv.FormatInt(evt.Reaction.SenderFBID, 10), "emoji": evt.Reaction.Reaction})
 	case *slidetypes.DeleteReactionEvent:
+		ig.trackOwnReaction(threadKey, evt.MessageID, evt.Reaction.SenderFBID, "")
 		ig.emit(map[string]any{"type": "reaction", "threadKey": threadKey, "targetId": evt.MessageID,
 			"senderId": strconv.FormatInt(evt.Reaction.SenderFBID, 10), "emoji": ""})
 	case *slidetypes.ReadReceiptEvent:
@@ -166,6 +175,9 @@ func (ig *Instagram) emitThread(thread *slidetypes.ThreadInfo) {
 	ig.threadKeys.Store(thread.ID, key)
 	ig.threadKeys.Store(thread.ThreadID, key)
 	ig.igThreadIDs.Store(key, thread.ID)
+	if thread.ThreadID != "" {
+		ig.igLongThreadIDs.Store(key, thread.ThreadID)
+	}
 	for _, user := range thread.Users {
 		if user != nil && user.InteropMessagingUserFBID != 0 {
 			id := strconv.FormatInt(user.InteropMessagingUserFBID, 10)
@@ -197,7 +209,13 @@ func (ig *Instagram) emitMessage(threadKey string, msg *slidetypes.Message) {
 	if msg == nil || msg.MessageID == "" {
 		return
 	}
-	kind, url, preview, width, height := "text", "", "", 0, 0
+	ig.messageTimes.Store(msg.MessageID, msg.TimestampMS.Time)
+	for _, reaction := range msg.Reactions {
+		if reaction != nil {
+			ig.trackOwnReaction(threadKey, msg.MessageID, reaction.SenderFBID, reaction.Reaction)
+		}
+	}
+	kind, url, preview, width, height, durationMs := "text", "", "", 0, 0, 0
 	switch content := msg.Content.Content.(type) {
 	case *slidetypes.MessageContentImage:
 		if len(content.Attachments) > 0 && content.Attachments[0] != nil {
@@ -211,20 +229,34 @@ func (ig *Instagram) emitMessage(threadKey string, msg *slidetypes.Message) {
 		}
 	case *slidetypes.MessageContentAudio:
 		kind = "audio"
+		if len(content.AudioAttachments) > 0 && content.AudioAttachments[0] != nil {
+			a := content.AudioAttachments[0]
+			url, durationMs = a.AttachmentCDNURL, a.PlayableDurationMS
+		}
 	}
 	if kind == "text" && msg.TextBody == "" && msg.IGDSnippet == "" {
 		kind = "other"
 	}
+	text := firstNonEmpty(msg.TextBody, msg.IGDSnippet)
+	if url != "" || preview != "" {
+		// The snippet only describes the media ("You sent a photo."), which the bubble already shows
+		text = msg.TextBody
+	}
 	ig.emit(map[string]any{
 		"type": "message", "threadKey": threadKey, "id": msg.MessageID, "otid": msg.OfflineThreadingID,
-		"senderId": strconv.FormatInt(msg.SenderFBID, 10), "text": firstNonEmpty(msg.TextBody, msg.IGDSnippet),
+		"senderId": strconv.FormatInt(msg.SenderFBID, 10), "text": text,
 		"kind": kind, "timestampMs": msg.TimestampMS.UnixMilli(),
 	})
 	if url != "" || preview != "" {
-		ig.emit(map[string]any{
+		attachment := map[string]any{
 			"type": "attachment", "threadKey": threadKey, "messageId": msg.MessageID, "kind": kind,
 			"url": firstNonEmpty(url, preview), "previewUrl": firstNonEmpty(preview, url), "width": width, "height": height,
-		})
+		}
+		if kind == "audio" {
+			attachment["mimeType"] = "audio/mp4"
+			attachment["durationMs"] = durationMs
+		}
+		ig.emit(attachment)
 	}
 }
 

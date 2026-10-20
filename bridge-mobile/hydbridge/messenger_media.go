@@ -207,11 +207,15 @@ func (m *Messenger) sendEncryptedMedia(threadKey string, isGroup bool, path stri
 		sum := sha256.Sum256([]byte(threadKey + "/" + resp.ID))
 		cached := filepath.Join(dir, hex.EncodeToString(sum[:16]))
 		if os.Rename(path, cached) == nil {
-			m.emit(map[string]any{
+			event := map[string]any{
 				"type": "attachment", "threadKey": threadKey, "messageId": resp.ID, "kind": kind,
 				"url": "file://" + cached, "previewUrl": "file://" + cached, "mimeType": mimeType, "fileName": fileName,
 				"width": width, "height": height,
-			})
+			}
+			if voiceMs > 0 {
+				event["durationMs"] = voiceMs
+			}
+			m.emit(event)
 		}
 	}
 	return resp.ID, nil

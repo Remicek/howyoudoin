@@ -199,13 +199,10 @@ private fun listener(onEvent: (String) -> Unit) = object : Listener {
     override fun onEvent(json: String) = onEvent(json)
 }
 
-/** hydbridge's Instagram client from the gomobile AAR; only connecting and text are wired so far. */
+/** hydbridge's Instagram client from the gomobile AAR. Instagram has no encrypted chats or history backup. */
 class AndroidInstagramFactory : NativeMessengerFactory {
     override fun create(cookiesJson: String, dataDir: String, onEvent: (String) -> Unit): NativeMessengerClient {
-        val listener = object : Listener {
-            override fun onEvent(json: String) = onEvent(json)
-        }
-        val ig = Hydbridge.newInstagram(cookiesJson, listener)
+        val ig = Hydbridge.newInstagram(cookiesJson, listener(onEvent))
         return object : NativeMessengerClient {
             override fun connect() = ig.connect()
             override fun disconnect() = ig.disconnect()
@@ -215,14 +212,21 @@ class AndroidInstagramFactory : NativeMessengerFactory {
             override fun historyStatus(): String = unsupported()
             override fun restoreHistory(pin: String) = unsupported()
             override fun fetchEncryptedHistory(threadKey: String, isGroup: Boolean, beforeTimestampMs: Long, count: Long) = unsupported()
-            override fun sendReaction(threadKey: String, messageId: String, emoji: String) = unsupported()
+            override fun sendReaction(threadKey: String, messageId: String, emoji: String) = ig.sendReaction(threadKey, messageId, emoji)
             override fun sendEncryptedReaction(threadKey: String, isGroup: Boolean, messageId: String, messageSenderId: String, emoji: String) =
                 unsupported()
-            override fun markRead(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, lastMessageId: String, senderId: String) = unsupported()
-            override fun setTyping(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, isTyping: Boolean) = unsupported()
+            override fun markRead(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, lastMessageId: String, senderId: String) =
+                ig.markRead(threadKey, lastMessageId)
+            override fun setTyping(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, isTyping: Boolean) = ig.setTyping(threadKey, isTyping)
+            override fun sendMediaFile(
+                threadKey: String, isEncrypted: Boolean, isGroup: Boolean, path: String, mimeType: String, fileName: String,
+                caption: String, width: Long, height: Long
+            ): String = ig.sendMediaFile(threadKey, path, mimeType, fileName, caption)
+            override fun sendVoice(
+                threadKey: String, isEncrypted: Boolean, isGroup: Boolean, path: String, mimeType: String, durationMs: Long, waveform: String
+            ): String = ig.sendVoice(threadKey, path, mimeType, durationMs, waveform)
         }
     }
 
-    private fun unsupported(): Nothing = throw UnsupportedOperationException("Not supported for Instagram yet")
+    private fun unsupported(): Nothing = throw UnsupportedOperationException("Instagram has no encrypted chats")
 }
-

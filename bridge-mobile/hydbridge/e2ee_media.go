@@ -27,7 +27,7 @@ func (m *Messenger) downloadEncryptedMedia(threadKey, messageID string, content 
 	var transport *waMediaTransport.WAMediaTransport
 	var mediaType whatsmeow.MediaType
 	var kind, fileName string
-	var width, height uint32
+	var width, height, seconds uint32
 	switch {
 	case content.GetImageMessage() != nil:
 		t, err := content.GetImageMessage().Decode()
@@ -53,12 +53,14 @@ func (m *Messenger) downloadEncryptedMedia(threadKey, messageID string, content 
 			return
 		}
 		transport, mediaType, kind = t.GetIntegral().GetTransport(), whatsmeow.MediaVideo, "video"
+		seconds = t.GetAncillary().GetSeconds()
 	case content.GetAudioMessage() != nil:
 		t, err := content.GetAudioMessage().Decode()
 		if err != nil {
 			return
 		}
 		transport, mediaType, kind = t.GetIntegral().GetTransport(), whatsmeow.MediaAudio, "audio"
+		seconds = t.GetAncillary().GetSeconds()
 	case content.GetDocumentMessage() != nil:
 		t, err := content.GetDocumentMessage().Decode()
 		if err != nil {
@@ -98,11 +100,15 @@ func (m *Messenger) downloadEncryptedMedia(threadKey, messageID string, content 
 		if err = os.WriteFile(file, data, 0o600); err != nil {
 			return
 		}
-		m.emit(map[string]any{
+		event := map[string]any{
 			"type": "attachment", "threadKey": threadKey, "messageId": messageID, "kind": kind,
 			"url": "file://" + file, "previewUrl": "file://" + file, "mimeType": mimeType, "fileName": fileName,
 			"width": width, "height": height,
-		})
+		}
+		if seconds > 0 {
+			event["durationMs"] = int64(seconds) * 1000
+		}
+		m.emit(event)
 	}()
 }
 
