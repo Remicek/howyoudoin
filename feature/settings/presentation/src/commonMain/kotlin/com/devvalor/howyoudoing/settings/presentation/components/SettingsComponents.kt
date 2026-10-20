@@ -1,6 +1,7 @@
 package com.devvalor.howyoudoing.settings.presentation.components
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -117,7 +118,7 @@ fun SettingsSwitchRow(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(enabled = enabled, role = Role.Switch) { onCheckedChange(!checked) }
+            .toggleable(value = checked, enabled = enabled, role = Role.Switch, onValueChange = onCheckedChange)
             .padding(horizontal = HowYouDoinSpacing.md, vertical = HowYouDoinSpacing.sm),
     ) {
         if (icon != null) {
