@@ -96,6 +96,7 @@ class ConnectNetworkViewModel(
                 ON_DEVICE_TELEGRAM_FLOW_ID -> showStep(
                     onDevicePhoneStep(ON_DEVICE_TELEGRAM_FLOW_ID, "Enter the phone number of your Telegram account. Telegram sends you a login code.")
                 )
+                ON_DEVICE_TELEGRAM_QR_FLOW_ID -> linkAccountOnDevice(onDeviceTelegram, phoneNumber = null)
                 ON_DEVICE_SIGNAL_FLOW_ID -> linkAccountOnDevice(onDeviceSignal, phoneNumber = null)
                 else -> runStep { bridgeRepository.startLogin(network, action.flowId) }
             }
@@ -285,8 +286,13 @@ class ConnectNetworkViewModel(
         network == ChatNetwork.TELEGRAM && onDeviceTelegram.isSupported -> listOf(
             BridgeLoginFlow(
                 id = ON_DEVICE_TELEGRAM_FLOW_ID,
-                name = "On this device",
-                description = "Log in with your phone number; chats connect from this phone."
+                name = "On this device · phone number",
+                description = "Log in with a code Telegram sends you; chats connect from this phone."
+            ),
+            BridgeLoginFlow(
+                id = ON_DEVICE_TELEGRAM_QR_FLOW_ID,
+                name = "On this device · QR code",
+                description = "Scan a code with Telegram on another phone or tablet, without a login code."
             )
         )
         network == ChatNetwork.SIGNAL && onDeviceSignal.isSupported -> listOf(
@@ -368,6 +374,8 @@ class ConnectNetworkViewModel(
                     "app" -> "Telegram sent a login code to your Telegram app (in the chat from \"Telegram\")."
                     "sms" -> "Telegram sent a login code by SMS."
                     "email" -> "Telegram sent a login code to your email."
+                    "call" -> "Telegram is calling your phone to tell you the login code."
+                    "fragment" -> "Telegram sent a login code to your Fragment account."
                     else -> "Enter the login code Telegram sent you."
                 }
                 prompt.isRetry -> "Wrong password, try again."
@@ -387,6 +395,9 @@ class ConnectNetworkViewModel(
         val instructions = when {
             account.network == ChatNetwork.SIGNAL ->
                 "On your phone open Signal → Settings → Linked devices → Link new device, and scan this code."
+            account.network == ChatNetwork.TELEGRAM ->
+                "On another phone or tablet where you use Telegram, open Settings → Devices → Link Desktop Device, " +
+                    "and scan this code."
             pairing.pairingCode != null ->
                 "On your phone open WhatsApp → Linked devices → Link a device → Link with phone number instead, and enter this code."
             else -> "On your phone open WhatsApp → Linked devices → Link a device, and scan this code."
@@ -470,6 +481,7 @@ class ConnectNetworkViewModel(
         const val ON_DEVICE_WHATSAPP_QR_FLOW_ID = "howyoudoin-on-device-whatsapp-qr"
         const val ON_DEVICE_WHATSAPP_CODE_FLOW_ID = "howyoudoin-on-device-whatsapp-code"
         const val ON_DEVICE_TELEGRAM_FLOW_ID = "howyoudoin-on-device-telegram"
+        const val ON_DEVICE_TELEGRAM_QR_FLOW_ID = "howyoudoin-on-device-telegram-qr"
         const val ON_DEVICE_SIGNAL_FLOW_ID = "howyoudoin-on-device-signal"
         /** Answers to what a linking client asks for (Telegram's login code and password). */
         const val ON_DEVICE_PROMPT_FLOW_ID = "howyoudoin-on-device-prompt"

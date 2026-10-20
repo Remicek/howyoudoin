@@ -232,8 +232,13 @@ private fun ChooseFlow(network: ChatNetwork, flows: List<BridgeLoginFlow>, onAct
     }
     Spacer(Modifier.height(HowYouDoinSpacing.lg))
     Text(
-        "HowYouDoin is an unofficial app, not made or supported by ${network.displayName}. ${network.displayName} " +
-            "doesn't officially allow other apps, so it could limit an account that uses one.",
+        if (network == ChatNetwork.TELEGRAM) {
+            "HowYouDoin is an unofficial app, not made or supported by Telegram. It uses Telegram's public API, " +
+                "which Telegram allows other apps to use."
+        } else {
+            "HowYouDoin is an unofficial app, not made or supported by ${network.displayName}. ${network.displayName} " +
+                "doesn't officially allow other apps, so it could limit an account that uses one."
+        },
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
     )

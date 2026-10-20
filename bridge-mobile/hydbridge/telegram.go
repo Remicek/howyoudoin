@@ -21,8 +21,10 @@ import (
 	"go.mau.fi/mautrix-telegram/pkg/gotd/session"
 	"go.mau.fi/mautrix-telegram/pkg/gotd/telegram"
 	"go.mau.fi/mautrix-telegram/pkg/gotd/telegram/auth"
+	"go.mau.fi/mautrix-telegram/pkg/gotd/telegram/auth/qrlogin"
 	"go.mau.fi/mautrix-telegram/pkg/gotd/telegram/updates"
 	"go.mau.fi/mautrix-telegram/pkg/gotd/tg"
+	"go.mau.fi/mautrix-telegram/pkg/gotd/tgerr"
 )
 
 // Telegram is a Telegram account (mautrix-telegram's MTProto client) running in the app. It emits the same JSON
@@ -43,6 +45,7 @@ type Telegram struct {
 
 	lock    sync.Mutex
 	cancel  context.CancelFunc
+	started bool // the first client has been run; later connects need a new one
 	running atomic.Bool
 	// Closed once logged in (at connect, or after a login)
 	authorized     chan struct{}
@@ -52,6 +55,9 @@ type Telegram struct {
 	// The phone login in progress
 	loginPhone    string
 	loginCodeHash string
+	// The QR login in progress: its cancel, and the signal that the QR code was accepted on another device
+	qrCancel   context.CancelFunc
+	qrAccepted chan struct{}
 
 	peers      sync.Map // thread key / "u<id>" → tg.InputPeerClass
 	msgThreads sync.Map // message ID outside channels → thread key (deletions come without the chat)
@@ -87,9 +93,16 @@ func NewTelegram(apiID int, apiHash, dataDir string, listener Listener) (*Telegr
 		AccessHasher: t.store,
 		Logger:       zap.NewNop(),
 	})
-	t.client = telegram.NewClient(apiID, apiHash, telegram.Options{
-		SessionStorage: &session.FileStorage{Path: filepath.Join(dataDir, "telegram-session.json")},
-		UpdateHandler:  t.updates,
+	t.client = t.newClient()
+	return t, nil
+}
+
+// newClient makes the MTProto client; a client can't run again once its run was cancelled, so each Connect after a
+// Disconnect makes a new one (the session file keeps the login).
+func (t *Telegram) newClient() *telegram.Client {
+	return telegram.NewClient(t.apiID, t.apiHash, telegram.Options{
+		SessionStorage: &session.FileStorage{Path: filepath.Join(t.dataDir, "telegram-session.json")},
+		UpdateHandler:  telegramUpdateHandler{t},
 		Logger:         zap.NewNop(),
 		Device: telegram.DeviceConfig{
 			DeviceModel:    "HowYouDoin",
@@ -99,11 +112,16 @@ func NewTelegram(apiID int, apiHash, dataDir string, listener Listener) (*Telegr
 			LangCode:       "en",
 		},
 		OnAuthError: func(err error) {
+			// Before logging in, Telegram answers "unauthorised" as a matter of course; only a session that was
+			// logged in can have been logged out (and reporting it makes the app delete the session files)
+			if !t.IsLoggedIn() {
+				return
+			}
 			t.log.Warn().Err(err).Msg("Telegram auth error")
+			t.clearLogin()
 			t.emitState("logged_out", err.Error())
 		},
 	})
-	return t, nil
 }
 
 // IsLoggedIn tells whether a login was completed on this phone (the session may still have been ended elsewhere).
@@ -121,16 +139,20 @@ func (t *Telegram) Connect() error {
 	}
 	ctx, cancel := context.WithCancel(t.log.WithContext(context.Background()))
 	t.cancel = cancel
-	go t.run(ctx)
+	if t.started {
+		t.client = t.newClient()
+	}
+	t.started = true
+	go t.run(ctx, t.client)
 	return nil
 }
 
-func (t *Telegram) run(ctx context.Context) {
+func (t *Telegram) run(ctx context.Context, client *telegram.Client) {
 	for ctx.Err() == nil {
-		err := t.client.Run(ctx, func(ctx context.Context) error {
+		err := client.Run(ctx, func(ctx context.Context) error {
 			t.running.Store(true)
 			defer t.running.Store(false)
-			status, err := t.client.Auth().Status(ctx)
+			status, err := client.Auth().Status(ctx)
 			if err != nil {
 				return err
 			}
@@ -150,7 +172,7 @@ func (t *Telegram) run(ctx context.Context) {
 			}
 			t.emitState("connected", "")
 			go t.syncDialogs(ctx)
-			return t.updates.Run(ctx, t.client.API(), t.selfID.Load(), updates.AuthOptions{})
+			return t.updates.Run(ctx, client.API(), t.selfID.Load(), updates.AuthOptions{})
 		})
 		if ctx.Err() != nil {
 			return
@@ -221,9 +243,91 @@ func (t *Telegram) waitRunning(ctx context.Context) error {
 	return nil
 }
 
+// telegramUpdateHandler passes updates to the updates manager, except the one telling that a QR login was accepted,
+// which arrives before the account is logged in.
+type telegramUpdateHandler struct{ t *Telegram }
+
+func (h telegramUpdateHandler) Handle(ctx context.Context, u tg.UpdatesClass) error {
+	if short, ok := u.(*tg.UpdateShort); ok {
+		if _, ok := short.Update.(*tg.UpdateLoginToken); ok {
+			h.t.lock.Lock()
+			accepted := h.t.qrAccepted
+			h.t.lock.Unlock()
+			if accepted != nil {
+				select {
+				case accepted <- struct{}{}:
+				default:
+				}
+			}
+			return nil
+		}
+	}
+	return h.t.updates.Handle(ctx, u)
+}
+
+// StartQRLogin shows a QR code (as a "pairing" event with "qr", a tg://login link) to scan in Telegram on another
+// device, or to open in the Telegram app on this phone. The code renews until it's accepted; "self" follows, or a
+// "password" login step for two-step verification.
+func (t *Telegram) StartQRLogin() error {
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	err := t.waitRunning(ctx)
+	cancel()
+	if err != nil {
+		return err
+	}
+	t.CancelQRLogin()
+	qrCtx, qrCancel := context.WithTimeout(context.Background(), 10*time.Minute)
+	accepted := make(chan struct{}, 1)
+	t.lock.Lock()
+	t.qrCancel, t.qrAccepted = qrCancel, accepted
+	t.lock.Unlock()
+	go func() {
+		defer qrCancel()
+		a, err := t.client.QR().Auth(qrCtx, accepted, func(ctx context.Context, token qrlogin.Token) error {
+			t.emit(map[string]any{"type": "pairing", "qr": token.URL()})
+			return nil
+		})
+		switch {
+		case qrCtx.Err() != nil:
+			return
+		case tgerr.Is(err, "SESSION_PASSWORD_NEEDED"), errors.Is(err, auth.ErrPasswordAuthNeeded):
+			hint := ""
+			if pw, err := t.client.API().AccountGetPassword(context.Background()); err == nil {
+				hint = pw.Hint
+			}
+			t.emit(map[string]any{"type": "login", "step": "password", "hint": hint})
+		case err != nil:
+			// Accepting the code can authorise this session even when collecting the login then fails (e.g.
+			// AUTH_TOKEN_EXPIRED), so check before giving up
+			if status, statusErr := t.client.Auth().Status(context.Background()); statusErr == nil && status.Authorized {
+				t.onAuthorized(status.User)
+				return
+			}
+			t.emitState("error", friendlyTelegramError(err).Error())
+		default:
+			t.finishLogin(a)
+		}
+	}()
+	return nil
+}
+
+// CancelQRLogin stops renewing the QR code.
+func (t *Telegram) CancelQRLogin() {
+	t.lock.Lock()
+	cancel := t.qrCancel
+	t.qrCancel, t.qrAccepted = nil, nil
+	t.lock.Unlock()
+	if cancel != nil {
+		cancel()
+	}
+}
+
 // StartLogin sends a login code to the phone number (international format); a login event with step "code" follows,
-// or "self" when no code was needed.
+// or "self" when no code was needed. Without a number it starts a QR login instead.
 func (t *Telegram) StartLogin(phone string) error {
+	if strings.TrimSpace(phone) == "" {
+		return t.StartQRLogin()
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 	if err := t.waitRunning(ctx); err != nil {
@@ -236,6 +340,23 @@ func (t *Telegram) StartLogin(phone string) error {
 	switch s := sent.(type) {
 	case *tg.AuthSentCode:
 		t.loginPhone, t.loginCodeHash = phone, s.PhoneCodeHash
+		t.emit(map[string]any{"type": "debug", "codeType": fmt.Sprintf("%T", s.Type), "nextType": fmt.Sprintf("%T", s.NextType)})
+		if _, ok := s.Type.(*tg.AuthSentCodeTypeSetUpEmailRequired); ok {
+			return errors.New("Telegram wants this account to have a login email first; add one in the Telegram app (Settings → Privacy and Security), then try again")
+		}
+		if _, ok := s.Type.(*tg.AuthSentCodeTypeFirebaseSMS); ok {
+			// That SMS is only sent after a Google Play check that only Telegram's own app can pass; ask for the
+			// next way instead (normally a plain SMS)
+			if resent, err := t.client.API().AuthResendCode(ctx, &tg.AuthResendCodeRequest{PhoneNumber: phone, PhoneCodeHash: s.PhoneCodeHash}); err == nil {
+				if next, ok := resent.(*tg.AuthSentCode); ok {
+					s = next
+					t.loginCodeHash = next.PhoneCodeHash
+					t.emit(map[string]any{"type": "debug", "resentAs": fmt.Sprintf("%T", next.Type)})
+				}
+			} else {
+				t.emit(map[string]any{"type": "debug", "resendError": err.Error()})
+			}
+		}
 		t.emit(map[string]any{"type": "login", "step": "code", "codeType": codeTypeName(s.Type)})
 	case *tg.AuthSentCodeSuccess:
 		if a, ok := s.Authorization.(*tg.AuthAuthorization); ok {
@@ -293,6 +414,7 @@ func (t *Telegram) SubmitPassword(password string) error {
 
 func (t *Telegram) finishLogin(a *tg.AuthAuthorization) {
 	t.loginPhone, t.loginCodeHash = "", ""
+	t.CancelQRLogin()
 	if user, ok := a.User.(*tg.User); ok {
 		t.onAuthorized(user)
 	}
@@ -302,12 +424,14 @@ func codeTypeName(codeType tg.AuthSentCodeTypeClass) string {
 	switch codeType.(type) {
 	case *tg.AuthSentCodeTypeApp:
 		return "app"
-	case *tg.AuthSentCodeTypeSMS:
+	case *tg.AuthSentCodeTypeSMS, *tg.AuthSentCodeTypeSMSWord, *tg.AuthSentCodeTypeSMSPhrase, *tg.AuthSentCodeTypeFirebaseSMS:
 		return "sms"
 	case *tg.AuthSentCodeTypeCall, *tg.AuthSentCodeTypeFlashCall, *tg.AuthSentCodeTypeMissedCall:
 		return "call"
 	case *tg.AuthSentCodeTypeEmailCode:
 		return "email"
+	case *tg.AuthSentCodeTypeFragmentSMS:
+		return "fragment"
 	}
 	return "other"
 }

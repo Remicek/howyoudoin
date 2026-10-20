@@ -1,5 +1,6 @@
 package com.devvalor.howyoudoing.app.ondevice
 
+import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -18,10 +19,12 @@ import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceMessenger
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceMessengerState
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceLinkedAccount
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 
 /**
  * Keeps the app's on-device connections (Messenger, WhatsApp, Instagram) alive while it's in the background.
@@ -32,26 +35,8 @@ class OnDeviceConnectionService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        val text = intent?.getStringExtra(EXTRA_TEXT) ?: "Connected on this device"
-        val manager = getSystemService(NotificationManager::class.java)
-        manager.createNotificationChannel(
-            NotificationChannel(CHANNEL_ID, "On-device connections", NotificationManager.IMPORTANCE_MIN).apply {
-                description = "Shown while chats are connected directly from this phone"
-                setShowBadge(false)
-            }
-        )
-        val openApp = PendingIntent.getActivity(
-            this, 0, Intent(this, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
-        )
-        val notification = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(android.R.drawable.stat_notify_sync_noanim)
-            .setContentTitle("HowYouDoin")
-            .setContentText(text)
-            .setContentIntent(openApp)
-            .setOngoing(true)
-            .setPriority(NotificationCompat.PRIORITY_MIN)
-            .setCategory(NotificationCompat.CATEGORY_SERVICE)
-            .build()
+        val notification = notification(this, intent?.getStringExtra(EXTRA_TEXT) ?: "Connected on this device")
+        isRunning = true
         val type = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             ServiceInfo.FOREGROUND_SERVICE_TYPE_REMOTE_MESSAGING
         } else {
@@ -61,15 +46,55 @@ class OnDeviceConnectionService : Service() {
         return START_STICKY
     }
 
+    override fun onDestroy() {
+        isRunning = false
+        super.onDestroy()
+    }
+
     companion object {
         private const val CHANNEL_ID = "on_device_connections"
         private const val NOTIFICATION_ID = 4201
         private const val EXTRA_TEXT = "text"
 
+        @Volatile
+        private var isRunning = false
+
+        private fun notification(context: Context, text: String): Notification {
+            val manager = context.getSystemService(NotificationManager::class.java)
+            manager.createNotificationChannel(
+                NotificationChannel(CHANNEL_ID, "On-device connections", NotificationManager.IMPORTANCE_MIN).apply {
+                    description = "Shown while chats are connected directly from this phone"
+                    setShowBadge(false)
+                }
+            )
+            val openApp = PendingIntent.getActivity(
+                context, 0, Intent(context, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+            )
+            return NotificationCompat.Builder(context, CHANNEL_ID)
+                .setSmallIcon(android.R.drawable.stat_notify_sync_noanim)
+                .setContentTitle("HowYouDoin")
+                .setContentText(text)
+                .setContentIntent(openApp)
+                .setOngoing(true)
+                .setPriority(NotificationCompat.PRIORITY_MIN)
+                .setCategory(NotificationCompat.CATEGORY_SERVICE)
+                .build()
+        }
+
         fun start(context: Context, text: String) {
+            if (isRunning) {
+                // Already in the foreground: just update its notification (starting again from the background
+                // isn't allowed on Android 12+)
+                runCatching {
+                    context.getSystemService(NotificationManager::class.java).notify(NOTIFICATION_ID, notification(context, text))
+                }
+                return
+            }
             val intent = Intent(context, OnDeviceConnectionService::class.java).putExtra(EXTRA_TEXT, text)
             try {
                 ContextCompat.startForegroundService(context, intent)
+                // Running from now on (its onStartCommand follows shortly)
+                isRunning = true
             } catch (e: IllegalStateException) {
                 // Not allowed from the background (Android 12+); it starts the next time the app is opened
                 Log.w("OnDeviceConnection", "Couldn't start the connection service now", e)
@@ -77,12 +102,14 @@ class OnDeviceConnectionService : Service() {
         }
 
         fun stop(context: Context) {
+            isRunning = false
             context.stopService(Intent(context, OnDeviceConnectionService::class.java))
         }
     }
 }
 
 /** Runs [OnDeviceConnectionService] while any on-device network is linked, connecting or pairing. */
+@OptIn(ExperimentalCoroutinesApi::class)
 class OnDeviceConnectionKeeper(
     context: Context,
     clients: List<OnDeviceMessenger>,
@@ -90,19 +117,43 @@ class OnDeviceConnectionKeeper(
     scope: CoroutineScope
 ) {
     init {
-        val appContext = context.applicationContext
         combine(clients.map { client -> client.state.combineName(client) } + linkedAccounts.map { it.pairing.combineName(it) }) { active ->
             active.filterNotNull()
         }
             .distinctUntilChanged()
-            .onEach { active ->
-                if (active.isEmpty()) {
-                    OnDeviceConnectionService.stop(appContext)
+            // Each change cancels a pending stop: accounts report their state a moment after start-up, so the
+            // service only stops once nothing has been active for a while
+            .mapLatest { active ->
+                this.active = active
+                if (active.isNotEmpty()) {
+                    OnDeviceConnectionService.start(appContext, text(active))
                 } else {
-                    OnDeviceConnectionService.start(appContext, "Connected on this device: ${active.distinct().joinToString(", ")}")
+                    delay(STOP_DELAY_MILLIS)
+                    OnDeviceConnectionService.stop(appContext)
                 }
             }
             .launchIn(scope)
+    }
+
+    private val appContext = context.applicationContext
+
+    /** Networks currently linked, connecting or pairing. */
+    @Volatile
+    private var active: List<String> = emptyList()
+
+    /**
+     * Starts the service now, while the app may still do so from the background (a boot or app-update broadcast is
+     * being handled): states that changed before then couldn't start it. If nothing turns out to be linked, it stops
+     * again after a while.
+     */
+    fun startNow() {
+        OnDeviceConnectionService.start(appContext, active.takeIf { it.isNotEmpty() }?.let(::text) ?: "Connecting…")
+    }
+
+    private fun text(active: List<String>) = "Connected on this device: ${active.distinct().joinToString(", ")}"
+
+    private companion object {
+        const val STOP_DELAY_MILLIS = 15_000L
     }
 
     private fun kotlinx.coroutines.flow.Flow<OnDeviceMessengerState>.combineName(client: OnDeviceMessenger) =

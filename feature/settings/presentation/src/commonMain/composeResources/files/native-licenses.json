@@ -51,28 +51,28 @@
   },
   {
    "name": "aead",
-   "version": "0.6.1",
-   "license": "MIT OR Apache-2.0",
-   "url": "https://github.com/RustCrypto/traits",
-   "usedFor": "Signal (Rust)"
-  },
-  {
-   "name": "aead",
    "version": "0.5.2",
    "license": "MIT OR Apache-2.0",
    "url": "https://github.com/RustCrypto/traits",
    "usedFor": "Signal (Rust)"
   },
   {
+   "name": "aead",
+   "version": "0.6.1",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/RustCrypto/traits",
+   "usedFor": "Signal (Rust)"
+  },
+  {
    "name": "aes",
-   "version": "0.8.4",
+   "version": "0.9.1",
    "license": "MIT OR Apache-2.0",
    "url": "https://github.com/RustCrypto/block-ciphers",
    "usedFor": "Signal (Rust)"
   },
   {
    "name": "aes",
-   "version": "0.9.1",
+   "version": "0.8.4",
    "license": "MIT OR Apache-2.0",
    "url": "https://github.com/RustCrypto/block-ciphers",
    "usedFor": "Signal (Rust)"
@@ -240,15 +240,15 @@
   },
   {
    "name": "bitflags",
-   "version": "2.13.0",
-   "license": "MIT OR Apache-2.0",
+   "version": "1.3.2",
+   "license": "MIT/Apache-2.0",
    "url": "https://github.com/bitflags/bitflags",
    "usedFor": "Signal (Rust)"
   },
   {
    "name": "bitflags",
-   "version": "1.3.2",
-   "license": "MIT/Apache-2.0",
+   "version": "2.13.0",
+   "license": "MIT OR Apache-2.0",
    "url": "https://github.com/bitflags/bitflags",
    "usedFor": "Signal (Rust)"
   },
@@ -268,14 +268,14 @@
   },
   {
    "name": "block-buffer",
-   "version": "0.10.4",
+   "version": "0.12.1",
    "license": "MIT OR Apache-2.0",
    "url": "https://github.com/RustCrypto/utils",
    "usedFor": "Signal (Rust)"
   },
   {
    "name": "block-buffer",
-   "version": "0.12.1",
+   "version": "0.10.4",
    "license": "MIT OR Apache-2.0",
    "url": "https://github.com/RustCrypto/utils",
    "usedFor": "Signal (Rust)"
@@ -366,14 +366,14 @@
   },
   {
    "name": "cipher",
-   "version": "0.5.2",
+   "version": "0.4.4",
    "license": "MIT OR Apache-2.0",
    "url": "https://github.com/RustCrypto/traits",
    "usedFor": "Signal (Rust)"
   },
   {
    "name": "cipher",
-   "version": "0.4.4",
+   "version": "0.5.2",
    "license": "MIT OR Apache-2.0",
    "url": "https://github.com/RustCrypto/traits",
    "usedFor": "Signal (Rust)"
@@ -478,14 +478,14 @@
   },
   {
    "name": "cpufeatures",
-   "version": "0.2.17",
+   "version": "0.3.0",
    "license": "MIT OR Apache-2.0",
    "url": "https://github.com/RustCrypto/utils",
    "usedFor": "Signal (Rust)"
   },
   {
    "name": "cpufeatures",
-   "version": "0.3.0",
+   "version": "0.2.17",
    "license": "MIT OR Apache-2.0",
    "url": "https://github.com/RustCrypto/utils",
    "usedFor": "Signal (Rust)"
@@ -562,23 +562,16 @@
   },
   {
    "name": "curve25519-dalek",
-   "version": "4.1.3",
-   "license": "BSD-3-Clause",
-   "url": "https://github.com/dalek-cryptography/curve25519-dalek/tree/main/curve25519-dalek",
-   "usedFor": "Signal (Rust)"
-  },
-  {
-   "name": "curve25519-dalek",
    "version": "5.0.0",
    "license": "BSD-3-Clause",
    "url": "https://github.com/dalek-cryptography/curve25519-dalek/tree/main/curve25519-dalek",
    "usedFor": "Signal (Rust)"
   },
   {
-   "name": "darling",
-   "version": "0.20.11",
-   "license": "MIT",
-   "url": "https://github.com/TedDriggs/darling",
+   "name": "curve25519-dalek",
+   "version": "4.1.3",
+   "license": "BSD-3-Clause",
+   "url": "https://github.com/dalek-cryptography/curve25519-dalek/tree/main/curve25519-dalek",
    "usedFor": "Signal (Rust)"
   },
   {
@@ -589,8 +582,8 @@
    "usedFor": "Signal (Rust)"
   },
   {
-   "name": "darling_core",
-   "version": "0.23.0",
+   "name": "darling",
+   "version": "0.20.11",
    "license": "MIT",
    "url": "https://github.com/TedDriggs/darling",
    "usedFor": "Signal (Rust)"
@@ -598,6 +591,13 @@
   {
    "name": "darling_core",
    "version": "0.20.11",
+   "license": "MIT",
+   "url": "https://github.com/TedDriggs/darling",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "darling_core",
+   "version": "0.23.0",
    "license": "MIT",
    "url": "https://github.com/TedDriggs/darling",
    "usedFor": "Signal (Rust)"
@@ -716,14 +716,14 @@
   },
   {
    "name": "digest",
-   "version": "0.10.7",
+   "version": "0.11.3",
    "license": "MIT OR Apache-2.0",
    "url": "https://github.com/RustCrypto/traits",
    "usedFor": "Signal (Rust)"
   },
   {
    "name": "digest",
-   "version": "0.11.3",
+   "version": "0.10.7",
    "license": "MIT OR Apache-2.0",
    "url": "https://github.com/RustCrypto/traits",
    "usedFor": "Signal (Rust)"
@@ -926,13 +926,6 @@
   },
   {
    "name": "getrandom",
-   "version": "0.3.4",
-   "license": "MIT OR Apache-2.0",
-   "url": "https://github.com/rust-random/getrandom",
-   "usedFor": "Signal (Rust)"
-  },
-  {
-   "name": "getrandom",
    "version": "0.2.17",
    "license": "MIT OR Apache-2.0",
    "url": "https://github.com/rust-random/getrandom",
@@ -941,6 +934,13 @@
   {
    "name": "getrandom",
    "version": "0.4.3",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/rust-random/getrandom",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "getrandom",
+   "version": "0.3.4",
    "license": "MIT OR Apache-2.0",
    "url": "https://github.com/rust-random/getrandom",
    "usedFor": "Signal (Rust)"
@@ -1458,14 +1458,14 @@
   },
   {
    "name": "hashbrown",
-   "version": "0.17.1",
+   "version": "0.12.3",
    "license": "MIT OR Apache-2.0",
    "url": "https://github.com/rust-lang/hashbrown",
    "usedFor": "Signal (Rust)"
   },
   {
    "name": "hashbrown",
-   "version": "0.12.3",
+   "version": "0.17.1",
    "license": "MIT OR Apache-2.0",
    "url": "https://github.com/rust-lang/hashbrown",
    "usedFor": "Signal (Rust)"
@@ -1612,16 +1612,16 @@
   },
   {
    "name": "indexmap",
-   "version": "2.14.0",
+   "version": "1.9.3",
    "license": "Apache-2.0 OR MIT",
-   "url": "https://github.com/indexmap-rs/indexmap",
+   "url": "https://github.com/bluss/indexmap",
    "usedFor": "Signal (Rust)"
   },
   {
    "name": "indexmap",
-   "version": "1.9.3",
+   "version": "2.14.0",
    "license": "Apache-2.0 OR MIT",
-   "url": "https://github.com/bluss/indexmap",
+   "url": "https://github.com/indexmap-rs/indexmap",
    "usedFor": "Signal (Rust)"
   },
   {
@@ -2186,6 +2186,13 @@
   },
   {
    "name": "rand_core",
+   "version": "0.10.1",
+   "license": "MIT OR Apache-2.0",
+   "url": "https://github.com/rust-random/rand_core",
+   "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "rand_core",
    "version": "0.6.4",
    "license": "MIT OR Apache-2.0",
    "url": "https://github.com/rust-random/rand",
@@ -2196,13 +2203,6 @@
    "version": "0.9.5",
    "license": "MIT OR Apache-2.0",
    "url": "https://github.com/rust-random/rand",
-   "usedFor": "Signal (Rust)"
-  },
-  {
-   "name": "rand_core",
-   "version": "0.10.1",
-   "license": "MIT OR Apache-2.0",
-   "url": "https://github.com/rust-random/rand_core",
    "usedFor": "Signal (Rust)"
   },
   {
@@ -2340,14 +2340,14 @@
   },
   {
    "name": "schemars",
-   "version": "1.2.1",
+   "version": "0.9.0",
    "license": "MIT",
    "url": "https://github.com/GREsau/schemars",
    "usedFor": "Signal (Rust)"
   },
   {
    "name": "schemars",
-   "version": "0.9.0",
+   "version": "1.2.1",
    "license": "MIT",
    "url": "https://github.com/GREsau/schemars",
    "usedFor": "Signal (Rust)"
@@ -2452,14 +2452,14 @@
   },
   {
    "name": "sha2",
-   "version": "0.10.9",
+   "version": "0.11.0",
    "license": "MIT OR Apache-2.0",
    "url": "https://github.com/RustCrypto/hashes",
    "usedFor": "Signal (Rust)"
   },
   {
    "name": "sha2",
-   "version": "0.11.0",
+   "version": "0.10.9",
    "license": "MIT OR Apache-2.0",
    "url": "https://github.com/RustCrypto/hashes",
    "usedFor": "Signal (Rust)"
@@ -2592,14 +2592,14 @@
   },
   {
    "name": "thiserror",
-   "version": "1.0.69",
+   "version": "2.0.18",
    "license": "MIT OR Apache-2.0",
    "url": "https://github.com/dtolnay/thiserror",
    "usedFor": "Signal (Rust)"
   },
   {
    "name": "thiserror",
-   "version": "2.0.18",
+   "version": "1.0.69",
    "license": "MIT OR Apache-2.0",
    "url": "https://github.com/dtolnay/thiserror",
    "usedFor": "Signal (Rust)"
@@ -2823,14 +2823,14 @@
   },
   {
    "name": "universal-hash",
-   "version": "0.5.1",
+   "version": "0.6.1",
    "license": "MIT OR Apache-2.0",
    "url": "https://github.com/RustCrypto/traits",
    "usedFor": "Signal (Rust)"
   },
   {
    "name": "universal-hash",
-   "version": "0.6.1",
+   "version": "0.5.1",
    "license": "MIT OR Apache-2.0",
    "url": "https://github.com/RustCrypto/traits",
    "usedFor": "Signal (Rust)"

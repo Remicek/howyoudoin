@@ -115,7 +115,8 @@ func (w *WhatsApp) Connect(phone string) error {
 	w.lock.Lock()
 	defer w.lock.Unlock()
 	if w.client != nil {
-		return errors.New("already connected")
+		// Already connected (or connecting); the app may ask again, e.g. from its background service
+		return nil
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 	w.cancel = cancel
@@ -135,7 +136,12 @@ func (w *WhatsApp) connectLinked(device *store.Device) error {
 	client.EnableAutoReconnect = true
 	client.AddEventHandler(w.handleEvent)
 	w.client = client
-	return client.Connect()
+	if err := client.Connect(); err != nil {
+		// Not kept, so that trying again (e.g. once the network is up) starts over
+		w.client = nil
+		return err
+	}
+	return nil
 }
 
 func (w *WhatsApp) startLinking(ctx context.Context, device *store.Device, phone string) error {
@@ -206,12 +212,14 @@ func (w *WhatsApp) startLinking(ctx context.Context, device *store.Device, phone
 	})
 	w.client = client
 	if err := client.Connect(); err != nil {
+		w.client = nil
 		return err
 	}
 	select {
 	case <-firstQR:
 	case <-time.After(30 * time.Second):
 		client.Disconnect()
+		w.client = nil
 		return errors.New("WhatsApp didn't start linking in time")
 	}
 	if phone == "" {

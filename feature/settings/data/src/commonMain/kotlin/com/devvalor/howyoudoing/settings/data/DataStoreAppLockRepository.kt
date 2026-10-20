@@ -48,6 +48,8 @@ class DataStoreAppLockRepository(
             prefs[PIN_HASH] = Base64.encode(hash)
             prefs.remove(FAILED_ATTEMPTS)
             prefs.remove(LOCKED_OUT_UNTIL)
+            // Choosing the lock answers the question asked after signing in
+            prefs[LOCK_OFFERED] = true
         }
     }
 
@@ -87,6 +89,7 @@ class DataStoreAppLockRepository(
     override suspend fun disable() {
         dataStore.edit { prefs ->
             listOf(PIN_HASH, PIN_SALT, BIOMETRIC, FAILED_ATTEMPTS, LOCKED_OUT_UNTIL).forEach { prefs.remove(it) }
+            prefs[LOCK_OFFERED] = true
         }
     }
 

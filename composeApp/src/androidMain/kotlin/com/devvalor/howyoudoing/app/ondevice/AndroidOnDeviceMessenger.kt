@@ -145,6 +145,7 @@ class AndroidTelegramFactory(private val apiId: Long, private val apiHash: Strin
             override fun submitCode(code: String) = t.submitCode(code)
             override fun submitPassword(password: String) = t.submitPassword(password)
             override fun cancelLinking() {
+                t.cancelQRLogin()
                 if (!t.isLoggedIn) t.disconnect()
             }
             override fun disconnect() = t.disconnect()

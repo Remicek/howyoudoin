@@ -111,6 +111,8 @@ abstract class NativeOnDeviceLinkedAccount(
     private suspend fun connectLocked(): Boolean = withContext(Dispatchers.IO) {
         val current = runCatching { createClient() }.getOrNull()
         if (current == null || !current.isLinked()) return@withContext false
+        // Asked again while connected (e.g. by the background service): connecting again is a no-op
+        if (_state.value is OnDeviceMessengerState.Connected) return@withContext false
         _state.value = OnDeviceMessengerState.Connecting
         runCatching { current.connect() }.onFailure { failed(it) }.isFailure
     }
