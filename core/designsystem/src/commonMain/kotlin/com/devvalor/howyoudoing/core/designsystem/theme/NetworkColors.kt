@@ -11,7 +11,6 @@ val ChatNetwork.brandColor: Color
         ChatNetwork.SIGNAL -> Color(0xFF3A76F0)
         ChatNetwork.INSTAGRAM -> Color(0xFFE1306C)
         ChatNetwork.SLACK -> Color(0xFF611F69)
-        ChatNetwork.GOOGLE_MESSAGES -> Color(0xFF1A73E8)
         ChatNetwork.MATRIX -> Color(0xFF0DBD8B)
     }
 
@@ -24,6 +23,5 @@ val ChatNetwork.monogram: String
         ChatNetwork.SIGNAL -> "S"
         ChatNetwork.INSTAGRAM -> "I"
         ChatNetwork.SLACK -> "S"
-        ChatNetwork.GOOGLE_MESSAGES -> "G"
         ChatNetwork.MATRIX -> "[m]"
     }

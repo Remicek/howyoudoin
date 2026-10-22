@@ -13,15 +13,12 @@ import com.devvalor.howyoudoing.app.ondevice.NativeOnDeviceInstagram
 import com.devvalor.howyoudoing.app.ondevice.IosInstagramFactory
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceWhatsApp
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceSignal
-import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceGoogleMessages
-import com.devvalor.howyoudoing.core.domain.ondevice.UnsupportedOnDeviceGoogleMessages
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceSlack
 import com.devvalor.howyoudoing.core.domain.ondevice.UnsupportedOnDeviceSlack
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceTelegram
 import com.devvalor.howyoudoing.core.domain.ondevice.UnsupportedOnDeviceSignal
 import com.devvalor.howyoudoing.core.domain.ondevice.UnsupportedOnDeviceTelegram
 import com.devvalor.howyoudoing.chat.data.di.ON_DEVICE_SIGNAL_CACHE
-import com.devvalor.howyoudoing.chat.data.di.ON_DEVICE_GOOGLE_MESSAGES_CACHE
 import com.devvalor.howyoudoing.chat.data.di.ON_DEVICE_SLACK_CACHE
 import com.devvalor.howyoudoing.chat.data.di.ON_DEVICE_TELEGRAM_CACHE
 import org.koin.core.qualifier.named
@@ -64,13 +61,11 @@ actual val platformAppModule: Module = module {
     single<OnDeviceWhatsApp>(createdAtStart = true) {
         NativeOnDeviceWhatsApp(IosWhatsAppFactory(), IosDataDirectory(WHATSAPP_DIR), get())
     }
-    // Telegram, Signal, Google Messages, Slack and calls aren't built for iOS yet
+    // Telegram, Signal, Slack and calls aren't built for iOS yet
     single<com.devvalor.howyoudoing.chat.domain.CallMediaEngine> { com.devvalor.howyoudoing.chat.domain.NoCallMediaEngine }
     single { com.devvalor.howyoudoing.chat.domain.CallLauncher { _, _ -> } }
     single<OnDeviceSlack> { UnsupportedOnDeviceSlack }
     single<OnDeviceInboxCache>(named(ON_DEVICE_SLACK_CACHE)) { IosInboxCache("on_device_slack") }
-    single<OnDeviceGoogleMessages> { UnsupportedOnDeviceGoogleMessages }
-    single<OnDeviceInboxCache>(named(ON_DEVICE_GOOGLE_MESSAGES_CACHE)) { IosInboxCache("on_device_google_messages") }
     single<OnDeviceTelegram> { UnsupportedOnDeviceTelegram }
     single<OnDeviceSignal> { UnsupportedOnDeviceSignal }
     single<OnDeviceInboxCache>(named(ON_DEVICE_TELEGRAM_CACHE)) { IosInboxCache("on_device_telegram") }

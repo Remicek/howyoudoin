@@ -23,16 +23,6 @@ class LoginFlowLabelsTest {
     }
 
     @Test
-    fun googleMessagesRecommendsTheQrCode() {
-        val labels = LoginFlowLabels.present(
-            ChatNetwork.GOOGLE_MESSAGES,
-            listOf(flow("howyoudoin-on-device-google-qr"), flow("howyoudoin-on-device-google-account"))
-        )
-        assertEquals("QR code", labels.first().title)
-        assertEquals(true, labels.first().isRecommended)
-    }
-
-    @Test
     fun unknownFlowsKeepBridgeTextAndGoLast() {
         val labels = LoginFlowLabels.present(ChatNetwork.MESSENGER, listOf(flow("new-flow"), flow("messenger")))
         assertEquals(listOf("messenger", "new-flow"), labels.map { it.flowId })

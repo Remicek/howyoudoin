@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceInstagram
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceSignal
-import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceGoogleMessages
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceSlack
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceMatrix
 import com.devvalor.howyoudoing.core.domain.ondevice.ConnectionMonitor
@@ -36,14 +35,13 @@ class NetworksViewModel(
     onDeviceInstagram: OnDeviceInstagram,
     onDeviceTelegram: OnDeviceTelegram,
     onDeviceSignal: OnDeviceSignal,
-    onDeviceGoogleMessages: OnDeviceGoogleMessages,
     onDeviceSlack: OnDeviceSlack,
     onDeviceMatrix: OnDeviceMatrix,
     private val connectionMonitor: ConnectionMonitor
 ) : ViewModel() {
 
     private val onDeviceClients =
-        listOf(onDeviceMessenger, onDeviceWhatsApp, onDeviceInstagram, onDeviceTelegram, onDeviceSignal, onDeviceGoogleMessages, onDeviceSlack, onDeviceMatrix)
+        listOf(onDeviceMessenger, onDeviceWhatsApp, onDeviceInstagram, onDeviceTelegram, onDeviceSignal, onDeviceSlack, onDeviceMatrix)
             .associateBy { it.network }
 
     private val eventChannel = Channel<NetworksEvent>()

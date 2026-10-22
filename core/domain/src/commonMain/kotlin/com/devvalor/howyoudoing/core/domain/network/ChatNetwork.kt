@@ -33,7 +33,6 @@ enum class ChatNetwork(
     SIGNAL(displayName = "Signal", isSupported = false, bridgeProtocolIds = setOf("signal"), ghostUserPrefixes = setOf("signal_")),
     INSTAGRAM(displayName = "Instagram", isSupported = false, bridgeProtocolIds = setOf("instagram"), ghostUserPrefixes = setOf("instagram_")),
     SLACK(displayName = "Slack", isSupported = false, bridgeProtocolIds = setOf("slack"), ghostUserPrefixes = setOf("slack_")),
-    GOOGLE_MESSAGES(displayName = "Google Messages", isSupported = false, bridgeProtocolIds = setOf("gmessages"), ghostUserPrefixes = setOf("gmessages_")),
 
     /** Native Matrix rooms, no bridge involved. */
     MATRIX(displayName = "Matrix", isSupported = false);

@@ -440,7 +440,6 @@ private fun CookiesStep(
                 cookieNames = step.cookies.filter { it.isRequired }.map { it.cookieName }.toSet(),
                 onCookiesCaptured = { onAction(ConnectNetworkAction.OnCookiesCaptured(it)) },
                 modifier = Modifier.fillMaxWidth().weight(1f),
-                cookieUrl = step.cookieUrl,
                 extractScript = step.extractScript,
             )
         }

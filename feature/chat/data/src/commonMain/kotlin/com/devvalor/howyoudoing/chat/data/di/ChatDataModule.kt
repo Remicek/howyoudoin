@@ -16,7 +16,6 @@ import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceInstagram
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceMessenger
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceWhatsApp
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceSignal
-import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceGoogleMessages
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceSlack
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceTelegram
 import org.koin.core.qualifier.named
@@ -60,12 +59,6 @@ val chatDataModule = module {
             get<OnDeviceSignal>(), get(named(ON_DEVICE_SIGNAL_CACHE)), get(), OnDeviceMessengerStore.SIGNAL_CHAT_ID_PREFIX
         )
     }
-    single(named(GOOGLE_MESSAGES_STORE), createdAtStart = true) {
-        OnDeviceMessengerStore(
-            get<OnDeviceGoogleMessages>(), get(named(ON_DEVICE_GOOGLE_MESSAGES_CACHE)), get(),
-            OnDeviceMessengerStore.GOOGLE_MESSAGES_CHAT_ID_PREFIX
-        )
-    }
     single(named(SLACK_STORE), createdAtStart = true) {
         OnDeviceMessengerStore(get<OnDeviceSlack>(), get(named(ON_DEVICE_SLACK_CACHE)), get(), OnDeviceMessengerStore.SLACK_CHAT_ID_PREFIX)
     }
@@ -84,7 +77,6 @@ val chatDataModule = module {
                 OnDeviceSource(get<OnDeviceInstagram>(), get(named(INSTAGRAM_STORE))),
                 OnDeviceSource(get<OnDeviceTelegram>(), get(named(TELEGRAM_STORE))),
                 OnDeviceSource(get<OnDeviceSignal>(), get(named(SIGNAL_STORE))),
-                OnDeviceSource(get<OnDeviceGoogleMessages>(), get(named(GOOGLE_MESSAGES_STORE))),
                 OnDeviceSource(get<OnDeviceSlack>(), get(named(SLACK_STORE)))
             ),
             httpClient = get(),
@@ -98,7 +90,6 @@ private const val WHATSAPP_STORE = "onDeviceWhatsAppStore"
 private const val INSTAGRAM_STORE = "onDeviceInstagramStore"
 private const val TELEGRAM_STORE = "onDeviceTelegramStore"
 private const val SIGNAL_STORE = "onDeviceSignalStore"
-private const val GOOGLE_MESSAGES_STORE = "onDeviceGoogleMessagesStore"
 private const val SLACK_STORE = "onDeviceSlackStore"
 private const val MATRIX_ACCOUNT_ENGINE = "matrixAccountEngine"
 
@@ -113,9 +104,6 @@ const val ON_DEVICE_TELEGRAM_CACHE = "onDeviceTelegramCache"
 
 /** Koin name of the Signal inbox cache. */
 const val ON_DEVICE_SIGNAL_CACHE = "onDeviceSignalCache"
-
-/** Koin name of the Google Messages inbox cache. */
-const val ON_DEVICE_GOOGLE_MESSAGES_CACHE = "onDeviceGoogleMessagesCache"
 
 /** Koin name of the Slack inbox cache. */
 const val ON_DEVICE_SLACK_CACHE = "onDeviceSlackCache"

@@ -94,7 +94,7 @@ ViewModels start observing in `state.onStart { if (!hasLoadedInitialData) ... }`
 
 ## TODO
 
-- More networks: Telegram, Signal, Instagram, Discord, Slack, LinkedIn, Google Messages (enum entries exist, `isSupported = false`).
+- More networks: Telegram, Signal, Instagram, Discord, Slack, LinkedIn (enum entries exist, `isSupported = false`).
 - End-to-end encryption (matrix-rust-sdk / vodozemac). Encrypted events currently show as "Encrypted message".
 - Persist the sync cache + `next_batch` (Room/SQLDelight) for instant cold starts.
 - Media: authenticated `mxc://` avatars and images, sending attachments.

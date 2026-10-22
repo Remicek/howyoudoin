@@ -26,7 +26,6 @@ actual fun CookieCaptureWebView(
     cookieNames: Set<String>,
     onCookiesCaptured: (Map<String, String>) -> Unit,
     modifier: Modifier,
-    cookieUrl: String?,
     extractScript: String?,
 ) {
     val currentOnCookiesCaptured by rememberUpdatedState(onCookiesCaptured)
@@ -70,7 +69,7 @@ actual fun CookieCaptureWebView(
     LaunchedEffect(url, cookieNames) {
         while (true) {
             val extracted = extractScript?.let { script -> webViewHolder[0]?.let { evaluate(it, script) } }
-            val cookies = parseCookieHeader(CookieManager.getInstance().getCookie(cookieUrl ?: url)) + parseExtractedValues(extracted)
+            val cookies = parseCookieHeader(CookieManager.getInstance().getCookie(url)) + parseExtractedValues(extracted)
             if (cookieNames.isNotEmpty() && cookieNames.all { it in cookies }) {
                 currentOnCookiesCaptured(cookies.filterKeys { it in cookieNames })
                 break

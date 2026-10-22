@@ -35,12 +35,11 @@ actual fun CookieCaptureWebView(
     cookieNames: Set<String>,
     onCookiesCaptured: (Map<String, String>) -> Unit,
     modifier: Modifier,
-    cookieUrl: String?,
     extractScript: String?,
 ) {
     val currentOnCookiesCaptured by rememberUpdatedState(onCookiesCaptured)
-    val baseDomain = remember(url, cookieUrl) {
-        NSURL.URLWithString(cookieUrl ?: url)?.host.orEmpty().removePrefix("www.")
+    val baseDomain = remember(url) {
+        NSURL.URLWithString(url)?.host.orEmpty().removePrefix("www.")
     }
     // WKWebView holds its navigation delegate weakly
     val navigationDelegate = remember { ZoomToFormDelegate() }

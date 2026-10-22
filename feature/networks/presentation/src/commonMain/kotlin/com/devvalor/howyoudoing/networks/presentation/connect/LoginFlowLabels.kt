@@ -54,13 +54,6 @@ object LoginFlowLabels {
         ChatNetwork.SLACK to listOf(
             LoginFlowLabel(ON_DEVICE, "Slack", "Sign in on slack.com; your workspace connects from this phone", isRecommended = true),
         ),
-        ChatNetwork.GOOGLE_MESSAGES to listOf(
-            LoginFlowLabel(ON_DEVICE_GOOGLE_QR, "QR code", "Scan it with Google Messages, from another screen (e.g. a computer)", isRecommended = true),
-            LoginFlowLabel(
-                ON_DEVICE_GOOGLE_ACCOUNT, "Google account",
-                "Sign in with Google, then tap an emoji on your phone. Google often refuses sign-in inside apps"
-            ),
-        ),
         ChatNetwork.INSTAGRAM to listOf(
             LoginFlowLabel(ON_DEVICE, "Instagram", "Log in on instagram.com; direct messages connect from this phone", isRecommended = true),
         ),
@@ -72,6 +65,4 @@ object LoginFlowLabels {
     private const val ON_DEVICE_WHATSAPP_CODE = "howyoudoin-on-device-whatsapp-code"
     private const val ON_DEVICE_TELEGRAM = "howyoudoin-on-device-telegram"
     private const val ON_DEVICE_SIGNAL = "howyoudoin-on-device-signal"
-    private const val ON_DEVICE_GOOGLE_ACCOUNT = "howyoudoin-on-device-google-account"
-    private const val ON_DEVICE_GOOGLE_QR = "howyoudoin-on-device-google-qr"
 }

@@ -1338,13 +1338,6 @@
    "usedFor": null
   },
   {
-   "name": "go.mau.fi/mautrix-gmessages",
-   "version": "commit c1697e9",
-   "license": "AGPL-3.0",
-   "url": "https://go.mau.fi/mautrix-gmessages",
-   "usedFor": null
-  },
-  {
    "name": "go.mau.fi/mautrix-slack",
    "version": "commit 26a8655",
    "license": "AGPL-3.0",

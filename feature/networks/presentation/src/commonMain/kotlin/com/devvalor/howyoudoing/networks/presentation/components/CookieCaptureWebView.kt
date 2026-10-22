@@ -8,7 +8,7 @@ import androidx.compose.ui.Modifier
  * values of [cookieNames] once they are all set. Used for bridges whose login step is
  * "cookies" (e.g. mautrix-meta for Messenger).
  *
- * Cookies are read for [cookieUrl] (default [url]). [extractScript], if given, runs in the page on every poll and
+ * [extractScript], if given, runs in the page on every poll and
  * returns a JSON object (as a string) of more values, e.g. a token from the page's storage; they count as cookies.
  */
 @Composable
@@ -18,7 +18,6 @@ expect fun CookieCaptureWebView(
     cookieNames: Set<String>,
     onCookiesCaptured: (Map<String, String>) -> Unit,
     modifier: Modifier = Modifier,
-    cookieUrl: String? = null,
     extractScript: String? = null,
 )
 

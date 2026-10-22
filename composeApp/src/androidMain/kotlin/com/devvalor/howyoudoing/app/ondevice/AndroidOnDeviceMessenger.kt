@@ -214,40 +214,6 @@ class AndroidSignalFactory : NativeLinkedClientFactory {
     }
 }
 
-/** hydbridge's Google Messages client (paired like Messages for Web). */
-class AndroidGoogleMessagesFactory : NativeLinkedClientFactory {
-    override fun create(dataDir: String, onEvent: (String) -> Unit): NativeLinkedClient {
-        val g = Hydbridge.newGMessages(dataDir, listener(onEvent))
-        return object : NativeLinkedClient {
-            override fun isLinked() = g.isLinked
-            override fun connect() = g.connect()
-            // Without a Google login: QR codes for Google Messages' device pairing scanner
-            override fun startLinking(phoneNumber: String) = g.linkWithQR()
-            override fun linkWithCookies(cookiesJson: String) = g.linkWithCookies(cookiesJson)
-            override fun cancelLinking() = g.cancelLink()
-            override fun disconnect() = g.disconnect()
-            override fun logout() = g.logout()
-            override fun sendText(chat: String, text: String): String = g.sendText(chat, text)
-            override fun sendReply(chat: String, text: String, replyToId: String, replySenderId: String, quotedText: String): String =
-                g.sendReply(chat, text, replyToId)
-            override fun unsend(chat: String, messageId: String) = g.unsend(chat, messageId)
-            override fun sendReaction(chat: String, messageId: String, senderId: String, emoji: String) =
-                g.sendReaction(chat, messageId, emoji)
-            override fun markRead(chat: String, messageId: String, senderId: String) = g.markRead(chat, messageId)
-            override fun setTyping(chat: String, isTyping: Boolean) = g.setTyping(chat, isTyping)
-            override fun requestOlder(chat: String, beforeMessageId: String, beforeIsOutgoing: Boolean, beforeTimestampMs: Long) =
-                g.requestOlder(chat, beforeMessageId, beforeTimestampMs)
-            override fun sendMediaFile(
-                chat: String, path: String, mimeType: String, fileName: String, caption: String, width: Long, height: Long
-            ): String = g.sendMediaFile(chat, path, mimeType, fileName, caption)
-            override fun sendVoice(chat: String, path: String, mimeType: String, durationMs: Long, waveform: String): String =
-                g.sendVoice(chat, path, mimeType)
-            override fun downloadMedia(chat: String, messageId: String, mediaRef: String): String = g.downloadMedia(chat, messageId, mediaRef)
-            override fun fetchAvatars(chats: String) = g.fetchAvatars(chats)
-        }
-    }
-}
-
 private fun listener(onEvent: (String) -> Unit) = object : Listener {
     override fun onEvent(json: String) = onEvent(json)
 }

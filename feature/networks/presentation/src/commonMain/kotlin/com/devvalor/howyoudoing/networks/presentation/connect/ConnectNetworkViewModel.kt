@@ -16,7 +16,6 @@ import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceLinkedAccount
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceLoginPrompt
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDevicePairing
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceSignal
-import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceGoogleMessages
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceSlack
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceMatrix
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceTelegram
@@ -54,13 +53,12 @@ class ConnectNetworkViewModel(
     private val onDeviceInstagram: OnDeviceInstagram,
     private val onDeviceTelegram: OnDeviceTelegram,
     private val onDeviceSignal: OnDeviceSignal,
-    private val onDeviceGoogleMessages: OnDeviceGoogleMessages,
     private val onDeviceSlack: OnDeviceSlack,
     private val onDeviceMatrix: OnDeviceMatrix
 ) : ViewModel() {
 
     private var pairingJob: Job? = null
-    /** The account being linked (WhatsApp, Telegram, Signal or Google Messages), while it is. */
+    /** The account being linked (WhatsApp, Telegram or Signal), while it is. */
     private var linkingAccount: OnDeviceLinkedAccount? = null
 
     private val route = savedStateHandle.toRoute<NetworksRoutes.Connect>()
@@ -110,9 +108,7 @@ class ConnectNetworkViewModel(
                 )
                 ON_DEVICE_TELEGRAM_QR_FLOW_ID -> linkAccountOnDevice(onDeviceTelegram, phoneNumber = null)
                 ON_DEVICE_SIGNAL_FLOW_ID -> linkAccountOnDevice(onDeviceSignal, phoneNumber = null)
-                ON_DEVICE_GOOGLE_ACCOUNT_FLOW_ID -> showStep(onDeviceGoogleCookiesStep())
                 ON_DEVICE_MATRIX_FLOW_ID -> showStep(matrixLoginStep())
-                ON_DEVICE_GOOGLE_QR_FLOW_ID -> linkAccountOnDevice(onDeviceGoogleMessages, phoneNumber = null)
                 else -> runStep { bridgeRepository.startLogin(network, action.flowId) }
             }
             is ConnectNetworkAction.OnInputChange -> onInputChange(action.fieldId, action.value)
@@ -190,10 +186,6 @@ class ConnectNetworkViewModel(
         val step = (state.value.phase as? ConnectPhase.Step)?.step as? BridgeLoginStep.Cookies ?: return
         if (state.value.isSubmitting) return
         if (step.loginId == ON_DEVICE_FLOW_ID) return linkOnDevice(step, cookiesByName)
-        if (step.loginId == ON_DEVICE_GOOGLE_ACCOUNT_FLOW_ID) {
-            val cookies = step.cookies.mapNotNull { cookie -> cookiesByName[cookie.cookieName]?.let { cookie.cookieName to it } }.toMap()
-            return linkAccountOnDevice(onDeviceGoogleMessages) { onDeviceGoogleMessages.link(cookies) }
-        }
         val values = step.cookies
             .mapNotNull { cookie -> cookiesByName[cookie.cookieName]?.let { cookie.fieldId to it } }
             .toMap()
@@ -348,19 +340,6 @@ class ConnectNetworkViewModel(
                 description = "Sign in to your workspace on slack.com; it connects from this phone."
             )
         )
-        network == ChatNetwork.GOOGLE_MESSAGES && onDeviceGoogleMessages.isSupported -> listOf(
-            BridgeLoginFlow(
-                id = ON_DEVICE_GOOGLE_QR_FLOW_ID,
-                name = "On this device · QR code",
-                description = "Scan a code in Google Messages → Device pairing; needs this code on a second screen."
-            ),
-            // Google blocks sign-in in embedded web views ("This browser or app may not be secure") for many accounts
-            BridgeLoginFlow(
-                id = ON_DEVICE_GOOGLE_ACCOUNT_FLOW_ID,
-                name = "On this device · Google account",
-                description = "Sign in with Google, then confirm on the phone. Google often refuses sign-in inside apps."
-            )
-        )
         else -> emptyList()
     }
 
@@ -442,20 +421,7 @@ class ConnectNetworkViewModel(
                 )
             )
         }
-        if (account.network == ChatNetwork.GOOGLE_MESSAGES && pairing.pairingCode != null) {
-            return BridgeLoginStep.DisplayAndWait(
-                loginId = ON_DEVICE_GOOGLE_ACCOUNT_FLOW_ID,
-                stepId = "on-device-emoji",
-                instructions = "Google Messages on your phone now asks to confirm pairing. Tap this emoji there:",
-                displayType = DisplayType.EMOJI,
-                data = pairing.pairingCode
-            )
-        }
         val instructions = when {
-            account.network == ChatNetwork.GOOGLE_MESSAGES ->
-                "In Google Messages open your profile picture → Device pairing → QR code scanner, and scan this code. " +
-                    "The scanner uses the camera, so the code has to be on another screen: if Google Messages is on this " +
-                    "phone, go back and sign in with your Google account instead."
             account.network == ChatNetwork.SIGNAL ->
                 "In Signal open Settings → Linked devices → Link a new device, and scan this code. Signal's scanner " +
                     "uses the camera, so it needs this code on a different screen than the phone it runs on."
@@ -526,23 +492,6 @@ class ConnectNetworkViewModel(
     )
 
     /**
-     * Google's sign-in, ending on Messages for Web; its cookies (google.com's and messages.google.com's OSID) let
-     * the phone pair this app with an emoji confirmation instead of a QR code.
-     */
-    private fun onDeviceGoogleCookiesStep() = BridgeLoginStep.Cookies(
-        loginId = ON_DEVICE_GOOGLE_ACCOUNT_FLOW_ID,
-        stepId = "on-device-google-cookies",
-        instructions = "Sign in with the Google account that Google Messages on your phone uses. If Google says " +
-            "\"This browser or app may not be secure\", go back and use the QR code instead.",
-        url = "https://accounts.google.com/AccountChooser?continue=https://messages.google.com/web/config",
-        // Google refuses sign-in in embedded web views that say so in their user agent
-        userAgent = DESKTOP_USER_AGENT,
-        cookies = listOf("SID", "HSID", "SSID", "APISID", "SAPISID", "OSID").map { RequiredCookie(it, it, isRequired = true) } +
-            RequiredCookie("__Secure-1PSIDTS", "__Secure-1PSIDTS", isRequired = false),
-        cookieUrl = "https://messages.google.com/web/config"
-    )
-
-    /**
      * Slack's web sign-in. The session is the web client's token (kept in the page's localStorage, read by
      * [SLACK_TOKEN_SCRIPT] like mautrix-slack does) and the "d" cookie.
      */
@@ -609,8 +558,6 @@ class ConnectNetworkViewModel(
         const val ON_DEVICE_TELEGRAM_FLOW_ID = "howyoudoin-on-device-telegram"
         const val ON_DEVICE_TELEGRAM_QR_FLOW_ID = "howyoudoin-on-device-telegram-qr"
         const val ON_DEVICE_SIGNAL_FLOW_ID = "howyoudoin-on-device-signal"
-        const val ON_DEVICE_GOOGLE_ACCOUNT_FLOW_ID = "howyoudoin-on-device-google-account"
-        const val ON_DEVICE_GOOGLE_QR_FLOW_ID = "howyoudoin-on-device-google-qr"
         const val ON_DEVICE_MATRIX_FLOW_ID = "howyoudoin-matrix-account"
         /** Answers to what a linking client asks for (Telegram's login code and password). */
         const val ON_DEVICE_PROMPT_FLOW_ID = "howyoudoin-on-device-prompt"

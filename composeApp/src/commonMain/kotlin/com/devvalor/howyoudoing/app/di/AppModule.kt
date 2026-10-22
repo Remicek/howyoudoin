@@ -4,7 +4,6 @@ import com.devvalor.howyoudoing.app.MainViewModel
 import com.devvalor.howyoudoing.app.ondevice.MatrixAccount
 import com.devvalor.howyoudoing.core.domain.auth.MATRIX_ACCOUNT_SESSION
 import com.devvalor.howyoudoing.core.domain.ondevice.ConnectionMonitor
-import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceGoogleMessages
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceInstagram
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceMatrix
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceMessenger
@@ -23,7 +22,7 @@ val appModule = module {
         ConnectionMonitor(
             clients = listOf(
                 get<OnDeviceMessenger>(), get<OnDeviceWhatsApp>(), get<OnDeviceInstagram>(), get<OnDeviceTelegram>(),
-                get<OnDeviceSignal>(), get<OnDeviceGoogleMessages>(), get<OnDeviceSlack>(), get<OnDeviceMatrix>()
+                get<OnDeviceSignal>(), get<OnDeviceSlack>(), get<OnDeviceMatrix>()
             ),
             appScope = get()
         )
