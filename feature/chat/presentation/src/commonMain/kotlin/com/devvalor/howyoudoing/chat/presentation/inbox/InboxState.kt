@@ -3,6 +3,7 @@ package com.devvalor.howyoudoing.chat.presentation.inbox
 import com.devvalor.howyoudoing.chat.domain.SyncState
 import com.devvalor.howyoudoing.chat.presentation.model.ChatUi
 import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
+import com.devvalor.howyoudoing.core.domain.ondevice.ConnectionProblem
 
 data class InboxState(
     val chats: List<ChatUi> = emptyList(),
@@ -13,7 +14,9 @@ data class InboxState(
     val encryptedNetworks: Set<ChatNetwork> = emptySet(),
     val syncState: SyncState = SyncState.IDLE,
     val isLoading: Boolean = true,
-    val isRefreshing: Boolean = false
+    val isRefreshing: Boolean = false,
+    /** Connected networks that stopped working. */
+    val connectionProblems: List<ConnectionProblem> = emptyList()
 ) {
     val totalUnread: Int get() = chats.sumOf { it.unreadCount }
 }

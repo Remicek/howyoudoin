@@ -42,7 +42,11 @@ sealed interface BridgeLoginStep {
         override val instructions: String,
         val url: String,
         val userAgent: String?,
-        val cookies: List<RequiredCookie>
+        val cookies: List<RequiredCookie>,
+        /** Where the cookies are read from when that's not [url] (e.g. after signing in on another domain). */
+        val cookieUrl: String? = null,
+        /** Runs in the page; returns a JSON object of more values (e.g. a token in the page's storage). */
+        val extractScript: String? = null
     ) : BridgeLoginStep
 
     data class Complete(

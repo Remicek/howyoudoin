@@ -231,6 +231,15 @@ interface OnDeviceSignal : OnDeviceLinkedAccount {
     override val network: ChatNetwork get() = ChatNetwork.SIGNAL
 }
 
+/**
+ * Experimental: Google Messages (SMS and RCS of the user's Android phone) paired like Messages for Web, running in
+ * the app. [link] signs in with google.com cookies, then the phone asks to confirm the emoji in [pairing];
+ * [startLinking] shows QR codes instead.
+ */
+interface OnDeviceGoogleMessages : OnDeviceLinkedAccount {
+    override val network: ChatNetwork get() = ChatNetwork.GOOGLE_MESSAGES
+}
+
 /** Used where the native client isn't built in. */
 object UnsupportedOnDeviceWhatsApp : OnDeviceWhatsApp, OnDeviceMessenger by UnsupportedOnDeviceMessenger {
     override val network: ChatNetwork get() = ChatNetwork.WHATSAPP
@@ -253,6 +262,13 @@ object UnsupportedOnDeviceSignal : OnDeviceSignal, OnDeviceMessenger by Unsuppor
     override suspend fun cancelLinking() = Unit
 }
 
+object UnsupportedOnDeviceGoogleMessages : OnDeviceGoogleMessages, OnDeviceMessenger by UnsupportedOnDeviceMessenger {
+    override val network: ChatNetwork get() = ChatNetwork.GOOGLE_MESSAGES
+    override val pairing: StateFlow<OnDevicePairing?> = kotlinx.coroutines.flow.MutableStateFlow(null)
+    override suspend fun startLinking(phoneNumber: String?): EmptyResult<DataError.Remote> = Result.Failure(DataError.Remote.UNKNOWN)
+    override suspend fun cancelLinking() = Unit
+}
+
 /** Experimental: Instagram direct messages connected from the phone, logged in with instagram.com cookies. */
 interface OnDeviceInstagram : OnDeviceMessenger {
     override val network: ChatNetwork get() = ChatNetwork.INSTAGRAM
@@ -262,3 +278,20 @@ object UnsupportedOnDeviceInstagram : OnDeviceInstagram, OnDeviceMessenger by Un
     override val network: ChatNetwork get() = ChatNetwork.INSTAGRAM
 }
 
+
+/** Experimental: a Slack workspace connected from the phone, logged in with the web client's token and cookie. */
+interface OnDeviceSlack : OnDeviceMessenger {
+    override val network: ChatNetwork get() = ChatNetwork.SLACK
+}
+
+object UnsupportedOnDeviceSlack : OnDeviceSlack, OnDeviceMessenger by UnsupportedOnDeviceMessenger {
+    override val network: ChatNetwork get() = ChatNetwork.SLACK
+}
+
+/**
+ * A Matrix account (any homeserver) connected as one of the networks: its rooms join the inbox, also without the
+ * app's own server. [link] takes "homeserver", "username" and "password".
+ */
+interface OnDeviceMatrix : OnDeviceMessenger {
+    override val network: ChatNetwork get() = ChatNetwork.MATRIX
+}

@@ -5,6 +5,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.devvalor.howyoudoing.chat.domain.Attachment
+import com.devvalor.howyoudoing.chat.domain.CallLauncher
+import com.devvalor.howyoudoing.chat.domain.CallManager
 import com.devvalor.howyoudoing.chat.domain.ChatRepository
 import com.devvalor.howyoudoing.chat.domain.NotificationPreferences
 import com.devvalor.howyoudoing.chat.domain.OpenChatTracker
@@ -34,7 +36,9 @@ class ConversationViewModel(
     savedStateHandle: SavedStateHandle,
     private val chatRepository: ChatRepository,
     private val openChatTracker: OpenChatTracker,
-    private val notificationPreferences: NotificationPreferences
+    private val notificationPreferences: NotificationPreferences,
+    private val callManager: CallManager,
+    private val callLauncher: CallLauncher
 ) : ViewModel() {
 
     private val chatId = savedStateHandle.toRoute<ChatRoutes.Conversation>().chatId
@@ -80,6 +84,7 @@ class ConversationViewModel(
                 updateTyping(action.draft.isNotBlank())
             }
             ConversationAction.OnSendClick -> send()
+            is ConversationAction.OnCallClick -> callLauncher.call(chatId, action.video)
             ConversationAction.OnLoadOlder -> loadOlder()
             is ConversationAction.OnMessageLongPress -> _state.update { state ->
                 state.copy(actionsFor = state.messages.firstOrNull { it.id == action.messageId })
@@ -157,6 +162,7 @@ class ConversationViewModel(
                         isGroup = chat?.isGroup ?: it.isGroup,
                         isEncrypted = chat?.isEncrypted ?: it.isEncrypted,
                         isOnDevice = chat?.isOnDevice ?: it.isOnDevice,
+                        canCall = chat?.let(callManager::canCall) ?: it.canCall,
                         typingText = chat?.let { c -> typingText(c.typingNames, c.isGroup) },
                         messages = messages.toMessageUis(showSenderNames = chat?.isGroup == true),
                         hasMoreHistory = hasMore

@@ -108,7 +108,8 @@ fun ConnectNetworkScreen(
                     }
                 },
                 actions = {
-                    if (state.phase is ConnectPhase.ChooseFlow && state.canEditBridgeUrl) {
+                    // A Matrix account has no bridge to configure
+                    if (state.phase is ConnectPhase.ChooseFlow && state.canEditBridgeUrl && state.network != ChatNetwork.MATRIX) {
                         IconButton(onClick = { onAction(ConnectNetworkAction.OnEditBridgeUrlClick) }) {
                             Icon(Icons.Rounded.Settings, contentDescription = "Bridge settings")
                         }
@@ -235,6 +236,8 @@ private fun ChooseFlow(network: ChatNetwork, flows: List<BridgeLoginFlow>, onAct
         if (network == ChatNetwork.TELEGRAM) {
             "HowYouDoin is an unofficial app, not made or supported by Telegram. It uses Telegram's public API, " +
                 "which Telegram allows other apps to use."
+        } else if (network == ChatNetwork.MATRIX) {
+            "Matrix is an open standard: HowYouDoin is one of many apps that work with any Matrix homeserver."
         } else {
             "HowYouDoin is an unofficial app, not made or supported by ${network.displayName}. ${network.displayName} " +
                 "doesn't officially allow other apps, so it could limit an account that uses one."
@@ -437,6 +440,8 @@ private fun CookiesStep(
                 cookieNames = step.cookies.filter { it.isRequired }.map { it.cookieName }.toSet(),
                 onCookiesCaptured = { onAction(ConnectNetworkAction.OnCookiesCaptured(it)) },
                 modifier = Modifier.fillMaxWidth().weight(1f),
+                cookieUrl = step.cookieUrl,
+                extractScript = step.extractScript,
             )
         }
     }

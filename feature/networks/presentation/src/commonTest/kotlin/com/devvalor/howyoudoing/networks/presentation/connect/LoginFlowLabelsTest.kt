@@ -11,10 +11,24 @@ class LoginFlowLabelsTest {
 
     @Test
     fun messengerFlowsAreRelabelledAndRecommendedFirst() {
-        val bridgeOrder = listOf("facebook", "messenger", "messenger-lite", "messenger-lite-android").map(::flow)
+        val bridgeOrder = listOf("facebook", "messenger", "messenger-lite", "messenger-lite-android", "howyoudoin-on-device").map(::flow)
         val labels = LoginFlowLabels.present(ChatNetwork.MESSENGER, bridgeOrder)
-        assertEquals(listOf("messenger", "facebook", "messenger-lite", "messenger-lite-android"), labels.map { it.flowId })
+        assertEquals(
+            listOf("howyoudoin-on-device", "messenger", "facebook", "messenger-lite", "messenger-lite-android"),
+            labels.map { it.flowId }
+        )
         assertEquals("Messenger", labels.first().title)
+        assertEquals(true, labels.first().isRecommended)
+        assertEquals("Messenger via server bridge", labels[1].title)
+    }
+
+    @Test
+    fun googleMessagesRecommendsTheQrCode() {
+        val labels = LoginFlowLabels.present(
+            ChatNetwork.GOOGLE_MESSAGES,
+            listOf(flow("howyoudoin-on-device-google-qr"), flow("howyoudoin-on-device-google-account"))
+        )
+        assertEquals("QR code", labels.first().title)
         assertEquals(true, labels.first().isRecommended)
     }
 

@@ -14,13 +14,21 @@ import com.devvalor.howyoudoing.app.ondevice.NativeOnDeviceInstagram
 import com.devvalor.howyoudoing.app.ondevice.AndroidInstagramFactory
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceWhatsApp
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceSignal
+import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceGoogleMessages
+import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceSlack
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceTelegram
 import com.devvalor.howyoudoing.app.BuildConfig
 import com.devvalor.howyoudoing.app.ondevice.AndroidSignalFactory
+import com.devvalor.howyoudoing.app.ondevice.AndroidGoogleMessagesFactory
+import com.devvalor.howyoudoing.app.ondevice.AndroidSlackFactory
+import com.devvalor.howyoudoing.app.ondevice.NativeOnDeviceSlack
+import com.devvalor.howyoudoing.app.ondevice.NativeOnDeviceGoogleMessages
 import com.devvalor.howyoudoing.app.ondevice.AndroidTelegramFactory
 import com.devvalor.howyoudoing.app.ondevice.NativeOnDeviceSignal
 import com.devvalor.howyoudoing.app.ondevice.NativeOnDeviceTelegram
 import com.devvalor.howyoudoing.chat.data.di.ON_DEVICE_SIGNAL_CACHE
+import com.devvalor.howyoudoing.chat.data.di.ON_DEVICE_GOOGLE_MESSAGES_CACHE
+import com.devvalor.howyoudoing.chat.data.di.ON_DEVICE_SLACK_CACHE
 import com.devvalor.howyoudoing.chat.data.di.ON_DEVICE_TELEGRAM_CACHE
 import org.koin.core.qualifier.named
 import com.devvalor.howyoudoing.app.ondevice.AndroidWhatsAppFactory
@@ -41,6 +49,13 @@ import com.devvalor.howyoudoing.settings.domain.CrashReports
 import com.devvalor.howyoudoing.settings.domain.PinHasher
 import com.devvalor.howyoudoing.core.domain.config.BuildInfo
 import org.koin.dsl.module
+import org.koin.dsl.bind
+import com.devvalor.howyoudoing.app.call.AndroidCallMediaEngine
+import com.devvalor.howyoudoing.app.call.CallActivity
+import com.devvalor.howyoudoing.app.call.CallNotifier
+import com.devvalor.howyoudoing.app.notifications.ConnectionProblemNotifier
+import com.devvalor.howyoudoing.chat.domain.CallLauncher
+import com.devvalor.howyoudoing.chat.domain.CallMediaEngine
 
 actual val platformAppModule: Module = module {
     single<PinHasher> { AndroidPinHasher() }
@@ -59,9 +74,10 @@ actual val platformAppModule: Module = module {
         OnDeviceConnectionKeeper(
             context = androidContext(),
             clients = listOf(
-                get<OnDeviceMessenger>(), get<OnDeviceWhatsApp>(), get<OnDeviceInstagram>(), get<OnDeviceTelegram>(), get<OnDeviceSignal>()
+                get<OnDeviceMessenger>(), get<OnDeviceWhatsApp>(), get<OnDeviceInstagram>(), get<OnDeviceTelegram>(), get<OnDeviceSignal>(),
+                get<OnDeviceGoogleMessages>(), get<OnDeviceSlack>()
             ),
-            linkedAccounts = listOf(get<OnDeviceWhatsApp>(), get<OnDeviceTelegram>(), get<OnDeviceSignal>()),
+            linkedAccounts = listOf(get<OnDeviceWhatsApp>(), get<OnDeviceTelegram>(), get<OnDeviceSignal>(), get<OnDeviceGoogleMessages>()),
             scope = get()
         )
     }
@@ -88,6 +104,23 @@ actual val platformAppModule: Module = module {
     single<OnDeviceSignal>(createdAtStart = true) {
         NativeOnDeviceSignal(AndroidSignalFactory(), AndroidDataDirectory(androidContext(), SIGNAL_DIR), get())
     }
+    single<OnDeviceInboxCache>(named(ON_DEVICE_GOOGLE_MESSAGES_CACHE)) { AndroidInboxCache(androidContext(), GOOGLE_MESSAGES_DIR) }
+    single<OnDeviceGoogleMessages>(createdAtStart = true) {
+        NativeOnDeviceGoogleMessages(AndroidGoogleMessagesFactory(), AndroidDataDirectory(androidContext(), GOOGLE_MESSAGES_DIR), get())
+    }
+    single<OnDeviceInboxCache>(named(ON_DEVICE_SLACK_CACHE)) { AndroidInboxCache(androidContext(), SLACK_DIR) }
+    single<OnDeviceSlack>(createdAtStart = true) {
+        NativeOnDeviceSlack(
+            factory = AndroidSlackFactory(),
+            secrets = KeystoreSecretStore(androidContext(), SLACK_DIR),
+            dataDir = AndroidDataDirectory(androidContext(), SLACK_DIR),
+            scope = get()
+        )
+    }
+    single { AndroidCallMediaEngine(androidContext()) } bind CallMediaEngine::class
+    single(createdAtStart = true) { CallNotifier(androidContext(), get(), get()) }
+    single(createdAtStart = true) { ConnectionProblemNotifier(androidContext(), get(), get()) }
+    single<CallLauncher> { CallLauncher { chatId, video -> CallActivity.startCall(androidContext(), chatId, video) } }
     single<OnDeviceInboxCache> { AndroidInboxCache(androidContext()) }
     single<OnDeviceMessenger>(createdAtStart = true) {
         NativeOnDeviceMessenger(
@@ -103,3 +136,5 @@ private const val WHATSAPP_DIR = "on_device_whatsapp"
 private const val INSTAGRAM_DIR = "on_device_instagram"
 private const val TELEGRAM_DIR = "on_device_telegram"
 private const val SIGNAL_DIR = "on_device_signal"
+private const val GOOGLE_MESSAGES_DIR = "on_device_google_messages"
+private const val SLACK_DIR = "on_device_slack"

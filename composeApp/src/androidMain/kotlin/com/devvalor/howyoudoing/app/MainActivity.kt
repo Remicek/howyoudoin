@@ -5,6 +5,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import com.devvalor.howyoudoing.app.notifications.ConnectionProblemNotifier
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
@@ -78,6 +79,9 @@ class MainActivity : FragmentActivity() {
 
     private fun handleNotificationTap(intent: Intent?) {
         intent?.getStringExtra(AndroidNotificationPresenter.EXTRA_CHAT_ID)?.let { NotificationRouter.pendingChatId.value = it }
+        if (intent?.getBooleanExtra(ConnectionProblemNotifier.EXTRA_OPEN_NETWORKS, false) == true) {
+            NotificationRouter.pendingNetworks.value = true
+        }
     }
 
     private fun askForNotifications() {

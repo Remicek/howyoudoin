@@ -10,7 +10,7 @@ data class NetworksState(
     val dismissedTutorials: Set<ChatNetwork> = emptySet(),
     /** Networks connected from this phone (experimental), shown under each network. */
     val onDevice: Map<ChatNetwork, OnDeviceMessengerState> = emptyMap(),
-    val items: List<NetworkItemUi> = ChatNetwork.bridged.map { network ->
+    val items: List<NetworkItemUi> = ChatNetwork.connectable.map { network ->
         NetworkItemUi(
             network = network,
             status = if (network.isSupported) NetworkStatus.Loading else NetworkStatus.ComingSoon

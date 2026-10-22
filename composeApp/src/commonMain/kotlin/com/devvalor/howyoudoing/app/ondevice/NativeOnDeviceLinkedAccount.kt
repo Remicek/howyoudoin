@@ -1,6 +1,7 @@
 package com.devvalor.howyoudoing.app.ondevice
 
 import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
+import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceGoogleMessages
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceHistoryError
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceHistoryStatus
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceLinkedAccount
@@ -28,13 +29,14 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 
 /**
- * One of hydbridge's linked-device clients (WhatsApp, Telegram, Signal) as each platform's bindings expose it.
+ * One of hydbridge's linked-device clients (WhatsApp, Telegram, Signal, Google Messages) as each platform's bindings expose it.
  * Calls throw on failure; what a network doesn't support throws too.
  */
 interface NativeLinkedClient {
@@ -43,6 +45,8 @@ interface NativeLinkedClient {
     fun connect()
     /** Starts linking; what happens with the phone number depends on the network (see OnDeviceLinkedAccount). */
     fun startLinking(phoneNumber: String)
+    /** Starts linking with a web login's cookies (JSON object, name → value); Google Messages only. */
+    fun linkWithCookies(cookiesJson: String): Unit = throw UnsupportedOperationException("This network doesn't log in with cookies")
     fun submitCode(code: String): Unit = throw UnsupportedOperationException()
     fun submitPassword(password: String): Unit = throw UnsupportedOperationException()
     fun cancelLinking()
@@ -135,7 +139,14 @@ abstract class NativeOnDeviceLinkedAccount(
         }
     }
 
-    override suspend fun startLinking(phoneNumber: String?): EmptyResult<DataError.Remote> = lock.withLock {
+    override suspend fun startLinking(phoneNumber: String?): EmptyResult<DataError.Remote> =
+        beginLinking { startLinking(phoneNumber.orEmpty()) }
+
+    /** Starts linking with a web login (Google Messages); like [startLinking], progress shows in [pairing] and [state]. */
+    override suspend fun link(cookies: Map<String, String>): EmptyResult<DataError.Remote> =
+        beginLinking { linkWithCookies(Json.encodeToString(cookies)) }
+
+    private suspend fun beginLinking(start: NativeLinkedClient.() -> Unit): EmptyResult<DataError.Remote> = lock.withLock {
         withContext(Dispatchers.IO) {
             try {
                 client?.cancelLinking()
@@ -143,7 +154,7 @@ abstract class NativeOnDeviceLinkedAccount(
                 _events.resetReplayCache()
                 val created = createClient()
                 _state.value = OnDeviceMessengerState.Connecting
-                created.startLinking(phoneNumber.orEmpty())
+                created.start()
                 Result.Success(Unit)
             } catch (e: Exception) {
                 failed(e)
@@ -189,9 +200,6 @@ abstract class NativeOnDeviceLinkedAccount(
             _state.value = OnDeviceMessengerState.NotLinked
         }
     }
-
-    // These networks link by pairing or prompts, not with web cookies
-    override suspend fun link(cookies: Map<String, String>): EmptyResult<DataError.Remote> = Result.Failure(DataError.Remote.BAD_REQUEST)
 
     override suspend fun sendText(threadKey: String, text: String, isEncrypted: Boolean, isGroup: Boolean): Result<String, DataError.Remote> =
         native("Sending a message") { sendText(threadKey, text) }
@@ -341,4 +349,9 @@ class NativeOnDeviceTelegram(factory: NativeLinkedClientFactory?, dataDir: OnDev
 class NativeOnDeviceSignal(factory: NativeLinkedClientFactory?, dataDir: OnDeviceDataDirectory, scope: CoroutineScope) :
     NativeOnDeviceLinkedAccount(factory, dataDir, scope), OnDeviceSignal {
     override val network: ChatNetwork get() = ChatNetwork.SIGNAL
+}
+
+class NativeOnDeviceGoogleMessages(factory: NativeLinkedClientFactory?, dataDir: OnDeviceDataDirectory, scope: CoroutineScope) :
+    NativeOnDeviceLinkedAccount(factory, dataDir, scope), OnDeviceGoogleMessages {
+    override val network: ChatNetwork get() = ChatNetwork.GOOGLE_MESSAGES
 }

@@ -35,10 +35,12 @@ actual fun CookieCaptureWebView(
     cookieNames: Set<String>,
     onCookiesCaptured: (Map<String, String>) -> Unit,
     modifier: Modifier,
+    cookieUrl: String?,
+    extractScript: String?,
 ) {
     val currentOnCookiesCaptured by rememberUpdatedState(onCookiesCaptured)
-    val baseDomain = remember(url) {
-        NSURL.URLWithString(url)?.host.orEmpty().removePrefix("www.")
+    val baseDomain = remember(url, cookieUrl) {
+        NSURL.URLWithString(cookieUrl ?: url)?.host.orEmpty().removePrefix("www.")
     }
     // WKWebView holds its navigation delegate weakly
     val navigationDelegate = remember { ZoomToFormDelegate() }
@@ -59,7 +61,8 @@ actual fun CookieCaptureWebView(
 
     LaunchedEffect(url, cookieNames) {
         while (true) {
-            val cookies = webView.cookiesFor(baseDomain)
+            val extracted = extractScript?.let { webView.evaluate(it) }
+            val cookies = webView.cookiesFor(baseDomain) + parseExtractedValues(extracted)
             if (cookieNames.isNotEmpty() && cookieNames.all { it in cookies }) {
                 currentOnCookiesCaptured(cookies.filterKeys { it in cookieNames })
                 break
@@ -79,6 +82,13 @@ private suspend fun WKWebView.cookiesFor(baseDomain: String): Map<String, String
             continuation.resume(values)
         }
     }
+
+@OptIn(ExperimentalForeignApi::class)
+private suspend fun WKWebView.evaluate(script: String): String? = suspendCoroutine { continuation ->
+    evaluateJavaScript(script) { result, _ ->
+        continuation.resume((result as? String) ?: (result as? NSString)?.toString())
+    }
+}
 
 /**
  * The desktop page shows small at overview zoom: once a page has loaded, zooms in on its login form (or the

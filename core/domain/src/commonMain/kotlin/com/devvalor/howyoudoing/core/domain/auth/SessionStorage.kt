@@ -7,3 +7,6 @@ interface SessionStorage {
     suspend fun get(): AuthInfo?
     suspend fun set(info: AuthInfo?)
 }
+
+/** Koin name of the [SessionStorage] holding the Matrix account connected as a network (see OnDeviceMatrix). */
+const val MATRIX_ACCOUNT_SESSION = "matrixAccountSession"

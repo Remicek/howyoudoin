@@ -52,3 +52,11 @@ data class SendEventResponseDto(
 data class ContentUriDto(
     @SerialName("content_uri") val contentUri: String
 )
+
+@Serializable
+data class TurnServerDto(
+    val uris: List<String> = emptyList(),
+    val username: String? = null,
+    val password: String? = null,
+    val ttl: Long? = null
+)

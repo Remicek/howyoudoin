@@ -21,6 +21,8 @@ github.com/beeper/poly1305 v0.0.0-20250815183548-d4eede7bbf3c h1:Axyrzr6L42CLNJI
 github.com/beeper/poly1305 v0.0.0-20250815183548-d4eede7bbf3c/go.mod h1:mo9x0FBxrMo75mAnk1ALdXrHfe8NG3C25CFDf4RSRpc=
 github.com/beeper/req/v3 v3.0.0-20260925135712-b49593750e56 h1:VQTcNnqViZfzYJtDue7HUF9Y979KdafTdJkX/DPasSQ=
 github.com/beeper/req/v3 v3.0.0-20260925135712-b49593750e56/go.mod h1:1nX+ECJqEyUXbQHlubo2nKckcfIF7L8+xrG4k4gx1F4=
+github.com/beeper/slackgo v0.0.0-20261015121614-caa8a716ef7e h1:XnzOkyYI660XHGL66k+RC2BPcfcXOLSiZQAl1DHaFZA=
+github.com/beeper/slackgo v0.0.0-20261015121614-caa8a716ef7e/go.mod h1:9noNm7FUbFD2s+NOlbZlYnk9OfkcEkx34C8TiWigAEs=
 github.com/bytemare/cryptotools v0.0.0-20210220202506-7b38001c07b2/go.mod h1:CKpsDERRG5MbUDJUl6xUDAuL228QndGKNabkx/E+Qug=
 github.com/bytemare/cryptotools v0.0.0-20210309005813-f9985b05742f h1:CXLSVUN4laSSTqbZxZ2gCn5bqO+K8a4fhoru+92SQD0=
 github.com/bytemare/cryptotools v0.0.0-20210309005813-f9985b05742f/go.mod h1:CKpsDERRG5MbUDJUl6xUDAuL228QndGKNabkx/E+Qug=
@@ -57,6 +59,8 @@ github.com/google/go-querystring v1.2.0 h1:yhqkPbu2/OH+V9BfpCVPZkNmUXhb2gBxJArfh
 github.com/google/go-querystring v1.2.0/go.mod h1:8IFJqpSRITyJ8QhQ13bmbeMBDfmeEJZD5A0egEOmkqU=
 github.com/google/uuid v1.6.0 h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=
 github.com/google/uuid v1.6.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
+github.com/gorilla/websocket v1.5.0 h1:PPwGk2jz7EePpoHN/+ClbZu8SPxiqlu12wZP/3sWmnc=
+github.com/gorilla/websocket v1.5.0/go.mod h1:YR8l580nyteQvAITg2hZ9XVh4b55+EU/adAjf1fMHhE=
 github.com/gotd/ige v0.2.2 h1:XQ9dJZwBfDnOGSTxKXBGP4gMud3Qku2ekScRjDWWfEk=
 github.com/gotd/ige v0.2.2/go.mod h1:tuCRb+Y5Y3eNTo3ypIfNpQ4MFjrnONiL2jN2AKZXmb0=
 github.com/gotd/neo v0.1.5 h1:oj0iQfMbGClP8xI59x7fE/uHoTJD7NZH9oV1WNuPukQ=

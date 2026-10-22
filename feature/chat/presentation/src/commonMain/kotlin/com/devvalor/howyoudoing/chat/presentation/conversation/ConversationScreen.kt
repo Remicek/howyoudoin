@@ -1,6 +1,8 @@
 package com.devvalor.howyoudoing.chat.presentation.conversation
 
 import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material.icons.rounded.Videocam
+import androidx.compose.material.icons.rounded.Call
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.KeyboardArrowUp
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
@@ -177,6 +179,14 @@ fun ConversationScreen(
             }
             TopAppBar(
                 actions = {
+                    if (state.canCall) {
+                        IconButton(onClick = { onAction(ConversationAction.OnCallClick(video = false)) }) {
+                            Icon(Icons.Rounded.Call, contentDescription = "Audio call")
+                        }
+                        IconButton(onClick = { onAction(ConversationAction.OnCallClick(video = true)) }) {
+                            Icon(Icons.Rounded.Videocam, contentDescription = "Video call")
+                        }
+                    }
                     IconButton(onClick = { onAction(ConversationAction.OnSearchClick) }) {
                         Icon(Icons.Rounded.Search, contentDescription = "Search in chat")
                     }

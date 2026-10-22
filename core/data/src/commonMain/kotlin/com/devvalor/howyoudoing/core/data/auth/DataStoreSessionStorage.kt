@@ -15,11 +15,13 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.json.Json
 
+/** A session kept in DataStore under [keyName]; the app's own session uses the default key. */
 class DataStoreSessionStorage(
-    private val dataStore: DataStore<Preferences>
+    private val dataStore: DataStore<Preferences>,
+    keyName: String = "KEY_AUTH_INFO"
 ) : SessionStorage {
 
-    private val authInfoKey = stringPreferencesKey("KEY_AUTH_INFO")
+    private val authInfoKey = stringPreferencesKey(keyName)
 
     private val json = Json {
         ignoreUnknownKeys = true

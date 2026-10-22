@@ -10,9 +10,7 @@ val ChatNetwork.brandColor: Color
         ChatNetwork.TELEGRAM -> Color(0xFF2AABEE)
         ChatNetwork.SIGNAL -> Color(0xFF3A76F0)
         ChatNetwork.INSTAGRAM -> Color(0xFFE1306C)
-        ChatNetwork.DISCORD -> Color(0xFF5865F2)
         ChatNetwork.SLACK -> Color(0xFF611F69)
-        ChatNetwork.LINKEDIN -> Color(0xFF0A66C2)
         ChatNetwork.GOOGLE_MESSAGES -> Color(0xFF1A73E8)
         ChatNetwork.MATRIX -> Color(0xFF0DBD8B)
     }
@@ -25,9 +23,7 @@ val ChatNetwork.monogram: String
         ChatNetwork.TELEGRAM -> "T"
         ChatNetwork.SIGNAL -> "S"
         ChatNetwork.INSTAGRAM -> "I"
-        ChatNetwork.DISCORD -> "D"
         ChatNetwork.SLACK -> "S"
-        ChatNetwork.LINKEDIN -> "in"
         ChatNetwork.GOOGLE_MESSAGES -> "G"
         ChatNetwork.MATRIX -> "[m]"
     }

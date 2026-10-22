@@ -6,6 +6,7 @@ import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceInstagram
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceHistoryStatus
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceMessenger
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceMessengerState
+import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceSlack
 import com.devvalor.howyoudoing.core.domain.util.DataError
 import com.devvalor.howyoudoing.core.domain.util.EmptyResult
 import com.devvalor.howyoudoing.core.domain.util.Result
@@ -302,3 +303,13 @@ class NativeOnDeviceInstagram(
     override val network: ChatNetwork get() = ChatNetwork.INSTAGRAM
 }
 
+
+/** A Slack workspace through hydbridge's Slack client; the "cookies" are the web client's token and d cookie. */
+class NativeOnDeviceSlack(
+    factory: NativeMessengerFactory,
+    secrets: OnDeviceSecretStore,
+    dataDir: OnDeviceDataDirectory,
+    scope: CoroutineScope
+) : NativeOnDeviceMessenger(factory, secrets, dataDir, scope), OnDeviceSlack {
+    override val network: ChatNetwork get() = ChatNetwork.SLACK
+}

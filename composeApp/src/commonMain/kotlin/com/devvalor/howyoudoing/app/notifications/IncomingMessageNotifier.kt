@@ -21,9 +21,10 @@ interface MessageNotificationPresenter {
     fun cancel(chatId: String)
 }
 
-/** A notification the user tapped: the app opens this chat. */
+/** A notification the user tapped: the app opens this chat, or the networks screen. */
 object NotificationRouter {
     val pendingChatId = MutableStateFlow<String?>(null)
+    val pendingNetworks = MutableStateFlow(false)
 }
 
 /**

@@ -6,7 +6,10 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/mattn/go-sqlite3 v1.14.52
 	github.com/rs/zerolog v1.35.1
+	github.com/slack-go/slack v0.24.0
+	go.mau.fi/mautrix-gmessages v0.0.0
 	go.mau.fi/mautrix-meta v0.0.0
+	go.mau.fi/mautrix-slack v0.0.0
 	go.mau.fi/whatsmeow v0.0.0-20261014094007-f16f9ca30d6a
 	go.uber.org/zap v1.28.0
 	google.golang.org/protobuf v1.36.12
@@ -18,6 +21,7 @@ require (
 	github.com/go-faster/errors v0.7.1 // indirect
 	github.com/go-faster/jx v1.2.0 // indirect
 	github.com/go-faster/xor v1.0.0 // indirect
+	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/gotd/ige v0.2.2 // indirect
 	github.com/gotd/neo v0.1.5 // indirect
 	github.com/mattn/go-pointer v0.0.1 // indirect
@@ -95,3 +99,9 @@ tool golang.org/x/mobile/cmd/gobind
 replace go.mau.fi/mautrix-telegram => ../../howyoudoin-bridges/mautrix-telegram
 
 replace go.mau.fi/mautrix-signal => ../../howyoudoin-bridges/mautrix-signal
+
+replace go.mau.fi/mautrix-gmessages => ../../howyoudoin-bridges/mautrix-gmessages
+
+replace github.com/slack-go/slack => github.com/beeper/slackgo v0.0.0-20261015121614-caa8a716ef7e
+
+replace go.mau.fi/mautrix-slack => ../../howyoudoin-bridges/mautrix-slack

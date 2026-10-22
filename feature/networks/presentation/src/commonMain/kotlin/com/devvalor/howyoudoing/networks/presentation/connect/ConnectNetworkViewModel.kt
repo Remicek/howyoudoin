@@ -16,6 +16,9 @@ import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceLinkedAccount
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceLoginPrompt
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDevicePairing
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceSignal
+import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceGoogleMessages
+import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceSlack
+import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceMatrix
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceTelegram
 import com.devvalor.howyoudoing.core.presentation.util.UiText
 import com.devvalor.howyoudoing.networks.domain.DisplayType
@@ -50,11 +53,14 @@ class ConnectNetworkViewModel(
     private val onDeviceWhatsApp: OnDeviceWhatsApp,
     private val onDeviceInstagram: OnDeviceInstagram,
     private val onDeviceTelegram: OnDeviceTelegram,
-    private val onDeviceSignal: OnDeviceSignal
+    private val onDeviceSignal: OnDeviceSignal,
+    private val onDeviceGoogleMessages: OnDeviceGoogleMessages,
+    private val onDeviceSlack: OnDeviceSlack,
+    private val onDeviceMatrix: OnDeviceMatrix
 ) : ViewModel() {
 
     private var pairingJob: Job? = null
-    /** The account being linked (WhatsApp, Telegram or Signal), while it is. */
+    /** The account being linked (WhatsApp, Telegram, Signal or Google Messages), while it is. */
     private var linkingAccount: OnDeviceLinkedAccount? = null
 
     private val route = savedStateHandle.toRoute<NetworksRoutes.Connect>()
@@ -90,7 +96,13 @@ class ConnectNetworkViewModel(
                 _state.update { it.copy(phase = ConnectPhase.ConfigureBridge, error = null) }
             }
             is ConnectNetworkAction.OnFlowClick -> when (action.flowId) {
-                ON_DEVICE_FLOW_ID -> showStep(if (network == ChatNetwork.INSTAGRAM) onDeviceInstagramCookiesStep() else onDeviceCookiesStep())
+                ON_DEVICE_FLOW_ID -> showStep(
+                    when (network) {
+                        ChatNetwork.INSTAGRAM -> onDeviceInstagramCookiesStep()
+                        ChatNetwork.SLACK -> onDeviceSlackStep()
+                        else -> onDeviceCookiesStep()
+                    }
+                )
                 ON_DEVICE_WHATSAPP_QR_FLOW_ID -> linkAccountOnDevice(onDeviceWhatsApp, phoneNumber = null)
                 ON_DEVICE_WHATSAPP_CODE_FLOW_ID -> showStep(onDevicePhoneStep(ON_DEVICE_WHATSAPP_CODE_FLOW_ID, ""))
                 ON_DEVICE_TELEGRAM_FLOW_ID -> showStep(
@@ -98,6 +110,9 @@ class ConnectNetworkViewModel(
                 )
                 ON_DEVICE_TELEGRAM_QR_FLOW_ID -> linkAccountOnDevice(onDeviceTelegram, phoneNumber = null)
                 ON_DEVICE_SIGNAL_FLOW_ID -> linkAccountOnDevice(onDeviceSignal, phoneNumber = null)
+                ON_DEVICE_GOOGLE_ACCOUNT_FLOW_ID -> showStep(onDeviceGoogleCookiesStep())
+                ON_DEVICE_MATRIX_FLOW_ID -> showStep(matrixLoginStep())
+                ON_DEVICE_GOOGLE_QR_FLOW_ID -> linkAccountOnDevice(onDeviceGoogleMessages, phoneNumber = null)
                 else -> runStep { bridgeRepository.startLogin(network, action.flowId) }
             }
             is ConnectNetworkAction.OnInputChange -> onInputChange(action.fieldId, action.value)
@@ -159,6 +174,7 @@ class ConnectNetworkViewModel(
             ON_DEVICE_TELEGRAM_FLOW_ID ->
                 return linkAccountOnDevice(onDeviceTelegram, step.fields.firstOrNull()?.let { state.value.submittedValue(it) })
             ON_DEVICE_PROMPT_FLOW_ID -> return submitPromptAnswer(step)
+            ON_DEVICE_MATRIX_FLOW_ID -> return signInToMatrix(step.fields.associate { it.id to state.value.submittedValue(it) })
         }
         val values = step.fields.associate { it.id to state.value.submittedValue(it) }
         runStep { bridgeRepository.submitUserInput(network, step, values) }
@@ -174,6 +190,10 @@ class ConnectNetworkViewModel(
         val step = (state.value.phase as? ConnectPhase.Step)?.step as? BridgeLoginStep.Cookies ?: return
         if (state.value.isSubmitting) return
         if (step.loginId == ON_DEVICE_FLOW_ID) return linkOnDevice(step, cookiesByName)
+        if (step.loginId == ON_DEVICE_GOOGLE_ACCOUNT_FLOW_ID) {
+            val cookies = step.cookies.mapNotNull { cookie -> cookiesByName[cookie.cookieName]?.let { cookie.cookieName to it } }.toMap()
+            return linkAccountOnDevice(onDeviceGoogleMessages) { onDeviceGoogleMessages.link(cookies) }
+        }
         val values = step.cookies
             .mapNotNull { cookie -> cookiesByName[cookie.cookieName]?.let { cookie.fieldId to it } }
             .toMap()
@@ -314,6 +334,33 @@ class ConnectNetworkViewModel(
                 description = "Same, but type a code on your phone instead of scanning."
             )
         )
+        network == ChatNetwork.MATRIX -> listOf(
+            BridgeLoginFlow(
+                id = ON_DEVICE_MATRIX_FLOW_ID,
+                name = "Matrix account",
+                description = "Sign in with your Matrix ID and password (matrix.org or your own homeserver)."
+            )
+        )
+        network == ChatNetwork.SLACK && onDeviceSlack.isSupported -> listOf(
+            BridgeLoginFlow(
+                id = ON_DEVICE_FLOW_ID,
+                name = "On this device",
+                description = "Sign in to your workspace on slack.com; it connects from this phone."
+            )
+        )
+        network == ChatNetwork.GOOGLE_MESSAGES && onDeviceGoogleMessages.isSupported -> listOf(
+            BridgeLoginFlow(
+                id = ON_DEVICE_GOOGLE_QR_FLOW_ID,
+                name = "On this device · QR code",
+                description = "Scan a code in Google Messages → Device pairing; needs this code on a second screen."
+            ),
+            // Google blocks sign-in in embedded web views ("This browser or app may not be secure") for many accounts
+            BridgeLoginFlow(
+                id = ON_DEVICE_GOOGLE_ACCOUNT_FLOW_ID,
+                name = "On this device · Google account",
+                description = "Sign in with Google, then confirm on the phone. Google often refuses sign-in inside apps."
+            )
+        )
         else -> emptyList()
     }
 
@@ -328,13 +375,16 @@ class ConnectNetworkViewModel(
      * Links an account on this phone: shows the QR codes or pairing code the native client produces, or asks for
      * what it prompts for (Telegram's login code and password), until it's connected.
      */
-    private fun linkAccountOnDevice(account: OnDeviceLinkedAccount, phoneNumber: String?) {
+    private fun linkAccountOnDevice(account: OnDeviceLinkedAccount, phoneNumber: String?) =
+        linkAccountOnDevice(account) { account.startLinking(phoneNumber) }
+
+    private fun linkAccountOnDevice(account: OnDeviceLinkedAccount, start: suspend () -> Result<Unit, DataError.Remote>) {
         stepJob?.cancel()
         pairingJob?.cancel()
         linkingAccount = account
         stepJob = viewModelScope.launch {
             _state.update { it.copy(isSubmitting = true, error = null) }
-            val result = account.startLinking(phoneNumber)
+            val result = start()
             if (result is Result.Failure) {
                 val message = (account.state.value as? OnDeviceMessengerState.Failed)?.message
                 _state.update { it.copy(isSubmitting = false, error = message?.let(UiText::DynamicString) ?: result.error.toUiText()) }
@@ -392,7 +442,20 @@ class ConnectNetworkViewModel(
                 )
             )
         }
+        if (account.network == ChatNetwork.GOOGLE_MESSAGES && pairing.pairingCode != null) {
+            return BridgeLoginStep.DisplayAndWait(
+                loginId = ON_DEVICE_GOOGLE_ACCOUNT_FLOW_ID,
+                stepId = "on-device-emoji",
+                instructions = "Google Messages on your phone now asks to confirm pairing. Tap this emoji there:",
+                displayType = DisplayType.EMOJI,
+                data = pairing.pairingCode
+            )
+        }
         val instructions = when {
+            account.network == ChatNetwork.GOOGLE_MESSAGES ->
+                "In Google Messages open your profile picture → Device pairing → QR code scanner, and scan this code. " +
+                    "The scanner uses the camera, so the code has to be on another screen: if Google Messages is on this " +
+                    "phone, go back and sign in with your Google account instead."
             account.network == ChatNetwork.SIGNAL ->
                 "In Signal open Settings → Linked devices → Link a new device, and scan this code. Signal's scanner " +
                     "uses the camera, so it needs this code on a different screen than the phone it runs on."
@@ -462,9 +525,70 @@ class ConnectNetworkViewModel(
             listOf("mid", "ig_did", "rur").map { RequiredCookie(it, it, isRequired = false) }
     )
 
+    /**
+     * Google's sign-in, ending on Messages for Web; its cookies (google.com's and messages.google.com's OSID) let
+     * the phone pair this app with an emoji confirmation instead of a QR code.
+     */
+    private fun onDeviceGoogleCookiesStep() = BridgeLoginStep.Cookies(
+        loginId = ON_DEVICE_GOOGLE_ACCOUNT_FLOW_ID,
+        stepId = "on-device-google-cookies",
+        instructions = "Sign in with the Google account that Google Messages on your phone uses. If Google says " +
+            "\"This browser or app may not be secure\", go back and use the QR code instead.",
+        url = "https://accounts.google.com/AccountChooser?continue=https://messages.google.com/web/config",
+        // Google refuses sign-in in embedded web views that say so in their user agent
+        userAgent = DESKTOP_USER_AGENT,
+        cookies = listOf("SID", "HSID", "SSID", "APISID", "SAPISID", "OSID").map { RequiredCookie(it, it, isRequired = true) } +
+            RequiredCookie("__Secure-1PSIDTS", "__Secure-1PSIDTS", isRequired = false),
+        cookieUrl = "https://messages.google.com/web/config"
+    )
+
+    /**
+     * Slack's web sign-in. The session is the web client's token (kept in the page's localStorage, read by
+     * [SLACK_TOKEN_SCRIPT] like mautrix-slack does) and the "d" cookie.
+     */
+    private fun onDeviceSlackStep() = BridgeLoginStep.Cookies(
+        loginId = ON_DEVICE_FLOW_ID,
+        stepId = "on-device-slack",
+        instructions = "Sign in to your Slack workspace. HowYouDoin then connects it from this phone.",
+        url = "https://slack.com/signin",
+        // Slack sends phone browsers to its app; the desktop site signs in on the web
+        userAgent = DESKTOP_USER_AGENT,
+        cookies = listOf("token", "d").map { RequiredCookie(it, it, isRequired = true) },
+        extractScript = SLACK_TOKEN_SCRIPT
+    )
+
+    private fun matrixLoginStep() = BridgeLoginStep.UserInput(
+        loginId = ON_DEVICE_MATRIX_FLOW_ID,
+        stepId = "matrix-login",
+        instructions = "Sign in to your Matrix account. Its chats join your inbox; calls with Matrix contacts work from here too.",
+        fields = listOf(
+            LoginInputField(id = "homeserver", name = "Homeserver", description = "", type = InputFieldType.DOMAIN, defaultValue = "matrix.org"),
+            LoginInputField(id = "username", name = "Username or Matrix ID", description = "", type = InputFieldType.USERNAME),
+            LoginInputField(id = "password", name = "Password", description = "", type = InputFieldType.PASSWORD)
+        )
+    )
+
+    private fun signInToMatrix(values: Map<String, String>) {
+        stepJob?.cancel()
+        stepJob = viewModelScope.launch {
+            _state.update { it.copy(isSubmitting = true, error = null) }
+            when (val result = onDeviceMatrix.link(values)) {
+                is Result.Success -> {
+                    val name = (onDeviceMatrix.state.value as? OnDeviceMessengerState.Connected)?.accountName
+                    _state.update { it.copy(phase = ConnectPhase.Connected(name), isSubmitting = false) }
+                }
+                is Result.Failure -> _state.update { it.copy(isSubmitting = false, error = result.error.toUiText()) }
+            }
+        }
+    }
+
     private fun linkOnDevice(step: BridgeLoginStep.Cookies, cookiesByName: Map<String, String>) {
         val cookies = step.cookies.mapNotNull { cookie -> cookiesByName[cookie.cookieName]?.let { cookie.cookieName to it } }.toMap()
-        val client = if (network == ChatNetwork.INSTAGRAM) onDeviceInstagram else onDeviceMessenger
+        val client = when (network) {
+            ChatNetwork.INSTAGRAM -> onDeviceInstagram
+            ChatNetwork.SLACK -> onDeviceSlack
+            else -> onDeviceMessenger
+        }
         stepJob?.cancel()
         stepJob = viewModelScope.launch {
             _state.update { it.copy(isSubmitting = true, error = null) }
@@ -485,6 +609,9 @@ class ConnectNetworkViewModel(
         const val ON_DEVICE_TELEGRAM_FLOW_ID = "howyoudoin-on-device-telegram"
         const val ON_DEVICE_TELEGRAM_QR_FLOW_ID = "howyoudoin-on-device-telegram-qr"
         const val ON_DEVICE_SIGNAL_FLOW_ID = "howyoudoin-on-device-signal"
+        const val ON_DEVICE_GOOGLE_ACCOUNT_FLOW_ID = "howyoudoin-on-device-google-account"
+        const val ON_DEVICE_GOOGLE_QR_FLOW_ID = "howyoudoin-on-device-google-qr"
+        const val ON_DEVICE_MATRIX_FLOW_ID = "howyoudoin-matrix-account"
         /** Answers to what a linking client asks for (Telegram's login code and password). */
         const val ON_DEVICE_PROMPT_FLOW_ID = "howyoudoin-on-device-prompt"
     }
@@ -493,3 +620,23 @@ class ConnectNetworkViewModel(
 /** The desktop Chrome user agent hydbridge (messagix) uses, so the session looks the same from both. */
 private const val DESKTOP_USER_AGENT =
     "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+
+/**
+ * Finds the Slack web client's token in localStorage (and clicks "use Slack in your browser" when Slack offers
+ * the app instead); returns {"token": "xoxc-…"} once signed in.
+ */
+private const val SLACK_TOKEN_SCRIPT = """
+(function() {
+  try {
+    if (/\.slack\.com$/.test(location.host) && !window.__hydSlackRedirected) {
+      var link = document.querySelector('.p-ssb_redirect__body .c-link');
+      if (link) { window.__hydSlackRedirected = true; location.href = link.getAttribute('href'); }
+    }
+    var config = localStorage.getItem('localConfig_v2');
+    if (!config || config.indexOf('xoxc-') < 0) return '{}';
+    var teams = JSON.parse(config).teams;
+    var token = teams[Object.keys(teams)[0]].token;
+    return JSON.stringify({ token: token });
+  } catch (e) { return '{}'; }
+})()
+"""

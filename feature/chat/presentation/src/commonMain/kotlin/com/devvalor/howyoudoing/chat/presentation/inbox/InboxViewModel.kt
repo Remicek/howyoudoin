@@ -7,6 +7,7 @@ import com.devvalor.howyoudoing.chat.domain.Chat
 import com.devvalor.howyoudoing.chat.domain.ChatRepository
 import com.devvalor.howyoudoing.chat.presentation.model.toChatUi
 import com.devvalor.howyoudoing.core.domain.auth.AuthService
+import com.devvalor.howyoudoing.core.domain.ondevice.ConnectionMonitor
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -21,7 +22,8 @@ import kotlinx.coroutines.launch
 class InboxViewModel(
     private val chatRepository: ChatRepository,
     private val authService: AuthService,
-    private val notificationPreferences: NotificationPreferences
+    private val notificationPreferences: NotificationPreferences,
+    private val connectionMonitor: ConnectionMonitor
 ) : ViewModel() {
 
     private var hasLoadedInitialData = false
@@ -35,6 +37,9 @@ class InboxViewModel(
             if (!hasLoadedInitialData) {
                 observeChats()
                 observeSyncState()
+                connectionMonitor.problems
+                    .onEach { problems -> _state.update { it.copy(connectionProblems = problems) } }
+                    .launchIn(viewModelScope)
                 hasLoadedInitialData = true
             }
         }
@@ -56,6 +61,7 @@ class InboxViewModel(
             }
             InboxAction.OnLogoutClick -> viewModelScope.launch { authService.logout() }
             InboxAction.OnRefresh -> refresh()
+            is InboxAction.OnDismissProblem -> connectionMonitor.dismiss(action.network)
             else -> Unit
         }
     }

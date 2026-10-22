@@ -12,6 +12,8 @@ data class ConversationState(
     val isOnDevice: Boolean = false,
     /** No notifications for this chat. */
     val isMuted: Boolean = false,
+    /** A one-to-one Matrix chat: audio and video calls work here. */
+    val canCall: Boolean = false,
     val messages: List<MessageUi> = emptyList(),
     val draft: String = "",
     val isLoadingOlder: Boolean = false,

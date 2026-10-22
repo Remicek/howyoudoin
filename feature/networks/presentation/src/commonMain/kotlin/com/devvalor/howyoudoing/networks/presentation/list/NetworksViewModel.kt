@@ -5,6 +5,10 @@ import androidx.lifecycle.viewModelScope
 import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceInstagram
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceSignal
+import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceGoogleMessages
+import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceSlack
+import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceMatrix
+import com.devvalor.howyoudoing.core.domain.ondevice.ConnectionMonitor
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceTelegram
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceMessenger
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceWhatsApp
@@ -31,11 +35,16 @@ class NetworksViewModel(
     onDeviceWhatsApp: OnDeviceWhatsApp,
     onDeviceInstagram: OnDeviceInstagram,
     onDeviceTelegram: OnDeviceTelegram,
-    onDeviceSignal: OnDeviceSignal
+    onDeviceSignal: OnDeviceSignal,
+    onDeviceGoogleMessages: OnDeviceGoogleMessages,
+    onDeviceSlack: OnDeviceSlack,
+    onDeviceMatrix: OnDeviceMatrix,
+    private val connectionMonitor: ConnectionMonitor
 ) : ViewModel() {
 
     private val onDeviceClients =
-        listOf(onDeviceMessenger, onDeviceWhatsApp, onDeviceInstagram, onDeviceTelegram, onDeviceSignal).associateBy { it.network }
+        listOf(onDeviceMessenger, onDeviceWhatsApp, onDeviceInstagram, onDeviceTelegram, onDeviceSignal, onDeviceGoogleMessages, onDeviceSlack, onDeviceMatrix)
+            .associateBy { it.network }
 
     private val eventChannel = Channel<NetworksEvent>()
     val events = eventChannel.receiveAsFlow()
@@ -58,7 +67,10 @@ class NetworksViewModel(
         when (action) {
             NetworksAction.OnRefresh -> refresh()
             is NetworksAction.OnDisconnectClick -> disconnect(action.network, action.loginId)
-            is NetworksAction.OnDisconnectOnDeviceClick -> viewModelScope.launch { onDeviceClients[action.network]?.unlink() }
+            is NetworksAction.OnDisconnectOnDeviceClick -> viewModelScope.launch {
+                connectionMonitor.expectDisconnect(action.network)
+                onDeviceClients[action.network]?.unlink()
+            }
             else -> Unit
         }
     }
@@ -68,7 +80,7 @@ class NetworksViewModel(
             viewModelScope.launch { loadStatus(network) }
         }
         // No server bridge, but connectable on the device
-        ChatNetwork.bridged
+        ChatNetwork.connectable
             .filter { !it.isSupported && onDeviceClients[it]?.isSupported == true }
             .forEach { setStatus(it, NetworkStatus.Ready(emptyList())) }
     }

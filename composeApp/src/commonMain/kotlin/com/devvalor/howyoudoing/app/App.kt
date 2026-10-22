@@ -16,6 +16,7 @@ import com.devvalor.howyoudoing.settings.presentation.lock.AppLockGate
 import com.devvalor.howyoudoing.settings.presentation.lock.AppLockOfferRoot
 import com.devvalor.howyoudoing.settings.presentation.navigation.SettingsRoutes
 import org.koin.compose.viewmodel.koinViewModel
+import com.devvalor.howyoudoing.networks.presentation.navigation.NetworksRoutes
 
 @Composable
 fun App(
@@ -32,6 +33,14 @@ fun App(
         if (state.isCheckingAuth || !state.isLoggedIn) return@LaunchedEffect
         NotificationRouter.pendingChatId.value = null
         navController.navigate(ChatRoutes.Conversation(chatId)) { launchSingleTop = true }
+    }
+
+    // A connection-problem notification opens Networks to fix it
+    val pendingNetworks by NotificationRouter.pendingNetworks.collectAsStateWithLifecycle()
+    LaunchedEffect(pendingNetworks, state.isLoggedIn, state.isCheckingAuth) {
+        if (!pendingNetworks || state.isCheckingAuth || !state.isLoggedIn) return@LaunchedEffect
+        NotificationRouter.pendingNetworks.value = false
+        navController.navigate(NetworksRoutes.Graph) { launchSingleTop = true }
     }
 
     ObserveAsEvents(viewModel.events) { event ->

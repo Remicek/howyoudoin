@@ -34,7 +34,8 @@ class OnDeviceSource(val client: OnDeviceMessenger, val store: OnDeviceMessenger
 class OnDeviceChatRepository(
     private val server: SessionAwareChatRepository,
     private val sources: List<OnDeviceSource>,
-    private val httpClient: HttpClient
+    private val httpClient: HttpClient,
+    private val matrixAccount: MatrixAccountChats
 ) : ChatRepository {
 
     private data class Route(val source: OnDeviceSource, val key: String) {
@@ -70,7 +71,7 @@ class OnDeviceChatRepository(
      * would only be duplicates, so they're hidden.
      */
     override fun observeChats(): Flow<List<Chat>> =
-        sources.fold(visibleServerChats()) { chats, source ->
+        sources.fold(combine(visibleServerChats(), matrixAccount.observeChats()) { server, account -> server + account }) { chats, source ->
             combine(chats, source.store.snapshot) { soFar, _ -> soFar + source.store.chats() }
         }.map { chats -> chats.sortedByDescending { it.lastActivity } }
 
@@ -82,11 +83,13 @@ class OnDeviceChatRepository(
     }
 
     override fun observeChat(chatId: String): Flow<Chat?> {
+        if (matrixAccount.owns(chatId)) return matrixAccount.observeChat(chatId)
         val route = route(chatId) ?: return server.observeChat(chatId)
         return route.store.snapshot.map { route.store.chats().firstOrNull { it.id == chatId } }
     }
 
     override fun observeMessages(chatId: String): Flow<List<Message>> {
+        if (matrixAccount.owns(chatId)) return matrixAccount.observeMessages(chatId)
         val route = route(chatId) ?: return server.observeMessages(chatId)
         return route.store.snapshot.map { route.store.messages(route.key) }
     }
@@ -94,6 +97,7 @@ class OnDeviceChatRepository(
     override suspend fun refresh() {
         sources.forEach { it.client.connectIfLinked() }
         server.refresh()
+        matrixAccount.refresh()
     }
 
     /**
@@ -101,6 +105,7 @@ class OnDeviceChatRepository(
      * (or a "no more history" range) arrive. WhatsApp only has what its history sync delivered.
      */
     override suspend fun loadOlderMessages(chatId: String): EmptyResult<DataError.Remote> {
+        if (matrixAccount.owns(chatId)) return matrixAccount.loadOlderMessages(chatId)
         val route = route(chatId) ?: return server.loadOlderMessages(chatId)
         val (key, store, client) = Triple(route.key, route.store, route.client)
         if (!store.hasMoreBefore(key)) return Result.Success(Unit)
@@ -157,11 +162,13 @@ class OnDeviceChatRepository(
     }
 
     override fun hasMoreHistory(chatId: String): Flow<Boolean> {
+        if (matrixAccount.owns(chatId)) return matrixAccount.hasMoreHistory(chatId)
         val route = route(chatId) ?: return server.hasMoreHistory(chatId)
         return route.store.snapshot.map { route.store.hasMoreBefore(route.key) }.distinctUntilChanged()
     }
 
     override suspend fun sendMessage(chatId: String, body: String, replyToId: String?): EmptyResult<DataError.Remote> {
+        if (matrixAccount.owns(chatId)) return matrixAccount.sendMessage(chatId, body, replyToId)
         val route = route(chatId) ?: return server.sendMessage(chatId, body, replyToId)
         val store = route.store
         val pendingId = store.newPendingId()
@@ -189,6 +196,7 @@ class OnDeviceChatRepository(
     }
 
     override suspend fun sendAttachment(chatId: String, attachment: Attachment, caption: String?): EmptyResult<DataError.Remote> {
+        if (matrixAccount.owns(chatId)) return matrixAccount.sendAttachment(chatId, attachment, caption)
         val route = route(chatId) ?: return server.sendAttachment(chatId, attachment, caption)
         val store = route.store
         val pendingId = store.newPendingId()
@@ -212,6 +220,7 @@ class OnDeviceChatRepository(
     }
 
     override suspend fun toggleReaction(chatId: String, messageId: String, key: String): EmptyResult<DataError.Remote> {
+        if (matrixAccount.owns(chatId)) return matrixAccount.toggleReaction(chatId, messageId, key)
         val route = route(chatId) ?: return server.toggleReaction(chatId, messageId, key)
         val thread = route.store.thread(route.key)
         val target = route.store.messages(route.key).firstOrNull { it.id == messageId }
@@ -223,24 +232,28 @@ class OnDeviceChatRepository(
     }
 
     override suspend fun setTyping(chatId: String, isTyping: Boolean): EmptyResult<DataError.Remote> {
+        if (matrixAccount.owns(chatId)) return matrixAccount.setTyping(chatId, isTyping)
         val route = route(chatId) ?: return server.setTyping(chatId, isTyping)
         val thread = route.store.thread(route.key) ?: return Result.Success(Unit)
         return route.client.setTyping(route.key, thread.isEncrypted, thread.isGroup, isTyping)
     }
 
     override suspend fun editMessage(chatId: String, messageId: String, body: String): EmptyResult<DataError.Remote> {
+        if (matrixAccount.owns(chatId)) return matrixAccount.editMessage(chatId, messageId, body)
         val route = route(chatId) ?: return server.editMessage(chatId, messageId, body)
         val thread = route.store.thread(route.key)
         return route.client.editMessage(route.key, messageId, body, thread?.isEncrypted == true, thread?.isGroup == true)
     }
 
     override suspend fun deleteMessage(chatId: String, messageId: String): EmptyResult<DataError.Remote> {
+        if (matrixAccount.owns(chatId)) return matrixAccount.deleteMessage(chatId, messageId)
         val route = route(chatId) ?: return server.deleteMessage(chatId, messageId)
         val thread = route.store.thread(route.key)
         return route.client.unsend(route.key, messageId, thread?.isEncrypted == true, thread?.isGroup == true)
     }
 
     override suspend fun markAsRead(chatId: String): EmptyResult<DataError.Remote> {
+        if (matrixAccount.owns(chatId)) return matrixAccount.markAsRead(chatId)
         val route = route(chatId) ?: return server.markAsRead(chatId)
         val thread = route.store.thread(route.key) ?: return Result.Success(Unit)
         val newest = route.store.messages(route.key).lastOrNull { !it.isOutgoing }
@@ -249,12 +262,14 @@ class OnDeviceChatRepository(
 
     // On-device media are CDN URLs (signed, no extra headers) or decrypted files in private storage
     override suspend fun resolveMedia(mxcUrl: String, thumbnail: Boolean): MediaRequest? = when {
+        matrixAccount.owns(mxcUrl) -> matrixAccount.resolveMedia(mxcUrl, thumbnail)
         mxcUrl.isDirect() -> MediaRequest(mxcUrl, emptyMap())
         OnDeviceMessengerStore.parseOnRequestMediaUrl(mxcUrl) != null -> null
         else -> server.resolveMedia(mxcUrl, thumbnail)
     }
 
     override suspend fun downloadMedia(mxcUrl: String): ByteArray? {
+        if (matrixAccount.owns(mxcUrl)) return matrixAccount.downloadMedia(mxcUrl)
         OnDeviceMessengerStore.parseOnRequestMediaUrl(mxcUrl)?.let { (chatId, messageId) ->
             val route = route(chatId) ?: return null
             val ref = route.store.mediaRef(route.key, messageId) ?: return null

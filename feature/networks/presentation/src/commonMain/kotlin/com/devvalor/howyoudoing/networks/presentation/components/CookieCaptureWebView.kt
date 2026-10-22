@@ -7,6 +7,9 @@ import androidx.compose.ui.Modifier
  * Shows [url] so the user can log in on the network's own website, then reports the
  * values of [cookieNames] once they are all set. Used for bridges whose login step is
  * "cookies" (e.g. mautrix-meta for Messenger).
+ *
+ * Cookies are read for [cookieUrl] (default [url]). [extractScript], if given, runs in the page on every poll and
+ * returns a JSON object (as a string) of more values, e.g. a token from the page's storage; they count as cookies.
  */
 @Composable
 expect fun CookieCaptureWebView(
@@ -15,6 +18,8 @@ expect fun CookieCaptureWebView(
     cookieNames: Set<String>,
     onCookiesCaptured: (Map<String, String>) -> Unit,
     modifier: Modifier = Modifier,
+    cookieUrl: String? = null,
+    extractScript: String? = null,
 )
 
 internal const val COOKIE_POLL_INTERVAL_MILLIS = 1_000L
@@ -55,3 +60,12 @@ internal fun parseCookieHeader(header: String?): Map<String, String> =
             if (name.isEmpty()) null else name to part.substringAfter("=").trim()
         }
         .toMap()
+
+/** Reads the values an extract script returned (a JSON object of strings); anything else gives none. */
+internal fun parseExtractedValues(json: String?): Map<String, String> {
+    val obj = runCatching { kotlinx.serialization.json.Json.parseToJsonElement(json ?: return emptyMap()) }.getOrNull()
+        as? kotlinx.serialization.json.JsonObject ?: return emptyMap()
+    return obj.mapNotNull { (key, value) ->
+        (value as? kotlinx.serialization.json.JsonPrimitive)?.takeIf { it.isString }?.content?.let { key to it }
+    }.toMap()
+}

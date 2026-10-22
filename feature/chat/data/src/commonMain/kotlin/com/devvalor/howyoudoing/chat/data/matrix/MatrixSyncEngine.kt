@@ -26,6 +26,12 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.serialization.json.JsonObject
+import com.devvalor.howyoudoing.chat.data.matrix.dto.MatrixEventDto
+import com.devvalor.howyoudoing.chat.data.matrix.dto.TurnServerDto
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.StateFlow
@@ -54,7 +60,7 @@ class MatrixSyncEngine(
     private val api: MatrixApi,
     private val sessionStorage: SessionStorage,
     private val applicationScope: CoroutineScope
-) {
+) : MatrixCallTransport {
 
     private val _rooms = MutableStateFlow<Map<String, RoomCache>>(emptyMap())
     val rooms: StateFlow<Map<String, RoomCache>> = _rooms.asStateFlow()
@@ -65,7 +71,13 @@ class MatrixSyncEngine(
     private val _session = MutableStateFlow<AuthInfo?>(null)
     val session: StateFlow<AuthInfo?> = _session.asStateFlow()
 
+    override val userId: String? get() = _session.value?.userId
+
     private val attemptedInvites = mutableSetOf<String>()
+
+    // VoIP signalling (m.call.*) as it arrives; see MatrixCallManager
+    private val _callEvents = MutableSharedFlow<MatrixCallEvent>(extraBufferCapacity = 256)
+    override val callEvents: SharedFlow<MatrixCallEvent> = _callEvents.asSharedFlow()
 
     /** Bumped to restart the sync loop with a fresh initial sync (pull to refresh). */
     private val refreshRequests = MutableStateFlow(0)
@@ -90,7 +102,7 @@ class MatrixSyncEngine(
         }
     }
 
-    fun ensureStarted() {
+    override fun ensureStarted() {
         syncJob
     }
 
@@ -157,12 +169,37 @@ class MatrixSyncEngine(
                 current.toMutableMap()
             }
             rooms.leave.keys.forEach(updated::remove)
+            rooms.join.forEach { (roomId, room) -> emitCallEvents(roomId, room.timeline?.events.orEmpty(), isInitial) }
             rooms.join.forEach { (roomId, room) ->
                 updated[roomId] = (updated[roomId] ?: RoomCache(roomId)).merge(room)
             }
             updated
         }
         autoJoinBridgeInvites(session, rooms.invite)
+    }
+
+    /**
+     * Passes on VoIP events. An initial sync also carries old calls, so only recent events count there (a call
+     * still ringing, and whatever ended it).
+     */
+    private fun emitCallEvents(roomId: String, events: List<MatrixEventDto>, isInitial: Boolean) {
+        events.filter { it.type.startsWith("m.call.") && it.sender != null }.forEach { event ->
+            val age = event.unsigned?.string("age")?.toLongOrNull() ?: 0L
+            if (isInitial && age > CALL_EVENT_MAX_AGE_MILLIS) return@forEach
+            _callEvents.tryEmit(MatrixCallEvent(roomId, event.type, event.sender!!, event.content, age))
+        }
+    }
+
+    /** Sends a VoIP event (m.call.invite, m.call.answer, …) to a room. */
+    override suspend fun sendCallEvent(roomId: String, type: String, content: JsonObject): EmptyResult<DataError.Remote> {
+        val session = _session.value ?: return Result.Failure(DataError.Remote.UNAUTHORIZED)
+        return api.sendEvent(session, roomId, type, newTransactionId(), content).asEmptyResult()
+    }
+
+    /** The homeserver's TURN servers for calls (none if it doesn't offer any). */
+    override suspend fun turnServer(): TurnServerDto? {
+        val session = _session.value ?: return null
+        return (api.turnServer(session) as? Result.Success)?.data
     }
 
     /**
@@ -359,5 +396,24 @@ class MatrixSyncEngine(
         const val INITIAL_BACKOFF_MILLIS = 1_000L
         const val MAX_BACKOFF_MILLIS = 30_000L
         const val TYPING_TIMEOUT_MILLIS = 10_000L
+        const val CALL_EVENT_MAX_AGE_MILLIS = 60_000L
     }
+}
+
+/** A VoIP signalling event from a room; [ageMillis] is how long ago it was sent. */
+data class MatrixCallEvent(
+    val roomId: String,
+    val type: String,
+    val sender: String,
+    val content: JsonObject,
+    val ageMillis: Long
+)
+
+/** What calls need from a Matrix session: its VoIP events, sending them, and TURN servers. */
+interface MatrixCallTransport {
+    val userId: String?
+    val callEvents: SharedFlow<MatrixCallEvent>
+    fun ensureStarted()
+    suspend fun sendCallEvent(roomId: String, type: String, content: JsonObject): EmptyResult<DataError.Remote>
+    suspend fun turnServer(): TurnServerDto?
 }

@@ -8,7 +8,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import org.koin.core.module.Module
-import org.koin.core.module.dsl.singleOf
+import com.devvalor.howyoudoing.core.domain.auth.MATRIX_ACCOUNT_SESSION
+import org.koin.core.qualifier.named
 import org.koin.dsl.bind
 import org.koin.dsl.module
 
@@ -18,5 +19,7 @@ val coreDataModule = module {
     includes(platformCoreDataModule)
     single { HttpClientFactory.create(get<HttpClientEngine>()) }
     single<CoroutineScope> { CoroutineScope(SupervisorJob() + Dispatchers.Default) }
-    singleOf(::DataStoreSessionStorage) bind SessionStorage::class
+    single { DataStoreSessionStorage(get()) } bind SessionStorage::class
+    // A Matrix account connected as one of the networks, next to (or without) the app's own server session
+    single<SessionStorage>(named(MATRIX_ACCOUNT_SESSION)) { DataStoreSessionStorage(get(), "KEY_MATRIX_ACCOUNT") }
 }

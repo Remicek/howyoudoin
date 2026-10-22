@@ -12,6 +12,7 @@ kotlin {
                 implementation(compose.components.uiToolingPreview)
                 implementation(libs.jetbrains.compose.material.icons.extended)
                 implementation(libs.qrose)
+                implementation(libs.kotlinx.serialization.json)
             }
         }
     }

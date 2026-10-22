@@ -28,13 +28,11 @@ enum class ChatNetwork(
         ghostUserPrefixes = setOf("meta_", "messenger_", "facebook_", "metabot", "messengerbot")
     ),
 
-    // TODO: bridges below are not wired up yet
+    // No server bridge set up for these (isSupported); Telegram, Signal and Instagram connect on the device
     TELEGRAM(displayName = "Telegram", isSupported = false, bridgeProtocolIds = setOf("telegram"), ghostUserPrefixes = setOf("telegram_")),
     SIGNAL(displayName = "Signal", isSupported = false, bridgeProtocolIds = setOf("signal"), ghostUserPrefixes = setOf("signal_")),
     INSTAGRAM(displayName = "Instagram", isSupported = false, bridgeProtocolIds = setOf("instagram"), ghostUserPrefixes = setOf("instagram_")),
-    DISCORD(displayName = "Discord", isSupported = false, bridgeProtocolIds = setOf("discord"), ghostUserPrefixes = setOf("discord_")),
     SLACK(displayName = "Slack", isSupported = false, bridgeProtocolIds = setOf("slack"), ghostUserPrefixes = setOf("slack_")),
-    LINKEDIN(displayName = "LinkedIn", isSupported = false, bridgeProtocolIds = setOf("linkedin"), ghostUserPrefixes = setOf("linkedin_")),
     GOOGLE_MESSAGES(displayName = "Google Messages", isSupported = false, bridgeProtocolIds = setOf("gmessages"), ghostUserPrefixes = setOf("gmessages_")),
 
     /** Native Matrix rooms, no bridge involved. */
@@ -44,6 +42,9 @@ enum class ChatNetwork(
 
     companion object {
         val bridged: List<ChatNetwork> = entries.filter { it.isBridged }
+
+        /** What the networks screen lists: the bridged networks and a Matrix account of its own. */
+        val connectable: List<ChatNetwork> = bridged + MATRIX
 
         fun fromProtocolId(protocolId: String): ChatNetwork? =
             entries.firstOrNull { protocolId.lowercase() in it.bridgeProtocolIds }

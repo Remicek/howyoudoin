@@ -4,6 +4,7 @@ import com.devvalor.howyoudoing.chat.data.matrix.dto.MessagesResponseDto
 import com.devvalor.howyoudoing.chat.data.matrix.dto.SendEventResponseDto
 import com.devvalor.howyoudoing.chat.data.matrix.dto.SyncResponseDto
 import com.devvalor.howyoudoing.chat.data.matrix.dto.ContentUriDto
+import com.devvalor.howyoudoing.chat.data.matrix.dto.TurnServerDto
 import com.devvalor.howyoudoing.core.data.networking.safeCall
 import com.devvalor.howyoudoing.core.domain.auth.AuthInfo
 import com.devvalor.howyoudoing.core.domain.util.DataError
@@ -137,6 +138,11 @@ class MatrixApi(
             endpoint(session, "join", roomId)
             setBody(JsonObject(emptyMap()))
         }
+    }
+
+    /** TURN servers for VoIP calls (`/voip/turnServer`). */
+    suspend fun turnServer(session: AuthInfo): Result<TurnServerDto, DataError.Remote> = safeCall {
+        httpClient.get { endpoint(session, "voip", "turnServer") }
     }
 
     suspend fun download(url: String, headers: Map<String, String>): ByteArray? = runCatching {

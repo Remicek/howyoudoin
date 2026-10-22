@@ -19,6 +19,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.icons.rounded.ErrorOutline
+import androidx.compose.material3.Surface
+import com.devvalor.howyoudoing.core.domain.ondevice.ConnectionProblem
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -158,6 +161,11 @@ fun InboxScreen(
                 onQueryChange = { onAction(InboxAction.OnQueryChange(it)) },
             )
             FilterRow(state = state, onAction = onAction)
+            ConnectionProblems(
+                problems = state.connectionProblems,
+                onClick = { onAction(InboxAction.OnNetworksClick) },
+                onDismiss = { onAction(InboxAction.OnDismissProblem(it)) },
+            )
             banner()
 
             when {
@@ -182,6 +190,41 @@ fun InboxScreen(
                             ChatRow(chat = chat, resolver = resolver, onClick = { onAction(InboxAction.OnChatClick(chat.id)) })
                         }
                     }
+                }
+            }
+        }
+    }
+}
+
+/** One card per network that stopped working; tapping opens Networks to fix it. */
+@Composable
+private fun ConnectionProblems(problems: List<ConnectionProblem>, onClick: () -> Unit, onDismiss: (ChatNetwork) -> Unit) {
+    problems.forEach { problem ->
+        Surface(
+            onClick = onClick,
+            color = MaterialTheme.colorScheme.errorContainer,
+            contentColor = MaterialTheme.colorScheme.onErrorContainer,
+            shape = MaterialTheme.shapes.medium,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = HowYouDoinSpacing.md, vertical = HowYouDoinSpacing.xs),
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(start = HowYouDoinSpacing.md, top = HowYouDoinSpacing.sm, bottom = HowYouDoinSpacing.sm),
+            ) {
+                Icon(Icons.Rounded.ErrorOutline, contentDescription = null)
+                Column(Modifier.weight(1f).padding(horizontal = HowYouDoinSpacing.md)) {
+                    Text(problem.title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                    Text(problem.text, style = MaterialTheme.typography.bodySmall, maxLines = 3)
+                }
+                // A logged-out network can be ignored; the others clear themselves once they reconnect
+                if (problem.kind == ConnectionProblem.Kind.LOGGED_OUT) {
+                    IconButton(onClick = { onDismiss(problem.network) }) {
+                        Icon(Icons.Rounded.Close, contentDescription = "Dismiss")
+                    }
+                } else {
+                    Spacer(Modifier.width(HowYouDoinSpacing.md))
                 }
             }
         }
