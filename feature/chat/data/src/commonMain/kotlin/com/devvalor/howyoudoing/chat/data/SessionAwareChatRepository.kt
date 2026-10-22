@@ -82,5 +82,10 @@ class SessionAwareChatRepository(
     override suspend fun markAsRead(chatId: String): EmptyResult<DataError.Remote> =
         current().markAsRead(chatId)
 
+    override suspend fun retryMessage(chatId: String, messageId: String): EmptyResult<DataError.Remote> =
+        current().retryMessage(chatId, messageId)
+
+    override suspend fun discardFailedMessage(chatId: String, messageId: String) = current().discardFailedMessage(chatId, messageId)
+
     override suspend fun downloadMedia(mxcUrl: String): ByteArray? = current().downloadMedia(mxcUrl)
 }

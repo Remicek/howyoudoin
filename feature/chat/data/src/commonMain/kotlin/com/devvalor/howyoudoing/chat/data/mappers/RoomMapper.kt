@@ -180,7 +180,8 @@ private fun PendingMessage.toMessage(roomId: String, myUserId: String) = Message
         attachmentMimeType.startsWith("audio/") -> MessageType.AUDIO
         else -> MessageType.FILE
     },
-    status = if (isFailed) MessageStatus.FAILED else MessageStatus.SENDING
+    status = if (isFailed) MessageStatus.FAILED else MessageStatus.SENDING,
+    canRetry = isFailed && attachmentMimeType == null
 )
 
 /** Fills in sender display names, done separately so it can use room member state. */

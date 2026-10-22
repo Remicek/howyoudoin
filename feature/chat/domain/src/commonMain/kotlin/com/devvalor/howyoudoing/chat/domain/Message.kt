@@ -15,7 +15,9 @@ data class Message(
     val media: MediaInfo? = null,
     /** For outgoing messages: someone else in the chat has read up to (at least) this message. */
     val isReadByOthers: Boolean = false,
-    val isEdited: Boolean = false
+    val isEdited: Boolean = false,
+    /** A message that failed to send and can be sent again (text; attachments have to be picked again). */
+    val canRetry: Boolean = false
 )
 
 /** The message this one replies to, as shown in the quote above it. */

@@ -54,6 +54,9 @@ class MatrixAccountChats(private val matrix: MatrixChatRepository) {
     suspend fun deleteMessage(chatId: String, messageId: String): EmptyResult<DataError.Remote> =
         matrix.deleteMessage(strip(chatId), messageId)
     suspend fun markAsRead(chatId: String): EmptyResult<DataError.Remote> = matrix.markAsRead(strip(chatId))
+    suspend fun retryMessage(chatId: String, messageId: String): EmptyResult<DataError.Remote> =
+        matrix.retryMessage(strip(chatId), messageId)
+    suspend fun discardFailedMessage(chatId: String, messageId: String) = matrix.discardFailedMessage(strip(chatId), messageId)
     suspend fun resolveMedia(url: String, thumbnail: Boolean): MediaRequest? = matrix.resolveMedia(strip(url), thumbnail)
     suspend fun downloadMedia(url: String): ByteArray? = matrix.downloadMedia(strip(url))
     suspend fun refresh() = matrix.refresh()

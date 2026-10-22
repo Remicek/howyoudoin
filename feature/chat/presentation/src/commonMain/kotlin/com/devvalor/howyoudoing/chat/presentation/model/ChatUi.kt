@@ -43,7 +43,8 @@ data class MessageUi(
     val reactions: List<Reaction> = emptyList(),
     val media: MediaInfo? = null,
     val isReadByOthers: Boolean = false,
-    val isEdited: Boolean = false
+    val isEdited: Boolean = false,
+    val canRetry: Boolean = false
 )
 
 fun typingText(names: List<String>, isGroup: Boolean): String? = when {
@@ -91,7 +92,8 @@ fun List<Message>.toMessageUis(showSenderNames: Boolean): List<MessageUi> =
             reactions = message.reactions,
             media = message.media,
             isReadByOthers = message.isReadByOthers,
-            isEdited = message.isEdited
+            isEdited = message.isEdited,
+            canRetry = message.canRetry
         )
     }
 

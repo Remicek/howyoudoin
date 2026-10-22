@@ -85,6 +85,14 @@ class ConversationViewModel(
             }
             ConversationAction.OnSendClick -> send()
             is ConversationAction.OnCallClick -> callLauncher.call(chatId, action.video)
+            is ConversationAction.OnRetryClick -> {
+                _state.update { it.copy(actionsFor = null) }
+                viewModelScope.launch { chatRepository.retryMessage(chatId, action.messageId) }
+            }
+            is ConversationAction.OnDiscardClick -> {
+                _state.update { it.copy(actionsFor = null) }
+                viewModelScope.launch { chatRepository.discardFailedMessage(chatId, action.messageId) }
+            }
             ConversationAction.OnLoadOlder -> loadOlder()
             is ConversationAction.OnMessageLongPress -> _state.update { state ->
                 state.copy(actionsFor = state.messages.firstOrNull { it.id == action.messageId })

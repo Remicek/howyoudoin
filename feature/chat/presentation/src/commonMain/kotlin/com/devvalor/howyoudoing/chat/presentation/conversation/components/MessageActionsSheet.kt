@@ -18,6 +18,8 @@ import androidx.compose.material.icons.automirrored.rounded.Reply
 import androidx.compose.material.icons.rounded.ContentCopy
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Edit
+import androidx.compose.material.icons.rounded.Refresh
+import com.devvalor.howyoudoing.chat.domain.MessageStatus
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -46,8 +48,20 @@ fun MessageActionsSheet(
     /** Set for our own messages that can be edited / deleted for everyone. */
     onEdit: (() -> Unit)? = null,
     onDelete: (() -> Unit)? = null,
+    /** For messages that failed to send. */
+    onRetry: (() -> Unit)? = null,
+    onDiscard: (() -> Unit)? = null,
 ) {
     ModalBottomSheet(onDismissRequest = onDismiss) {
+        // A message that didn't send: only sending it again or deleting it make sense
+        if (message.status == MessageStatus.FAILED) {
+            Column(Modifier.navigationBarsPadding().padding(bottom = HowYouDoinSpacing.md)) {
+                if (message.canRetry && onRetry != null) ActionRow(Icons.Rounded.Refresh, "Send again", onRetry)
+                if (message.text.isNotBlank() && message.media == null) ActionRow(Icons.Rounded.ContentCopy, "Copy text", onCopy)
+                onDiscard?.let { ActionRow(Icons.Rounded.Delete, "Delete", it) }
+            }
+            return@ModalBottomSheet
+        }
         Column(Modifier.navigationBarsPadding().padding(bottom = HowYouDoinSpacing.md)) {
             Row(
                 horizontalArrangement = Arrangement.SpaceEvenly,

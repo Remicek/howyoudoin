@@ -30,6 +30,13 @@ interface ChatRepository {
     suspend fun deleteMessage(chatId: String, messageId: String): EmptyResult<DataError.Remote> =
         Result.Failure(DataError.Remote.BAD_REQUEST)
 
+    /** Sends a message that failed to send again (see [Message.canRetry]). */
+    suspend fun retryMessage(chatId: String, messageId: String): EmptyResult<DataError.Remote> =
+        Result.Failure(DataError.Remote.BAD_REQUEST)
+
+    /** Forgets a message that failed to send. */
+    suspend fun discardFailedMessage(chatId: String, messageId: String) = Unit
+
     /** Adds the reaction, or removes it if the user already reacted with [key]. */
     suspend fun toggleReaction(chatId: String, messageId: String, key: String): EmptyResult<DataError.Remote>
 

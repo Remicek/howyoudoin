@@ -8,6 +8,8 @@ sealed interface ConversationAction {
     data object OnLoadOlder : ConversationAction
     data object OnBackClick : ConversationAction
     data class OnCallClick(val video: Boolean) : ConversationAction
+    data class OnRetryClick(val messageId: String) : ConversationAction
+    data class OnDiscardClick(val messageId: String) : ConversationAction
 
     data class OnMessageLongPress(val messageId: String) : ConversationAction
     data object OnDismissActions : ConversationAction

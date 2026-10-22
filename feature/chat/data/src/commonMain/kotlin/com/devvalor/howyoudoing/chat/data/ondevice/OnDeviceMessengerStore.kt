@@ -126,7 +126,9 @@ class OnDeviceMessengerStore(
         /** Length of audio or video, when the network says. */
         val durationMs: Long? = null,
         /** The message this one replies to. */
-        val replyToId: String? = null
+        val replyToId: String? = null,
+        /** For local echoes: can be sent again if sending fails (text; attachments aren't kept). */
+        val canRetry: Boolean = false
     )
 
     private val _snapshot = MutableStateFlow(Snapshot())
@@ -158,18 +160,29 @@ class OnDeviceMessengerStore(
             .drop(1)
             .debounce(CACHE_WRITE_DELAY_MILLIS)
             .onEach { snapshot ->
-                // Typing and unsent echoes only make sense while the app runs
-                runCatching { cache.write(cacheJson.encodeToString(snapshot.copy(typing = emptyMap(), pending = emptyMap()))) }
+                // Typing and messages still being sent only make sense while the app runs; failed ones are kept so
+                // they can be sent again (or deleted) later
+                val failed = snapshot.pending.filterValues { it.status == MessageStatus.FAILED }
+                runCatching { cache.write(cacheJson.encodeToString(snapshot.copy(typing = emptyMap(), pending = failed))) }
             }
             .launchIn(scope)
     }
 
-    fun addPending(threadKey: String, otid: String, text: String, replyToId: String? = null) = _snapshot.update { s ->
+    fun addPending(threadKey: String, otid: String, text: String, replyToId: String? = null, canRetry: Boolean = true) = _snapshot.update { s ->
         s.copy(pending = s.pending + (otid to StoredMessage(
             id = "pending-$otid", threadKey = threadKey, otid = otid, senderId = s.selfId.orEmpty(), text = text,
             timestampMs = Clock.System.now().toEpochMilliseconds(), isUnsent = false, status = MessageStatus.SENDING,
-            replyToId = replyToId
+            replyToId = replyToId, canRetry = canRetry
         )))
+    }
+
+    /** A local echo that failed to send, by its message ID. */
+    fun failedMessage(messageId: String): StoredMessage? =
+        _snapshot.value.pending.values.firstOrNull { it.id == messageId && it.status == MessageStatus.FAILED }
+
+    /** Forgets a local echo (one that failed, being sent again or deleted). */
+    fun removePending(messageId: String) = _snapshot.update { s ->
+        s.copy(pending = s.pending.filterValues { it.id != messageId })
     }
 
     /** A stored message of a chat, by ID. */
@@ -518,6 +531,7 @@ class OnDeviceMessengerStore(
             },
             timestamp = timestampMs,
             isOutgoing = isOutgoing,
+            canRetry = canRetry && status == MessageStatus.FAILED,
             // Encrypted media isn't downloaded on the device yet; without media it's a text bubble
             type = if (type in MEDIA_TYPES && media == null) MessageType.TEXT else type,
             status = status,

@@ -244,6 +244,19 @@ class MatrixSyncEngine(
         }
     }
 
+    /** Sends a text message that failed again, as a new message. */
+    suspend fun retryFailed(roomId: String, transactionId: String): EmptyResult<DataError.Remote> {
+        val failed = _rooms.value[roomId]?.pending
+            ?.firstOrNull { it.transactionId == transactionId && it.isFailed && it.attachmentMimeType == null }
+            ?: return Result.Failure(DataError.Remote.BAD_REQUEST)
+        discardFailed(roomId, transactionId)
+        return sendText(roomId, failed.body, failed.replyToId)
+    }
+
+    fun discardFailed(roomId: String, transactionId: String) = updateRoom(roomId) { room ->
+        room.copy(pending = room.pending.filterNot { it.transactionId == transactionId && it.isFailed })
+    }
+
     /** Uploads the file to the media repository, then sends it as m.image / m.video / m.audio / m.file. */
     suspend fun sendAttachment(roomId: String, attachment: Attachment, caption: String?): EmptyResult<DataError.Remote> {
         val placeholder = PendingMessage(newTransactionId(), caption ?: attachment.fileName, now(), attachmentMimeType = attachment.mimeType)

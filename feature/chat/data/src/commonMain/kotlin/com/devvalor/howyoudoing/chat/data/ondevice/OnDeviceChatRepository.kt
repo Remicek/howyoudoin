@@ -200,7 +200,9 @@ class OnDeviceChatRepository(
         val route = route(chatId) ?: return server.sendAttachment(chatId, attachment, caption)
         val store = route.store
         val pendingId = store.newPendingId()
-        store.addPending(route.key, pendingId, caption ?: if (attachment.isVoice) "🎤 Voice message" else attachment.fileName)
+        store.addPending(
+            route.key, pendingId, caption ?: if (attachment.isVoice) "🎤 Voice message" else attachment.fileName, canRetry = false
+        )
         val thread = store.thread(route.key)
         val result = route.client.sendAttachment(
             route.key, attachment.bytes, attachment.fileName, attachment.mimeType, attachment.width, attachment.height, caption,
@@ -217,6 +219,20 @@ class OnDeviceChatRepository(
                 result
             }
         }
+    }
+
+    override suspend fun retryMessage(chatId: String, messageId: String): EmptyResult<DataError.Remote> {
+        if (matrixAccount.owns(chatId)) return matrixAccount.retryMessage(chatId, messageId)
+        val route = route(chatId) ?: return server.retryMessage(chatId, messageId)
+        val failed = route.store.failedMessage(messageId)?.takeIf { it.canRetry } ?: return Result.Failure(DataError.Remote.BAD_REQUEST)
+        route.store.removePending(messageId)
+        return sendMessage(chatId, failed.text, failed.replyToId)
+    }
+
+    override suspend fun discardFailedMessage(chatId: String, messageId: String) {
+        if (matrixAccount.owns(chatId)) return matrixAccount.discardFailedMessage(chatId, messageId)
+        val route = route(chatId) ?: return server.discardFailedMessage(chatId, messageId)
+        route.store.removePending(messageId)
     }
 
     override suspend fun toggleReaction(chatId: String, messageId: String, key: String): EmptyResult<DataError.Remote> {

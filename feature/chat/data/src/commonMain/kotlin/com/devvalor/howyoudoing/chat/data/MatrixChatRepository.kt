@@ -90,4 +90,9 @@ class MatrixChatRepository(
         engine.markAsRead(chatId)
 
     override suspend fun downloadMedia(mxcUrl: String): ByteArray? = engine.downloadMedia(mxcUrl)
+
+    override suspend fun retryMessage(chatId: String, messageId: String): EmptyResult<DataError.Remote> =
+        engine.retryFailed(chatId, messageId)
+
+    override suspend fun discardFailedMessage(chatId: String, messageId: String) = engine.discardFailed(chatId, messageId)
 }

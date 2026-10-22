@@ -283,6 +283,8 @@ fun ConversationScreen(
             onDismiss = { onAction(ConversationAction.OnDismissActions) },
             onEdit = if (message.canEdit()) ({ onAction(ConversationAction.OnEditClick(message.id)) }) else null,
             onDelete = if (message.canDelete()) ({ onAction(ConversationAction.OnDeleteClick(message.id)) }) else null,
+            onRetry = { onAction(ConversationAction.OnRetryClick(message.id)) },
+            onDiscard = { onAction(ConversationAction.OnDiscardClick(message.id)) },
         )
     }
     state.confirmingDelete?.let {

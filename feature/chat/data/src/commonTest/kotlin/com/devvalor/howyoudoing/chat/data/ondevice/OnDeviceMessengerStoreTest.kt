@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -273,5 +274,30 @@ class OnDeviceMessengerStoreTest {
         emit("""{"type":"unsend","threadKey":"2","messageId":"m1"}""")
 
         assertEquals("Message unsent", store.messages("2").last().replyTo?.body)
+    }
+
+    @Test
+    fun failed_messages_survive_a_restart_and_can_be_sent_again_or_deleted() = runTest {
+        val cache = MemoryCache()
+        val store = store(cache)
+        self()
+        message("2", "m1", "2", "Hi", 1_000)
+        store.addPending("2", "local-1", "Are you there?")
+        store.failPending("local-1")
+        store.addPending("2", "local-2", "Still sending")
+        store.addPending("2", "local-3", "photo.jpg", canRetry = false)
+        store.failPending("local-3")
+        advanceTimeBy(10_000)
+
+        // A new start of the app: only the failed ones come back
+        val restarted = store(cache)
+        val bodies = restarted.messages("2").map { it.body to it.canRetry }
+        assertEquals(listOf("Hi" to false, "Are you there?" to true, "photo.jpg" to false), bodies)
+
+        val failed = assertNotNull(restarted.failedMessage("pending-local-1"))
+        assertEquals("Are you there?", failed.text)
+        restarted.removePending("pending-local-1")
+        assertNull(restarted.failedMessage("pending-local-1"))
+        assertEquals(listOf("Hi", "photo.jpg"), restarted.messages("2").map { it.body })
     }
 }
