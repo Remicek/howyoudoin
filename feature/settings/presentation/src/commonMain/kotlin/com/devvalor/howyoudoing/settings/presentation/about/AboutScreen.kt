@@ -52,8 +52,8 @@ fun AboutScreen(appInfo: AppInfo, onLicensesClick: () -> Unit, onBack: () -> Uni
         item {
             AboutParagraph(
                 "HowYouDoin is an unofficial app. It is not made, endorsed or supported by Meta (WhatsApp, Messenger, " +
-                    "Instagram), Telegram or Signal. Those services don't officially allow third-party apps, so they could " +
-                    "limit or block an account that uses one. Use it at your own risk."
+                    "Instagram), Telegram, Signal or Slack. Most of these services don't officially allow third-party apps, " +
+                    "so they could limit or block an account that uses one. Use it at your own risk."
             )
         }
         item {
@@ -62,6 +62,13 @@ fun AboutScreen(appInfo: AppInfo, onLicensesClick: () -> Unit, onBack: () -> Uni
                     "go only to the networks themselves; HowYouDoin has no servers of its own in this mode and collects no " +
                     "analytics. If \"Back up logins\" is on, the logins are also in your phone's Google backup, end-to-end " +
                     "encrypted with your screen lock. Crash reports stay on the phone unless you share them."
+            )
+        }
+        item {
+            AboutParagraph(
+                "WhatsApp, Messenger and Instagram are trademarks of Meta Platforms, Inc.; Telegram of Telegram FZ-LLC; " +
+                    "Signal of Signal Technology Foundation; Slack of Slack Technologies, LLC; Matrix of The Matrix.org " +
+                    "Foundation. Their logos are shown only to tell which network a chat belongs to (icons from Simple Icons, CC0)."
             )
         }
     }
