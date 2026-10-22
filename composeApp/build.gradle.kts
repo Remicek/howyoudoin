@@ -85,6 +85,9 @@ kotlin {
             implementation(libs.jetbrains.lifecycle.compose)
             implementation(libs.kotlinx.serialization.json)
         }
+        commonTest.dependencies {
+            implementation(libs.kotlin.test)
+        }
     }
 }
 

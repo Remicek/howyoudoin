@@ -5,7 +5,6 @@ import android.content.Intent
 import android.provider.Settings
 import com.devvalor.howyoudoing.app.ondevice.NativeOnDeviceLinkedAccount
 import com.devvalor.howyoudoing.app.ondevice.OnDeviceSecretStore
-import com.devvalor.howyoudoing.core.domain.auth.AuthInfo
 import com.devvalor.howyoudoing.core.domain.auth.SessionStorage
 import com.devvalor.howyoudoing.core.domain.backup.LoginBackup
 import com.devvalor.howyoudoing.core.domain.backup.LoginRestoreOffer
@@ -27,25 +26,14 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.booleanOrNull
-import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.contentOrNull
-import kotlinx.serialization.json.jsonArray
-import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
-import kotlinx.serialization.json.longOrNull
-import kotlinx.serialization.json.put
-import kotlinx.serialization.json.putJsonArray
 import java.io.File
 
 /**
  * Keeps the restorable logins in one file, files/login-backup/logins.json, which is all the backup rules
  * (res/xml/backup_rules.xml, data_extraction_rules.xml) let Android back up, and only end-to-end encrypted. The
- * file is rewritten while backup is on (the default) and deleted when it's off. After a restore it isn't touched until the user
- * decided what to do with it (a marker in no-backup storage, so it doesn't come back with the restore).
+ * file is rewritten while backup is on (the default) and deleted when it's off. After a restore it isn't touched until
+ * the user decided what to do with it (a marker in no-backup storage, so it doesn't come back with the restore). The
+ * file format and what to offer are in SavedLogins.kt.
  */
 @OptIn(FlowPreview::class)
 class AndroidLoginBackup(
@@ -71,7 +59,6 @@ class AndroidLoginBackup(
     private val decided = MutableStateFlow(decidedMarker.exists())
     private val offered = MutableStateFlow(prefs.getBoolean(KEY_OFFERED, false))
     private val allClients = (cookieLogins.values.map { it.first } + telegram + relinkOnly + matrix)
-    private val json = Json { ignoreUnknownKeys = true }
 
     override val isSupported = true
 
@@ -96,9 +83,8 @@ class AndroidLoginBackup(
         combine(listOf<Flow<Boolean>>(offered, decided) + allClients.map { client ->
             client.state.map { it is OnDeviceMessengerState.Connected }
         }) { values ->
-            val (wasOffered, isDecided) = values[0] to values[1]
             // Not while a restore is still being offered: that would be two questions at once
-            !wasOffered && isDecided && values.drop(2).count { it } >= OFFER_AFTER_CONNECTED
+            shouldOfferBackup(alreadyOffered = values[0], restoreDecided = values[1], connectedNetworks = values.drop(2).count { it })
         }.distinctUntilChanged()
 
     override suspend fun answerBackupOffer(enable: Boolean) {
@@ -131,59 +117,44 @@ class AndroidLoginBackup(
     // --- writing ---
 
     private suspend fun write() {
-        val saved = buildJsonObject {
-            put("version", 1)
-            put("savedAt", System.currentTimeMillis())
-            put("enabled", true)
-            appSession.get()?.takeUnless { it.isDemo }?.let { put("appSession", it.toJson()) }
-            matrixSession.get()?.let { put(ChatNetwork.MATRIX.name, it.toJson()) }
-            cookieLogins.forEach { (network, login) ->
+        fun File.textOrNull() = takeIf { it.isFile }?.readText()
+        val saved = SavedLogins(
+            savedAtMillis = System.currentTimeMillis(),
+            enabled = true,
+            appSession = appSession.get(),
+            cookieLogins = cookieLogins.mapNotNull { (network, login) ->
                 val (client, secrets) = login
-                if (client.state.value != OnDeviceMessengerState.NotLinked) secrets.read()?.let { put(network.name, it) }
-            }
-            if (telegram.state.value != OnDeviceMessengerState.NotLinked) {
-                val session = File(telegramDir, TELEGRAM_SESSION).takeIf { it.isFile }?.readText()
-                val state = File(telegramDir, TELEGRAM_STATE).takeIf { it.isFile }?.readText()
-                if (session != null && state != null) {
-                    put(ChatNetwork.TELEGRAM.name, buildJsonObject {
-                        put("session", session)
-                        put("state", state)
-                    })
-                }
-            }
-            putJsonArray("relink") {
-                relinkOnly.filter { it.state.value != OnDeviceMessengerState.NotLinked }.forEach { add(JsonPrimitive(it.network.name)) }
-            }
-        }
+                secrets.read()?.takeIf { client.state.value != OnDeviceMessengerState.NotLinked }?.let { network to it }
+            }.toMap(),
+            matrixAccount = matrixSession.get(),
+            telegram = if (telegram.state.value == OnDeviceMessengerState.NotLinked) null else {
+                val session = File(telegramDir, TELEGRAM_SESSION).textOrNull()
+                val state = File(telegramDir, TELEGRAM_STATE).textOrNull()
+                if (session != null && state != null) TelegramFiles(session, state) else null
+            },
+            relink = relinkOnly.filter { it.state.value != OnDeviceMessengerState.NotLinked }.map { it.network }
+        )
         file.parentFile?.mkdirs()
         val tmp = File(file.parentFile, "logins.json.tmp")
-        tmp.writeText(saved.toString())
+        tmp.writeText(SavedLoginsFormat.encode(saved))
         tmp.renameTo(file)
     }
 
     // --- restoring ---
 
-    private fun readSaved(): JsonObject? =
-        file.takeIf { it.isFile }?.let { runCatching { json.parseToJsonElement(it.readText()).jsonObject }.getOrNull() }
+    private fun readSaved(): SavedLogins? = file.takeIf { it.isFile }?.let { SavedLoginsFormat.decode(it.readText()) }
 
     override suspend fun restoreOffer(): LoginRestoreOffer? = withContext(Dispatchers.IO) {
         if (decided.value) return@withContext null
         val saved = readSaved() ?: return@withContext null
-        val restorable = buildList {
-            cookieLogins.forEach { (network, login) -> if (network.name in saved && login.second.read() == null) add(network) }
-            if (ChatNetwork.TELEGRAM.name in saved && !File(telegramDir, TELEGRAM_SESSION).isFile) add(ChatNetwork.TELEGRAM)
-            if (ChatNetwork.MATRIX.name in saved && matrixSession.get() == null) add(ChatNetwork.MATRIX)
-        }.sortedBy { it.ordinal }
-        val includesApp = "appSession" in saved && appSession.get() == null
-        val toRelink = saved["relink"]?.let { runCatching { it.jsonArray }.getOrNull() }.orEmpty()
-            .mapNotNull { name -> runCatching { ChatNetwork.valueOf(name.jsonPrimitive.content) }.getOrNull() }
-            .filter { network -> relinkOnly.any { it.network == network && it.state.value == OnDeviceMessengerState.NotLinked } }
-        if (restorable.isEmpty() && !includesApp && toRelink.isEmpty()) return@withContext null
-        LoginRestoreOffer(
-            savedAtMillis = saved["savedAt"]?.jsonPrimitive?.longOrNull ?: file.lastModified(),
-            restorable = restorable,
-            includesAppSession = includesApp,
-            toRelink = toRelink
+        saved.offerFor(
+            LoginsHere(
+                cookieLogins = cookieLogins.filterValues { (_, secrets) -> secrets.read() != null }.keys,
+                hasTelegram = File(telegramDir, TELEGRAM_SESSION).isFile,
+                hasMatrixAccount = matrixSession.get() != null,
+                hasAppSession = appSession.get() != null,
+                linked = relinkOnly.filter { it.state.value != OnDeviceMessengerState.NotLinked }.map { it.network }.toSet()
+            )
         )
     }
 
@@ -191,34 +162,30 @@ class AndroidLoginBackup(
         val saved = withContext(Dispatchers.IO) { readSaved() } ?: return networks.toList()
         val failed = mutableListOf<ChatNetwork>()
         // The app's own session first, so the inbox opens once this is done
-        saved["appSession"]?.toAuthInfo()?.let { if (appSession.get() == null) appSession.set(it) }
+        saved.appSession?.let { if (appSession.get() == null) appSession.set(it) }
         networks.forEach { network ->
             val ok = when (network) {
-                ChatNetwork.MATRIX -> saved[network.name]?.toAuthInfo()?.let { matrixSession.set(it); true } ?: false
-                ChatNetwork.TELEGRAM -> restoreTelegram(saved[network.name] as? JsonObject)
+                ChatNetwork.MATRIX -> saved.matrixAccount?.let { matrixSession.set(it); true } ?: false
+                ChatNetwork.TELEGRAM -> saved.telegram?.let { restoreTelegram(it) } ?: false
                 else -> {
-                    val (client, _) = cookieLogins[network] ?: return@forEach failed.plusAssign(network)
-                    val cookies = saved[network.name]?.jsonPrimitive?.contentOrNull
-                        ?.let { runCatching { json.parseToJsonElement(it).jsonObject }.getOrNull() }
-                        ?.mapValues { it.value.jsonPrimitive.content }
-                    cookies != null && client.link(cookies) is Result.Success
+                    val client = cookieLogins[network]?.first
+                    val cookies = saved.cookies(network)
+                    client != null && cookies != null && client.link(cookies) is Result.Success
                 }
             }
             if (!ok) failed += network
         }
         // Whoever had backup on keeps it on here
-        if (saved["enabled"]?.jsonPrimitive?.booleanOrNull == true) setEnabled(true)
+        if (saved.enabled) setEnabled(true)
         markDecided()
         return failed
     }
 
-    private suspend fun restoreTelegram(saved: JsonObject?): Boolean {
-        val session = saved?.get("session")?.jsonPrimitive?.contentOrNull ?: return false
-        val state = saved["state"]?.jsonPrimitive?.contentOrNull ?: return false
+    private suspend fun restoreTelegram(saved: TelegramFiles): Boolean {
         withContext(Dispatchers.IO) {
             telegramDir.mkdirs()
-            File(telegramDir, TELEGRAM_SESSION).writeText(session)
-            File(telegramDir, TELEGRAM_STATE).writeText(state)
+            File(telegramDir, TELEGRAM_SESSION).writeText(saved.session)
+            File(telegramDir, TELEGRAM_STATE).writeText(saved.state)
         }
         // Connects with the restored login; if Telegram no longer accepts it, the connection monitor says so
         telegram.reloadFromDisk()
@@ -236,29 +203,9 @@ class AndroidLoginBackup(
         decided.value = true
     }
 
-    private fun AuthInfo.toJson() = buildJsonObject {
-        put("homeserverUrl", homeserverUrl)
-        put("userId", userId)
-        put("accessToken", accessToken)
-        put("deviceId", deviceId)
-        put("isLocal", isLocal)
-    }
-
-    private fun kotlinx.serialization.json.JsonElement.toAuthInfo(): AuthInfo? = runCatching {
-        val o = jsonObject
-        AuthInfo(
-            homeserverUrl = o.getValue("homeserverUrl").jsonPrimitive.content,
-            userId = o.getValue("userId").jsonPrimitive.content,
-            accessToken = o.getValue("accessToken").jsonPrimitive.content,
-            deviceId = o.getValue("deviceId").jsonPrimitive.content,
-            isLocal = o["isLocal"]?.jsonPrimitive?.booleanOrNull == true
-        )
-    }.getOrNull()
-
     private companion object {
         const val KEY_ENABLED = "enabled"
         const val KEY_OFFERED = "offered"
-        const val OFFER_AFTER_CONNECTED = 2
         const val WRITE_DELAY_MILLIS = 5_000L
         const val TELEGRAM_SESSION = "telegram-session.json"
         const val TELEGRAM_STATE = "telegram-state.json"
