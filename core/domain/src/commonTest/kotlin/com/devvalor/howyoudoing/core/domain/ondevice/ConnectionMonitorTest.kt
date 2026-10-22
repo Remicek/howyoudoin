@@ -75,6 +75,15 @@ class ConnectionMonitorTest {
     }
 
     @Test
+    fun aFailedFirstLoginGoesQuietOnceItsNotLinked() = runTest {
+        val monitor = monitor()
+        set(slack, OnDeviceMessengerState.Connecting)
+        set(slack, OnDeviceMessengerState.Failed("invalid_auth"))
+        set(slack, OnDeviceMessengerState.NotLinked)
+        assertTrue(monitor.problems.value.isEmpty())
+    }
+
+    @Test
     fun neverLinkedNetworksStayQuiet() = runTest {
         val monitor = monitor()
         set(whatsApp, OnDeviceMessengerState.Connecting)

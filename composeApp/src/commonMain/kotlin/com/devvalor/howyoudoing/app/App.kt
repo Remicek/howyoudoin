@@ -16,13 +16,18 @@ import com.devvalor.howyoudoing.settings.presentation.lock.AppLockGate
 import com.devvalor.howyoudoing.settings.presentation.lock.AppLockOfferRoot
 import com.devvalor.howyoudoing.settings.presentation.navigation.SettingsRoutes
 import org.koin.compose.viewmodel.koinViewModel
+import com.devvalor.howyoudoing.app.backup.BackupOfferRoot
+import com.devvalor.howyoudoing.app.backup.RestoreLoginsScreen
+import com.devvalor.howyoudoing.app.backup.RestoreLoginsViewModel
 import com.devvalor.howyoudoing.networks.presentation.navigation.NetworksRoutes
 
 @Composable
 fun App(
     isDarkTheme: Boolean = isSystemInDarkTheme(),
-    viewModel: MainViewModel = koinViewModel()
+    viewModel: MainViewModel = koinViewModel(),
+    restoreViewModel: RestoreLoginsViewModel = koinViewModel()
 ) {
+    val restore by restoreViewModel.state.collectAsStateWithLifecycle()
     val navController = rememberNavController()
     val state by viewModel.state.collectAsStateWithLifecycle()
 
@@ -54,7 +59,17 @@ fun App(
     }
 
     HowYouDoinTheme(darkTheme = isDarkTheme) {
-        if (!state.isCheckingAuth) {
+        // Logins found in the phone's backup are offered before anything else (a reinstall or a new phone)
+        if (restore.isVisible) {
+            RestoreLoginsScreen(
+                state = restore,
+                onToggle = restoreViewModel::toggle,
+                onRestore = restoreViewModel::restore,
+                onLater = restoreViewModel::later,
+                onDiscard = restoreViewModel::discard,
+                onClose = restoreViewModel::close
+            )
+        } else if (!state.isCheckingAuth && !restore.isChecking) {
             // The PIN / fingerprint lock guards everything once signed in
             AppLockGate(isActive = state.isLoggedIn) {
                 NavigationRoot(
@@ -66,6 +81,8 @@ fun App(
                     AppLockOfferRoot(onSetUp = {
                         navController.navigate(SettingsRoutes.AppLockSetup) { launchSingleTop = true }
                     })
+                    // Once two networks are connected: offer to back up the logins
+                    BackupOfferRoot()
                 }
             }
         }

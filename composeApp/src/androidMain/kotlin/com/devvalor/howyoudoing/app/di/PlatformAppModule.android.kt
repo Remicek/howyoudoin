@@ -45,6 +45,12 @@ import com.devvalor.howyoudoing.settings.domain.CrashReports
 import com.devvalor.howyoudoing.settings.domain.PinHasher
 import com.devvalor.howyoudoing.core.domain.config.BuildInfo
 import org.koin.dsl.module
+import com.devvalor.howyoudoing.app.backup.AndroidLoginBackup
+import com.devvalor.howyoudoing.core.domain.auth.MATRIX_ACCOUNT_SESSION
+import com.devvalor.howyoudoing.core.domain.backup.LoginBackup
+import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
+import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceMatrix
+import java.io.File
 import org.koin.dsl.bind
 import com.devvalor.howyoudoing.app.call.AndroidCallMediaEngine
 import com.devvalor.howyoudoing.app.call.CallActivity
@@ -114,6 +120,23 @@ actual val platformAppModule: Module = module {
     single(createdAtStart = true) { ConnectionProblemNotifier(androidContext(), get(), get()) }
     single<CallLauncher> { CallLauncher { chatId, video -> CallActivity.startCall(androidContext(), chatId, video) } }
     single<OnDeviceInboxCache> { AndroidInboxCache(androidContext()) }
+    single<LoginBackup>(createdAtStart = true) {
+        AndroidLoginBackup(
+            context = androidContext(),
+            appSession = get(),
+            matrixSession = get(named(MATRIX_ACCOUNT_SESSION)),
+            cookieLogins = mapOf(
+                ChatNetwork.MESSENGER to (get<OnDeviceMessenger>() to KeystoreSecretStore(androidContext())),
+                ChatNetwork.INSTAGRAM to (get<OnDeviceInstagram>() to KeystoreSecretStore(androidContext(), INSTAGRAM_DIR)),
+                ChatNetwork.SLACK to (get<OnDeviceSlack>() to KeystoreSecretStore(androidContext(), SLACK_DIR))
+            ),
+            telegram = get<OnDeviceTelegram>() as NativeOnDeviceTelegram,
+            telegramDir = File(androidContext().noBackupFilesDir, TELEGRAM_DIR),
+            relinkOnly = listOf(get<OnDeviceWhatsApp>(), get<OnDeviceSignal>()),
+            matrix = get<OnDeviceMatrix>(),
+            scope = get()
+        )
+    }
     single<OnDeviceMessenger>(createdAtStart = true) {
         NativeOnDeviceMessenger(
             factory = AndroidMessengerFactory(),

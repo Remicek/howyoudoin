@@ -17,6 +17,14 @@ import com.devvalor.howyoudoing.settings.domain.CrashReports
 import com.devvalor.howyoudoing.settings.presentation.components.SettingsRow
 import com.devvalor.howyoudoing.settings.presentation.components.SettingsScaffold
 import com.devvalor.howyoudoing.settings.presentation.components.SettingsSectionHeader
+import com.devvalor.howyoudoing.settings.presentation.components.SettingsSwitchRow
+import com.devvalor.howyoudoing.core.domain.backup.LoginBackup
+import androidx.compose.material.icons.rounded.CloudUpload
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.flow
+import androidx.compose.material.icons.rounded.SettingsBackupRestore
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
@@ -25,12 +33,33 @@ import org.koin.compose.viewmodel.koinViewModel
 data class SettingsState(
     val isLockEnabled: Boolean = false,
     val hasCrashReport: Boolean = false,
+    val canBackUpLogins: Boolean = false,
+    val isLoginBackupOn: Boolean = false,
+    /** When the phone last backed the app up; null if it hasn't (Google backup may be off). */
+    val lastBackupMillis: Long? = null,
 )
 
-class SettingsViewModel(appLock: AppLockRepository, crashReports: CrashReports) : ViewModel() {
-    val state = combine(appLock.observeSettings(), crashReports.observeLastReport()) { lock, crash ->
-        SettingsState(isLockEnabled = lock.isEnabled, hasCrashReport = crash != null)
+class SettingsViewModel(appLock: AppLockRepository, crashReports: CrashReports, private val loginBackup: LoginBackup) : ViewModel() {
+    val state = combine(
+        appLock.observeSettings(),
+        crashReports.observeLastReport(),
+        loginBackup.observeEnabled(),
+        flow { emit(loginBackup.lastBackupMillis()) }
+    ) { lock, crash, backup, lastBackup ->
+        SettingsState(
+            isLockEnabled = lock.isEnabled,
+            hasCrashReport = crash != null,
+            canBackUpLogins = loginBackup.isSupported,
+            isLoginBackupOn = backup,
+            lastBackupMillis = lastBackup
+        )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000L), SettingsState())
+
+    fun openBackupSettings() = loginBackup.openSystemBackupSettings()
+
+    fun setLoginBackup(on: Boolean) {
+        viewModelScope.launch { loginBackup.setEnabled(on) }
+    }
 }
 
 @Composable
@@ -79,6 +108,30 @@ fun SettingsRoot(
                 onClick = onCrashReportsClick,
             )
         }
+        if (state.canBackUpLogins) {
+            item {
+                SettingsSwitchRow(
+                    title = "Back up logins",
+                    subtitle = "In your phone's Google backup, end-to-end encrypted with your screen lock. On a new phone " +
+                        "or after reinstalling, Messenger, Instagram, Slack, Telegram and Matrix reconnect without logging in. " +
+                        "WhatsApp and Signal always need linking again.",
+                    icon = Icons.Rounded.CloudUpload,
+                    checked = state.isLoginBackupOn,
+                    onCheckedChange = viewModel::setLoginBackup,
+                )
+            }
+            if (state.isLoginBackupOn) {
+                item {
+                    SettingsRow(
+                        title = "Google backup",
+                        subtitle = state.lastBackupMillis?.let { "Last backed up ${daysAgo(it)}" }
+                            ?: "Not backed up yet: make sure Google backup is on (Settings → Google → Backup)",
+                        icon = Icons.Rounded.SettingsBackupRestore,
+                        onClick = viewModel::openBackupSettings,
+                    )
+                }
+            }
+        }
         item { SettingsSectionHeader("About") }
         item {
             SettingsRow(title = "Open-source licenses", icon = Icons.Rounded.Gavel, onClick = onLicensesClick)
@@ -88,3 +141,11 @@ fun SettingsRoot(
         }
     }
 }
+
+@OptIn(ExperimentalTime::class)
+private fun daysAgo(millis: Long): String =
+    when (val days = ((Clock.System.now().toEpochMilliseconds() - millis) / 86_400_000L).coerceAtLeast(0)) {
+        0L -> "today"
+        1L -> "yesterday"
+        else -> "$days days ago"
+    }

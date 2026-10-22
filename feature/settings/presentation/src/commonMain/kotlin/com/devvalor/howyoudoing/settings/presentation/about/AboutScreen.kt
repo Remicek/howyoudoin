@@ -60,7 +60,8 @@ fun AboutScreen(appInfo: AppInfo, onLicensesClick: () -> Unit, onBack: () -> Uni
             AboutParagraph(
                 "Your accounts connect straight from this phone. Messages, contacts and login data stay on the phone and " +
                     "go only to the networks themselves; HowYouDoin has no servers of its own in this mode and collects no " +
-                    "analytics. Crash reports stay on the phone unless you share them."
+                    "analytics. If \"Back up logins\" is on, the logins are also in your phone's Google backup, end-to-end " +
+                    "encrypted with your screen lock. Crash reports stay on the phone unless you share them."
             )
         }
     }

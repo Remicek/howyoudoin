@@ -117,7 +117,13 @@ open class NativeOnDeviceMessenger(
     override suspend fun link(cookies: Map<String, String>): EmptyResult<DataError.Remote> {
         val json = JsonObject(cookies.mapValues { JsonPrimitive(it.value) }).toString()
         val result = connect(json)
-        if (result is Result.Success) secrets.write(json)
+        if (result is Result.Success) {
+            secrets.write(json)
+        } else if (secrets.read() == null) {
+            // A login that never worked isn't a broken connection: the caller shows the error, and the network
+            // stays not connected
+            _state.value = OnDeviceMessengerState.NotLinked
+        }
         return result
     }
 

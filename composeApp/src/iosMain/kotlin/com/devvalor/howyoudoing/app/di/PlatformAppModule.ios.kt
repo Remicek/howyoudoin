@@ -64,6 +64,7 @@ actual val platformAppModule: Module = module {
     // Telegram, Signal, Slack and calls aren't built for iOS yet
     single<com.devvalor.howyoudoing.chat.domain.CallMediaEngine> { com.devvalor.howyoudoing.chat.domain.NoCallMediaEngine }
     single { com.devvalor.howyoudoing.chat.domain.CallLauncher { _, _ -> } }
+    single<com.devvalor.howyoudoing.core.domain.backup.LoginBackup> { com.devvalor.howyoudoing.core.domain.backup.NoLoginBackup }
     single<OnDeviceSlack> { UnsupportedOnDeviceSlack }
     single<OnDeviceInboxCache>(named(ON_DEVICE_SLACK_CACHE)) { IosInboxCache("on_device_slack") }
     single<OnDeviceTelegram> { UnsupportedOnDeviceTelegram }

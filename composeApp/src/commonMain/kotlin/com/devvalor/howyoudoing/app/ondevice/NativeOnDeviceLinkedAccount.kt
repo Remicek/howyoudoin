@@ -121,6 +121,15 @@ abstract class NativeOnDeviceLinkedAccount(
         runCatching { current.connect() }.onFailure { failed(it) }.isFailure
     }
 
+    /** Drops the client and connects again from what's on disk (e.g. a login restored from the backup). */
+    suspend fun reloadFromDisk() {
+        lock.withLock {
+            withContext(Dispatchers.IO) { runCatching { client?.disconnect() } }
+            client = null
+        }
+        connectIfLinked()
+    }
+
     private fun scheduleRetry() {
         if (retryJob?.isActive == true) return
         retryJob = scope.launch {

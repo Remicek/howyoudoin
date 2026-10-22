@@ -107,7 +107,8 @@ class ConnectionMonitor(
                     val wasLinked = previous != null && previous != OnDeviceMessengerState.NotLinked
                     if (wasLinked && wasConnected && network !in disconnecting) {
                         report(ConnectionProblem(network, ConnectionProblem.Kind.LOGGED_OUT))
-                    } else if (network in disconnecting) {
+                    } else {
+                        // Disconnected on purpose, or a login that never worked (its screen showed the error)
                         clear(network)
                     }
                     disconnecting -= network
