@@ -552,7 +552,7 @@ func (w *WhatsApp) downloadMedia(chat, messageID, kind string, msg *waE2E.Messag
 	}
 	sum := sha256.Sum256([]byte(chat + "/" + messageID))
 	file := filepath.Join(dir, hex.EncodeToString(sum[:16]))
-	if err = os.WriteFile(file, data, 0o600); err != nil {
+	if err = writeFileAtomic(file, data); err != nil {
 		return "", err
 	}
 	var mimeType, fileName string

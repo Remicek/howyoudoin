@@ -97,7 +97,7 @@ func (m *Messenger) downloadEncryptedMedia(threadKey, messageID string, content 
 		}
 		sum := sha256.Sum256([]byte(threadKey + "/" + messageID))
 		file := filepath.Join(dir, hex.EncodeToString(sum[:16]))
-		if err = os.WriteFile(file, data, 0o600); err != nil {
+		if err = writeFileAtomic(file, data); err != nil {
 			return
 		}
 		event := map[string]any{

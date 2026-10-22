@@ -36,6 +36,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import kotlinx.coroutines.delay
+import androidx.compose.runtime.mutableIntStateOf
 import coil3.compose.LocalPlatformContext
 import coil3.network.NetworkHeaders
 import coil3.network.httpHeaders
@@ -62,13 +64,22 @@ fun AuthenticatedImage(
 ) {
     var request by remember(mxcUrl, thumbnail) { mutableStateOf<MediaRequest?>(null) }
     var failed by remember(mxcUrl) { mutableStateOf(false) }
+    // A failed load is tried again a couple of times (a file still being saved, a network blip) before giving up
+    var attempt by remember(mxcUrl) { mutableIntStateOf(0) }
+    var retryPending by remember(mxcUrl) { mutableStateOf(false) }
     LaunchedEffect(mxcUrl, thumbnail) { request = resolver(mxcUrl, thumbnail) }
+    LaunchedEffect(retryPending) {
+        if (!retryPending) return@LaunchedEffect
+        delay(IMAGE_RETRY_DELAY_MILLIS * (attempt + 1))
+        attempt++
+        retryPending = false
+    }
     val context = LocalPlatformContext.current
     Box(modifier = modifier.background(placeholderColor), contentAlignment = Alignment.Center) {
         val resolved = request
         if (resolved != null && !failed) {
             AsyncImage(
-                model = remember(resolved) {
+                model = remember(resolved, attempt) {
                     ImageRequest.Builder(context)
                         .data(resolved.url)
                         .httpHeaders(NetworkHeaders.Builder().apply { resolved.headers.forEach { (k, v) -> set(k, v) } }.build())
@@ -76,7 +87,7 @@ fun AuthenticatedImage(
                 },
                 contentDescription = contentDescription,
                 contentScale = contentScale,
-                onError = { failed = true },
+                onError = { if (attempt < IMAGE_RETRIES) retryPending = true else failed = true },
                 modifier = Modifier.matchParentSize(),
             )
         } else if (failed) {
@@ -211,3 +222,6 @@ private fun formatDuration(millis: Long): String {
 }
 
 private val STICKER_SIZE = 160.dp
+
+private const val IMAGE_RETRIES = 2
+private const val IMAGE_RETRY_DELAY_MILLIS = 1_500L

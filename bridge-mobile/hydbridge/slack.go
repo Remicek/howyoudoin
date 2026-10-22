@@ -567,7 +567,7 @@ func (s *Slack) downloadFile(channelID, ts, kind string, file *slack.File) {
 		return
 	}
 	if _, err = os.Stat(path); err != nil {
-		tmp := path + ".part"
+		tmp := partPath(path)
 		out, err := os.Create(tmp)
 		if err != nil {
 			return

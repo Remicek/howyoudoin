@@ -574,7 +574,9 @@ func (s *Signal) downloadToFile(pointer *signalpb.AttachmentPointer, path string
 	if _, err := os.Stat(path); err == nil {
 		return nil
 	}
-	file, err := os.Create(path)
+	// Written next to it and renamed when complete, so path never holds half a file (see partPath)
+	tmp := partPath(path)
+	file, err := os.Create(tmp)
 	if err != nil {
 		return err
 	}
@@ -585,8 +587,11 @@ func (s *Signal) downloadToFile(pointer *signalpb.AttachmentPointer, path string
 	if err == nil {
 		err = closeErr
 	}
+	if err == nil {
+		err = os.Rename(tmp, path)
+	}
 	if err != nil {
-		_ = os.Remove(path)
+		_ = os.Remove(tmp)
 	}
 	return err
 }

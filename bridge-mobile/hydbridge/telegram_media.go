@@ -159,6 +159,16 @@ func (t *Telegram) mediaPath(id string) (string, error) {
 	return filepath.Join(dir, hex.EncodeToString(sum[:16])), nil
 }
 
+// downloadTo downloads a Telegram file to path; it appears there only once complete (see partPath).
+func (t *Telegram) downloadTo(ctx context.Context, location tg.InputFileLocationClass, path string) error {
+	tmp := partPath(path)
+	if _, err := downloader.NewDownloader().Download(t.client.API(), location).ToPath(ctx, tmp); err != nil {
+		_ = os.Remove(tmp)
+		return err
+	}
+	return os.Rename(tmp, path)
+}
+
 // downloadAttachment saves a photo or sticker in the media folder and emits it as the message's attachment.
 func (t *Telegram) downloadAttachment(key, id, kind string, location tg.InputFileLocationClass, mime, fileName string, w, h int) {
 	path, err := t.mediaPath(id)
@@ -167,10 +177,9 @@ func (t *Telegram) downloadAttachment(key, id, kind string, location tg.InputFil
 	}
 	if _, err := os.Stat(path); err != nil {
 		ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
-		_, err = downloader.NewDownloader().Download(t.client.API(), location).ToPath(ctx, path)
+		err = t.downloadTo(ctx, location, path)
 		cancel()
 		if err != nil {
-			_ = os.Remove(path)
 			t.log.Warn().Err(err).Msg("Failed to download Telegram media")
 			return
 		}
@@ -205,8 +214,7 @@ func (t *Telegram) DownloadMedia(threadKey, messageID, _ string) (string, error)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
 	defer cancel()
 	location := &tg.InputDocumentFileLocation{ID: doc.ID, AccessHash: doc.AccessHash, FileReference: doc.FileReference}
-	if _, err = downloader.NewDownloader().Download(t.client.API(), location).ToPath(ctx, path); err != nil {
-		_ = os.Remove(path)
+	if err = t.downloadTo(ctx, location, path); err != nil {
 		return "", err
 	}
 	return path, nil
@@ -358,8 +366,7 @@ func (t *Telegram) fetchAvatar(key string) {
 	}
 	if _, err := os.Stat(path); err != nil {
 		location := &tg.InputPeerPhotoFileLocation{Peer: peer, PhotoID: photoID}
-		if _, err = downloader.NewDownloader().Download(t.client.API(), location).ToPath(ctx, path); err != nil {
-			_ = os.Remove(path)
+		if err = t.downloadTo(ctx, location, path); err != nil {
 			return
 		}
 	}
