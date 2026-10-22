@@ -93,23 +93,11 @@ class ConnectNetworkViewModel(
                 stepJob?.cancel()
                 _state.update { it.copy(phase = ConnectPhase.ConfigureBridge, error = null) }
             }
-            is ConnectNetworkAction.OnFlowClick -> when (action.flowId) {
-                ON_DEVICE_FLOW_ID -> showStep(
-                    when (network) {
-                        ChatNetwork.INSTAGRAM -> onDeviceInstagramCookiesStep()
-                        ChatNetwork.SLACK -> onDeviceSlackStep()
-                        else -> onDeviceCookiesStep()
-                    }
-                )
-                ON_DEVICE_WHATSAPP_QR_FLOW_ID -> linkAccountOnDevice(onDeviceWhatsApp, phoneNumber = null)
-                ON_DEVICE_WHATSAPP_CODE_FLOW_ID -> showStep(onDevicePhoneStep(ON_DEVICE_WHATSAPP_CODE_FLOW_ID, ""))
-                ON_DEVICE_TELEGRAM_FLOW_ID -> showStep(
-                    onDevicePhoneStep(ON_DEVICE_TELEGRAM_FLOW_ID, "Enter the phone number of your Telegram account. Telegram sends you a login code.")
-                )
-                ON_DEVICE_TELEGRAM_QR_FLOW_ID -> linkAccountOnDevice(onDeviceTelegram, phoneNumber = null)
-                ON_DEVICE_SIGNAL_FLOW_ID -> linkAccountOnDevice(onDeviceSignal, phoneNumber = null)
-                ON_DEVICE_MATRIX_FLOW_ID -> showStep(matrixLoginStep())
-                else -> runStep { bridgeRepository.startLogin(network, action.flowId) }
+            is ConnectNetworkAction.OnFlowClick -> {
+                // A new attempt: an error from the last one doesn't apply to it
+                _state.update { it.copy(error = null) }
+                rejectedCookies = null
+                onFlowClick(action.flowId)
             }
             is ConnectNetworkAction.OnInputChange -> onInputChange(action.fieldId, action.value)
             is ConnectNetworkAction.OnCountrySelect -> {
@@ -120,6 +108,27 @@ class ConnectNetworkViewModel(
             is ConnectNetworkAction.OnCookiesCaptured -> submitCookies(action.cookies)
             ConnectNetworkAction.OnRetryClick -> loadFlows()
             else -> Unit
+        }
+    }
+
+    private fun onFlowClick(flowId: String) {
+        when (flowId) {
+            ON_DEVICE_FLOW_ID -> showStep(
+                when (network) {
+                    ChatNetwork.INSTAGRAM -> onDeviceInstagramCookiesStep()
+                    ChatNetwork.SLACK -> onDeviceSlackStep()
+                    else -> onDeviceCookiesStep()
+                }
+            )
+            ON_DEVICE_WHATSAPP_QR_FLOW_ID -> linkAccountOnDevice(onDeviceWhatsApp, phoneNumber = null)
+            ON_DEVICE_WHATSAPP_CODE_FLOW_ID -> showStep(onDevicePhoneStep(ON_DEVICE_WHATSAPP_CODE_FLOW_ID, ""))
+            ON_DEVICE_TELEGRAM_FLOW_ID -> showStep(
+                onDevicePhoneStep(ON_DEVICE_TELEGRAM_FLOW_ID, "Enter the phone number of your Telegram account. Telegram sends you a login code.")
+            )
+            ON_DEVICE_TELEGRAM_QR_FLOW_ID -> linkAccountOnDevice(onDeviceTelegram, phoneNumber = null)
+            ON_DEVICE_SIGNAL_FLOW_ID -> linkAccountOnDevice(onDeviceSignal, phoneNumber = null)
+            ON_DEVICE_MATRIX_FLOW_ID -> showStep(matrixLoginStep())
+            else -> runStep { bridgeRepository.startLogin(network, flowId) }
         }
     }
 
@@ -144,9 +153,13 @@ class ConnectNetworkViewModel(
                     preselectedFlowId = null
                     if (preselected != null) advance(bridgeRepository.startLogin(network, preselected))
                 }
-                // The on-device option doesn't need the server bridge, so offer it even when that's down
-                is Result.Failure -> _state.update {
-                    it.copy(phase = ConnectPhase.ChooseFlow(onDeviceFlows()), error = result.error.toUiText())
+                // The on-device option doesn't need the server bridge, so offer it even when that's down; the
+                // server's error only matters when there's nothing else (in phone-only mode there's no server at all)
+                is Result.Failure -> {
+                    val onDevice = onDeviceFlows()
+                    _state.update {
+                        it.copy(phase = ConnectPhase.ChooseFlow(onDevice), error = result.error.toUiText().takeIf { onDevice.isEmpty() })
+                    }
                 }
             }
         }
@@ -182,9 +195,12 @@ class ConnectNetworkViewModel(
         runStep { bridgeRepository.submitUserInput(network, step, step.fields.associate { it.id to "" }) }
     }
 
+    /** Cookies that were just rejected: the web view finds them again, and they'd only fail again. */
+    private var rejectedCookies: Map<String, String>? = null
+
     private fun submitCookies(cookiesByName: Map<String, String>) {
         val step = (state.value.phase as? ConnectPhase.Step)?.step as? BridgeLoginStep.Cookies ?: return
-        if (state.value.isSubmitting) return
+        if (state.value.isSubmitting || cookiesByName == rejectedCookies) return
         if (step.loginId == ON_DEVICE_FLOW_ID) return linkOnDevice(step, cookiesByName)
         val values = step.cookies
             .mapNotNull { cookie -> cookiesByName[cookie.cookieName]?.let { cookie.fieldId to it } }
@@ -546,7 +562,10 @@ class ConnectNetworkViewModel(
                     val name = (client.state.value as? OnDeviceMessengerState.Connected)?.accountName
                     _state.update { it.copy(phase = ConnectPhase.Connected(name), isSubmitting = false) }
                 }
-                is Result.Failure -> _state.update { it.copy(isSubmitting = false, error = result.error.toUiText()) }
+                is Result.Failure -> {
+                    rejectedCookies = cookiesByName
+                    _state.update { it.copy(isSubmitting = false, error = result.error.toUiText()) }
+                }
             }
         }
     }

@@ -79,6 +79,33 @@ func (m *Messenger) handleE2EEEvent(rawEvt any) {
 		m.emitState("encrypted_connected", "")
 	case *events.Disconnected:
 		m.emitState("encrypted_disconnected", "")
+	case *events.LoggedOut:
+		// Meta removed this encrypted-chat device (e.g. its Messenger session ended and the user logged in again);
+		// whatsmeow has deleted it, so register a new one
+		go m.reregisterE2EE()
+	}
+}
+
+// reregisterE2EE sets encrypted chats up again with a new device, once per connection (so a device that keeps
+// being refused doesn't loop).
+func (m *Messenger) reregisterE2EE() {
+	m.lock.Lock()
+	ctx := m.connectCtx
+	if m.reregisteredE2EE || ctx == nil || ctx.Err() != nil {
+		m.lock.Unlock()
+		return
+	}
+	m.reregisteredE2EE = true
+	old := m.e2ee
+	m.e2ee = nil
+	m.lock.Unlock()
+	if old != nil {
+		old.Disconnect()
+	}
+	m.log.Info().Msg("Encrypted chat device was logged out, registering a new one")
+	if err := m.connectE2EE(ctx); err != nil {
+		m.log.Err(err).Msg("Encrypted chats unavailable after re-registering")
+		m.emitState("encrypted_error", err.Error())
 	}
 }
 

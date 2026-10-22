@@ -14,6 +14,8 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
@@ -30,6 +32,9 @@ actual fun CookieCaptureWebView(
 ) {
     val currentOnCookiesCaptured by rememberUpdatedState(onCookiesCaptured)
     val webViewHolder = remember { arrayOfNulls<WebView>(1) }
+    // Cookies left from an earlier login (e.g. one that has since expired) would be captured before the user logs
+    // in, so each login starts from a clean slate; the app keeps its own copy of every login, not the web view
+    var isCleared by remember { mutableStateOf(false) }
 
     AndroidView(
         factory = { context ->
@@ -56,7 +61,11 @@ actual fun CookieCaptureWebView(
                         view.postDelayed({ zoomToForm(view) }, FOCUS_DELAY_MILLIS)
                     }
                 }
-                loadUrl(url)
+                CookieManager.getInstance().removeAllCookies {
+                    CookieManager.getInstance().flush()
+                    isCleared = true
+                    loadUrl(url)
+                }
             }
         },
         onRelease = {
@@ -66,7 +75,17 @@ actual fun CookieCaptureWebView(
         modifier = modifier,
     )
 
-    LaunchedEffect(url, cookieNames) {
+    // Re-zoom when what to act on changes (the cookie notice closes, the page moves to the next login step)
+    LaunchedEffect(isCleared) {
+        if (!isCleared) return@LaunchedEffect
+        while (true) {
+            delay(REFOCUS_INTERVAL_MILLIS)
+            webViewHolder[0]?.let(::zoomToForm)
+        }
+    }
+
+    LaunchedEffect(url, cookieNames, isCleared) {
+        if (!isCleared) return@LaunchedEffect
         while (true) {
             val extracted = extractScript?.let { script -> webViewHolder[0]?.let { evaluate(it, script) } }
             val cookies = parseCookieHeader(CookieManager.getInstance().getCookie(url)) + parseExtractedValues(extracted)
@@ -101,8 +120,9 @@ private fun zoomToForm(webView: WebView) {
         val width = json.optDouble("width", 0.0)
         val viewportWidth = json.optDouble("viewportWidth", 0.0)
         if (width <= 0.0 || viewportWidth <= 0.0) return@evaluateJavascript
-        val factor = (viewportWidth * FORM_WIDTH_SHARE / width).toFloat().coerceIn(1f, MAX_ZOOM_STEP)
-        if (factor > 1.05f) webView.zoomBy(factor)
+        // Relative to the current zoom: in to fit a small form, out to fit a wide dialog
+        val factor = (viewportWidth * FORM_WIDTH_SHARE / width).toFloat().coerceIn(1f / MAX_ZOOM_STEP, MAX_ZOOM_STEP)
+        if (factor > 1.05f || factor < 0.95f) webView.zoomBy(factor)
         webView.postDelayed({ webView.evaluateJavascript(CENTER_FORM_SCRIPT, null) }, FOCUS_DELAY_MILLIS)
     }
 }

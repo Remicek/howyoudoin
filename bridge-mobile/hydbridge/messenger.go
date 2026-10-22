@@ -50,6 +50,9 @@ type Messenger struct {
 	deviceStore *sqlstore.Container
 	device      *store.Device
 	e2ee        *whatsmeow.Client
+	// The connection's context, for setting up encrypted chats again; and whether that was already done once
+	connectCtx       context.Context
+	reregisteredE2EE bool
 }
 
 // NewMessenger takes the messenger.com session cookies as a JSON object (name → value; xs, c_user and datr are
@@ -82,6 +85,8 @@ func (m *Messenger) Connect() error {
 	ctx, cancel := context.WithCancel(context.Background())
 	ctx = m.log.WithContext(ctx)
 	m.cancel = cancel
+	m.connectCtx = ctx
+	m.reregisteredE2EE = false
 	m.lock.Unlock()
 
 	user, initial, err := m.client.LoadMessagesPage(ctx)

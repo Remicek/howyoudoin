@@ -19,6 +19,11 @@ import platform.WebKit.WKNavigation
 import platform.WebKit.WKNavigationDelegateProtocol
 import platform.WebKit.WKWebView
 import platform.WebKit.WKWebViewConfiguration
+import platform.WebKit.WKWebsiteDataStore
+import platform.Foundation.NSDate
+import platform.Foundation.dateWithTimeIntervalSince1970
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import platform.darwin.NSObject
 import platform.darwin.dispatch_after
 import platform.darwin.dispatch_get_main_queue
@@ -50,15 +55,33 @@ actual fun CookieCaptureWebView(
         }
     }
 
+    // Cookies left from an earlier login would be captured before the user logs in: start each login clean
+    var isCleared by remember { mutableStateOf(false) }
     UIKitView(
         factory = {
-            NSURL.URLWithString(url)?.let { webView.loadRequest(NSURLRequest.requestWithURL(it)) }
+            webView.configuration.websiteDataStore.removeDataOfTypes(
+                WKWebsiteDataStore.allWebsiteDataTypes(),
+                modifiedSince = NSDate.dateWithTimeIntervalSince1970(0.0)
+            ) {
+                isCleared = true
+                NSURL.URLWithString(url)?.let { webView.loadRequest(NSURLRequest.requestWithURL(it)) }
+            }
             webView
         },
         modifier = modifier,
     )
 
-    LaunchedEffect(url, cookieNames) {
+    // Re-zoom when what to act on changes (the cookie notice closes, the page moves to the next login step)
+    LaunchedEffect(isCleared) {
+        if (!isCleared) return@LaunchedEffect
+        while (true) {
+            delay(REFOCUS_INTERVAL_MILLIS)
+            zoomToForm(webView)
+        }
+    }
+
+    LaunchedEffect(url, cookieNames, isCleared) {
+        if (!isCleared) return@LaunchedEffect
         while (true) {
             val extracted = extractScript?.let { webView.evaluate(it) }
             val cookies = webView.cookiesFor(baseDomain) + parseExtractedValues(extracted)
@@ -106,9 +129,11 @@ private fun zoomToForm(webView: WKWebView) {
         val width = json.numberAfter("\"width\":") ?: return@evaluateJavaScript
         val viewportWidth = json.numberAfter("\"viewportWidth\":") ?: return@evaluateJavaScript
         if (width <= 0.0 || viewportWidth <= 0.0) return@evaluateJavaScript
-        val factor = (viewportWidth * FORM_WIDTH_SHARE / width).coerceIn(1.0, MAX_ZOOM_STEP.toDouble())
+        val factor = (viewportWidth * FORM_WIDTH_SHARE / width).coerceIn(1.0 / MAX_ZOOM_STEP, MAX_ZOOM_STEP.toDouble())
         val scrollView = webView.scrollView
-        val scale = if (factor > 1.05) (scrollView.zoomScale * factor).coerceAtMost(scrollView.maximumZoomScale) else scrollView.zoomScale
+        val scale = if (factor > 1.05 || factor < 0.95) {
+            (scrollView.zoomScale * factor).coerceIn(scrollView.minimumZoomScale, scrollView.maximumZoomScale)
+        } else scrollView.zoomScale
         // iOS zooms in further on a focused field whose text shows under 16pt, pushing the form off screen:
         // size the form's fields' text so it shows at 16pt at the new zoom. Relayout resets the zoom, so this goes first.
         val fontSize = ceil(IOS_FOCUS_ZOOM_FONT_SIZE / scale).toInt()
