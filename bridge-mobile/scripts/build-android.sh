@@ -30,7 +30,7 @@ export CGO_LDFLAGS="-L$STATIC_CXX -L$LIBSIGNAL_OUT"
 mkdir -p "$(dirname "$OUT")"
 cd "$MODULE_DIR"
 # arm64 covers current phones; add android/amd64 for emulators when needed
-gomobile bind -target=android/arm64 -androidapi 26 -javapkg com.devvalor.howyoudoing.bridge -ldflags="-s -w" -o "$OUT" ./hydbridge
+gomobile bind -target=android/arm64 -androidapi 26 -tags goolm -javapkg com.devvalor.howyoudoing.bridge -ldflags="-s -w" -o "$OUT" ./hydbridge
 echo "Built $OUT"
 
 # The license list shown in the app follows what was just linked

@@ -19,7 +19,9 @@ import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceSignal
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceSlack
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceTelegram
 import org.koin.core.qualifier.named
+import com.devvalor.howyoudoing.chat.data.matrix.MatrixAccountEncryption
 import com.devvalor.howyoudoing.chat.data.matrix.MatrixSyncEngine
+import com.devvalor.howyoudoing.chat.domain.MatrixEncryption
 import com.devvalor.howyoudoing.chat.domain.ChatRepository
 import com.devvalor.howyoudoing.chat.domain.NotificationPreferences
 import com.devvalor.howyoudoing.chat.domain.OpenChatTracker
@@ -64,8 +66,12 @@ val chatDataModule = module {
         OnDeviceMessengerStore(get<OnDeviceSlack>(), get(named(ON_DEVICE_SLACK_CACHE)), get(), OnDeviceMessengerStore.SLACK_CHAT_ID_PREFIX)
     }
     // The Matrix account connected as a network: a second sync engine on its own session
-    single(named(MATRIX_ACCOUNT_ENGINE)) { MatrixSyncEngine(get(), get(named(MATRIX_ACCOUNT_SESSION)), get(), acceptDirectInvites = true) }
+    single(named(MATRIX_ACCOUNT_ENGINE)) { MatrixSyncEngine(
+            get(), get(named(MATRIX_ACCOUNT_SESSION)), get(), acceptDirectInvites = true,
+            cryptoFactory = getOrNull(), mediaCache = getOrNull()
+        ) }
     single { MatrixAccountChats(MatrixChatRepository(get(named(MATRIX_ACCOUNT_ENGINE)))) }
+    single<MatrixEncryption> { MatrixAccountEncryption(get(named(MATRIX_ACCOUNT_ENGINE))) }
     single<CallManager>(createdAtStart = true) {
         MatrixCallManager(get<MatrixSyncEngine>(), get<MatrixSyncEngine>(named(MATRIX_ACCOUNT_ENGINE)), get(), get(), get())
     }

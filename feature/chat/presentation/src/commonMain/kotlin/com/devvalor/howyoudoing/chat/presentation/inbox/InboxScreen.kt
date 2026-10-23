@@ -19,6 +19,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.rounded.ErrorOutline
 import androidx.compose.material3.Surface
 import com.devvalor.howyoudoing.core.domain.ondevice.ConnectionProblem
@@ -88,7 +91,10 @@ fun InboxRoot(
 
     InboxScreen(
         state = state,
-        banner = { banner(state.encryptedNetworks) },
+        banner = {
+            banner(state.encryptedNetworks)
+            MatrixKeysBannerRoot(onNetworksClick = onNetworksClick)
+        },
         resolver = viewModel::resolveMedia,
         onAction = { action ->
             when (action) {
@@ -182,7 +188,10 @@ fun InboxScreen(
                     onRefresh = { onAction(InboxAction.OnRefresh) },
                     modifier = Modifier.fillMaxSize(),
                 ) {
+                    val listState = rememberLazyListState()
+                    StayAtTop(listState, topChatId = state.chats.firstOrNull()?.id)
                     LazyColumn(
+                        state = listState,
                         contentPadding = PaddingValues(bottom = HowYouDoinSpacing.lg),
                         modifier = Modifier.fillMaxSize(),
                     ) {
@@ -442,5 +451,20 @@ private fun EmptyInbox(isFiltered: Boolean, onNetworksClick: () -> Unit, onGuide
                 Text("How connecting works")
             }
         }
+    }
+}
+
+/**
+ * A list keeps showing the item it showed when others are added above it; for the inbox that hides new chats (and
+ * chats that load a moment later) above the screen. Whoever was at the top stays at the top.
+ */
+@Composable
+private fun StayAtTop(listState: LazyListState, topChatId: String?) {
+    var previousTopId by remember { mutableStateOf<String?>(null) }
+    LaunchedEffect(topChatId) {
+        val wasAtTop = listState.layoutInfo.visibleItemsInfo.firstOrNull()?.key == previousTopId &&
+            listState.firstVisibleItemScrollOffset == 0
+        if (previousTopId != null && wasAtTop) listState.scrollToItem(0)
+        previousTopId = topChatId
     }
 }

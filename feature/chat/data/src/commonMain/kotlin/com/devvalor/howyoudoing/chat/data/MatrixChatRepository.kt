@@ -85,7 +85,7 @@ class MatrixChatRepository(
         engine.setTyping(chatId, isTyping)
 
     override suspend fun resolveMedia(mxcUrl: String, thumbnail: Boolean): MediaRequest? =
-        engine.mediaRequest(mxcUrl, thumbnail)
+        engine.resolveMedia(mxcUrl, thumbnail)
 
     override suspend fun refresh() = engine.refresh()
 

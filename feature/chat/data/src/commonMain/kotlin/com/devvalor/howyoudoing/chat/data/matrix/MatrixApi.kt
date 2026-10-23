@@ -45,6 +45,20 @@ class MatrixApi(
         }
     }
 
+    /** Like [sync], but the raw response: encryption needs parts the DTOs leave out (to-device events, key counts). */
+    suspend fun syncRaw(
+        session: AuthInfo,
+        since: String?,
+        timeoutMillis: Long
+    ): Result<JsonObject, DataError.Remote> = safeCall {
+        httpClient.get {
+            endpoint(session, "sync")
+            parameter("timeout", timeoutMillis)
+            parameter("filter", SYNC_FILTER)
+            since?.let { parameter("since", it) }
+        }
+    }
+
     suspend fun messages(
         session: AuthInfo,
         roomId: String,

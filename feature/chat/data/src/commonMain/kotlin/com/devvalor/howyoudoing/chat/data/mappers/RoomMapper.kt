@@ -64,6 +64,7 @@ fun RoomCache.toMessages(myUserId: String): List<Message> {
     val confirmed = timeline
         .filter { it.relationType() != "m.replace" && it.eventId !in redacted }
         .mapNotNull { it.toMessage(roomId, myUserId, edits) }
+        .withoutRepeatedCallNotices()
     val byId = confirmed.associateBy { it.id }
 
     // Read state: the furthest timeline position anyone else (people, not bridge bots) has read
@@ -119,10 +120,12 @@ private fun MatrixEventDto.toMessage(
             "m.room.message" -> msgType() ?: return null // no msgtype means redacted
             "m.sticker" -> MessageType.STICKER
             "m.room.encrypted" -> MessageType.ENCRYPTED
+            // Someone started or joined an Element (MatrixRTC) call; leaving it has empty content
+            in ELEMENT_CALL_TYPES -> if (sender != myUserId && content.isNotEmpty()) MessageType.NOTICE else return null
             else -> return null
         }
     }
-    val rawBody = edits[id] ?: content.string("body").orEmpty()
+    val rawBody = if (type in ELEMENT_CALL_TYPES) ELEMENT_CALL_NOTICE else edits[id] ?: content.string("body").orEmpty()
     return Message(
         id = id,
         chatId = roomId,
@@ -139,7 +142,8 @@ private fun MatrixEventDto.toMessage(
 
 private fun MatrixEventDto.mediaInfo(type: MessageType): MediaInfo? {
     if (type !in MEDIA_TYPES) return null
-    val url = content.string("url") ?: return null
+    // Encrypted rooms carry the URL inside "file" (with the key to decrypt it)
+    val url = content.string("url") ?: content.obj("file")?.string("url") ?: return null
     val info = content.obj("info")
     return MediaInfo(
         url = url,
@@ -152,6 +156,27 @@ private fun MatrixEventDto.mediaInfo(type: MessageType): MediaInfo? {
         durationMillis = info?.string("duration")?.toLongOrNull()
     )
 }
+
+/** One call announces itself with several events (membership, ringing); show it once per person and minute. */
+private fun List<Message>.withoutRepeatedCallNotices(): List<Message> {
+    val lastNotice = mutableMapOf<String, Long>()
+    return filter { message ->
+        if (message.body != ELEMENT_CALL_NOTICE) return@filter true
+        val previous = lastNotice[message.senderId]
+        lastNotice[message.senderId] = message.timestamp
+        previous == null || message.timestamp - previous > CALL_NOTICE_WINDOW_MILLIS
+    }
+}
+
+private const val CALL_NOTICE_WINDOW_MILLIS = 60_000L
+
+/** Element's group calls (MatrixRTC): who's in the call, and its ringing notification. */
+private val ELEMENT_CALL_TYPES = setOf(
+    "org.matrix.msc3401.call.member", "m.call.member", "org.matrix.msc4075.rtc.notification", "m.rtc.notification"
+)
+
+private const val ELEMENT_CALL_NOTICE =
+    "📞 Started a call in Element. HowYouDoin can't join Element calls yet; call back with the call button above."
 
 private val MEDIA_TYPES = setOf(MessageType.IMAGE, MessageType.VIDEO, MessageType.AUDIO, MessageType.FILE, MessageType.STICKER)
 
@@ -241,8 +266,15 @@ private fun RoomCache.displayName(myUserId: String): String {
     stateEvent("m.room.name")?.content?.string("name")?.takeIf { it.isNotBlank() }?.let { return it }
     stateEvent("m.room.canonical_alias")?.content?.string("alias")?.takeIf { it.isNotBlank() }?.let { return it }
     val bots = bridgeBots()
-    val others = heroes.ifEmpty { joinedMembers() }.filter { it != myUserId && it !in bots }
-    return others.take(4).joinToString(", ") { memberName(it) }.ifBlank { "Empty chat" }
+    val others = heroes.ifEmpty { joinedMembers() }.filter { it != myUserId && it !in bots }.take(4)
+    val label = others.joinToString(", ") { memberName(it) }.ifBlank { return "Empty chat" }
+    // Named after people who haven't joined (yet): otherwise a fresh invite looks like the chat with them
+    val memberships = others.map { stateEvent(TYPE_MEMBER, it)?.content?.string("membership") }
+    return when {
+        memberships.all { it == "invite" } -> "$label (invited)"
+        memberships.all { it == "leave" || it == "ban" } -> "$label (left)"
+        else -> label
+    }
 }
 
 private fun RoomCache.network(): ChatNetwork {

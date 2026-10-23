@@ -2,7 +2,11 @@ package com.devvalor.howyoudoing.app.di
 
 import com.devvalor.howyoudoing.app.ondevice.AndroidDataDirectory
 import com.devvalor.howyoudoing.app.ondevice.AndroidMessengerFactory
+import com.devvalor.howyoudoing.app.ondevice.AndroidMatrixMediaCache
+import com.devvalor.howyoudoing.app.ondevice.GoMatrixCryptoFactory
 import com.devvalor.howyoudoing.app.ondevice.KeystoreSecretStore
+import com.devvalor.howyoudoing.chat.data.matrix.MatrixCryptoFactory
+import com.devvalor.howyoudoing.chat.data.matrix.MatrixMediaCache
 import com.devvalor.howyoudoing.app.ondevice.AndroidInboxCache
 import com.devvalor.howyoudoing.app.ondevice.NativeOnDeviceMessenger
 import com.devvalor.howyoudoing.app.ondevice.OnDeviceConnectionKeeper
@@ -116,6 +120,8 @@ actual val platformAppModule: Module = module {
         )
     }
     single { AndroidCallMediaEngine(androidContext()) } bind CallMediaEngine::class
+    single<MatrixCryptoFactory> { GoMatrixCryptoFactory(androidContext()) }
+    single<MatrixMediaCache> { AndroidMatrixMediaCache(androidContext()) }
     single(createdAtStart = true) { CallNotifier(androidContext(), get(), get()) }
     single(createdAtStart = true) { ConnectionProblemNotifier(androidContext(), get(), get()) }
     single<CallLauncher> { CallLauncher { chatId, video -> CallActivity.startCall(androidContext(), chatId, video) } }

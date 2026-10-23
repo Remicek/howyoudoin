@@ -18,7 +18,7 @@ build() { # slice sdk goarch clang-target
     CGO_ENABLED=1 GOOS=ios GOARCH="$goarch" \
         CC="$(xcrun --sdk "$sdk" -f clang) -isysroot $sysroot -target $target" \
         CGO_CFLAGS="-fembed-bitcode=off" \
-        go build -buildmode=c-archive -trimpath -ldflags="-s -w" -o "$OUT/$slice/libhydbridge.a" ./cmd/hydbridgec
+        go build -buildmode=c-archive -tags goolm -trimpath -ldflags="-s -w" -o "$OUT/$slice/libhydbridge.a" ./cmd/hydbridgec
     echo "Built $slice"
 }
 

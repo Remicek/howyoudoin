@@ -85,7 +85,7 @@ require (
 	golang.org/x/tools v0.52.0 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	maunium.net/go/mautrix v0.32.0 // indirect
+	maunium.net/go/mautrix v0.32.0
 )
 
 // The patched local checkout (see howyoudoin-api/patches); scripts/build-android.sh checks it exists.
