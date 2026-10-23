@@ -30,6 +30,12 @@ interface ChatRepository {
     suspend fun deleteMessage(chatId: String, messageId: String): EmptyResult<DataError.Remote> =
         Result.Failure(DataError.Remote.BAD_REQUEST)
 
+    /** Joins a chat the user was invited to ([Chat.isInvite]). */
+    suspend fun acceptInvite(chatId: String): EmptyResult<DataError.Remote> = Result.Failure(DataError.Remote.BAD_REQUEST)
+
+    /** Turns an invitation down. */
+    suspend fun declineInvite(chatId: String): EmptyResult<DataError.Remote> = Result.Failure(DataError.Remote.BAD_REQUEST)
+
     /** Sends a message that failed to send again (see [Message.canRetry]). */
     suspend fun retryMessage(chatId: String, messageId: String): EmptyResult<DataError.Remote> =
         Result.Failure(DataError.Remote.BAD_REQUEST)

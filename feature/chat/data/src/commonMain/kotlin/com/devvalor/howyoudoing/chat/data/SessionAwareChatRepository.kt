@@ -82,6 +82,10 @@ class SessionAwareChatRepository(
     override suspend fun markAsRead(chatId: String): EmptyResult<DataError.Remote> =
         current().markAsRead(chatId)
 
+    override suspend fun acceptInvite(chatId: String): EmptyResult<DataError.Remote> = current().acceptInvite(chatId)
+
+    override suspend fun declineInvite(chatId: String): EmptyResult<DataError.Remote> = current().declineInvite(chatId)
+
     override suspend fun retryMessage(chatId: String, messageId: String): EmptyResult<DataError.Remote> =
         current().retryMessage(chatId, messageId)
 

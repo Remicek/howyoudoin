@@ -30,7 +30,8 @@ import org.koin.dsl.module
 
 val chatDataModule = module {
     singleOf(::MatrixApi)
-    singleOf(::MatrixSyncEngine)
+    // Explicit: its constructor has a defaulted flag that singleOf would try to inject
+    single { MatrixSyncEngine(get(), get(), get()) }
     singleOf(::MatrixChatRepository)
     singleOf(::DemoChatRepository)
     singleOf(::LocalOnlyChatRepository)
@@ -63,7 +64,7 @@ val chatDataModule = module {
         OnDeviceMessengerStore(get<OnDeviceSlack>(), get(named(ON_DEVICE_SLACK_CACHE)), get(), OnDeviceMessengerStore.SLACK_CHAT_ID_PREFIX)
     }
     // The Matrix account connected as a network: a second sync engine on its own session
-    single(named(MATRIX_ACCOUNT_ENGINE)) { MatrixSyncEngine(get(), get(named(MATRIX_ACCOUNT_SESSION)), get()) }
+    single(named(MATRIX_ACCOUNT_ENGINE)) { MatrixSyncEngine(get(), get(named(MATRIX_ACCOUNT_SESSION)), get(), acceptDirectInvites = true) }
     single { MatrixAccountChats(MatrixChatRepository(get(named(MATRIX_ACCOUNT_ENGINE)))) }
     single<CallManager>(createdAtStart = true) {
         MatrixCallManager(get<MatrixSyncEngine>(), get<MatrixSyncEngine>(named(MATRIX_ACCOUNT_ENGINE)), get(), get(), get())

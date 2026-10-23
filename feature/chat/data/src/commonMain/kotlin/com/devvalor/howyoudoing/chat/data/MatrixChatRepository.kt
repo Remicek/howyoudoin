@@ -3,7 +3,9 @@ package com.devvalor.howyoudoing.chat.data
 import com.devvalor.howyoudoing.chat.data.mappers.toChat
 import com.devvalor.howyoudoing.chat.data.mappers.toMessages
 import com.devvalor.howyoudoing.chat.data.mappers.withSenderNames
+import com.devvalor.howyoudoing.chat.data.matrix.MatrixInvite
 import com.devvalor.howyoudoing.chat.data.matrix.MatrixSyncEngine
+import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
 import com.devvalor.howyoudoing.chat.domain.Attachment
 import com.devvalor.howyoudoing.chat.domain.Chat
 import com.devvalor.howyoudoing.chat.domain.ChatRepository
@@ -29,18 +31,25 @@ class MatrixChatRepository(
         engine.syncState.onStart { engine.ensureStarted() }
 
     override fun observeChats(): Flow<List<Chat>> =
-        combine(engine.rooms, engine.session) { rooms, session ->
+        combine(engine.rooms, engine.invites, engine.session) { rooms, invites, session ->
             val userId = session?.userId ?: return@combine emptyList()
-            rooms.values
-                .map { it.toChat(userId) }
+            (rooms.values.map { it.toChat(userId) } + invites.values.map { it.toChat() })
                 .sortedByDescending { it.lastActivity }
         }
             .onStart { engine.ensureStarted() }
             .flowOn(Dispatchers.Default)
 
     override fun observeChat(chatId: String): Flow<Chat?> =
-        combine(engine.rooms.map { it[chatId] }.distinctUntilChanged(), engine.session) { room, session ->
-            if (room == null || session == null) null else room.toChat(session.userId)
+        combine(
+            engine.rooms.map { it[chatId] }.distinctUntilChanged(),
+            engine.invites.map { it[chatId] }.distinctUntilChanged(),
+            engine.session
+        ) { room, invite, session ->
+            when {
+                session == null -> null
+                room != null -> room.toChat(session.userId)
+                else -> invite?.toChat()
+            }
         }
             .onStart { engine.ensureStarted() }
             .flowOn(Dispatchers.Default)
@@ -95,4 +104,22 @@ class MatrixChatRepository(
         engine.retryFailed(chatId, messageId)
 
     override suspend fun discardFailedMessage(chatId: String, messageId: String) = engine.discardFailed(chatId, messageId)
+
+    override suspend fun acceptInvite(chatId: String): EmptyResult<DataError.Remote> = engine.acceptInvite(chatId)
+
+    override suspend fun declineInvite(chatId: String): EmptyResult<DataError.Remote> = engine.declineInvite(chatId)
+
+    private fun MatrixInvite.toChat() = Chat(
+        id = roomId,
+        name = roomName ?: inviterName,
+        network = ChatNetwork.MATRIX,
+        lastMessage = Message(
+            id = "invite-$roomId", chatId = roomId, senderId = inviterId, senderName = "",
+            body = if (isDirect) "$inviterName wants to chat" else "$inviterName invited you", timestamp = timestamp,
+            isOutgoing = false
+        ),
+        unreadCount = 1,
+        isGroup = !isDirect,
+        isInvite = true
+    )
 }

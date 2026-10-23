@@ -16,6 +16,7 @@ import com.devvalor.howyoudoing.chat.presentation.model.toMessageUis
 import com.devvalor.howyoudoing.chat.presentation.model.typingText
 import com.devvalor.howyoudoing.chat.presentation.navigation.ChatRoutes
 import com.devvalor.howyoudoing.core.domain.util.onFailure
+import com.devvalor.howyoudoing.core.domain.util.onSuccess
 import com.devvalor.howyoudoing.core.presentation.util.UiText
 import com.devvalor.howyoudoing.core.presentation.util.toUiText
 import kotlinx.coroutines.Job
@@ -85,6 +86,8 @@ class ConversationViewModel(
             }
             ConversationAction.OnSendClick -> send()
             is ConversationAction.OnCallClick -> callLauncher.call(chatId, action.video)
+            ConversationAction.OnAcceptInviteClick -> answerInvite(accept = true)
+            ConversationAction.OnDeclineInviteClick -> answerInvite(accept = false)
             is ConversationAction.OnRetryClick -> {
                 _state.update { it.copy(actionsFor = null) }
                 viewModelScope.launch { chatRepository.retryMessage(chatId, action.messageId) }
@@ -153,6 +156,18 @@ class ConversationViewModel(
     suspend fun resolveMedia(mxcUrl: String, thumbnail: Boolean): MediaRequest? =
         chatRepository.resolveMedia(mxcUrl, thumbnail)
 
+    private fun answerInvite(accept: Boolean) {
+        if (_state.value.isAnsweringInvite) return
+        viewModelScope.launch {
+            _state.update { it.copy(isAnsweringInvite = true) }
+            val result = if (accept) chatRepository.acceptInvite(chatId) else chatRepository.declineInvite(chatId)
+            _state.update { it.copy(isAnsweringInvite = false) }
+            result
+                .onSuccess { if (!accept) eventChannel.send(ConversationEvent.Close) }
+                .onFailure { error -> eventChannel.send(ConversationEvent.Error(error.toUiText())) }
+        }
+    }
+
     private fun observeConversation() {
         combine(
             chatRepository.observeChat(chatId),
@@ -171,13 +186,14 @@ class ConversationViewModel(
                         isEncrypted = chat?.isEncrypted ?: it.isEncrypted,
                         isOnDevice = chat?.isOnDevice ?: it.isOnDevice,
                         canCall = chat?.let(callManager::canCall) ?: it.canCall,
+                        isInvite = chat?.isInvite ?: it.isInvite,
                         typingText = chat?.let { c -> typingText(c.typingNames, c.isGroup) },
                         messages = messages.toMessageUis(showSenderNames = chat?.isGroup == true),
                         hasMoreHistory = hasMore
                     ).let { updated -> if (updated.searchQuery != null) updated.withSearchMatches() else updated }
                 }
                 // Anything that arrives while the chat is open counts as read.
-                if ((chat?.unreadCount ?: 0) > 0) {
+                if ((chat?.unreadCount ?: 0) > 0 && chat?.isInvite != true) {
                     chatRepository.markAsRead(chatId)
                 }
             }

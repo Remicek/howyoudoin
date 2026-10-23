@@ -142,7 +142,7 @@ private fun ReplyBar(
         Spacer(Modifier.width(HowYouDoinSpacing.sm))
         Column(Modifier.weight(1f)) {
             Text(
-                label ?: if (message.isOutgoing) "Replying to yourself" else "Replying to ${message.senderName ?: chatName ?: "message"}",
+                label ?: if (message.isOutgoing) "Replying to yourself" else "Replying to ${message.senderName ?: message.authorName ?: chatName ?: "message"}",
                 style = MaterialTheme.typography.labelMedium,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.primary,

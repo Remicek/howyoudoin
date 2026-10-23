@@ -145,6 +145,16 @@ class MatrixApi(
         httpClient.get { endpoint(session, "voip", "turnServer") }
     }
 
+    suspend fun leaveRoom(
+        session: AuthInfo,
+        roomId: String
+    ): Result<JsonObject, DataError.Remote> = safeCall {
+        httpClient.post {
+            endpoint(session, "rooms", roomId, "leave")
+            setBody(JsonObject(emptyMap()))
+        }
+    }
+
     suspend fun download(url: String, headers: Map<String, String>): ByteArray? = runCatching {
         val response = httpClient.get(url) { headers.forEach { (name, value) -> header(name, value) } }
         if (response.status.value in 200..299) response.body<ByteArray>() else null

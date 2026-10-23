@@ -14,6 +14,9 @@ data class ConversationState(
     val isMuted: Boolean = false,
     /** A one-to-one Matrix chat: audio and video calls work here. */
     val canCall: Boolean = false,
+    /** An invitation not answered yet: Accept / Decline instead of the composer. */
+    val isInvite: Boolean = false,
+    val isAnsweringInvite: Boolean = false,
     val messages: List<MessageUi> = emptyList(),
     val draft: String = "",
     val isLoadingOlder: Boolean = false,

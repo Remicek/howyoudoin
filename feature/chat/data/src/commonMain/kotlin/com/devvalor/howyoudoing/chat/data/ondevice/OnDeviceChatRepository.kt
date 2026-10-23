@@ -221,6 +221,13 @@ class OnDeviceChatRepository(
         }
     }
 
+    // Only Matrix has invitations
+    override suspend fun acceptInvite(chatId: String): EmptyResult<DataError.Remote> =
+        if (matrixAccount.owns(chatId)) matrixAccount.acceptInvite(chatId) else server.acceptInvite(chatId)
+
+    override suspend fun declineInvite(chatId: String): EmptyResult<DataError.Remote> =
+        if (matrixAccount.owns(chatId)) matrixAccount.declineInvite(chatId) else server.declineInvite(chatId)
+
     override suspend fun retryMessage(chatId: String, messageId: String): EmptyResult<DataError.Remote> {
         if (matrixAccount.owns(chatId)) return matrixAccount.retryMessage(chatId, messageId)
         val route = route(chatId) ?: return server.retryMessage(chatId, messageId)

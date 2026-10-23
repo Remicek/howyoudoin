@@ -15,7 +15,9 @@ data class Chat(
     /** Display names of people typing right now. */
     val typingNames: List<String> = emptyList(),
     /** Connected from the phone itself (experimental on-device bridge), not through the server. */
-    val isOnDevice: Boolean = false
+    val isOnDevice: Boolean = false,
+    /** An invitation (Matrix) not accepted yet: the chat shows Accept / Decline instead of the composer. */
+    val isInvite: Boolean = false
 ) {
     /** Sort key for the inbox, newest activity first. */
     val lastActivity: Long get() = lastMessage?.timestamp ?: 0L

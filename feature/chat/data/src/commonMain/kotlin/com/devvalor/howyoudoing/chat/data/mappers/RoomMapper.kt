@@ -132,7 +132,8 @@ private fun MatrixEventDto.toMessage(
         timestamp = originServerTs ?: 0L,
         isOutgoing = sender == myUserId,
         type = messageType,
-        media = mediaInfo(messageType)
+        media = mediaInfo(messageType),
+        isEdited = id in edits
     )
 }
 

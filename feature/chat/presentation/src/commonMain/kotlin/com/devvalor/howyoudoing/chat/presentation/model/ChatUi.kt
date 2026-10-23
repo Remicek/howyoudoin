@@ -34,6 +34,8 @@ data class MessageUi(
     val isOutgoing: Boolean,
     val senderName: String?,
     val status: MessageStatus,
+    /** Who wrote it, even where [senderName] isn't shown (one-to-one chats): for "Replying to …". */
+    val authorName: String? = null,
     val type: MessageType,
     /** Set on the first message of each day, e.g. "Yesterday". */
     val dayHeader: String? = null,
@@ -83,6 +85,7 @@ fun List<Message>.toMessageUis(showSenderNames: Boolean): List<MessageUi> =
             isOutgoing = message.isOutgoing,
             senderName = message.senderName.takeIf { showSenderNames && startsRun && !message.isOutgoing },
             status = message.status,
+            authorName = message.senderName.takeIf { it.isNotBlank() },
             type = message.type,
             dayHeader = if (previous == null || !TimestampFormatter.isSameDay(previous.timestamp, message.timestamp)) {
                 TimestampFormatter.formatDayHeader(message.timestamp)

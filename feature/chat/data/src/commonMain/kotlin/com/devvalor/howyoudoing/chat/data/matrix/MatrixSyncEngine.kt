@@ -59,7 +59,12 @@ import kotlin.time.ExperimentalTime
 class MatrixSyncEngine(
     private val api: MatrixApi,
     private val sessionStorage: SessionStorage,
-    private val applicationScope: CoroutineScope
+    private val applicationScope: CoroutineScope,
+    /**
+     * Also accept direct-chat invites from people (the Matrix account connected as a network); the app's own
+     * server session only takes bridge invites.
+     */
+    private val acceptDirectInvites: Boolean = false
 ) : MatrixCallTransport {
 
     private val _rooms = MutableStateFlow<Map<String, RoomCache>>(emptyMap())
@@ -74,6 +79,10 @@ class MatrixSyncEngine(
     override val userId: String? get() = _session.value?.userId
 
     private val attemptedInvites = mutableSetOf<String>()
+
+    // Invitations waiting for the user (the ones not accepted automatically)
+    private val _invites = MutableStateFlow<Map<String, MatrixInvite>>(emptyMap())
+    val invites: StateFlow<Map<String, MatrixInvite>> = _invites.asStateFlow()
 
     // VoIP signalling (m.call.*) as it arrives; see MatrixCallManager
     private val _callEvents = MutableSharedFlow<MatrixCallEvent>(extraBufferCapacity = 256)
@@ -90,6 +99,7 @@ class MatrixSyncEngine(
                 .distinctUntilChanged()
                 .collectLatest { session ->
                     _rooms.value = emptyMap()
+                    _invites.value = emptyMap()
                     attemptedInvites.clear()
                     _session.value = session
                     if (session == null) {
@@ -175,7 +185,11 @@ class MatrixSyncEngine(
             }
             updated
         }
-        autoJoinBridgeInvites(session, rooms.invite)
+        _invites.update { current ->
+            val kept = if (isInitial) emptyMap() else current - rooms.join.keys - rooms.leave.keys
+            kept + rooms.invite.mapValues { (roomId, invite) -> invite.toInvite(roomId, session.userId) }
+        }
+        autoJoinInvites(session, rooms.invite)
     }
 
     /**
@@ -204,9 +218,10 @@ class MatrixSyncEngine(
 
     /**
      * Bridges create a portal room per chat and invite us. Without double puppeting those
-     * invites must be accepted by the client, so accept anything a bridge ghost/bot sends.
+     * invites must be accepted by the client, so accept anything a bridge ghost/bot sends; with
+     * [acceptDirectInvites], also people's direct-chat invites (group invites still aren't accepted).
      */
-    private suspend fun autoJoinBridgeInvites(session: AuthInfo, invites: Map<String, InvitedRoomDto>) {
+    private suspend fun autoJoinInvites(session: AuthInfo, invites: Map<String, InvitedRoomDto>) {
         invites.forEach { (roomId, invite) ->
             if (!attemptedInvites.add(roomId)) return@forEach
             val inviter = invite.inviteState?.events
@@ -214,10 +229,43 @@ class MatrixSyncEngine(
                 ?.takeIf { it.content.string("membership") == "invite" }
                 ?.sender
                 ?: return@forEach
-            if (ChatNetwork.fromUserId(inviter) != null) {
-                api.joinRoom(session, roomId)
+            val ownMembership = invite.inviteState?.events
+                ?.firstOrNull { it.type == "m.room.member" && it.stateKey == session.userId }
+            val isDirect = ownMembership?.content?.get("is_direct")?.let { it.toString() == "true" } == true
+            if (ChatNetwork.fromUserId(inviter) != null || (acceptDirectInvites && isDirect)) {
+                api.joinRoom(session, roomId).onSuccess { _invites.update { it - roomId } }
             }
         }
+    }
+
+    suspend fun acceptInvite(roomId: String): EmptyResult<DataError.Remote> {
+        val session = _session.value ?: return Result.Failure(DataError.Remote.UNAUTHORIZED)
+        return api.joinRoom(session, roomId)
+            .onSuccess { _invites.update { it - roomId } }
+            .asEmptyResult()
+    }
+
+    suspend fun declineInvite(roomId: String): EmptyResult<DataError.Remote> {
+        val session = _session.value ?: return Result.Failure(DataError.Remote.UNAUTHORIZED)
+        return api.leaveRoom(session, roomId)
+            .onSuccess { _invites.update { it - roomId } }
+            .asEmptyResult()
+    }
+
+    private fun InvitedRoomDto.toInvite(roomId: String, ownUserId: String): MatrixInvite {
+        val events = inviteState?.events.orEmpty()
+        val own = events.firstOrNull { it.type == "m.room.member" && it.stateKey == ownUserId }
+        val inviter = own?.sender.orEmpty()
+        val inviterName = events.firstOrNull { it.type == "m.room.member" && it.stateKey == inviter }
+            ?.content?.string("displayname")
+        return MatrixInvite(
+            roomId = roomId,
+            roomName = events.firstOrNull { it.type == "m.room.name" }?.content?.string("name"),
+            inviterId = inviter,
+            inviterName = inviterName ?: inviter,
+            timestamp = own?.originServerTs ?: now(),
+            isDirect = own?.content?.get("is_direct")?.toString() == "true"
+        )
     }
 
     suspend fun loadOlder(roomId: String): EmptyResult<DataError.Remote> {
@@ -430,3 +478,13 @@ interface MatrixCallTransport {
     suspend fun sendCallEvent(roomId: String, type: String, content: JsonObject): EmptyResult<DataError.Remote>
     suspend fun turnServer(): TurnServerDto?
 }
+
+/** An invitation to a room that the user hasn't answered yet. */
+data class MatrixInvite(
+    val roomId: String,
+    val roomName: String?,
+    val inviterId: String,
+    val inviterName: String,
+    val timestamp: Long,
+    val isDirect: Boolean
+)

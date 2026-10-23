@@ -49,6 +49,9 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.height
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Button
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
@@ -120,6 +123,7 @@ fun ConversationRoot(
                 snackbarHostState.showSnackbar("Copied")
             }
             is ConversationEvent.OpenFile -> openFile(event.bytes, event.fileName, event.mimeType)
+            ConversationEvent.Close -> onBack()
         }
     }
 
@@ -252,7 +256,13 @@ fun ConversationScreen(
                 onAction = onAction,
                 modifier = Modifier.weight(1f),
             )
-            Composer(
+            if (state.isInvite) {
+                InviteBar(
+                    isAnswering = state.isAnsweringInvite,
+                    onAccept = { onAction(ConversationAction.OnAcceptInviteClick) },
+                    onDecline = { onAction(ConversationAction.OnDeclineInviteClick) },
+                )
+            } else Composer(
                 draft = state.draft,
                 canSend = state.canSend,
                 replyingTo = state.replyingTo,
@@ -483,3 +493,17 @@ private fun MessageUi.canEdit(): Boolean =
 /** Our own sent messages can be deleted for everyone (not ones already unsent). */
 private fun MessageUi.canDelete(): Boolean =
     isOutgoing && type != MessageType.NOTICE && status == MessageStatus.SENT && !id.startsWith("pending-")
+
+@Composable
+private fun InviteBar(isAnswering: Boolean, onAccept: () -> Unit, onDecline: () -> Unit) {
+    Surface(tonalElevation = 2.dp, modifier = Modifier.fillMaxWidth()) {
+        Column(Modifier.navigationBarsPadding().padding(HowYouDoinSpacing.md)) {
+            Text("You were invited to this chat. Join it to see and send messages.", style = MaterialTheme.typography.bodyMedium)
+            Spacer(Modifier.height(HowYouDoinSpacing.sm))
+            Row(horizontalArrangement = Arrangement.spacedBy(HowYouDoinSpacing.sm), modifier = Modifier.fillMaxWidth()) {
+                OutlinedButton(onClick = onDecline, enabled = !isAnswering, modifier = Modifier.weight(1f)) { Text("Decline") }
+                Button(onClick = onAccept, enabled = !isAnswering, modifier = Modifier.weight(1f)) { Text("Accept") }
+            }
+        }
+    }
+}
