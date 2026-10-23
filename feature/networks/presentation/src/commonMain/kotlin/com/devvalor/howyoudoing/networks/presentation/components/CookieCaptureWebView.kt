@@ -24,6 +24,14 @@ expect fun CookieCaptureWebView(
 internal const val COOKIE_POLL_INTERVAL_MILLIS = 1_000L
 
 /**
+ * The web page to open instead of a link meant for an app, or null to stay put. After signing in, Slack hands the
+ * session to its desktop app ("slack://T…/magic-login/…"); its web client for that workspace is signed in too, and
+ * it's where the session token is read from.
+ */
+internal fun webFallbackFor(url: String): String? =
+    Regex("^slack://(T[A-Z0-9]+)/").find(url)?.let { "https://app.slack.com/client/${it.groupValues[1]}" }
+
+/**
  * Finds what the user has to act on on a login page: an open dialog (e.g. a cookie notice, which covers the rest),
  * else the form with a password field, another visible form, or a "Continue" button. Remembers it for
  * [CENTER_FORM_SCRIPT] and returns its width and the visible width as JSON; returns null while it's still the one

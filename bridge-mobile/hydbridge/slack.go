@@ -7,6 +7,9 @@ import (
 	"errors"
 	"fmt"
 	"html"
+	"io"
+	stdlog "log"
+	"net/url"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -67,11 +70,23 @@ func NewSlack(credentialsJSON string, dataDir string, listener Listener) (*Slack
 	if !strings.HasPrefix(creds.Token, "xoxc-") || creds.D == "" {
 		return nil, errors.New("missing the Slack token or cookie")
 	}
+	// A browser keeps the d cookie URL-encoded, and OptionCookie encodes it again: decode it first (like
+	// mautrix-slack's login does), or Slack sees a different cookie and answers invalid_auth
+	if decoded, err := url.QueryUnescape(creds.D); err == nil {
+		creds.D = decoded
+	}
 	if err := os.MkdirAll(dataDir, 0o700); err != nil {
 		return nil, err
 	}
 	log := zerolog.New(logWriter{}).With().Timestamp().Str("component", "slack").Logger().Level(zerolog.InfoLevel)
-	client := slack.New(creds.Token, slack.OptionCookie("d", creds.D), slack.OptionRetry(3))
+	client := slack.New(
+		creds.Token,
+		slack.OptionCookie("d", creds.D),
+		slack.OptionRetry(3),
+		// slack-go logs to stderr (logcat on Android) unconditionally, including the websocket reconnect URL,
+		// which carries a session token; errors reach us as return values and events anyway
+		slack.OptionLog(stdlog.New(io.Discard, "", 0)),
+	)
 	return &Slack{dataDir: dataDir, listener: listener, log: log, client: client}, nil
 }
 

@@ -423,10 +423,7 @@ private fun CookiesStep(
         // The bridge's own instructions are for clients that paste cookies by hand
         // ("Enter a JSON object with your cookies…"); here the web view collects them.
         Text(
-            "1. Enter your ${network.displayName} email or phone number and password, then tap Log in.\n" +
-                "2. If it then shows \"Continue as <your name>\", tap it. Finish any \"confirm it's you\" steps " +
-                "here too.\n" +
-                "HowYouDoin continues by itself once you're in. Pinch to zoom if the page looks small.",
+            cookieLoginInstructions(network),
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.padding(HowYouDoinSpacing.md),
         )
@@ -482,4 +479,17 @@ private fun Connected(
 private fun Instructions(text: String) {
     if (text.isBlank()) return
     Text(text, style = MaterialTheme.typography.bodyLarge)
+}
+
+/** What to do on the network's sign-in page; HowYouDoin takes over once the session exists. */
+private fun cookieLoginInstructions(network: ChatNetwork): String = when (network) {
+    ChatNetwork.SLACK ->
+        "1. Enter the email you use for Slack. Slack emails you a code; type it here.\n" +
+            "2. If Slack asks, pick your workspace. When it offers the Slack app, stay in the browser.\n" +
+            "HowYouDoin continues by itself once the workspace opens. Pinch to zoom if the page looks small."
+    else ->
+        "1. Enter your ${network.displayName} email or phone number and password, then tap Log in.\n" +
+            "2. If it then shows \"Continue as <your name>\", tap it. Finish any \"confirm it's you\" steps " +
+            "here too.\n" +
+            "HowYouDoin continues by itself once you're in. Pinch to zoom if the page looks small."
 }

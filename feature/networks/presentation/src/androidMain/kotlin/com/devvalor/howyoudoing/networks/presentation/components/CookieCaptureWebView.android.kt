@@ -5,6 +5,8 @@ import android.view.ViewGroup
 import android.webkit.CookieManager
 import org.json.JSONArray
 import org.json.JSONObject
+import android.webkit.WebResourceRequest
+import android.webkit.WebStorage
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.compose.runtime.Composable
@@ -51,16 +53,27 @@ actual fun CookieCaptureWebView(
                 settings.setSupportZoom(true)
                 settings.builtInZoomControls = true
                 settings.displayZoomControls = false
-                userAgent?.let { settings.userAgentString = it }
+                userAgent?.let { settings.userAgentString = withWebViewChromeVersion(it, settings.userAgentString) }
                 CookieManager.getInstance().setAcceptCookie(true)
                 CookieManager.getInstance().setAcceptThirdPartyCookies(this, true)
                 webViewClient = object : WebViewClient() {
+                    // Links only an app can open (slack://…) would end on an error page
+                    override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
+                        val target = request.url.toString()
+                        if (target.startsWith("https://") || target.startsWith("http://")) return false
+                        webFallbackFor(target)?.let(view::loadUrl)
+                        return true
+                    }
+
                     override fun onPageFinished(view: WebView, url: String?) {
                         // The desktop page shows small at overview zoom: zoom in on its login form
                         // (or the "Continue as …" prompt) once it has rendered
                         view.postDelayed({ zoomToForm(view) }, FOCUS_DELAY_MILLIS)
                     }
                 }
+                // A fresh login: an earlier one's page storage would hand over its stale token (Slack keeps it in
+                // localStorage), which then doesn't match the new session cookie
+                WebStorage.getInstance().deleteAllData()
                 CookieManager.getInstance().removeAllCookies {
                     CookieManager.getInstance().flush()
                     isCleared = true
@@ -125,4 +138,16 @@ private fun zoomToForm(webView: WebView) {
         if (factor > 1.05f || factor < 0.95f) webView.zoomBy(factor)
         webView.postDelayed({ webView.evaluateJavascript(CENTER_FORM_SCRIPT, null) }, FOCUS_DELAY_MILLIS)
     }
+}
+
+/**
+ * A requested (desktop) user agent with the Chrome version of this phone's WebView: a hard-coded version gets old,
+ * and sites like Slack then say the browser won't be supported.
+ */
+private fun withWebViewChromeVersion(userAgent: String, webViewUserAgent: String): String {
+    val chrome = Regex("Chrome/[0-9.]+")
+    val actual = chrome.find(webViewUserAgent)?.value ?: return userAgent
+    // Desktop Chrome reports only its major version ("Chrome/155.0.0.0")
+    val major = actual.substringAfter('/').substringBefore('.')
+    return userAgent.replace(chrome, "Chrome/$major.0.0.0")
 }
