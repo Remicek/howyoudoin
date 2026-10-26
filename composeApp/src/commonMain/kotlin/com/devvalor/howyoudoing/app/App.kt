@@ -15,6 +15,7 @@ import com.devvalor.howyoudoing.core.presentation.util.ObserveAsEvents
 import com.devvalor.howyoudoing.settings.presentation.lock.AppLockGate
 import com.devvalor.howyoudoing.settings.presentation.lock.AppLockOfferRoot
 import com.devvalor.howyoudoing.settings.presentation.navigation.SettingsRoutes
+import com.devvalor.howyoudoing.settings.presentation.appearance.AppearanceViewModel
 import org.koin.compose.viewmodel.koinViewModel
 import com.devvalor.howyoudoing.app.backup.BackupOfferRoot
 import com.devvalor.howyoudoing.app.backup.RestoreLoginsScreen
@@ -25,8 +26,10 @@ import com.devvalor.howyoudoing.networks.presentation.navigation.NetworksRoutes
 fun App(
     isDarkTheme: Boolean = isSystemInDarkTheme(),
     viewModel: MainViewModel = koinViewModel(),
-    restoreViewModel: RestoreLoginsViewModel = koinViewModel()
+    restoreViewModel: RestoreLoginsViewModel = koinViewModel(),
+    appearanceViewModel: AppearanceViewModel = koinViewModel()
 ) {
+    val themeVariant by appearanceViewModel.variant.collectAsStateWithLifecycle()
     val restore by restoreViewModel.state.collectAsStateWithLifecycle()
     val navController = rememberNavController()
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -58,7 +61,9 @@ fun App(
         }
     }
 
-    HowYouDoinTheme(darkTheme = isDarkTheme) {
+    // Nothing is drawn until the saved look is read, so it doesn't flash the default one first
+    val variant = themeVariant ?: return
+    HowYouDoinTheme(darkTheme = isDarkTheme, variant = variant) {
         // Logins found in the phone's backup are offered before anything else (a reinstall or a new phone)
         if (restore.isVisible) {
             RestoreLoginsScreen(

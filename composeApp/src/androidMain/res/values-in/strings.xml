@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="call_incoming_video">Panggilan video masuk</string>
+    <string name="call_incoming">Panggilan masuk</string>
+    <string name="call_decline">Tolak</string>
+    <string name="call_answer">Jawab</string>
+    <string name="channel_calls_ringing">Panggilan masuk</string>
+    <string name="channel_calls_ringing_desc">Panggilan Matrix yang berdering</string>
+    <string name="channel_calls_ongoing">Panggilan berlangsung</string>
+    <string name="channel_calls_ongoing_desc">Ditampilkan selama panggilan</string>
+    <string name="call_in_progress">Panggilan berlangsung</string>
+    <string name="call_return">Ketuk untuk kembali ke panggilan</string>
+    <string name="call_hang_up">Tutup</string>
+    <string name="call_needs_mic">Panggilan memerlukan mikrofon</string>
+    <string name="call_start_failed">Tidak dapat memulai panggilan</string>
+    <string name="call_answer_needs_mic">Menjawab memerlukan mikrofon</string>
+    <string name="call_video">Video</string>
+    <string name="call_mute">Bisukan</string>
+    <string name="call_speaker">Speaker</string>
+    <string name="call_camera">Kamera</string>
+    <string name="call_flip">Balik</string>
+    <string name="call_calling">Memanggil…</string>
+    <string name="call_connecting">Menghubungkan…</string>
+    <string name="call_declined">Ditolak</string>
+    <string name="call_missed">Panggilan tak terjawab</string>
+    <string name="call_no_answer">Tidak dijawab</string>
+    <string name="call_busy">Sibuk</string>
+    <string name="call_elsewhere">Dijawab di perangkat lain</string>
+    <string name="call_failed">Panggilan gagal</string>
+    <string name="call_ended">Panggilan berakhir</string>
+    <string name="crash_share">Bagikan laporan error</string>
+    <string name="channel_crash">Laporan error</string>
+    <string name="crash_title">HowYouDoin berhenti terakhir kali</string>
+    <string name="crash_text">Ketuk untuk membagikan laporan error</string>
+    <string name="bio_use_pin">Gunakan PIN</string>
+    <string name="channel_messages">Pesan</string>
+    <string name="channel_messages_desc">Pesan baru dari chat Anda</string>
+    <string name="channel_problems">Masalah koneksi</string>
+    <string name="channel_problems_desc">Saat jaringan yang terhubung berhenti berfungsi</string>
+    <string name="channel_connections">Koneksi di perangkat</string>
+    <string name="channel_connections_desc">Ditampilkan selama chat tersambung langsung dari ponsel ini</string>
+    <string name="connections_connecting">Menghubungkan…</string>
+    <string name="connections_connected">Tersambung di perangkat ini: %1$s</string>
+    <string name="connections_default">Tersambung di perangkat ini</string>
+</resources>

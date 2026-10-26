@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="backupoffer_back_up_your_logins">Deine Anmeldungen sichern?</string>
+    <string name="backupoffer_if_you_reinstall_howyoudoin_on">Wenn du HowYouDoin auf diesem Handy neu installierst, kommen deine Anmeldungen aus deiner Google-Sicherung zurück und du musst dich nicht bei jedem Netzwerk neu anmelden. Die Sicherung ist mit deiner Displaysperre Ende-zu-Ende-verschlüsselt; nichts wird an uns gesendet.\n\nWhatsApp und Signal müssen immer neu verknüpft werden.</string>
+    <string name="backupoffer_back_up">Sichern</string>
+    <string name="backupoffer_skip">Überspringen</string>
+    <string name="backupoffer_turn_on_google_backup">Google-Sicherung aktivieren</string>
+    <string name="backupoffer_your_logins_are_only_saved">Deine Anmeldungen werden nur gespeichert, wenn die Sicherung des Handys aktiviert ist:\n\n1. Öffne Einstellungen → Google → Sicherung (bei Samsung: Konten und Sicherung → Daten sichern).\n2. Aktiviere „Sicherung durch Google One“ und wähle dein Google-Konto.\n3. Behalte eine Displaysperre (PIN, Muster oder Passwort): Sicherungen werden damit verschlüsselt.\n\nWenn sie schon aktiviert ist, ist alles bereit. Das Handy sichert von selbst, meist nachts beim Laden.</string>
+    <string name="backupoffer_open_backup_settings">Sicherungseinstellungen öffnen</string>
+    <string name="backupoffer_done">Fertig</string>
+    <string name="restorelogins_welcome_back">Willkommen zurück</string>
+    <string name="restorelogins_your_phone_s_backup_has">Die Sicherung deines Handys enthält die Anmeldungen, die du vorher genutzt hast. Wieder verbinden, damit du dich nicht neu anmelden musst?</string>
+    <string name="restorelogins_continue">Weiter</string>
+    <string name="restorelogins_reconnect">Wieder verbinden</string>
+    <string name="restorelogins_don_t_restore">Nicht wiederherstellen</string>
+    <string name="restorelogins_not_now">Nicht jetzt</string>
+    <string name="restore_failed">Diese konnten nicht wieder verbunden werden; verbinde sie unter Netzwerke erneut: %1$s</string>
+    <string name="restore_relink">%1$s können nicht aus einer Sicherung zurückkommen (ihre Verschlüsselungsschlüssel bleiben auf deinem Handy). Verknüpfe sie unter Netzwerke neu.</string>
+    <string name="notification_new_message">Neue Nachricht</string>
+</resources>

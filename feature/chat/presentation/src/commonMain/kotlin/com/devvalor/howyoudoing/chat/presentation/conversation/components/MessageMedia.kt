@@ -1,5 +1,13 @@
 package com.devvalor.howyoudoing.chat.presentation.conversation.components
 
+import howyoudoin.feature.chat.presentation.generated.resources.media_photo
+import howyoudoin.feature.chat.presentation.generated.resources.media_video
+import howyoudoin.feature.chat.presentation.generated.resources.media_audio
+import howyoudoin.feature.chat.presentation.generated.resources.media_file
+import howyoudoin.feature.chat.presentation.generated.resources.media_tap_to_open
+import howyoudoin.feature.chat.presentation.generated.resources.Res
+import org.jetbrains.compose.resources.stringResource
+import howyoudoin.feature.chat.presentation.generated.resources.messagemedia_sticker
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxSize
@@ -133,7 +141,7 @@ fun MessageMedia(
             mxcUrl = media.url,
             resolver = resolver,
             thumbnail = true,
-            contentDescription = "Sticker",
+            contentDescription = stringResource(Res.string.messagemedia_sticker),
             contentScale = ContentScale.Fit,
             placeholderColor = Color.Transparent,
             modifier = Modifier.size(STICKER_SIZE).clickable(onClick = onClick),
@@ -148,7 +156,7 @@ fun MessageMedia(
                 mxcUrl = media.url,
                 resolver = resolver,
                 thumbnail = true,
-                contentDescription = media.fileName ?: "Photo",
+                contentDescription = media.fileName ?: stringResource(Res.string.media_photo),
                 modifier = Modifier
                     .widthIn(max = 260.dp)
                     .fillMaxWidth()
@@ -191,9 +199,9 @@ private fun FileCard(type: MessageType, media: MediaInfo, onClick: () -> Unit, c
         Column {
             Text(
                 media.fileName ?: when (type) {
-                    MessageType.VIDEO -> "Video"
-                    MessageType.AUDIO -> "Audio"
-                    else -> "File"
+                    MessageType.VIDEO -> stringResource(Res.string.media_video)
+                    MessageType.AUDIO -> stringResource(Res.string.media_audio)
+                    else -> stringResource(Res.string.media_file)
                 },
                 color = contentColor,
                 style = MaterialTheme.typography.bodyMedium,
@@ -201,7 +209,7 @@ private fun FileCard(type: MessageType, media: MediaInfo, onClick: () -> Unit, c
                 overflow = TextOverflow.Ellipsis,
             )
             Text(
-                listOfNotNull(media.sizeBytes?.let(::formatSize), media.durationMillis?.let(::formatDuration), "Tap to open")
+                listOfNotNull(media.sizeBytes?.let(::formatSize), media.durationMillis?.let(::formatDuration), stringResource(Res.string.media_tap_to_open))
                     .joinToString(" · "),
                 color = contentColor.copy(alpha = 0.7f),
                 style = MaterialTheme.typography.labelSmall,

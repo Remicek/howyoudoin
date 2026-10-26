@@ -14,4 +14,35 @@
     <string name="error_server">Oops, a server-side error happened</string>
     <string name="error_service_unavailable">Service unavailable, please try again later</string>
     <string name="error_serialization">Serialization error</string>
+    <string name="day_today">Today</string>
+    <string name="day_yesterday">Yesterday</string>
+    <string name="weekday_1">Monday</string>
+    <string name="weekday_2">Tuesday</string>
+    <string name="weekday_3">Wednesday</string>
+    <string name="weekday_4">Thursday</string>
+    <string name="weekday_5">Friday</string>
+    <string name="weekday_6">Saturday</string>
+    <string name="weekday_7">Sunday</string>
+    <string name="weekday_short_1">Mon</string>
+    <string name="weekday_short_2">Tue</string>
+    <string name="weekday_short_3">Wed</string>
+    <string name="weekday_short_4">Thu</string>
+    <string name="weekday_short_5">Fri</string>
+    <string name="weekday_short_6">Sat</string>
+    <string name="weekday_short_7">Sun</string>
+    <!-- Month names as used inside date_long (use the genitive where the language needs it) -->
+    <string name="month_1">January</string>
+    <string name="month_2">February</string>
+    <string name="month_3">March</string>
+    <string name="month_4">April</string>
+    <string name="month_5">May</string>
+    <string name="month_6">June</string>
+    <string name="month_7">July</string>
+    <string name="month_8">August</string>
+    <string name="month_9">September</string>
+    <string name="month_10">October</string>
+    <string name="month_11">November</string>
+    <string name="month_12">December</string>
+    <!-- %1$d day, %2$s month name, %3$d year -->
+    <string name="date_long">%1$d %2$s %3$d</string>
 </resources>

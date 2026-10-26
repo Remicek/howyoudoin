@@ -1,5 +1,6 @@
 package com.devvalor.howyoudoing.app.settings
 
+import com.devvalor.howyoudoing.app.R
 import android.content.Context
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG
@@ -79,7 +80,7 @@ class AndroidBiometricAuthenticator(private val context: Context) : BiometricAut
                 BiometricPrompt.PromptInfo.Builder()
                     .setTitle(title)
                     .setSubtitle(subtitle)
-                    .setNegativeButtonText("Use PIN")
+                    .setNegativeButtonText(context.getString(R.string.bio_use_pin))
                     .setAllowedAuthenticators(BIOMETRIC_STRONG or BIOMETRIC_WEAK)
                     .build()
             )

@@ -1,5 +1,23 @@
 package com.devvalor.howyoudoing.auth.presentation.login
 
+import howyoudoin.feature.auth.presentation.generated.resources.Res
+import howyoudoin.feature.auth.presentation.generated.resources.login_demo
+import howyoudoin.feature.auth.presentation.generated.resources.login_get_started
+import howyoudoin.feature.auth.presentation.generated.resources.login_hide_password
+import howyoudoin.feature.auth.presentation.generated.resources.login_homeserver
+import howyoudoin.feature.auth.presentation.generated.resources.login_password
+import howyoudoin.feature.auth.presentation.generated.resources.login_server_intro
+import howyoudoin.feature.auth.presentation.generated.resources.login_show_password
+import howyoudoin.feature.auth.presentation.generated.resources.login_sign_in_server
+import howyoudoin.feature.auth.presentation.generated.resources.login_tagline
+import howyoudoin.feature.auth.presentation.generated.resources.login_username
+import howyoudoin.feature.auth.presentation.generated.resources.privacy_direct_text
+import howyoudoin.feature.auth.presentation.generated.resources.privacy_direct_title
+import howyoudoin.feature.auth.presentation.generated.resources.privacy_no_servers_text
+import howyoudoin.feature.auth.presentation.generated.resources.privacy_no_servers_title
+import howyoudoin.feature.auth.presentation.generated.resources.privacy_on_phone_text
+import howyoudoin.feature.auth.presentation.generated.resources.privacy_on_phone_title
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,10 +35,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.CloudOff
 import androidx.compose.material.icons.rounded.Dns
 import androidx.compose.material.icons.rounded.Forum
 import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material.icons.rounded.Person
+import androidx.compose.material.icons.rounded.PhoneAndroid
+import androidx.compose.material.icons.rounded.SwapHoriz
 import androidx.compose.material.icons.rounded.Visibility
 import androidx.compose.material.icons.rounded.VisibilityOff
 import androidx.compose.material3.Button
@@ -107,7 +128,7 @@ fun LoginScreen(
             Text("HowYouDoin", style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(HowYouDoinSpacing.xs))
             Text(
-                "All your chats in one inbox",
+                stringResource(Res.string.login_tagline),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -125,22 +146,17 @@ fun LoginScreen(
                 enabled = !state.isLoggingIn,
                 modifier = Modifier.fillMaxWidth().height(52.dp),
             ) {
-                Text("Get started on this phone", style = MaterialTheme.typography.titleMedium)
+                Text(stringResource(Res.string.login_get_started), style = MaterialTheme.typography.titleMedium)
             }
-            Spacer(Modifier.height(HowYouDoinSpacing.xs))
-            Text(
-                "Connect WhatsApp, Messenger and Instagram right here. No server or account needed.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
-            )
+            Spacer(Modifier.height(HowYouDoinSpacing.md))
+            PrivacyCard()
 
             Spacer(Modifier.height(HowYouDoinSpacing.xl))
             HorizontalDivider()
             Spacer(Modifier.height(HowYouDoinSpacing.lg))
 
             Text(
-                "Or sign in to your own Matrix homeserver with bridges.",
+                stringResource(Res.string.login_server_intro),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
@@ -150,7 +166,7 @@ fun LoginScreen(
             LoginField(
                 value = state.homeserver,
                 onValueChange = { onAction(LoginAction.OnHomeserverChange(it)) },
-                label = "Homeserver",
+                label = stringResource(Res.string.login_homeserver),
                 placeholder = "matrix.example.com",
                 icon = Icons.Rounded.Dns,
                 keyboardType = KeyboardType.Uri,
@@ -159,7 +175,7 @@ fun LoginScreen(
             LoginField(
                 value = state.username,
                 onValueChange = { onAction(LoginAction.OnUsernameChange(it)) },
-                label = "Username",
+                label = stringResource(Res.string.login_username),
                 placeholder = "@you:example.com",
                 icon = Icons.Rounded.Person,
             )
@@ -167,7 +183,7 @@ fun LoginScreen(
             LoginField(
                 value = state.password,
                 onValueChange = { onAction(LoginAction.OnPasswordChange(it)) },
-                label = "Password",
+                label = stringResource(Res.string.login_password),
                 placeholder = "",
                 icon = Icons.Rounded.Lock,
                 keyboardType = KeyboardType.Password,
@@ -177,7 +193,7 @@ fun LoginScreen(
                     IconButton(onClick = { onAction(LoginAction.OnTogglePasswordVisibility) }) {
                         Icon(
                             if (state.isPasswordVisible) Icons.Rounded.VisibilityOff else Icons.Rounded.Visibility,
-                            contentDescription = if (state.isPasswordVisible) "Hide password" else "Show password",
+                            contentDescription = if (state.isPasswordVisible) stringResource(Res.string.login_hide_password) else stringResource(Res.string.login_show_password),
                         )
                     }
                 },
@@ -207,7 +223,7 @@ fun LoginScreen(
                         strokeWidth = 2.dp,
                     )
                 } else {
-                    Text("Sign in to server", style = MaterialTheme.typography.titleMedium)
+                    Text(stringResource(Res.string.login_sign_in_server), style = MaterialTheme.typography.titleMedium)
                 }
             }
             Spacer(Modifier.height(HowYouDoinSpacing.sm))
@@ -216,7 +232,7 @@ fun LoginScreen(
                 enabled = !state.isLoggingIn,
                 modifier = Modifier.fillMaxWidth().height(52.dp),
             ) {
-                Text("Try demo mode", style = MaterialTheme.typography.titleMedium)
+                Text(stringResource(Res.string.login_demo), style = MaterialTheme.typography.titleMedium)
             }
             Spacer(Modifier.height(HowYouDoinSpacing.lg))
         }
@@ -248,4 +264,43 @@ private fun LoginField(
         shape = MaterialTheme.shapes.medium,
         modifier = Modifier.fillMaxWidth(),
     )
+}
+
+/** What "no servers of ours" means, in plain words, before anything is connected. */
+@Composable
+private fun PrivacyCard() {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(HowYouDoinSpacing.sm),
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surfaceContainerLow, MaterialTheme.shapes.large)
+            .padding(HowYouDoinSpacing.md),
+    ) {
+        PrivacyPoint(
+            Icons.Rounded.PhoneAndroid,
+            stringResource(Res.string.privacy_on_phone_title),
+            stringResource(Res.string.privacy_on_phone_text),
+        )
+        PrivacyPoint(
+            Icons.Rounded.SwapHoriz,
+            stringResource(Res.string.privacy_direct_title),
+            stringResource(Res.string.privacy_direct_text),
+        )
+        PrivacyPoint(
+            Icons.Rounded.CloudOff,
+            stringResource(Res.string.privacy_no_servers_title),
+            stringResource(Res.string.privacy_no_servers_text),
+        )
+    }
+}
+
+@Composable
+private fun PrivacyPoint(icon: ImageVector, title: String, text: String) {
+    Row(horizontalArrangement = Arrangement.spacedBy(HowYouDoinSpacing.sm)) {
+        Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(22.dp))
+        Column {
+            Text(title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+            Text(text, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+    }
 }

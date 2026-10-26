@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="login_tagline">Tüm sohbetleriniz tek bir gelen kutusunda</string>
+    <string name="login_get_started">Bu telefonda başla</string>
+    <string name="login_server_intro">Ya da köprülü kendi Matrix sunucunuza giriş yapın.</string>
+    <string name="login_homeserver">Ana sunucu</string>
+    <string name="login_username">Kullanıcı adı</string>
+    <string name="login_password">Şifre</string>
+    <string name="login_hide_password">Şifreyi gizle</string>
+    <string name="login_show_password">Şifreyi göster</string>
+    <string name="login_sign_in_server">Sunucuya giriş yap</string>
+    <string name="login_demo">Demo modunu dene</string>
+    <string name="privacy_on_phone_title">Sohbetleriniz telefonunuzda kalır</string>
+    <string name="privacy_on_phone_text">Mesajlar, kişiler ve girişler yalnızca bu telefonda saklanır.</string>
+    <string name="privacy_direct_title">Doğrudan WhatsApp, Messenger ve diğerlerine</string>
+    <string name="privacy_direct_text">Uygulama yalnızca bağladığınız ağlarla, onların kendi uygulamaları gibi konuşur.</string>
+    <string name="privacy_no_servers_title">HowYouDoin sunucusu yok</string>
+    <string name="privacy_no_servers_text">Sunucumuz da hesabımız da yok. Mesajlarınızı veya verilerinizi asla görmez, saklamaz ya da satmayız.</string>
+</resources>

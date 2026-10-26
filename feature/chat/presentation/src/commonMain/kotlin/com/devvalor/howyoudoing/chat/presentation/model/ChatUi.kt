@@ -9,19 +9,37 @@ import com.devvalor.howyoudoing.chat.domain.Reaction
 import com.devvalor.howyoudoing.chat.domain.ReplyPreview
 import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
 import com.devvalor.howyoudoing.core.presentation.util.TimestampFormatter
+import com.devvalor.howyoudoing.core.presentation.util.UiText
+import com.devvalor.howyoudoing.core.presentation.util.asUiText
+import howyoudoin.feature.chat.presentation.generated.resources.Res
+import howyoudoin.feature.chat.presentation.generated.resources.chat_encrypted_empty
+import howyoudoin.feature.chat.presentation.generated.resources.preview_you
+import howyoudoin.feature.chat.presentation.generated.resources.preview_sender
+import howyoudoin.feature.chat.presentation.generated.resources.type_photo
+import howyoudoin.feature.chat.presentation.generated.resources.type_video
+import howyoudoin.feature.chat.presentation.generated.resources.type_voice
+import howyoudoin.feature.chat.presentation.generated.resources.type_file
+import howyoudoin.feature.chat.presentation.generated.resources.type_file_named
+import howyoudoin.feature.chat.presentation.generated.resources.type_sticker
+import howyoudoin.feature.chat.presentation.generated.resources.type_encrypted
+import howyoudoin.feature.chat.presentation.generated.resources.type_unsupported
+import howyoudoin.feature.chat.presentation.generated.resources.type_unsupported_short
+import howyoudoin.feature.chat.presentation.generated.resources.typing_one_to_one
+import howyoudoin.feature.chat.presentation.generated.resources.typing_one
+import howyoudoin.feature.chat.presentation.generated.resources.typing_many
 
 data class ChatUi(
     val id: String,
     val name: String,
     val network: ChatNetwork,
-    val preview: String,
-    val timestamp: String,
+    val preview: UiText,
+    val timestamp: UiText,
     val unreadCount: Int,
     val isGroup: Boolean,
     val isEncrypted: Boolean = false,
     val isOnDevice: Boolean = false,
     /** "Anna is typing…" replaces the preview while someone types. */
-    val typingText: String? = null,
+    val typingText: UiText? = null,
     val avatarUrl: String? = null,
     /** No notifications for this chat. */
     val isMuted: Boolean = false
@@ -29,7 +47,7 @@ data class ChatUi(
 
 data class MessageUi(
     val id: String,
-    val body: String,
+    val body: UiText,
     val time: String,
     val isOutgoing: Boolean,
     val senderName: String?,
@@ -38,9 +56,9 @@ data class MessageUi(
     val authorName: String? = null,
     val type: MessageType,
     /** Set on the first message of each day, e.g. "Yesterday". */
-    val dayHeader: String? = null,
+    val dayHeader: UiText? = null,
     /** Plain text for copying / quoting (no media placeholders). */
-    val text: String = body,
+    val text: String = "",
     val replyTo: ReplyPreview? = null,
     val reactions: List<Reaction> = emptyList(),
     val media: MediaInfo? = null,
@@ -49,11 +67,11 @@ data class MessageUi(
     val canRetry: Boolean = false
 )
 
-fun typingText(names: List<String>, isGroup: Boolean): String? = when {
+fun typingText(names: List<String>, isGroup: Boolean): UiText? = when {
     names.isEmpty() -> null
-    !isGroup -> "typing…"
-    names.size == 1 -> "${names.first().substringBefore(" ")} is typing…"
-    else -> "${names.size} people are typing…"
+    !isGroup -> UiText.Resource(Res.string.typing_one_to_one)
+    names.size == 1 -> UiText.Resource(Res.string.typing_one, arrayOf(names.first().substringBefore(" ")))
+    else -> UiText.Plural(Res.plurals.typing_many, names.size)
 }
 
 fun Chat.toChatUi(): ChatUi = ChatUi(
@@ -61,8 +79,8 @@ fun Chat.toChatUi(): ChatUi = ChatUi(
     name = name,
     network = network,
     preview = lastMessage?.previewText(isGroup)
-        ?: if (isEncrypted) "Encrypted chat · new messages will appear here" else "",
-    timestamp = lastMessage?.let { TimestampFormatter.formatChatTimestamp(it.timestamp) }.orEmpty(),
+        ?: if (isEncrypted) UiText.Resource(Res.string.chat_encrypted_empty) else "".asUiText(),
+    timestamp = lastMessage?.let { TimestampFormatter.formatChatTimestamp(it.timestamp) } ?: "".asUiText(),
     unreadCount = unreadCount,
     isGroup = isGroup,
     isEncrypted = isEncrypted,
@@ -100,24 +118,21 @@ fun List<Message>.toMessageUis(showSenderNames: Boolean): List<MessageUi> =
         )
     }
 
-private fun Message.previewText(isGroup: Boolean): String {
-    val prefix = when {
-        isOutgoing -> "You: "
-        isGroup && senderName.isNotBlank() -> "${senderName.substringBefore(" ")}: "
-        else -> ""
-    }
-    return prefix + displayBody()
+private fun Message.previewText(isGroup: Boolean): UiText = when {
+    isOutgoing -> UiText.Resource(Res.string.preview_you, arrayOf(displayBody()))
+    isGroup && senderName.isNotBlank() -> UiText.Resource(Res.string.preview_sender, arrayOf(senderName.substringBefore(" "), displayBody()))
+    else -> displayBody()
 }
 
-private fun Message.displayBody(): String = when (type) {
-    MessageType.TEXT, MessageType.NOTICE -> body
-    MessageType.EMOTE -> "* $body"
-    MessageType.IMAGE -> "📷 Photo"
-    MessageType.VIDEO -> "🎬 Video"
-    MessageType.AUDIO -> "🎤 Voice message"
-    MessageType.FILE -> "📎 ${body.ifBlank { "File" }}"
-    MessageType.STICKER -> "Sticker"
-    MessageType.ENCRYPTED -> "🔒 Encrypted message"
-    MessageType.UNSUPPORTED -> "⚠️ This message type isn't supported yet"
-    MessageType.OTHER -> body.ifBlank { "Unsupported message" }
+private fun Message.displayBody(): UiText = when (type) {
+    MessageType.TEXT, MessageType.NOTICE -> body.asUiText()
+    MessageType.EMOTE -> "* $body".asUiText()
+    MessageType.IMAGE -> UiText.Resource(Res.string.type_photo)
+    MessageType.VIDEO -> UiText.Resource(Res.string.type_video)
+    MessageType.AUDIO -> UiText.Resource(Res.string.type_voice)
+    MessageType.FILE -> if (body.isBlank()) UiText.Resource(Res.string.type_file) else UiText.Resource(Res.string.type_file_named, arrayOf(body))
+    MessageType.STICKER -> UiText.Resource(Res.string.type_sticker)
+    MessageType.ENCRYPTED -> UiText.Resource(Res.string.type_encrypted)
+    MessageType.UNSUPPORTED -> UiText.Resource(Res.string.type_unsupported)
+    MessageType.OTHER -> if (body.isBlank()) UiText.Resource(Res.string.type_unsupported_short) else body.asUiText()
 }

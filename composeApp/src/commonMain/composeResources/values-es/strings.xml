@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="backupoffer_back_up_your_logins">¿Hacer copia de tus inicios de sesión?</string>
+    <string name="backupoffer_if_you_reinstall_howyoudoin_on">Si reinstalas HowYouDoin en este teléfono, tus inicios de sesión se recuperan de tu copia de seguridad de Google y no tendrás que iniciar sesión en cada red otra vez. La copia está cifrada de extremo a extremo con tu bloqueo de pantalla; no se nos envía nada.\n\nWhatsApp y Signal siempre hay que vincularlos de nuevo.</string>
+    <string name="backupoffer_back_up">Hacer copia</string>
+    <string name="backupoffer_skip">Omitir</string>
+    <string name="backupoffer_turn_on_google_backup">Activa la copia de seguridad de Google</string>
+    <string name="backupoffer_your_logins_are_only_saved">Tus inicios de sesión solo se guardan si la copia de seguridad del teléfono está activada:\n\n1. Abre Ajustes → Google → Copia de seguridad (en Samsung: Cuentas y copia de seguridad → Copia de seguridad de datos).\n2. Activa «Copia de seguridad de Google One» y elige tu cuenta de Google.\n3. Mantén un bloqueo de pantalla (PIN, patrón o contraseña): las copias se cifran con él.\n\nSi ya está activada, todo listo. El teléfono hace la copia solo, normalmente por la noche mientras se carga.</string>
+    <string name="backupoffer_open_backup_settings">Abrir ajustes de copia</string>
+    <string name="backupoffer_done">Listo</string>
+    <string name="restorelogins_welcome_back">Hola de nuevo</string>
+    <string name="restorelogins_your_phone_s_backup_has">La copia de seguridad de tu teléfono tiene los inicios de sesión que usabas antes. ¿Quieres reconectarlos para no tener que iniciar sesión otra vez?</string>
+    <string name="restorelogins_continue">Continuar</string>
+    <string name="restorelogins_reconnect">Reconectar</string>
+    <string name="restorelogins_don_t_restore">No restaurar</string>
+    <string name="restorelogins_not_now">Ahora no</string>
+    <string name="restore_failed">No se pudieron reconectar; vuelve a conectarlos en Redes: %1$s</string>
+    <string name="restore_relink">%1$s no se pueden recuperar de una copia de seguridad (sus claves de cifrado se quedan en tu teléfono). Vuelve a vincularlos en Redes.</string>
+    <string name="notification_new_message">Mensaje nuevo</string>
+</resources>

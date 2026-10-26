@@ -2,6 +2,14 @@
 
 package com.devvalor.howyoudoing.settings.presentation.lock
 
+import com.devvalor.howyoudoing.core.presentation.util.UiText
+import org.jetbrains.compose.resources.getString
+import howyoudoin.feature.settings.presentation.generated.resources.Res
+import howyoudoin.feature.settings.presentation.generated.resources.pin_wrong
+import howyoudoin.feature.settings.presentation.generated.resources.pin_wrong_tries_left
+import howyoudoin.feature.settings.presentation.generated.resources.pin_too_many
+import howyoudoin.feature.settings.presentation.generated.resources.bio_unlock_title
+import howyoudoin.feature.settings.presentation.generated.resources.bio_unlock_sub
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.devvalor.howyoudoing.settings.domain.AppLockRepository
@@ -21,7 +29,7 @@ data class AppLockState(
     val isReady: Boolean = false,
     val isLocked: Boolean = false,
     val pinLength: Int = 0,
-    val message: String? = null,
+    val message: UiText? = null,
     val isError: Boolean = false,
     /** Seconds until another PIN may be tried. */
     val waitSeconds: Long = 0,
@@ -125,7 +133,11 @@ class AppLockViewModel(
                     _state.update {
                         it.copy(
                             isChecking = false, pinLength = 0, isError = true,
-                            message = "Wrong PIN" + if (result.attemptsBeforeWait <= 2) ". ${result.attemptsBeforeWait} more tries before a pause." else ""
+                            message = if (result.attemptsBeforeWait <= 2) {
+                                UiText.Resource(Res.string.pin_wrong_tries_left, arrayOf(result.attemptsBeforeWait))
+                            } else {
+                                UiText.Resource(Res.string.pin_wrong)
+                            }
                         )
                     }
                 }
@@ -142,7 +154,7 @@ class AppLockViewModel(
         waitJob?.cancel()
         waitJob = viewModelScope.launch {
             for (left in seconds downTo 1) {
-                _state.update { it.copy(waitSeconds = left, isError = true, message = "Too many wrong PINs. Try again in $left s.") }
+                _state.update { it.copy(waitSeconds = left, isError = true, message = UiText.Resource(Res.string.pin_too_many, arrayOf(left))) }
                 delay(1000)
             }
             _state.update { it.copy(waitSeconds = 0, isError = false, message = null) }
@@ -152,7 +164,7 @@ class AppLockViewModel(
     private fun promptBiometric() {
         if (!_state.value.canUseBiometric || biometricJob?.isActive == true) return
         biometricJob = viewModelScope.launch {
-            if (biometrics.authenticate(title = "Unlock HowYouDoin", subtitle = "Use your fingerprint or face")) unlock()
+            if (biometrics.authenticate(title = getString(Res.string.bio_unlock_title), subtitle = getString(Res.string.bio_unlock_sub))) unlock()
         }
     }
 

@@ -1,5 +1,22 @@
 package com.devvalor.howyoudoing.networks.presentation.history
 
+import howyoudoin.feature.networks.presentation.generated.resources.history_restoring_device
+import howyoudoin.feature.networks.presentation.generated.resources.history_restoring
+import howyoudoin.feature.networks.presentation.generated.resources.history_ok
+import howyoudoin.feature.networks.presentation.generated.resources.history_restore_device
+import howyoudoin.feature.networks.presentation.generated.resources.history_restore
+import howyoudoin.feature.networks.presentation.generated.resources.history_enter_pin
+import howyoudoin.feature.networks.presentation.generated.resources.history_not_now
+import howyoudoin.feature.networks.presentation.generated.resources.history_pin_warning
+import howyoudoin.feature.networks.presentation.generated.resources.Res
+import org.jetbrains.compose.resources.stringResource
+import howyoudoin.feature.networks.presentation.generated.resources.encryptedhistory_enter_your_messenger_pin
+import howyoudoin.feature.networks.presentation.generated.resources.encryptedhistory_messenger_pin
+import howyoudoin.feature.networks.presentation.generated.resources.encryptedhistory_restore
+import howyoudoin.feature.networks.presentation.generated.resources.encryptedhistory_restoring_encrypted_history
+import howyoudoin.feature.networks.presentation.generated.resources.encryptedhistory_the_6_digit_pin_you
+import howyoudoin.feature.networks.presentation.generated.resources.encryptedhistory_your_end_to_end_encrypted
+import howyoudoin.feature.networks.presentation.generated.resources.networks_cancel
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -58,20 +75,19 @@ fun EncryptedHistoryBanner(
 ) {
     when {
         state.isRestoring -> BannerCard(
-            title = "Restoring encrypted history",
+            title = stringResource(Res.string.encryptedhistory_restoring_encrypted_history),
             body = if (state.isOnDevice) {
-                "Older messages load as you scroll up in your encrypted chats on this device."
+                stringResource(Res.string.history_restoring_device)
             } else {
-                "Your encrypted Messenger chats will reappear with their older messages in a minute or two."
+                stringResource(Res.string.history_restoring)
             },
-            primary = "OK" to { onAction(EncryptedHistoryAction.OnDismissRestoring) },
+            primary = stringResource(Res.string.history_ok) to { onAction(EncryptedHistoryAction.OnDismissRestoring) },
         )
         state.isOffered -> BannerCard(
-            title = if (state.isOnDevice) "Restore encrypted messages on this device" else "Restore older encrypted messages",
-            body = "Your end-to-end encrypted Messenger chats only show new messages. To bring back their history, enter " +
-                "the PIN you set in Messenger, not your phone's or this app's PIN.",
-            primary = "Enter Messenger PIN" to { onAction(EncryptedHistoryAction.OnEnterPinClick) },
-            secondary = "Not now" to { onAction(EncryptedHistoryAction.OnNotNowClick) },
+            title = stringResource(if (state.isOnDevice) Res.string.history_restore_device else Res.string.history_restore),
+            body = stringResource(Res.string.encryptedhistory_your_end_to_end_encrypted),
+            primary = stringResource(Res.string.history_enter_pin) to { onAction(EncryptedHistoryAction.OnEnterPinClick) },
+            secondary = stringResource(Res.string.history_not_now) to { onAction(EncryptedHistoryAction.OnNotNowClick) },
         )
     }
     if (state.isDialogOpen) PinDialog(state, onAction)
@@ -109,19 +125,18 @@ private fun BannerCard(
 private fun PinDialog(state: EncryptedHistoryState, onAction: (EncryptedHistoryAction) -> Unit) {
     AlertDialog(
         onDismissRequest = { onAction(EncryptedHistoryAction.OnDismissDialog) },
-        title = { Text("Enter your Messenger PIN") },
+        title = { Text(stringResource(Res.string.encryptedhistory_enter_your_messenger_pin)) },
         text = {
             Column {
                 Text(
-                    "The 6-digit PIN you set in Messenger for end-to-end encrypted chats. It's not your phone's PIN, " +
-                        "HowYouDoin's app lock PIN or your Facebook password.",
+                    stringResource(Res.string.encryptedhistory_the_6_digit_pin_you),
                     style = MaterialTheme.typography.bodyMedium,
                 )
                 Spacer(Modifier.padding(top = HowYouDoinSpacing.sm))
                 OutlinedTextField(
                     value = state.pin,
                     onValueChange = { onAction(EncryptedHistoryAction.OnPinChange(it)) },
-                    label = { Text("Messenger PIN") },
+                    label = { Text(stringResource(Res.string.encryptedhistory_messenger_pin)) },
                     singleLine = true,
                     enabled = !state.isSubmitting,
                     isError = state.error != null,
@@ -131,8 +146,7 @@ private fun PinDialog(state: EncryptedHistoryState, onAction: (EncryptedHistoryA
                 )
                 Spacer(Modifier.padding(top = HowYouDoinSpacing.sm))
                 Text(
-                    state.error ?: "Messenger allows only a limited number of wrong attempts. If you're not sure, " +
-                        "cancel; new messages arrive either way.",
+                    state.error?.asString() ?: stringResource(Res.string.history_pin_warning),
                     style = MaterialTheme.typography.bodySmall,
                     color = if (state.error != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -143,13 +157,13 @@ private fun PinDialog(state: EncryptedHistoryState, onAction: (EncryptedHistoryA
                 if (state.isSubmitting) {
                     CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
                 } else {
-                    Text("Restore")
+                    Text(stringResource(Res.string.encryptedhistory_restore))
                 }
             }
         },
         dismissButton = {
             TextButton(onClick = { onAction(EncryptedHistoryAction.OnDismissDialog) }, enabled = !state.isSubmitting) {
-                Text("Cancel")
+                Text(stringResource(Res.string.networks_cancel))
             }
         },
     )

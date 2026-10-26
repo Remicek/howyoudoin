@@ -8,6 +8,8 @@ import com.devvalor.howyoudoing.networks.domain.NetworkLogin
 data class NetworksState(
     /** Networks whose how-to-connect tutorial the user chose not to see again. */
     val dismissedTutorials: Set<ChatNetwork> = emptySet(),
+    /** Accepted once that networks may block accounts using an unofficial app. */
+    val isRiskAccepted: Boolean = false,
     /** Networks connected from this phone (experimental), shown under each network. */
     val onDevice: Map<ChatNetwork, OnDeviceMessengerState> = emptyMap(),
     val items: List<NetworkItemUi> = ChatNetwork.connectable.map { network ->
@@ -17,6 +19,9 @@ data class NetworksState(
         )
     }
 ) {
+    /** Matrix is an open protocol made for other apps, so only the other networks carry the risk. */
+    fun shouldWarnAboutRisk(network: ChatNetwork): Boolean = network.isBridged && !isRiskAccepted
+
     fun shouldShowTutorial(network: ChatNetwork): Boolean =
         network in TUTORIAL_NETWORKS && network !in dismissedTutorials
 

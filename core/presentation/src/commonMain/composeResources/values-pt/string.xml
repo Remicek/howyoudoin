@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="error_disk_full">Ops, parece que o armazenamento está cheio!</string>
+    <string name="error_not_found">Não foi possível encontrar o item solicitado</string>
+    <string name="error_unknown">Ocorreu um erro desconhecido</string>
+    <string name="error_bad_request">Solicitação inválida</string>
+    <string name="error_request_timeout">A solicitação expirou</string>
+    <string name="error_unauthorized">Credenciais inválidas</string>
+    <string name="error_forbidden">Você não tem permissão para fazer isso</string>
+    <string name="error_conflict">Ocorreu um conflito</string>
+    <string name="error_too_many_requests">Você atingiu o limite de solicitações</string>
+    <string name="error_no_internet">Não foi possível conectar. Verifique sua conexão com a internet.</string>
+    <string name="error_payload_too_large">O arquivo anexado é grande demais</string>
+    <string name="error_server">Ops, ocorreu um erro no servidor</string>
+    <string name="error_service_unavailable">Serviço indisponível, tente novamente mais tarde</string>
+    <string name="error_serialization">Erro de serialização</string>
+    <string name="day_today">Hoje</string>
+    <string name="day_yesterday">Ontem</string>
+    <string name="weekday_1">Segunda-feira</string>
+    <string name="weekday_2">Terça-feira</string>
+    <string name="weekday_3">Quarta-feira</string>
+    <string name="weekday_4">Quinta-feira</string>
+    <string name="weekday_5">Sexta-feira</string>
+    <string name="weekday_6">Sábado</string>
+    <string name="weekday_7">Domingo</string>
+    <string name="weekday_short_1">seg</string>
+    <string name="weekday_short_2">ter</string>
+    <string name="weekday_short_3">qua</string>
+    <string name="weekday_short_4">qui</string>
+    <string name="weekday_short_5">sex</string>
+    <string name="weekday_short_6">sáb</string>
+    <string name="weekday_short_7">dom</string>
+    <string name="month_1">janeiro</string>
+    <string name="month_2">fevereiro</string>
+    <string name="month_3">março</string>
+    <string name="month_4">abril</string>
+    <string name="month_5">maio</string>
+    <string name="month_6">junho</string>
+    <string name="month_7">julho</string>
+    <string name="month_8">agosto</string>
+    <string name="month_9">setembro</string>
+    <string name="month_10">outubro</string>
+    <string name="month_11">novembro</string>
+    <string name="month_12">dezembro</string>
+    <string name="date_long">%1$d de %2$s de %3$d</string>
+</resources>

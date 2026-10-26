@@ -1,5 +1,6 @@
 package com.devvalor.howyoudoing.chat.presentation.conversation
 
+import com.devvalor.howyoudoing.core.presentation.util.UiText
 import com.devvalor.howyoudoing.chat.presentation.model.MessageUi
 import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
 
@@ -22,7 +23,7 @@ data class ConversationState(
     val isLoadingOlder: Boolean = false,
     val hasMoreHistory: Boolean = false,
     /** "typing…" / "Anna is typing…" shown under the chat name. */
-    val typingText: String? = null,
+    val typingText: UiText? = null,
     /** Message the composer replies to. */
     val replyingTo: MessageUi? = null,
     /** One of our messages being edited in the composer. */

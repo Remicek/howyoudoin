@@ -1,5 +1,13 @@
 package com.devvalor.howyoudoing.chat.presentation.conversation.components
 
+import howyoudoin.feature.chat.presentation.generated.resources.Res
+import howyoudoin.feature.chat.presentation.generated.resources.actions_send_again
+import howyoudoin.feature.chat.presentation.generated.resources.actions_copy
+import howyoudoin.feature.chat.presentation.generated.resources.actions_delete
+import howyoudoin.feature.chat.presentation.generated.resources.actions_reply
+import howyoudoin.feature.chat.presentation.generated.resources.actions_edit
+import howyoudoin.feature.chat.presentation.generated.resources.actions_delete_everyone
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -56,9 +64,9 @@ fun MessageActionsSheet(
         // A message that didn't send: only sending it again or deleting it make sense
         if (message.status == MessageStatus.FAILED) {
             Column(Modifier.navigationBarsPadding().padding(bottom = HowYouDoinSpacing.md)) {
-                if (message.canRetry && onRetry != null) ActionRow(Icons.Rounded.Refresh, "Send again", onRetry)
-                if (message.text.isNotBlank() && message.media == null) ActionRow(Icons.Rounded.ContentCopy, "Copy text", onCopy)
-                onDiscard?.let { ActionRow(Icons.Rounded.Delete, "Delete", it) }
+                if (message.canRetry && onRetry != null) ActionRow(Icons.Rounded.Refresh, stringResource(Res.string.actions_send_again), onRetry)
+                if (message.text.isNotBlank() && message.media == null) ActionRow(Icons.Rounded.ContentCopy, stringResource(Res.string.actions_copy), onCopy)
+                onDiscard?.let { ActionRow(Icons.Rounded.Delete, stringResource(Res.string.actions_delete), it) }
             }
             return@ModalBottomSheet
         }
@@ -80,12 +88,12 @@ fun MessageActionsSheet(
                     }
                 }
             }
-            ActionRow(Icons.AutoMirrored.Rounded.Reply, "Reply", onReply)
+            ActionRow(Icons.AutoMirrored.Rounded.Reply, stringResource(Res.string.actions_reply), onReply)
             if (message.text.isNotBlank() && message.media == null) {
-                ActionRow(Icons.Rounded.ContentCopy, "Copy text", onCopy)
+                ActionRow(Icons.Rounded.ContentCopy, stringResource(Res.string.actions_copy), onCopy)
             }
-            onEdit?.let { ActionRow(Icons.Rounded.Edit, "Edit", it) }
-            onDelete?.let { ActionRow(Icons.Rounded.Delete, "Delete for everyone", it) }
+            onEdit?.let { ActionRow(Icons.Rounded.Edit, stringResource(Res.string.actions_edit), it) }
+            onDelete?.let { ActionRow(Icons.Rounded.Delete, stringResource(Res.string.actions_delete_everyone), it) }
         }
     }
 }

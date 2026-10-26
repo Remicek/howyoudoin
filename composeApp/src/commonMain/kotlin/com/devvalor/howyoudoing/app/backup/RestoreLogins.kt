@@ -1,5 +1,15 @@
 package com.devvalor.howyoudoing.app.backup
 
+import howyoudoin.composeapp.generated.resources.restore_failed
+import howyoudoin.composeapp.generated.resources.restore_relink
+import howyoudoin.composeapp.generated.resources.Res
+import org.jetbrains.compose.resources.stringResource
+import howyoudoin.composeapp.generated.resources.restorelogins_continue
+import howyoudoin.composeapp.generated.resources.restorelogins_don_t_restore
+import howyoudoin.composeapp.generated.resources.restorelogins_not_now
+import howyoudoin.composeapp.generated.resources.restorelogins_reconnect
+import howyoudoin.composeapp.generated.resources.restorelogins_welcome_back
+import howyoudoin.composeapp.generated.resources.restorelogins_your_phone_s_backup_has
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -113,10 +123,10 @@ fun RestoreLoginsScreen(
         Column(
             Modifier.fillMaxSize().safeDrawingPadding().verticalScroll(rememberScrollState()).padding(HowYouDoinSpacing.lg)
         ) {
-            Text("Welcome back", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+            Text(stringResource(Res.string.restorelogins_welcome_back), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(HowYouDoinSpacing.sm))
             Text(
-                "Your phone's backup has the logins you used before. Reconnect them so you don't have to log in again?",
+                stringResource(Res.string.restorelogins_your_phone_s_backup_has),
                 style = MaterialTheme.typography.bodyLarge
             )
             Spacer(Modifier.height(HowYouDoinSpacing.lg))
@@ -124,11 +134,11 @@ fun RestoreLoginsScreen(
             val failed = state.failed
             if (failed != null) {
                 Text(
-                    "These couldn't be reconnected; connect them again in Networks: " + failed.joinToString { it.displayName },
+                    stringResource(Res.string.restore_failed, failed.joinToString { it.displayName }),
                     color = MaterialTheme.colorScheme.error
                 )
                 Spacer(Modifier.height(HowYouDoinSpacing.lg))
-                Button(onClick = onClose, modifier = Modifier.fillMaxWidth()) { Text("Continue") }
+                Button(onClick = onClose, modifier = Modifier.fillMaxWidth()) { Text(stringResource(Res.string.restorelogins_continue)) }
                 return@Column
             }
 
@@ -149,8 +159,7 @@ fun RestoreLoginsScreen(
             if (offer.toRelink.isNotEmpty()) {
                 Spacer(Modifier.height(HowYouDoinSpacing.md))
                 Text(
-                    offer.toRelink.joinToString(" and ") { it.displayName } +
-                        " can't come back from a backup (their encryption keys stay on your phone). Link them again in Networks.",
+                    stringResource(Res.string.restore_relink, offer.toRelink.joinToString(", ") { it.displayName }),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -163,10 +172,10 @@ fun RestoreLoginsScreen(
                     onClick = onRestore,
                     enabled = state.selected.isNotEmpty() || offer.includesAppSession,
                     modifier = Modifier.fillMaxWidth()
-                ) { Text("Reconnect") }
+                ) { Text(stringResource(Res.string.restorelogins_reconnect)) }
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    TextButton(onClick = onDiscard) { Text("Don't restore") }
-                    TextButton(onClick = onLater) { Text("Not now") }
+                    TextButton(onClick = onDiscard) { Text(stringResource(Res.string.restorelogins_don_t_restore)) }
+                    TextButton(onClick = onLater) { Text(stringResource(Res.string.restorelogins_not_now)) }
                 }
             }
         }

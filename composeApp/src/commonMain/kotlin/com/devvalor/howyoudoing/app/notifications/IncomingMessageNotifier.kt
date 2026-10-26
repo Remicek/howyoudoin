@@ -1,5 +1,8 @@
 package com.devvalor.howyoudoing.app.notifications
 
+import howyoudoin.composeapp.generated.resources.Res
+import howyoudoin.composeapp.generated.resources.notification_new_message
+import org.jetbrains.compose.resources.getString
 import com.devvalor.howyoudoing.chat.domain.ChatRepository
 import com.devvalor.howyoudoing.chat.domain.NotificationPreferences
 import com.devvalor.howyoudoing.chat.domain.OpenChatTracker
@@ -58,9 +61,9 @@ class IncomingMessageNotifier(
                     if (chat.id in muted || openChatTracker.isWatching(chat.id)) continue
                     if (lock.hidesContent()) {
                         // With the app locked, a notification shouldn't reveal what the lock protects
-                        presenter.show(chat.id, "HowYouDoin", "New message", message.timestamp)
+                        presenter.show(chat.id, "HowYouDoin", getString(Res.string.notification_new_message), message.timestamp)
                     } else {
-                        presenter.show(chat.id, chat.name, chat.toChatUi().preview, message.timestamp)
+                        presenter.show(chat.id, chat.name, chat.toChatUi().preview.asStringAsync(), message.timestamp)
                     }
                 }
             }

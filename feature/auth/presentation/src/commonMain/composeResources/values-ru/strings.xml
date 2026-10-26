@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="login_tagline">Все чаты в одном месте</string>
+    <string name="login_get_started">Начать на этом телефоне</string>
+    <string name="login_server_intro">Или войдите на свой сервер Matrix с мостами.</string>
+    <string name="login_homeserver">Сервер</string>
+    <string name="login_username">Имя пользователя</string>
+    <string name="login_password">Пароль</string>
+    <string name="login_hide_password">Скрыть пароль</string>
+    <string name="login_show_password">Показать пароль</string>
+    <string name="login_sign_in_server">Войти на сервер</string>
+    <string name="login_demo">Попробовать демо-режим</string>
+    <string name="privacy_on_phone_title">Ваши чаты остаются на телефоне</string>
+    <string name="privacy_on_phone_text">Сообщения, контакты и данные входа хранятся только на этом телефоне.</string>
+    <string name="privacy_direct_title">Напрямую к WhatsApp, Messenger и другим</string>
+    <string name="privacy_direct_text">Приложение связывается только с подключёнными вами сетями — так же, как их собственные приложения.</string>
+    <string name="privacy_no_servers_title">Никаких серверов HowYouDoin</string>
+    <string name="privacy_no_servers_text">У нас нет ни серверов, ни аккаунтов. Мы никогда не видим, не храним и не продаём ваши сообщения или данные.</string>
+</resources>

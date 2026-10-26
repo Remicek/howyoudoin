@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="login_tagline">Alle Chats in einem Posteingang</string>
+    <string name="login_get_started">Auf diesem Handy loslegen</string>
+    <string name="login_server_intro">Oder melde dich bei deinem eigenen Matrix-Homeserver mit Bridges an.</string>
+    <string name="login_homeserver">Homeserver</string>
+    <string name="login_username">Benutzername</string>
+    <string name="login_password">Passwort</string>
+    <string name="login_hide_password">Passwort verbergen</string>
+    <string name="login_show_password">Passwort anzeigen</string>
+    <string name="login_sign_in_server">Beim Server anmelden</string>
+    <string name="login_demo">Demo-Modus testen</string>
+    <string name="privacy_on_phone_title">Deine Chats bleiben auf deinem Handy</string>
+    <string name="privacy_on_phone_text">Nachrichten, Kontakte und Anmeldungen werden nur auf diesem Handy gespeichert.</string>
+    <string name="privacy_direct_title">Direkt zu WhatsApp, Messenger und den anderen</string>
+    <string name="privacy_direct_text">Die App spricht nur mit den Netzwerken, die du verbindest, genau wie deren eigene Apps.</string>
+    <string name="privacy_no_servers_title">Keine HowYouDoin-Server</string>
+    <string name="privacy_no_servers_text">Wir haben keine Server und keine Konten. Wir sehen, speichern oder verkaufen niemals deine Nachrichten oder Daten.</string>
+</resources>

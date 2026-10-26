@@ -1,5 +1,6 @@
 package com.devvalor.howyoudoing.app.notifications
 
+import com.devvalor.howyoudoing.app.R
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -16,8 +17,8 @@ class AndroidNotificationPresenter(private val context: Context) : MessageNotifi
 
     init {
         context.getSystemService(NotificationManager::class.java).createNotificationChannel(
-            NotificationChannel(CHANNEL_ID, "Messages", NotificationManager.IMPORTANCE_HIGH).apply {
-                description = "New messages from your chats"
+            NotificationChannel(CHANNEL_ID, context.getString(R.string.channel_messages), NotificationManager.IMPORTANCE_HIGH).apply {
+                description = context.getString(R.string.channel_messages_desc)
             }
         )
     }

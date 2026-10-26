@@ -2,6 +2,16 @@
 
 package com.devvalor.howyoudoing.settings.presentation.crash
 
+import howyoudoin.feature.settings.presentation.generated.resources.Res
+import howyoudoin.feature.settings.presentation.generated.resources.common_delete
+import howyoudoin.feature.settings.presentation.generated.resources.crash_intro
+import howyoudoin.feature.settings.presentation.generated.resources.crash_last
+import howyoudoin.feature.settings.presentation.generated.resources.crash_none
+import howyoudoin.feature.settings.presentation.generated.resources.crash_offer
+import howyoudoin.feature.settings.presentation.generated.resources.crash_offer_sub
+import howyoudoin.feature.settings.presentation.generated.resources.crash_share
+import howyoudoin.feature.settings.presentation.generated.resources.settings_crash_reports
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -84,11 +94,10 @@ fun CrashReportsRoot(
 
 @Composable
 fun CrashReportsScreen(state: CrashReportsState, onAction: (CrashReportsAction) -> Unit) {
-    SettingsScaffold(title = "Crash reports", onBack = { onAction(CrashReportsAction.OnBackClick) }) {
+    SettingsScaffold(title = stringResource(Res.string.settings_crash_reports), onBack = { onAction(CrashReportsAction.OnBackClick) }) {
         item {
             Text(
-                "When HowYouDoin crashes, a report stays on this phone. Nothing is sent automatically: you decide " +
-                    "whether to share it, and with whom. Reports describe the error and your phone model, not your messages.",
+                stringResource(Res.string.crash_intro),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(horizontal = HowYouDoinSpacing.md, vertical = HowYouDoinSpacing.sm),
@@ -96,19 +105,19 @@ fun CrashReportsScreen(state: CrashReportsState, onAction: (CrashReportsAction) 
         }
         item {
             SettingsSwitchRow(
-                title = "Offer to share after a crash",
-                subtitle = "A notification on the next start lets you send the report",
+                title = stringResource(Res.string.crash_offer),
+                subtitle = stringResource(Res.string.crash_offer_sub),
                 icon = Icons.Rounded.BugReport,
                 checked = state.offersAfterCrash,
                 onCheckedChange = { onAction(CrashReportsAction.OnOffersChange(it)) },
             )
         }
-        item { SettingsSectionHeader("Last crash") }
+        item { SettingsSectionHeader(stringResource(Res.string.crash_last)) }
         val report = state.lastReport
         if (report == null) {
             item {
                 Text(
-                    "No crashes recorded.",
+                    stringResource(Res.string.crash_none),
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.padding(horizontal = HowYouDoinSpacing.md, vertical = HowYouDoinSpacing.sm),
                 )
@@ -137,8 +146,8 @@ fun CrashReportsScreen(state: CrashReportsState, onAction: (CrashReportsAction) 
                     horizontalArrangement = Arrangement.spacedBy(HowYouDoinSpacing.sm),
                     modifier = Modifier.padding(HowYouDoinSpacing.md),
                 ) {
-                    FilledTonalButton(onClick = { onAction(CrashReportsAction.OnShareClick) }) { Text("Share report") }
-                    OutlinedButton(onClick = { onAction(CrashReportsAction.OnDeleteClick) }) { Text("Delete") }
+                    FilledTonalButton(onClick = { onAction(CrashReportsAction.OnShareClick) }) { Text(stringResource(Res.string.crash_share)) }
+                    OutlinedButton(onClick = { onAction(CrashReportsAction.OnDeleteClick) }) { Text(stringResource(Res.string.common_delete)) }
                 }
             }
         }

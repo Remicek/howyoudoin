@@ -1,5 +1,31 @@
 package com.devvalor.howyoudoing.settings.presentation.lock
 
+import howyoudoin.feature.settings.presentation.generated.resources.Res
+import howyoudoin.feature.settings.presentation.generated.resources.common_cancel
+import howyoudoin.feature.settings.presentation.generated.resources.common_close
+import howyoudoin.feature.settings.presentation.generated.resources.lock_15_min
+import howyoudoin.feature.settings.presentation.generated.resources.lock_1_min
+import howyoudoin.feature.settings.presentation.generated.resources.lock_5_min
+import howyoudoin.feature.settings.presentation.generated.resources.lock_after
+import howyoudoin.feature.settings.presentation.generated.resources.lock_change_pin
+import howyoudoin.feature.settings.presentation.generated.resources.lock_choose
+import howyoudoin.feature.settings.presentation.generated.resources.lock_confirm
+import howyoudoin.feature.settings.presentation.generated.resources.lock_digits_hint
+import howyoudoin.feature.settings.presentation.generated.resources.lock_enter_current
+import howyoudoin.feature.settings.presentation.generated.resources.lock_fingerprint
+import howyoudoin.feature.settings.presentation.generated.resources.lock_fingerprint_missing
+import howyoudoin.feature.settings.presentation.generated.resources.lock_fingerprint_on
+import howyoudoin.feature.settings.presentation.generated.resources.lock_forgot
+import howyoudoin.feature.settings.presentation.generated.resources.lock_hide_text
+import howyoudoin.feature.settings.presentation.generated.resources.lock_hide_text_sub
+import howyoudoin.feature.settings.presentation.generated.resources.lock_immediately
+import howyoudoin.feature.settings.presentation.generated.resources.lock_intro
+import howyoudoin.feature.settings.presentation.generated.resources.lock_pin
+import howyoudoin.feature.settings.presentation.generated.resources.lock_turn_off
+import howyoudoin.feature.settings.presentation.generated.resources.lock_turn_on
+import howyoudoin.feature.settings.presentation.generated.resources.lock_turn_on_sub
+import howyoudoin.feature.settings.presentation.generated.resources.settings_app_lock
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -63,10 +89,10 @@ fun AppLockSettingsScreen(
     onAction: (AppLockSettingsAction) -> Unit,
 ) {
     val settings = state.settings
-    SettingsScaffold(title = "App lock", onBack = { onAction(AppLockSettingsAction.OnBackClick) }) {
+    SettingsScaffold(title = stringResource(Res.string.settings_app_lock), onBack = { onAction(AppLockSettingsAction.OnBackClick) }) {
         item {
             Text(
-                "Ask for a PIN or your fingerprint before showing your chats, when the app opens and when you come back to it.",
+                stringResource(Res.string.lock_intro),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(horizontal = HowYouDoinSpacing.md, vertical = HowYouDoinSpacing.sm),
@@ -75,8 +101,8 @@ fun AppLockSettingsScreen(
         if (!settings.isEnabled) {
             item {
                 SettingsRow(
-                    title = "Turn on app lock",
-                    subtitle = "Choose a PIN of 4 to 8 digits",
+                    title = stringResource(Res.string.lock_turn_on),
+                    subtitle = stringResource(Res.string.lock_turn_on_sub),
                     icon = Icons.Rounded.Lock,
                     onClick = { onAction(AppLockSettingsAction.OnTurnOnClick) },
                 )
@@ -84,8 +110,8 @@ fun AppLockSettingsScreen(
         } else {
             item {
                 SettingsSwitchRow(
-                    title = "Unlock with fingerprint",
-                    subtitle = if (state.isBiometricAvailable) "Or face, where the phone supports it" else "Set up a fingerprint in the phone's settings first",
+                    title = stringResource(Res.string.lock_fingerprint),
+                    subtitle = if (state.isBiometricAvailable) stringResource(Res.string.lock_fingerprint_on) else stringResource(Res.string.lock_fingerprint_missing),
                     icon = Icons.Rounded.Fingerprint,
                     checked = settings.isBiometricEnabled && state.isBiometricAvailable,
                     enabled = state.isBiometricAvailable,
@@ -94,7 +120,7 @@ fun AppLockSettingsScreen(
             }
             item {
                 SettingsRow(
-                    title = "Lock when away for",
+                    title = stringResource(Res.string.lock_after),
                     subtitle = settings.lockAfter.label(),
                     icon = Icons.Rounded.Timer,
                     onClick = { onAction(AppLockSettingsAction.OnLockAfterClick) },
@@ -102,31 +128,31 @@ fun AppLockSettingsScreen(
             }
             item {
                 SettingsSwitchRow(
-                    title = "Hide message text in notifications",
-                    subtitle = "Notifications only say there's a new message",
+                    title = stringResource(Res.string.lock_hide_text),
+                    subtitle = stringResource(Res.string.lock_hide_text_sub),
                     icon = Icons.Rounded.NotificationsOff,
                     checked = settings.hidesNotificationContent,
                     onCheckedChange = { onAction(AppLockSettingsAction.OnHideNotificationsChange(it)) },
                 )
             }
-            item { SettingsSectionHeader("PIN") }
+            item { SettingsSectionHeader(stringResource(Res.string.lock_pin)) }
             item {
                 SettingsRow(
-                    title = "Change PIN",
+                    title = stringResource(Res.string.lock_change_pin),
                     icon = Icons.Rounded.Password,
                     onClick = { onAction(AppLockSettingsAction.OnChangePinClick) },
                 )
             }
             item {
                 SettingsRow(
-                    title = "Turn off app lock",
+                    title = stringResource(Res.string.lock_turn_off),
                     icon = Icons.Rounded.LockOpen,
                     onClick = { onAction(AppLockSettingsAction.OnTurnOffClick) },
                 )
             }
             item {
                 Text(
-                    "Forgot the PIN? Clear the app's data in the phone's settings; you'll then connect your accounts again.",
+                    stringResource(Res.string.lock_forgot),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(horizontal = HowYouDoinSpacing.md, vertical = HowYouDoinSpacing.sm),
@@ -138,7 +164,7 @@ fun AppLockSettingsScreen(
     if (state.isTimeoutDialogOpen) {
         AlertDialog(
             onDismissRequest = { onAction(AppLockSettingsAction.OnDismissDialog) },
-            title = { Text("Lock when away for") },
+            title = { Text(stringResource(Res.string.lock_after)) },
             text = {
                 Column {
                     LockTimeout.entries.forEach { timeout ->
@@ -159,7 +185,7 @@ fun AppLockSettingsScreen(
                     }
                 }
             },
-            confirmButton = { TextButton(onClick = { onAction(AppLockSettingsAction.OnDismissDialog) }) { Text("Close") } },
+            confirmButton = { TextButton(onClick = { onAction(AppLockSettingsAction.OnDismissDialog) }) { Text(stringResource(Res.string.common_close)) } },
         )
     }
 
@@ -173,18 +199,18 @@ fun AppLockSettingsScreen(
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         PinPad(
                             title = when (step) {
-                                is PinStep.Current -> "Enter your current PIN"
-                                PinStep.New -> "Choose a PIN"
-                                is PinStep.Confirm -> "Confirm your PIN"
+                                is PinStep.Current -> stringResource(Res.string.lock_enter_current)
+                                PinStep.New -> stringResource(Res.string.lock_choose)
+                                is PinStep.Confirm -> stringResource(Res.string.lock_confirm)
                             },
                             pinLength = state.pinLength,
-                            message = state.pinMessage ?: if (step == PinStep.New) "4 to 8 digits" else null,
+                            message = state.pinMessage?.asString() ?: if (step == PinStep.New) stringResource(Res.string.lock_digits_hint) else null,
                             isError = state.pinError,
                             onDigit = { onAction(AppLockSettingsAction.OnDigit(it)) },
                             onDelete = { onAction(AppLockSettingsAction.OnDelete) },
                             onSubmit = { onAction(AppLockSettingsAction.OnSubmit) },
                         )
-                        TextButton(onClick = { onAction(AppLockSettingsAction.OnCancelPin) }) { Text("Cancel") }
+                        TextButton(onClick = { onAction(AppLockSettingsAction.OnCancelPin) }) { Text(stringResource(Res.string.common_cancel)) }
                     }
                 }
             }
@@ -192,9 +218,10 @@ fun AppLockSettingsScreen(
     }
 }
 
+@Composable
 fun LockTimeout.label(): String = when (this) {
-    LockTimeout.IMMEDIATELY -> "Immediately"
-    LockTimeout.ONE_MINUTE -> "1 minute"
-    LockTimeout.FIVE_MINUTES -> "5 minutes"
-    LockTimeout.FIFTEEN_MINUTES -> "15 minutes"
+    LockTimeout.IMMEDIATELY -> stringResource(Res.string.lock_immediately)
+    LockTimeout.ONE_MINUTE -> stringResource(Res.string.lock_1_min)
+    LockTimeout.FIVE_MINUTES -> stringResource(Res.string.lock_5_min)
+    LockTimeout.FIFTEEN_MINUTES -> stringResource(Res.string.lock_15_min)
 }

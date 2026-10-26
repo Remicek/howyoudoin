@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="call_incoming_video">مكالمة فيديو واردة</string>
+    <string name="call_incoming">مكالمة واردة</string>
+    <string name="call_decline">رفض</string>
+    <string name="call_answer">رد</string>
+    <string name="channel_calls_ringing">المكالمات الواردة</string>
+    <string name="channel_calls_ringing_desc">مكالمات Matrix التي ترن</string>
+    <string name="channel_calls_ongoing">المكالمات الجارية</string>
+    <string name="channel_calls_ongoing_desc">يظهر أثناء المكالمة</string>
+    <string name="call_in_progress">مكالمة جارية</string>
+    <string name="call_return">اضغط للعودة إلى المكالمة</string>
+    <string name="call_hang_up">إنهاء</string>
+    <string name="call_needs_mic">تحتاج المكالمات إلى الميكروفون</string>
+    <string name="call_start_failed">تعذّر بدء المكالمة</string>
+    <string name="call_answer_needs_mic">يحتاج الرد إلى الميكروفون</string>
+    <string name="call_video">فيديو</string>
+    <string name="call_mute">كتم</string>
+    <string name="call_speaker">مكبّر الصوت</string>
+    <string name="call_camera">الكاميرا</string>
+    <string name="call_flip">تبديل</string>
+    <string name="call_calling">جارٍ الاتصال…</string>
+    <string name="call_connecting">جارٍ التوصيل…</string>
+    <string name="call_declined">مرفوضة</string>
+    <string name="call_missed">مكالمة فائتة</string>
+    <string name="call_no_answer">لا رد</string>
+    <string name="call_busy">مشغول</string>
+    <string name="call_elsewhere">تم الرد على جهاز آخر</string>
+    <string name="call_failed">فشلت المكالمة</string>
+    <string name="call_ended">انتهت المكالمة</string>
+    <string name="crash_share">مشاركة تقرير العطل</string>
+    <string name="channel_crash">تقارير الأعطال</string>
+    <string name="crash_title">توقف HowYouDoin في المرة السابقة</string>
+    <string name="crash_text">اضغط لمشاركة تقرير العطل</string>
+    <string name="bio_use_pin">استخدام رمز PIN</string>
+    <string name="channel_messages">الرسائل</string>
+    <string name="channel_messages_desc">رسائل جديدة من محادثاتك</string>
+    <string name="channel_problems">مشكلات الاتصال</string>
+    <string name="channel_problems_desc">عندما تتوقف شبكة متصلة عن العمل</string>
+    <string name="channel_connections">الاتصالات على الجهاز</string>
+    <string name="channel_connections_desc">يظهر أثناء اتصال المحادثات مباشرةً من هذا الهاتف</string>
+    <string name="connections_connecting">جارٍ الاتصال…</string>
+    <string name="connections_connected">متصل على هذا الجهاز: %1$s</string>
+    <string name="connections_default">متصل على هذا الجهاز</string>
+</resources>

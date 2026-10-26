@@ -1,5 +1,18 @@
 package com.devvalor.howyoudoing.chat.presentation.conversation.components
 
+import howyoudoin.feature.chat.presentation.generated.resources.composer_cancel_reply
+import howyoudoin.feature.chat.presentation.generated.resources.composer_replying_self
+import howyoudoin.feature.chat.presentation.generated.resources.composer_replying_to
+import howyoudoin.feature.chat.presentation.generated.resources.composer_replying
+import howyoudoin.feature.chat.presentation.generated.resources.composer_cancel_editing
+import howyoudoin.feature.chat.presentation.generated.resources.Res
+import org.jetbrains.compose.resources.stringResource
+import howyoudoin.feature.chat.presentation.generated.resources.composer_attach_a_photo_or_file
+import howyoudoin.feature.chat.presentation.generated.resources.composer_editing_message
+import howyoudoin.feature.chat.presentation.generated.resources.composer_message
+import howyoudoin.feature.chat.presentation.generated.resources.composer_record_a_voice_message
+import howyoudoin.feature.chat.presentation.generated.resources.composer_send
+import howyoudoin.feature.chat.presentation.generated.resources.composer_send_voice_message
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -63,7 +76,7 @@ fun Composer(
     Surface(color = MaterialTheme.colorScheme.surface, tonalElevation = 2.dp) {
         Column(Modifier.fillMaxWidth().navigationBarsPadding()) {
             if (editing != null) {
-                ReplyBar(editing, onCancelEdit, label = "Editing message", cancelDescription = "Cancel editing")
+                ReplyBar(editing, onCancelEdit, label = stringResource(Res.string.composer_editing_message), cancelDescription = stringResource(Res.string.composer_cancel_editing))
             } else {
                 replyingTo?.let { ReplyBar(it, onCancelReply, chatName = chatName) }
             }
@@ -75,7 +88,7 @@ fun Composer(
                     RecordingBar(recording, onCancel = onRecordCancel, modifier = Modifier.weight(1f))
                     Spacer(Modifier.width(HowYouDoinSpacing.sm))
                     FilledIconButton(onClick = onRecordSend, shape = CircleShape, modifier = Modifier.size(52.dp)) {
-                        Icon(Icons.AutoMirrored.Rounded.Send, contentDescription = "Send voice message")
+                        Icon(Icons.AutoMirrored.Rounded.Send, contentDescription = stringResource(Res.string.composer_send_voice_message))
                     }
                     return@Row
                 }
@@ -84,14 +97,14 @@ fun Composer(
                         if (isSendingAttachment) {
                             CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
                         } else {
-                            Icon(Icons.Rounded.AttachFile, contentDescription = "Attach a photo or file")
+                            Icon(Icons.Rounded.AttachFile, contentDescription = stringResource(Res.string.composer_attach_a_photo_or_file))
                         }
                     }
                 }
                 TextField(
                     value = draft,
                     onValueChange = onDraftChange,
-                    placeholder = { Text("Message") },
+                    placeholder = { Text(stringResource(Res.string.composer_message)) },
                     maxLines = 5,
                     shape = RoundedCornerShape(24.dp),
                     colors = TextFieldDefaults.colors(
@@ -110,11 +123,11 @@ fun Composer(
                         shape = CircleShape,
                         modifier = Modifier.size(52.dp),
                     ) {
-                        Icon(Icons.Rounded.Mic, contentDescription = "Record a voice message")
+                        Icon(Icons.Rounded.Mic, contentDescription = stringResource(Res.string.composer_record_a_voice_message))
                     }
                 } else {
                     FilledIconButton(onClick = onSend, enabled = canSend, shape = CircleShape, modifier = Modifier.size(52.dp)) {
-                        Icon(Icons.AutoMirrored.Rounded.Send, contentDescription = "Send")
+                        Icon(Icons.AutoMirrored.Rounded.Send, contentDescription = stringResource(Res.string.composer_send))
                     }
                 }
             }
@@ -127,7 +140,7 @@ private fun ReplyBar(
     message: MessageUi,
     onCancel: () -> Unit,
     label: String? = null,
-    cancelDescription: String = "Cancel reply",
+    cancelDescription: String = stringResource(Res.string.composer_cancel_reply),
     /** Who the other person is in a one-to-one chat, where messages carry no sender name. */
     chatName: String? = null,
 ) {
@@ -142,12 +155,17 @@ private fun ReplyBar(
         Spacer(Modifier.width(HowYouDoinSpacing.sm))
         Column(Modifier.weight(1f)) {
             Text(
-                label ?: if (message.isOutgoing) "Replying to yourself" else "Replying to ${message.senderName ?: message.authorName ?: chatName ?: "message"}",
+                label ?: if (message.isOutgoing) {
+                    stringResource(Res.string.composer_replying_self)
+                } else {
+                    val name = message.senderName ?: message.authorName ?: chatName
+                    if (name != null) stringResource(Res.string.composer_replying_to, name) else stringResource(Res.string.composer_replying)
+                },
                 style = MaterialTheme.typography.labelMedium,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.primary,
             )
-            Text(message.body, style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(message.body.asString(), style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
         IconButton(onClick = onCancel) { Icon(Icons.Rounded.Close, contentDescription = cancelDescription) }
     }

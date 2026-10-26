@@ -1,5 +1,8 @@
 package com.devvalor.howyoudoing.networks.presentation.components
 
+import howyoudoin.feature.networks.presentation.generated.resources.Res
+import org.jetbrains.compose.resources.stringResource
+import howyoudoin.feature.networks.presentation.generated.resources.qrcode_login_qr_code
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -27,7 +30,7 @@ fun QrCode(
     ) {
         Image(
             painter = rememberQrCodePainter(data),
-            contentDescription = "Login QR code",
+            contentDescription = stringResource(Res.string.qrcode_login_qr_code),
             modifier = Modifier.size(size),
         )
     }

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="error_disk_full">Ups, sepertinya penyimpanan Anda penuh!</string>
+    <string name="error_not_found">Item yang diminta tidak ditemukan</string>
+    <string name="error_unknown">Terjadi kesalahan yang tidak diketahui</string>
+    <string name="error_bad_request">Permintaan tidak valid</string>
+    <string name="error_request_timeout">Waktu permintaan habis</string>
+    <string name="error_unauthorized">Kredensial tidak valid</string>
+    <string name="error_forbidden">Anda tidak diizinkan melakukan itu</string>
+    <string name="error_conflict">Terjadi konflik</string>
+    <string name="error_too_many_requests">Anda mencapai batas permintaan</string>
+    <string name="error_no_internet">Tidak dapat terhubung. Periksa koneksi internet Anda.</string>
+    <string name="error_payload_too_large">File yang dilampirkan terlalu besar</string>
+    <string name="error_server">Ups, terjadi kesalahan di server</string>
+    <string name="error_service_unavailable">Layanan tidak tersedia, coba lagi nanti</string>
+    <string name="error_serialization">Kesalahan serialisasi</string>
+    <string name="day_today">Hari ini</string>
+    <string name="day_yesterday">Kemarin</string>
+    <string name="weekday_1">Senin</string>
+    <string name="weekday_2">Selasa</string>
+    <string name="weekday_3">Rabu</string>
+    <string name="weekday_4">Kamis</string>
+    <string name="weekday_5">Jumat</string>
+    <string name="weekday_6">Sabtu</string>
+    <string name="weekday_7">Minggu</string>
+    <string name="weekday_short_1">Sen</string>
+    <string name="weekday_short_2">Sel</string>
+    <string name="weekday_short_3">Rab</string>
+    <string name="weekday_short_4">Kam</string>
+    <string name="weekday_short_5">Jum</string>
+    <string name="weekday_short_6">Sab</string>
+    <string name="weekday_short_7">Min</string>
+    <string name="month_1">Januari</string>
+    <string name="month_2">Februari</string>
+    <string name="month_3">Maret</string>
+    <string name="month_4">April</string>
+    <string name="month_5">Mei</string>
+    <string name="month_6">Juni</string>
+    <string name="month_7">Juli</string>
+    <string name="month_8">Agustus</string>
+    <string name="month_9">September</string>
+    <string name="month_10">Oktober</string>
+    <string name="month_11">November</string>
+    <string name="month_12">Desember</string>
+    <string name="date_long">%1$d %2$s %3$d</string>
+</resources>

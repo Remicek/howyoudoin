@@ -1,5 +1,11 @@
 package com.devvalor.howyoudoing.networks.presentation.history
 
+import com.devvalor.howyoudoing.core.presentation.util.UiText
+import howyoudoin.feature.networks.presentation.generated.resources.Res
+import howyoudoin.feature.networks.presentation.generated.resources.history_wrong_pin
+import howyoudoin.feature.networks.presentation.generated.resources.history_locked
+import howyoudoin.feature.networks.presentation.generated.resources.history_session_expired
+import howyoudoin.feature.networks.presentation.generated.resources.history_failed
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
@@ -108,18 +114,17 @@ class EncryptedHistoryViewModel(
         val cleared = copy(isSubmitting = false, pin = "")
         return when (error) {
             is HistoryRestoreError.WrongPin -> cleared.copy(
-                error = "That PIN didn't work. ${error.attemptsRemaining} " +
-                    (if (error.attemptsRemaining == 1) "attempt" else "attempts") + " left before Messenger locks the backup."
+                error = UiText.Plural(Res.plurals.history_wrong_pin, error.attemptsRemaining)
             )
             HistoryRestoreError.NoAttemptsLeft -> cleared.copy(
-                error = "No attempts left. Messenger has locked your history backup.",
+                error = UiText.Resource(Res.string.history_locked),
                 isOffered = false
             )
             HistoryRestoreError.NoBackup -> cleared.copy(isDialogOpen = false, isOffered = false)
             HistoryRestoreError.SessionExpired -> cleared.copy(
-                error = "Your Messenger session expired. Reconnect Messenger under Networks, then try again."
+                error = UiText.Resource(Res.string.history_session_expired)
             )
-            is HistoryRestoreError.Remote -> cleared.copy(error = "Couldn't restore history right now. Please try again.")
+            is HistoryRestoreError.Remote -> cleared.copy(error = UiText.Resource(Res.string.history_failed))
         }
     }
 

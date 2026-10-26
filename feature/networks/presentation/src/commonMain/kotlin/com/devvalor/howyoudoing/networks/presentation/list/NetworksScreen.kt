@@ -1,5 +1,34 @@
 package com.devvalor.howyoudoing.networks.presentation.list
 
+import androidx.compose.runtime.saveable.rememberSaveable
+import howyoudoin.feature.networks.presentation.generated.resources.networks_connect
+import howyoudoin.feature.networks.presentation.generated.resources.networks_connected_device
+import howyoudoin.feature.networks.presentation.generated.resources.networks_add
+import howyoudoin.feature.networks.presentation.generated.resources.networks_disconnect_title
+import howyoudoin.feature.networks.presentation.generated.resources.networks_disconnect_body
+import howyoudoin.feature.networks.presentation.generated.resources.networks_on_device_name
+import howyoudoin.feature.networks.presentation.generated.resources.login_state_connected
+import howyoudoin.feature.networks.presentation.generated.resources.login_state_connecting
+import howyoudoin.feature.networks.presentation.generated.resources.login_state_error
+import howyoudoin.feature.networks.presentation.generated.resources.status_checking
+import howyoudoin.feature.networks.presentation.generated.resources.status_coming_soon
+import howyoudoin.feature.networks.presentation.generated.resources.status_not_configured
+import howyoudoin.feature.networks.presentation.generated.resources.status_unreachable
+import howyoudoin.feature.networks.presentation.generated.resources.status_not_connected
+import howyoudoin.feature.networks.presentation.generated.resources.status_accounts
+import org.jetbrains.compose.resources.pluralStringResource
+import howyoudoin.feature.networks.presentation.generated.resources.Res
+import org.jetbrains.compose.resources.stringResource
+import howyoudoin.feature.networks.presentation.generated.resources.networks_cancel
+import howyoudoin.feature.networks.presentation.generated.resources.networks_connect_your_chat_accounts_they
+import howyoudoin.feature.networks.presentation.generated.resources.networks_disconnect
+import howyoudoin.feature.networks.presentation.generated.resources.networks_disconnect_and_delete
+import howyoudoin.feature.networks.presentation.generated.resources.networks_howyoudoin_is_unofficial_whatsapp_messenger
+import howyoudoin.feature.networks.presentation.generated.resources.networks_i_understand_continue
+import howyoudoin.feature.networks.presentation.generated.resources.networks_networks
+import howyoudoin.feature.networks.presentation.generated.resources.networks_read_the_terms_of_use
+import howyoudoin.feature.networks.presentation.generated.resources.networks_your_account_could_be_blocked
+import howyoudoin.feature.networks.presentation.generated.resources.tutorial_back
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.material3.AlertDialog
@@ -56,6 +85,7 @@ import org.koin.compose.viewmodel.koinViewModel
 fun NetworksRoot(
     onConnectClick: (ChatNetwork) -> Unit,
     onTutorialClick: (ChatNetwork) -> Unit,
+    onTermsClick: () -> Unit,
     onBack: () -> Unit,
     viewModel: NetworksViewModel = koinViewModel()
 ) {
@@ -71,13 +101,30 @@ fun NetworksRoot(
         }
     }
 
+    fun connect(network: ChatNetwork) =
+        if (state.shouldShowTutorial(network)) onTutorialClick(network) else onConnectClick(network)
+
+    // Asked once, before the first network is connected; kept while the user reads the terms
+    var riskWarningFor by rememberSaveable { mutableStateOf<ChatNetwork?>(null) }
+    riskWarningFor?.let { network ->
+        RiskWarningDialog(
+            onAccept = {
+                riskWarningFor = null
+                viewModel.onAction(NetworksAction.OnRiskAccepted)
+                connect(network)
+            },
+            onReadTerms = onTermsClick,
+            onDismiss = { riskWarningFor = null },
+        )
+    }
+
     NetworksScreen(
         state = state,
         snackbarHostState = snackbarHostState,
         onAction = { action ->
             when (action) {
                 is NetworksAction.OnConnectClick ->
-                    if (state.shouldShowTutorial(action.network)) onTutorialClick(action.network) else onConnectClick(action.network)
+                    if (state.shouldWarnAboutRisk(action.network)) riskWarningFor = action.network else connect(action.network)
                 NetworksAction.OnBackClick -> onBack()
                 else -> viewModel.onAction(action)
             }
@@ -95,10 +142,10 @@ fun NetworksScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Networks", fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(Res.string.networks_networks), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = { onAction(NetworksAction.OnBackClick) }) {
-                        Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = stringResource(Res.string.tutorial_back))
                     }
                 },
             )
@@ -112,7 +159,7 @@ fun NetworksScreen(
         ) {
             item {
                 Text(
-                    "Connect your chat accounts. They connect directly from this phone; a server bridge is optional.",
+                    stringResource(Res.string.networks_connect_your_chat_accounts_they),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(bottom = HowYouDoinSpacing.sm),
@@ -150,7 +197,7 @@ private fun NetworkCard(
                     Text(
                         // Connected on the phone, the server bridge is optional: its trouble isn't this network's
                         if (onDevice != OnDeviceMessengerState.NotLinked && (item.status as? NetworkStatus.Ready)?.logins.isNullOrEmpty()) {
-                            "Connected on this device"
+                            stringResource(Res.string.networks_connected_device)
                         } else item.status.summary(),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -161,7 +208,7 @@ private fun NetworkCard(
                     NetworkStatus.Loading -> CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
                     NetworkStatus.ComingSoon -> Unit
                     else -> FilledTonalButton(onClick = { onAction(NetworksAction.OnConnectClick(network)) }) {
-                        Text(if (item.status is NetworkStatus.Ready && item.status.logins.isNotEmpty()) "Add" else "Connect")
+                        Text(stringResource(if (item.status is NetworkStatus.Ready && item.status.logins.isNotEmpty()) Res.string.networks_add else Res.string.networks_connect))
                     }
                 }
             }
@@ -176,27 +223,26 @@ private fun NetworkCard(
                 if (confirmDisconnect) {
                     AlertDialog(
                         onDismissRequest = { confirmDisconnect = false },
-                        title = { Text("Disconnect ${network.displayName}?") },
+                        title = { Text(stringResource(Res.string.networks_disconnect_title, network.displayName)) },
                         text = {
                             Text(
-                                "Its chats, photos and encryption keys are deleted from this phone. Your " +
-                                    "${network.displayName} account and its messages stay as they are; you can connect again anytime."
+                                stringResource(Res.string.networks_disconnect_body, network.displayName)
                             )
                         },
                         confirmButton = {
                             TextButton(onClick = {
                                 confirmDisconnect = false
                                 onAction(NetworksAction.OnDisconnectOnDeviceClick(network))
-                            }) { Text("Disconnect and delete", color = MaterialTheme.colorScheme.error) }
+                            }) { Text(stringResource(Res.string.networks_disconnect_and_delete), color = MaterialTheme.colorScheme.error) }
                         },
-                        dismissButton = { TextButton(onClick = { confirmDisconnect = false }) { Text("Cancel") } },
+                        dismissButton = { TextButton(onClick = { confirmDisconnect = false }) { Text(stringResource(Res.string.networks_cancel)) } },
                     )
                 }
                 Spacer(Modifier.height(HowYouDoinSpacing.sm))
                 LoginRow(
                     login = NetworkLogin(
                         id = "on-device",
-                        name = ((onDevice as? OnDeviceMessengerState.Connected)?.accountName ?: network.displayName) + " · on this device",
+                        name = stringResource(Res.string.networks_on_device_name, (onDevice as? OnDeviceMessengerState.Connected)?.accountName ?: network.displayName),
                         state = when (onDevice) {
                             is OnDeviceMessengerState.Connected -> "CONNECTED"
                             OnDeviceMessengerState.Connecting -> "CONNECTING"
@@ -224,26 +270,55 @@ private fun LoginRow(login: NetworkLogin, onDisconnect: () -> Unit) {
         Column(modifier = Modifier.weight(1f)) {
             Text(login.name, style = MaterialTheme.typography.bodyMedium)
             login.state?.let {
-                Text(it.lowercase().replaceFirstChar(Char::uppercase), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(loginStateLabel(it), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
         TextButton(onClick = onDisconnect) {
             Icon(Icons.Rounded.LinkOff, contentDescription = null, modifier = Modifier.size(16.dp))
             Spacer(Modifier.width(HowYouDoinSpacing.xs))
-            Text("Disconnect")
+            Text(stringResource(Res.string.networks_disconnect))
         }
     }
 }
 
+/** Bridge login states ("CONNECTED", "ERROR: …") in words; states we don't know are shown as they come. */
+@Composable
+private fun loginStateLabel(state: String): String = when {
+    state == "CONNECTED" -> stringResource(Res.string.login_state_connected)
+    state == "CONNECTING" -> stringResource(Res.string.login_state_connecting)
+    state.startsWith("ERROR: ") -> stringResource(Res.string.login_state_error, state.removePrefix("ERROR: "))
+    else -> state.lowercase().replaceFirstChar(Char::uppercase)
+}
+
 @Composable
 private fun NetworkStatus.summary(): String = when (this) {
-    NetworkStatus.Loading -> "Checking bridge…"
-    NetworkStatus.ComingSoon -> "Coming soon"
-    NetworkStatus.NotConfigured -> "Bridge not set up yet"
-    is NetworkStatus.Unavailable -> "Bridge unreachable: ${error.asString()}"
-    is NetworkStatus.Ready -> when (logins.size) {
-        0 -> "Not connected"
-        1 -> "1 account connected"
-        else -> "${logins.size} accounts connected"
+    NetworkStatus.Loading -> stringResource(Res.string.status_checking)
+    NetworkStatus.ComingSoon -> stringResource(Res.string.status_coming_soon)
+    NetworkStatus.NotConfigured -> stringResource(Res.string.status_not_configured)
+    is NetworkStatus.Unavailable -> stringResource(Res.string.status_unreachable, error.asString())
+    is NetworkStatus.Ready -> if (logins.isEmpty()) {
+        stringResource(Res.string.status_not_connected)
+    } else {
+        pluralStringResource(Res.plurals.status_accounts, logins.size, logins.size)
     }
+}
+
+@Composable
+private fun RiskWarningDialog(onAccept: () -> Unit, onReadTerms: () -> Unit, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(Res.string.networks_your_account_could_be_blocked)) },
+        text = {
+            Column {
+                Text(
+                    stringResource(Res.string.networks_howyoudoin_is_unofficial_whatsapp_messenger)
+                )
+                TextButton(onClick = onReadTerms, modifier = Modifier.padding(top = HowYouDoinSpacing.sm)) {
+                    Text(stringResource(Res.string.networks_read_the_terms_of_use))
+                }
+            }
+        },
+        confirmButton = { TextButton(onClick = onAccept) { Text(stringResource(Res.string.networks_i_understand_continue)) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(Res.string.networks_cancel)) } },
+    )
 }

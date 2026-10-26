@@ -1,5 +1,31 @@
 package com.devvalor.howyoudoing.chat.presentation.conversation
 
+import howyoudoin.feature.chat.presentation.generated.resources.conversation_copied
+import howyoudoin.feature.chat.presentation.generated.resources.conversation_unmute
+import howyoudoin.feature.chat.presentation.generated.resources.conversation_mute
+import howyoudoin.feature.chat.presentation.generated.resources.conversation_e2e
+import howyoudoin.feature.chat.presentation.generated.resources.conversation_on_device
+import howyoudoin.feature.chat.presentation.generated.resources.history_start_device
+import howyoudoin.feature.chat.presentation.generated.resources.history_start_encrypted
+import howyoudoin.feature.chat.presentation.generated.resources.history_start_app
+import org.jetbrains.compose.resources.getString
+import howyoudoin.feature.chat.presentation.generated.resources.conversation_accept
+import howyoudoin.feature.chat.presentation.generated.resources.conversation_decline
+import howyoudoin.feature.chat.presentation.generated.resources.conversation_newer_match
+import howyoudoin.feature.chat.presentation.generated.resources.conversation_older_match
+import howyoudoin.feature.chat.presentation.generated.resources.conversation_you_were_invited_to_this
+import com.devvalor.howyoudoing.core.presentation.util.UiText
+import howyoudoin.feature.chat.presentation.generated.resources.Res
+import org.jetbrains.compose.resources.stringResource
+import howyoudoin.feature.chat.presentation.generated.resources.conversation_audio_call
+import howyoudoin.feature.chat.presentation.generated.resources.conversation_back
+import howyoudoin.feature.chat.presentation.generated.resources.conversation_cancel
+import howyoudoin.feature.chat.presentation.generated.resources.conversation_close_search
+import howyoudoin.feature.chat.presentation.generated.resources.conversation_delete
+import howyoudoin.feature.chat.presentation.generated.resources.conversation_delete_for_everyone
+import howyoudoin.feature.chat.presentation.generated.resources.conversation_search_in_chat
+import howyoudoin.feature.chat.presentation.generated.resources.conversation_the_message_is_removed_for
+import howyoudoin.feature.chat.presentation.generated.resources.conversation_video_call
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.Videocam
 import androidx.compose.material.icons.rounded.Call
@@ -120,7 +146,7 @@ fun ConversationRoot(
             is ConversationEvent.Error -> snackbarHostState.showSnackbar(event.message.asStringAsync())
             is ConversationEvent.CopyToClipboard -> {
                 clipboard.setText(AnnotatedString(event.text))
-                snackbarHostState.showSnackbar("Copied")
+                snackbarHostState.showSnackbar(getString(Res.string.conversation_copied))
             }
             is ConversationEvent.OpenFile -> openFile(event.bytes, event.fileName, event.mimeType)
             ConversationEvent.Close -> onBack()
@@ -185,25 +211,25 @@ fun ConversationScreen(
                 actions = {
                     if (state.canCall) {
                         IconButton(onClick = { onAction(ConversationAction.OnCallClick(video = false)) }) {
-                            Icon(Icons.Rounded.Call, contentDescription = "Audio call")
+                            Icon(Icons.Rounded.Call, contentDescription = stringResource(Res.string.conversation_audio_call))
                         }
                         IconButton(onClick = { onAction(ConversationAction.OnCallClick(video = true)) }) {
-                            Icon(Icons.Rounded.Videocam, contentDescription = "Video call")
+                            Icon(Icons.Rounded.Videocam, contentDescription = stringResource(Res.string.conversation_video_call))
                         }
                     }
                     IconButton(onClick = { onAction(ConversationAction.OnSearchClick) }) {
-                        Icon(Icons.Rounded.Search, contentDescription = "Search in chat")
+                        Icon(Icons.Rounded.Search, contentDescription = stringResource(Res.string.conversation_search_in_chat))
                     }
                     IconButton(onClick = { onAction(ConversationAction.OnToggleMute) }) {
                         Icon(
                             if (state.isMuted) Icons.Rounded.NotificationsOff else Icons.Rounded.Notifications,
-                            contentDescription = if (state.isMuted) "Unmute notifications" else "Mute notifications",
+                            contentDescription = stringResource(if (state.isMuted) Res.string.conversation_unmute else Res.string.conversation_mute),
                         )
                     }
                 },
                 navigationIcon = {
                     IconButton(onClick = { onAction(ConversationAction.OnBackClick) }) {
-                        Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = stringResource(Res.string.conversation_back))
                     }
                 },
                 title = {
@@ -219,7 +245,7 @@ fun ConversationScreen(
                             Text(state.chatName, style = MaterialTheme.typography.titleMedium, maxLines = 1)
                             if (state.typingText != null) {
                                 Text(
-                                    state.typingText,
+                                    state.typingText.asString(),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.primary,
                                 )
@@ -227,8 +253,8 @@ fun ConversationScreen(
                                 Text(
                                     listOfNotNull(
                                         network.displayName,
-                                        "end-to-end encrypted".takeIf { state.isEncrypted },
-                                        "on this device".takeIf { state.isOnDevice },
+                                        stringResource(Res.string.conversation_e2e).takeIf { state.isEncrypted },
+                                        stringResource(Res.string.conversation_on_device).takeIf { state.isOnDevice },
                                     ).joinToString(" · "),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = network.brandColor,
@@ -300,14 +326,14 @@ fun ConversationScreen(
     state.confirmingDelete?.let {
         AlertDialog(
             onDismissRequest = { onAction(ConversationAction.OnDismissDelete) },
-            title = { Text("Delete for everyone?") },
-            text = { Text("The message is removed for everyone in the chat. Some apps show that a message was deleted.") },
+            title = { Text(stringResource(Res.string.conversation_delete_for_everyone)) },
+            text = { Text(stringResource(Res.string.conversation_the_message_is_removed_for)) },
             confirmButton = {
                 TextButton(onClick = { onAction(ConversationAction.OnConfirmDelete) }) {
-                    Text("Delete", color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(Res.string.conversation_delete), color = MaterialTheme.colorScheme.error)
                 }
             },
-            dismissButton = { TextButton(onClick = { onAction(ConversationAction.OnDismissDelete) }) { Text("Cancel") } },
+            dismissButton = { TextButton(onClick = { onAction(ConversationAction.OnDismissDelete) }) { Text(stringResource(Res.string.conversation_cancel)) } },
         )
     }
     state.viewingImage?.media?.let { media ->
@@ -323,14 +349,14 @@ private fun SearchBar(state: ConversationState, onAction: (ConversationAction) -
     TopAppBar(
         navigationIcon = {
             IconButton(onClick = { onAction(ConversationAction.OnCloseSearch) }) {
-                Icon(Icons.Rounded.Close, contentDescription = "Close search")
+                Icon(Icons.Rounded.Close, contentDescription = stringResource(Res.string.conversation_close_search))
             }
         },
         title = {
             TextField(
                 value = state.searchQuery.orEmpty(),
                 onValueChange = { onAction(ConversationAction.OnSearchQueryChange(it)) },
-                placeholder = { Text("Search in chat") },
+                placeholder = { Text(stringResource(Res.string.conversation_search_in_chat)) },
                 singleLine = true,
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = Color.Transparent,
@@ -352,13 +378,13 @@ private fun SearchBar(state: ConversationState, onAction: (ConversationAction) -
                 onClick = { onAction(ConversationAction.OnSearchOlder) },
                 enabled = state.searchIndex < state.searchMatches.size - 1,
             ) {
-                Icon(Icons.Rounded.KeyboardArrowUp, contentDescription = "Older match")
+                Icon(Icons.Rounded.KeyboardArrowUp, contentDescription = stringResource(Res.string.conversation_older_match))
             }
             IconButton(
                 onClick = { onAction(ConversationAction.OnSearchNewer) },
                 enabled = state.searchIndex > 0,
             ) {
-                Icon(Icons.Rounded.KeyboardArrowDown, contentDescription = "Newer match")
+                Icon(Icons.Rounded.KeyboardArrowDown, contentDescription = stringResource(Res.string.conversation_newer_match))
             }
         },
     )
@@ -456,12 +482,11 @@ private fun MessageList(
 private fun HistoryStartNote(state: ConversationState) {
     val text = if (state.isOnDevice) {
         // On-device chats load history from the network (Messenger's backup, WhatsApp's phone) as far as it goes
-        "This is the start of the history available on this device."
+        stringResource(Res.string.history_start_device)
     } else if (state.isEncrypted) {
-        "Older messages in end-to-end encrypted ${state.network?.displayName ?: ""} chats stay on your other devices and can't be " +
-            "transferred. New messages will appear here."
+        stringResource(Res.string.history_start_encrypted, state.network?.displayName.orEmpty())
     } else {
-        "This is the start of the history available in HowYouDoin."
+        stringResource(Res.string.history_start_app)
     }
     Text(
         text,
@@ -473,10 +498,10 @@ private fun HistoryStartNote(state: ConversationState) {
 }
 
 @Composable
-private fun DayHeader(label: String) {
+private fun DayHeader(label: UiText) {
     Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxWidth().padding(vertical = HowYouDoinSpacing.sm)) {
         Text(
-            label,
+            label.asString(),
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier
@@ -498,11 +523,11 @@ private fun MessageUi.canDelete(): Boolean =
 private fun InviteBar(isAnswering: Boolean, onAccept: () -> Unit, onDecline: () -> Unit) {
     Surface(tonalElevation = 2.dp, modifier = Modifier.fillMaxWidth()) {
         Column(Modifier.navigationBarsPadding().padding(HowYouDoinSpacing.md)) {
-            Text("You were invited to this chat. Join it to see and send messages.", style = MaterialTheme.typography.bodyMedium)
+            Text(stringResource(Res.string.conversation_you_were_invited_to_this), style = MaterialTheme.typography.bodyMedium)
             Spacer(Modifier.height(HowYouDoinSpacing.sm))
             Row(horizontalArrangement = Arrangement.spacedBy(HowYouDoinSpacing.sm), modifier = Modifier.fillMaxWidth()) {
-                OutlinedButton(onClick = onDecline, enabled = !isAnswering, modifier = Modifier.weight(1f)) { Text("Decline") }
-                Button(onClick = onAccept, enabled = !isAnswering, modifier = Modifier.weight(1f)) { Text("Accept") }
+                OutlinedButton(onClick = onDecline, enabled = !isAnswering, modifier = Modifier.weight(1f)) { Text(stringResource(Res.string.conversation_decline)) }
+                Button(onClick = onAccept, enabled = !isAnswering, modifier = Modifier.weight(1f)) { Text(stringResource(Res.string.conversation_accept)) }
             }
         }
     }

@@ -29,7 +29,7 @@ import kotlinx.coroutines.launch
 
 class NetworksViewModel(
     private val bridgeRepository: BridgeRepository,
-    onboardingRepository: OnboardingRepository,
+    private val onboardingRepository: OnboardingRepository,
     onDeviceMessenger: OnDeviceMessenger,
     onDeviceWhatsApp: OnDeviceWhatsApp,
     onDeviceInstagram: OnDeviceInstagram,
@@ -54,6 +54,9 @@ class NetworksViewModel(
         onboardingRepository.observeDismissedTutorials()
             .onEach { dismissed -> _state.update { it.copy(dismissedTutorials = dismissed) } }
             .launchIn(viewModelScope)
+        onboardingRepository.observeRiskAccepted()
+            .onEach { accepted -> _state.update { it.copy(isRiskAccepted = accepted) } }
+            .launchIn(viewModelScope)
         onDeviceClients.values.forEach { client ->
             client.state
                 .onEach { onDevice -> _state.update { it.copy(onDevice = it.onDevice + (client.network to onDevice)) } }
@@ -64,6 +67,7 @@ class NetworksViewModel(
     fun onAction(action: NetworksAction) {
         when (action) {
             NetworksAction.OnRefresh -> refresh()
+            NetworksAction.OnRiskAccepted -> viewModelScope.launch { onboardingRepository.setRiskAccepted() }
             is NetworksAction.OnDisconnectClick -> disconnect(action.network, action.loginId)
             is NetworksAction.OnDisconnectOnDeviceClick -> viewModelScope.launch {
                 connectionMonitor.expectDisconnect(action.network)

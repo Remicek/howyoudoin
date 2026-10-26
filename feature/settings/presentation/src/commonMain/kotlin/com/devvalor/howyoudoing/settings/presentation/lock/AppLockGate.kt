@@ -1,5 +1,8 @@
 package com.devvalor.howyoudoing.settings.presentation.lock
 
+import howyoudoin.feature.settings.presentation.generated.resources.Res
+import howyoudoin.feature.settings.presentation.generated.resources.lock_enter_pin
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -62,9 +65,9 @@ fun AppLockGate(
             ) {
                 if (state.isReady) {
                     PinPad(
-                        title = "Enter your PIN",
+                        title = stringResource(Res.string.lock_enter_pin),
                         pinLength = state.pinLength,
-                        message = state.message,
+                        message = state.message?.asString(),
                         isError = state.isError,
                         enabled = !state.isChecking && state.waitSeconds == 0L,
                         onDigit = { viewModel.onAction(AppLockAction.OnDigit(it)) },

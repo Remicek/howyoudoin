@@ -1,5 +1,46 @@
 package com.devvalor.howyoudoing.networks.presentation.connect
 
+import howyoudoin.feature.networks.presentation.generated.resources.flow_device_phone
+import howyoudoin.feature.networks.presentation.generated.resources.flow_device_qr
+import howyoudoin.feature.networks.presentation.generated.resources.flow_device_code
+import howyoudoin.feature.networks.presentation.generated.resources.flow_matrix
+import howyoudoin.feature.networks.presentation.generated.resources.flow_device
+import howyoudoin.feature.networks.presentation.generated.resources.field_phone
+import howyoudoin.feature.networks.presentation.generated.resources.telegram_phone_instructions
+import howyoudoin.feature.networks.presentation.generated.resources.tg_code_retry
+import howyoudoin.feature.networks.presentation.generated.resources.tg_code_app
+import howyoudoin.feature.networks.presentation.generated.resources.tg_code_sms
+import howyoudoin.feature.networks.presentation.generated.resources.tg_code_email
+import howyoudoin.feature.networks.presentation.generated.resources.tg_code_call
+import howyoudoin.feature.networks.presentation.generated.resources.tg_code_fragment
+import howyoudoin.feature.networks.presentation.generated.resources.tg_code_other
+import howyoudoin.feature.networks.presentation.generated.resources.tg_password_retry
+import howyoudoin.feature.networks.presentation.generated.resources.tg_password
+import howyoudoin.feature.networks.presentation.generated.resources.tg_password_hint
+import howyoudoin.feature.networks.presentation.generated.resources.field_login_code
+import howyoudoin.feature.networks.presentation.generated.resources.field_password
+import howyoudoin.feature.networks.presentation.generated.resources.pair_signal
+import howyoudoin.feature.networks.presentation.generated.resources.pair_telegram
+import howyoudoin.feature.networks.presentation.generated.resources.pair_whatsapp_code
+import howyoudoin.feature.networks.presentation.generated.resources.pair_whatsapp_qr
+import howyoudoin.feature.networks.presentation.generated.resources.login_failed_retry
+import howyoudoin.feature.networks.presentation.generated.resources.cookies_messenger
+import howyoudoin.feature.networks.presentation.generated.resources.cookies_instagram
+import howyoudoin.feature.networks.presentation.generated.resources.cookies_slack
+import howyoudoin.feature.networks.presentation.generated.resources.matrix_instructions
+import howyoudoin.feature.networks.presentation.generated.resources.field_homeserver
+import howyoudoin.feature.networks.presentation.generated.resources.field_matrix_user
+import howyoudoin.feature.networks.presentation.generated.resources.Res
+import org.jetbrains.compose.resources.getString
+import howyoudoin.feature.networks.presentation.generated.resources.connectnetwork_connect_from_your_phone_without
+import howyoudoin.feature.networks.presentation.generated.resources.connectnetwork_link_this_app_as_a
+import howyoudoin.feature.networks.presentation.generated.resources.connectnetwork_link_this_app_as_a_2
+import howyoudoin.feature.networks.presentation.generated.resources.connectnetwork_log_in_on_instagram_com
+import howyoudoin.feature.networks.presentation.generated.resources.connectnetwork_log_in_with_a_code
+import howyoudoin.feature.networks.presentation.generated.resources.connectnetwork_same_but_type_a_code
+import howyoudoin.feature.networks.presentation.generated.resources.connectnetwork_scan_a_code_with_telegram
+import howyoudoin.feature.networks.presentation.generated.resources.connectnetwork_sign_in_to_your_workspace
+import howyoudoin.feature.networks.presentation.generated.resources.connectnetwork_sign_in_with_your_matrix
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -113,23 +154,29 @@ class ConnectNetworkViewModel(
 
     private fun onFlowClick(flowId: String) {
         when (flowId) {
-            ON_DEVICE_FLOW_ID -> showStep(
+            ON_DEVICE_FLOW_ID -> showStepWhenReady {
                 when (network) {
                     ChatNetwork.INSTAGRAM -> onDeviceInstagramCookiesStep()
                     ChatNetwork.SLACK -> onDeviceSlackStep()
                     else -> onDeviceCookiesStep()
                 }
-            )
+            }
             ON_DEVICE_WHATSAPP_QR_FLOW_ID -> linkAccountOnDevice(onDeviceWhatsApp, phoneNumber = null)
-            ON_DEVICE_WHATSAPP_CODE_FLOW_ID -> showStep(onDevicePhoneStep(ON_DEVICE_WHATSAPP_CODE_FLOW_ID, ""))
-            ON_DEVICE_TELEGRAM_FLOW_ID -> showStep(
-                onDevicePhoneStep(ON_DEVICE_TELEGRAM_FLOW_ID, "Enter the phone number of your Telegram account. Telegram sends you a login code.")
-            )
+            ON_DEVICE_WHATSAPP_CODE_FLOW_ID -> showStepWhenReady { onDevicePhoneStep(ON_DEVICE_WHATSAPP_CODE_FLOW_ID, "") }
+            ON_DEVICE_TELEGRAM_FLOW_ID -> showStepWhenReady {
+                onDevicePhoneStep(ON_DEVICE_TELEGRAM_FLOW_ID, getString(Res.string.telegram_phone_instructions))
+            }
             ON_DEVICE_TELEGRAM_QR_FLOW_ID -> linkAccountOnDevice(onDeviceTelegram, phoneNumber = null)
             ON_DEVICE_SIGNAL_FLOW_ID -> linkAccountOnDevice(onDeviceSignal, phoneNumber = null)
-            ON_DEVICE_MATRIX_FLOW_ID -> showStep(matrixLoginStep())
+            ON_DEVICE_MATRIX_FLOW_ID -> showStepWhenReady { matrixLoginStep() }
             else -> runStep { bridgeRepository.startLogin(network, flowId) }
         }
+    }
+
+    /** On-device steps are built with the user's language strings, which load in a coroutine. */
+    private fun showStepWhenReady(build: suspend () -> BridgeLoginStep) {
+        stepJob?.cancel()
+        stepJob = viewModelScope.launch { showStep(build()) }
     }
 
     private fun loadFlows() {
@@ -296,74 +343,74 @@ class ConnectNetworkViewModel(
         }
     }
 
-    private fun onDeviceFlows(): List<BridgeLoginFlow> = when {
+    private suspend fun onDeviceFlows(): List<BridgeLoginFlow> = when {
         network == ChatNetwork.MESSENGER && onDeviceMessenger.isSupported -> listOf(
             BridgeLoginFlow(
                 id = ON_DEVICE_FLOW_ID,
-                name = "On this device",
-                description = "Connect from your phone, without the server bridge."
+                name = getString(Res.string.flow_device),
+                description = getString(Res.string.connectnetwork_connect_from_your_phone_without)
             )
         )
         network == ChatNetwork.INSTAGRAM && onDeviceInstagram.isSupported -> listOf(
             BridgeLoginFlow(
                 id = ON_DEVICE_FLOW_ID,
-                name = "On this device",
-                description = "Log in on instagram.com; your direct messages connect from this phone."
+                name = getString(Res.string.flow_device),
+                description = getString(Res.string.connectnetwork_log_in_on_instagram_com)
             )
         )
         network == ChatNetwork.TELEGRAM && onDeviceTelegram.isSupported -> listOf(
             BridgeLoginFlow(
                 id = ON_DEVICE_TELEGRAM_FLOW_ID,
-                name = "On this device · phone number",
-                description = "Log in with a code Telegram sends you; chats connect from this phone."
+                name = getString(Res.string.flow_device_phone),
+                description = getString(Res.string.connectnetwork_log_in_with_a_code)
             ),
             BridgeLoginFlow(
                 id = ON_DEVICE_TELEGRAM_QR_FLOW_ID,
-                name = "On this device · QR code",
-                description = "Scan a code with Telegram; needs this code on a second screen."
+                name = getString(Res.string.flow_device_qr),
+                description = getString(Res.string.connectnetwork_scan_a_code_with_telegram)
             )
         )
         network == ChatNetwork.SIGNAL && onDeviceSignal.isSupported -> listOf(
             BridgeLoginFlow(
                 id = ON_DEVICE_SIGNAL_FLOW_ID,
-                name = "On this device",
-                description = "Link this app as a Signal device by scanning a QR code; the code has to be on a different screen from the phone with Signal."
+                name = getString(Res.string.flow_device),
+                description = getString(Res.string.connectnetwork_link_this_app_as_a)
             )
         )
         network == ChatNetwork.WHATSAPP && onDeviceWhatsApp.isSupported -> listOf(
             BridgeLoginFlow(
                 id = ON_DEVICE_WHATSAPP_QR_FLOW_ID,
-                name = "On this device · QR code",
-                description = "Link this app as a WhatsApp device directly, without the server bridge."
+                name = getString(Res.string.flow_device_qr),
+                description = getString(Res.string.connectnetwork_link_this_app_as_a_2)
             ),
             BridgeLoginFlow(
                 id = ON_DEVICE_WHATSAPP_CODE_FLOW_ID,
-                name = "On this device · pairing code",
-                description = "Same, but type a code on your phone instead of scanning."
+                name = getString(Res.string.flow_device_code),
+                description = getString(Res.string.connectnetwork_same_but_type_a_code)
             )
         )
         network == ChatNetwork.MATRIX -> listOf(
             BridgeLoginFlow(
                 id = ON_DEVICE_MATRIX_FLOW_ID,
-                name = "Matrix account",
-                description = "Sign in with your Matrix ID and password (matrix.org or your own homeserver)."
+                name = getString(Res.string.flow_matrix),
+                description = getString(Res.string.connectnetwork_sign_in_with_your_matrix)
             )
         )
         network == ChatNetwork.SLACK && onDeviceSlack.isSupported -> listOf(
             BridgeLoginFlow(
                 id = ON_DEVICE_FLOW_ID,
-                name = "On this device",
-                description = "Sign in to your workspace on slack.com; it connects from this phone."
+                name = getString(Res.string.flow_device),
+                description = getString(Res.string.connectnetwork_sign_in_to_your_workspace)
             )
         )
         else -> emptyList()
     }
 
-    private fun onDevicePhoneStep(flowId: String, instructions: String) = BridgeLoginStep.UserInput(
+    private suspend fun onDevicePhoneStep(flowId: String, instructions: String) = BridgeLoginStep.UserInput(
         loginId = flowId,
         stepId = "on-device-phone",
         instructions = instructions,
-        fields = listOf(LoginInputField(id = "phone", name = "Phone number", description = "", type = InputFieldType.PHONE_NUMBER))
+        fields = listOf(LoginInputField(id = "phone", name = getString(Res.string.field_phone), description = "", type = InputFieldType.PHONE_NUMBER))
     )
 
     /**
@@ -409,45 +456,41 @@ class ConnectNetworkViewModel(
         }
     }
 
-    private fun pairingStep(account: OnDeviceLinkedAccount, pairing: OnDevicePairing): BridgeLoginStep {
+    private suspend fun pairingStep(account: OnDeviceLinkedAccount, pairing: OnDevicePairing): BridgeLoginStep {
         val prompt = pairing.prompt
         if (prompt != null) {
             val isCode = prompt.kind == OnDeviceLoginPrompt.Kind.CODE
             val instructions = when {
-                isCode && prompt.isRetry -> "That code didn't work. Check it and try again."
+                isCode && prompt.isRetry -> getString(Res.string.tg_code_retry)
                 isCode -> when (prompt.detail) {
-                    "app" -> "Telegram sent a login code to your Telegram app (in the chat from \"Telegram\")."
-                    "sms" -> "Telegram sent a login code by SMS."
-                    "email" -> "Telegram sent a login code to your email."
-                    "call" -> "Telegram is calling your phone to tell you the login code."
-                    "fragment" -> "Telegram sent a login code to your Fragment account."
-                    else -> "Enter the login code Telegram sent you."
+                    "app" -> getString(Res.string.tg_code_app)
+                    "sms" -> getString(Res.string.tg_code_sms)
+                    "email" -> getString(Res.string.tg_code_email)
+                    "call" -> getString(Res.string.tg_code_call)
+                    "fragment" -> getString(Res.string.tg_code_fragment)
+                    else -> getString(Res.string.tg_code_other)
                 }
-                prompt.isRetry -> "Wrong password, try again."
-                else -> "Your account has two-step verification. Enter its password" +
-                    (prompt.detail?.let { " (hint: $it)" } ?: "") + "."
+                prompt.isRetry -> getString(Res.string.tg_password_retry)
+                else -> prompt.detail?.let { getString(Res.string.tg_password_hint, it) } ?: getString(Res.string.tg_password)
             }
             return BridgeLoginStep.UserInput(
                 loginId = ON_DEVICE_PROMPT_FLOW_ID,
                 stepId = if (isCode) "on-device-code" else "on-device-password",
                 instructions = instructions,
                 fields = listOf(
-                    if (isCode) LoginInputField(id = "code", name = "Login code", description = "", type = InputFieldType.TWO_FACTOR_CODE)
-                    else LoginInputField(id = "password", name = "Password", description = "", type = InputFieldType.PASSWORD)
+                    if (isCode) LoginInputField(id = "code", name = getString(Res.string.field_login_code), description = "", type = InputFieldType.TWO_FACTOR_CODE)
+                    else LoginInputField(id = "password", name = getString(Res.string.field_password), description = "", type = InputFieldType.PASSWORD)
                 )
             )
         }
         val instructions = when {
             account.network == ChatNetwork.SIGNAL ->
-                "In Signal open Settings → Linked devices → Link a new device, and scan this code. Signal's scanner " +
-                    "uses the camera, so it needs this code on a different screen than the phone it runs on."
+getString(Res.string.pair_signal)
             account.network == ChatNetwork.TELEGRAM ->
-                "In Telegram open Settings → Devices → Link Desktop Device, and scan this code. Telegram's scanner " +
-                    "needs the code on another screen: if Telegram is only on this phone, go back and log in with your " +
-                    "phone number instead."
+getString(Res.string.pair_telegram)
             pairing.pairingCode != null ->
-                "On your phone open WhatsApp → Linked devices → Link a device → Link with phone number instead, and enter this code."
-            else -> "On your phone open WhatsApp → Linked devices → Link a device, and scan this code."
+getString(Res.string.pair_whatsapp_code)
+            else -> getString(Res.string.pair_whatsapp_qr)
         }
         return BridgeLoginStep.DisplayAndWait(
             loginId = ON_DEVICE_WHATSAPP_QR_FLOW_ID,
@@ -465,8 +508,10 @@ class ConnectNetworkViewModel(
         stepJob = viewModelScope.launch {
             _state.update { it.copy(isSubmitting = true, error = null) }
             if (account.submitLinkingInput(value) is Result.Failure) {
-                val message = (account.state.value as? OnDeviceMessengerState.Failed)?.message ?: "Couldn't log in, try again"
-                _state.update { it.copy(isSubmitting = false, error = UiText.DynamicString(message)) }
+                val message = (account.state.value as? OnDeviceMessengerState.Failed)?.message
+                _state.update {
+                    it.copy(isSubmitting = false, error = message?.let(UiText::DynamicString) ?: UiText.Resource(Res.string.login_failed_retry))
+                }
             } else {
                 // The next prompt (or being connected) was announced before the call returned; a repeated wrong
                 // answer re-announces the same prompt, which the pairing flow doesn't repeat
@@ -486,10 +531,10 @@ class ConnectNetworkViewModel(
     }
 
     /** Same cookie web view as the bridge's flow, but the cookies stay on the phone. */
-    private fun onDeviceCookiesStep() = BridgeLoginStep.Cookies(
+    private suspend fun onDeviceCookiesStep() = BridgeLoginStep.Cookies(
         loginId = ON_DEVICE_FLOW_ID,
         stepId = "on-device-cookies",
-        instructions = "Log in to Messenger. HowYouDoin then connects from this phone directly.",
+        instructions = getString(Res.string.cookies_messenger),
         url = "https://www.messenger.com/",
         // messenger.com only offers its login form to desktop browsers; this matches what hydbridge sends
         userAgent = DESKTOP_USER_AGENT,
@@ -497,10 +542,10 @@ class ConnectNetworkViewModel(
     )
 
     /** Instagram's web session cookies; the optional ones make the session look like a normal browser. */
-    private fun onDeviceInstagramCookiesStep() = BridgeLoginStep.Cookies(
+    private suspend fun onDeviceInstagramCookiesStep() = BridgeLoginStep.Cookies(
         loginId = ON_DEVICE_FLOW_ID,
         stepId = "on-device-instagram-cookies",
-        instructions = "Log in to Instagram. HowYouDoin then connects your direct messages from this phone.",
+        instructions = getString(Res.string.cookies_instagram),
         url = "https://www.instagram.com/accounts/login/",
         userAgent = null,
         cookies = listOf("sessionid", "csrftoken", "ds_user_id").map { RequiredCookie(it, it, isRequired = true) } +
@@ -511,10 +556,10 @@ class ConnectNetworkViewModel(
      * Slack's web sign-in. The session is the web client's token (kept in the page's localStorage, read by
      * [SLACK_TOKEN_SCRIPT] like mautrix-slack does) and the "d" cookie.
      */
-    private fun onDeviceSlackStep() = BridgeLoginStep.Cookies(
+    private suspend fun onDeviceSlackStep() = BridgeLoginStep.Cookies(
         loginId = ON_DEVICE_FLOW_ID,
         stepId = "on-device-slack",
-        instructions = "Sign in to your Slack workspace. HowYouDoin then connects it from this phone.",
+        instructions = getString(Res.string.cookies_slack),
         url = "https://slack.com/signin",
         // Slack sends phone browsers to its app; the desktop site signs in on the web
         userAgent = DESKTOP_USER_AGENT,
@@ -522,14 +567,14 @@ class ConnectNetworkViewModel(
         extractScript = SLACK_TOKEN_SCRIPT
     )
 
-    private fun matrixLoginStep() = BridgeLoginStep.UserInput(
+    private suspend fun matrixLoginStep() = BridgeLoginStep.UserInput(
         loginId = ON_DEVICE_MATRIX_FLOW_ID,
         stepId = "matrix-login",
-        instructions = "Sign in to your Matrix account. Its chats join your inbox; calls with Matrix contacts work from here too.",
+        instructions = getString(Res.string.matrix_instructions),
         fields = listOf(
-            LoginInputField(id = "homeserver", name = "Homeserver", description = "", type = InputFieldType.DOMAIN, defaultValue = "matrix.org"),
-            LoginInputField(id = "username", name = "Username or Matrix ID", description = "", type = InputFieldType.USERNAME),
-            LoginInputField(id = "password", name = "Password", description = "", type = InputFieldType.PASSWORD)
+            LoginInputField(id = "homeserver", name = getString(Res.string.field_homeserver), description = "", type = InputFieldType.DOMAIN, defaultValue = "matrix.org"),
+            LoginInputField(id = "username", name = getString(Res.string.field_matrix_user), description = "", type = InputFieldType.USERNAME),
+            LoginInputField(id = "password", name = getString(Res.string.field_password), description = "", type = InputFieldType.PASSWORD)
         )
     )
 

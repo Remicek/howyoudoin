@@ -1,5 +1,7 @@
 package com.devvalor.howyoudoing.chat.presentation.conversation
 
+import howyoudoin.feature.chat.presentation.generated.resources.Res
+import howyoudoin.feature.chat.presentation.generated.resources.conversation_download_failed
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -273,7 +275,7 @@ class ConversationViewModel(
         viewModelScope.launch {
             val bytes = chatRepository.downloadMedia(media.url)
             if (bytes == null) {
-                eventChannel.send(ConversationEvent.Error(UiText.DynamicString("Couldn't download the file")))
+                eventChannel.send(ConversationEvent.Error(UiText.Resource(Res.string.conversation_download_failed)))
             } else {
                 eventChannel.send(ConversationEvent.OpenFile(bytes, media.fileName ?: "file", media.mimeType))
             }

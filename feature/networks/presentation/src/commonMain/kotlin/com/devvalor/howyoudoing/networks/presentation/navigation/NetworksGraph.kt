@@ -11,6 +11,7 @@ import com.devvalor.howyoudoing.networks.presentation.list.NetworksRoot
 
 fun NavGraphBuilder.networksGraph(
     navController: NavController,
+    onTermsClick: () -> Unit,
 ) {
     navigation<NetworksRoutes.Graph>(startDestination = NetworksRoutes.List) {
         composable<NetworksRoutes.List> {
@@ -21,6 +22,7 @@ fun NavGraphBuilder.networksGraph(
                 onTutorialClick = { network ->
                     navController.navigate(NetworksRoutes.Tutorial(network.name)) { launchSingleTop = true }
                 },
+                onTermsClick = onTermsClick,
                 onBack = { navController.navigateUp() },
             )
         }

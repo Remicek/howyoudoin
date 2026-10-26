@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="backupoffer_back_up_your_logins">Cadangkan info masuk Anda?</string>
+    <string name="backupoffer_if_you_reinstall_howyoudoin_on">Jika Anda menginstal ulang HowYouDoin di ponsel ini, info masuk Anda kembali dari cadangan Google dan Anda tidak perlu masuk lagi ke setiap jaringan. Cadangan dienkripsi end-to-end dengan kunci layar Anda; tidak ada yang dikirim ke kami.\n\nWhatsApp dan Signal selalu harus ditautkan ulang.</string>
+    <string name="backupoffer_back_up">Cadangkan</string>
+    <string name="backupoffer_skip">Lewati</string>
+    <string name="backupoffer_turn_on_google_backup">Aktifkan cadangan Google</string>
+    <string name="backupoffer_your_logins_are_only_saved">Info masuk hanya tersimpan jika cadangan ponsel aktif:\n\n1. Buka Setelan → Google → Cadangan (di Samsung: Akun dan cadangan → Cadangkan data).\n2. Aktifkan \"Cadangan oleh Google One\" dan pilih akun Google Anda.\n3. Tetap gunakan kunci layar (PIN, pola, atau kata sandi): cadangan dienkripsi dengannya.\n\nJika sudah aktif, semuanya siap. Ponsel mencadangkan sendiri, biasanya pada malam hari saat mengisi daya.</string>
+    <string name="backupoffer_open_backup_settings">Buka setelan cadangan</string>
+    <string name="backupoffer_done">Selesai</string>
+    <string name="restorelogins_welcome_back">Selamat datang kembali</string>
+    <string name="restorelogins_your_phone_s_backup_has">Cadangan ponsel Anda berisi info masuk yang Anda pakai sebelumnya. Sambungkan ulang agar tidak perlu masuk lagi?</string>
+    <string name="restorelogins_continue">Lanjutkan</string>
+    <string name="restorelogins_reconnect">Sambungkan ulang</string>
+    <string name="restorelogins_don_t_restore">Jangan pulihkan</string>
+    <string name="restorelogins_not_now">Nanti saja</string>
+    <string name="restore_failed">Ini tidak dapat disambungkan ulang; hubungkan lagi di Jaringan: %1$s</string>
+    <string name="restore_relink">%1$s tidak bisa dipulihkan dari cadangan (kunci enkripsinya tetap di ponsel Anda). Tautkan lagi di Jaringan.</string>
+    <string name="notification_new_message">Pesan baru</string>
+</resources>

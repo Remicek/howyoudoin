@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="call_incoming_video">आने वाली वीडियो कॉल</string>
+    <string name="call_incoming">आने वाली कॉल</string>
+    <string name="call_decline">मना करें</string>
+    <string name="call_answer">जवाब दें</string>
+    <string name="channel_calls_ringing">आने वाली कॉल</string>
+    <string name="channel_calls_ringing_desc">बज रही Matrix कॉल</string>
+    <string name="channel_calls_ongoing">चल रही कॉल</string>
+    <string name="channel_calls_ongoing_desc">कॉल के दौरान दिखती है</string>
+    <string name="call_in_progress">कॉल चल रही है</string>
+    <string name="call_return">कॉल पर लौटने के लिए टैप करें</string>
+    <string name="call_hang_up">कॉल काटें</string>
+    <string name="call_needs_mic">कॉल के लिए माइक्रोफ़ोन चाहिए</string>
+    <string name="call_start_failed">कॉल शुरू नहीं हो सकी</string>
+    <string name="call_answer_needs_mic">जवाब देने के लिए माइक्रोफ़ोन चाहिए</string>
+    <string name="call_video">वीडियो</string>
+    <string name="call_mute">म्यूट</string>
+    <string name="call_speaker">स्पीकर</string>
+    <string name="call_camera">कैमरा</string>
+    <string name="call_flip">पलटें</string>
+    <string name="call_calling">कॉल हो रही है…</string>
+    <string name="call_connecting">कनेक्ट हो रहा है…</string>
+    <string name="call_declined">मना कर दी गई</string>
+    <string name="call_missed">छूटी कॉल</string>
+    <string name="call_no_answer">कोई जवाब नहीं</string>
+    <string name="call_busy">व्यस्त</string>
+    <string name="call_elsewhere">दूसरे डिवाइस पर जवाब दिया गया</string>
+    <string name="call_failed">कॉल नहीं हो सकी</string>
+    <string name="call_ended">कॉल खत्म</string>
+    <string name="crash_share">क्रैश रिपोर्ट शेयर करें</string>
+    <string name="channel_crash">क्रैश रिपोर्ट</string>
+    <string name="crash_title">पिछली बार HowYouDoin बंद हो गया था</string>
+    <string name="crash_text">क्रैश रिपोर्ट शेयर करने के लिए टैप करें</string>
+    <string name="bio_use_pin">PIN इस्तेमाल करें</string>
+    <string name="channel_messages">मैसेज</string>
+    <string name="channel_messages_desc">आपकी चैट के नए मैसेज</string>
+    <string name="channel_problems">कनेक्शन की समस्याएँ</string>
+    <string name="channel_problems_desc">जब कोई जुड़ा हुआ नेटवर्क काम करना बंद कर दे</string>
+    <string name="channel_connections">डिवाइस पर कनेक्शन</string>
+    <string name="channel_connections_desc">जब चैट सीधे इसी फ़ोन से जुड़ी हों, तब दिखती है</string>
+    <string name="connections_connecting">कनेक्ट हो रहा है…</string>
+    <string name="connections_connected">इस डिवाइस पर कनेक्टेड: %1$s</string>
+    <string name="connections_default">इस डिवाइस पर कनेक्टेड</string>
+</resources>

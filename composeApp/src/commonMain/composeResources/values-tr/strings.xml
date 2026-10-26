@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="backupoffer_back_up_your_logins">Girişleriniz yedeklensin mi?</string>
+    <string name="backupoffer_if_you_reinstall_howyoudoin_on">HowYouDoin\'i bu telefona yeniden yüklerseniz girişleriniz Google yedeğinizden geri gelir ve her ağa yeniden giriş yapmanız gerekmez. Yedek, ekran kilidinizle uçtan uca şifrelenir; bize hiçbir şey gönderilmez.\n\nWhatsApp ve Signal her zaman yeniden bağlanmalıdır.</string>
+    <string name="backupoffer_back_up">Yedekle</string>
+    <string name="backupoffer_skip">Atla</string>
+    <string name="backupoffer_turn_on_google_backup">Google yedeklemesini açın</string>
+    <string name="backupoffer_your_logins_are_only_saved">Girişleriniz yalnızca telefonun yedeklemesi açıksa kaydedilir:\n\n1. Ayarlar → Google → Yedekleme\'yi açın (Samsung\'da: Hesaplar ve yedekleme → Verileri yedekle).\n2. \"Google One ile yedekleme\"yi açın ve Google hesabınızı seçin.\n3. Bir ekran kilidi (PIN, desen veya şifre) kullanın: yedekler bununla şifrelenir.\n\nZaten açıksa her şey hazır. Telefon kendiliğinden, genellikle gece şarj olurken yedekleme yapar.</string>
+    <string name="backupoffer_open_backup_settings">Yedekleme ayarlarını aç</string>
+    <string name="backupoffer_done">Bitti</string>
+    <string name="restorelogins_welcome_back">Tekrar hoş geldiniz</string>
+    <string name="restorelogins_your_phone_s_backup_has">Telefonunuzun yedeğinde daha önce kullandığınız girişler var. Yeniden giriş yapmamak için yeniden bağlansın mı?</string>
+    <string name="restorelogins_continue">Devam</string>
+    <string name="restorelogins_reconnect">Yeniden bağla</string>
+    <string name="restorelogins_don_t_restore">Geri yükleme</string>
+    <string name="restorelogins_not_now">Şimdi değil</string>
+    <string name="restore_failed">Bunlar yeniden bağlanamadı; Ağlar bölümünden tekrar bağlayın: %1$s</string>
+    <string name="restore_relink">%1$s yedekten geri gelemez (şifreleme anahtarları telefonunuzda kalır). Ağlar bölümünden yeniden bağlayın.</string>
+    <string name="notification_new_message">Yeni mesaj</string>
+</resources>

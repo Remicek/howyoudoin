@@ -1,5 +1,9 @@
 package com.devvalor.howyoudoing.chat.presentation.platform
 
+import howyoudoin.feature.chat.presentation.generated.resources.Res
+import howyoudoin.feature.chat.presentation.generated.resources.attach_unreadable
+import howyoudoin.feature.chat.presentation.generated.resources.attach_too_large
+import org.jetbrains.compose.resources.stringResource
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
@@ -28,13 +32,15 @@ actual fun rememberAttachmentPicker(onPicked: (Attachment) -> Unit, onError: (St
     val scope = rememberCoroutineScope()
     val currentOnPicked by rememberUpdatedState(onPicked)
     val currentOnError by rememberUpdatedState(onError)
+    val unreadable = stringResource(Res.string.attach_unreadable)
+    val tooLarge = stringResource(Res.string.attach_too_large)
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri == null) return@rememberLauncherForActivityResult
         scope.launch {
             val attachment = withContext(Dispatchers.IO) { runCatching { readAttachment(context, uri) }.getOrNull() }
             when {
-                attachment == null -> currentOnError("Couldn't read that file")
-                attachment.bytes.size > MAX_ATTACHMENT_BYTES -> currentOnError("Files are limited to 100 MB")
+                attachment == null -> currentOnError(unreadable)
+                attachment.bytes.size > MAX_ATTACHMENT_BYTES -> currentOnError(tooLarge)
                 else -> currentOnPicked(attachment)
             }
         }

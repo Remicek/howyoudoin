@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="call_incoming_video">Gelen görüntülü arama</string>
+    <string name="call_incoming">Gelen arama</string>
+    <string name="call_decline">Reddet</string>
+    <string name="call_answer">Cevapla</string>
+    <string name="channel_calls_ringing">Gelen aramalar</string>
+    <string name="channel_calls_ringing_desc">Çalan Matrix aramaları</string>
+    <string name="channel_calls_ongoing">Devam eden aramalar</string>
+    <string name="channel_calls_ongoing_desc">Arama sırasında gösterilir</string>
+    <string name="call_in_progress">Arama devam ediyor</string>
+    <string name="call_return">Aramaya dönmek için dokunun</string>
+    <string name="call_hang_up">Kapat</string>
+    <string name="call_needs_mic">Aramalar için mikrofon gerekir</string>
+    <string name="call_start_failed">Arama başlatılamadı</string>
+    <string name="call_answer_needs_mic">Cevaplamak için mikrofon gerekir</string>
+    <string name="call_video">Video</string>
+    <string name="call_mute">Sessiz</string>
+    <string name="call_speaker">Hoparlör</string>
+    <string name="call_camera">Kamera</string>
+    <string name="call_flip">Çevir</string>
+    <string name="call_calling">Aranıyor…</string>
+    <string name="call_connecting">Bağlanıyor…</string>
+    <string name="call_declined">Reddedildi</string>
+    <string name="call_missed">Cevapsız arama</string>
+    <string name="call_no_answer">Yanıt yok</string>
+    <string name="call_busy">Meşgul</string>
+    <string name="call_elsewhere">Başka bir cihazda cevaplandı</string>
+    <string name="call_failed">Arama başarısız oldu</string>
+    <string name="call_ended">Arama sona erdi</string>
+    <string name="crash_share">Çökme raporunu paylaş</string>
+    <string name="channel_crash">Çökme raporları</string>
+    <string name="crash_title">HowYouDoin geçen sefer durdu</string>
+    <string name="crash_text">Çökme raporunu paylaşmak için dokunun</string>
+    <string name="bio_use_pin">PIN kullan</string>
+    <string name="channel_messages">Mesajlar</string>
+    <string name="channel_messages_desc">Sohbetlerinizden yeni mesajlar</string>
+    <string name="channel_problems">Bağlantı sorunları</string>
+    <string name="channel_problems_desc">Bağlı bir ağ çalışmayı bıraktığında</string>
+    <string name="channel_connections">Cihazdaki bağlantılar</string>
+    <string name="channel_connections_desc">Sohbetler doğrudan bu telefondan bağlıyken gösterilir</string>
+    <string name="connections_connecting">Bağlanıyor…</string>
+    <string name="connections_connected">Bu cihazda bağlı: %1$s</string>
+    <string name="connections_default">Bu cihazda bağlı</string>
+</resources>

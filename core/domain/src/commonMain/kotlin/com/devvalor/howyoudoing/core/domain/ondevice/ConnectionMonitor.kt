@@ -15,7 +15,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-/** A connected network that isn't working: shown in the inbox and as a notification until it's fixed. */
+/** A connected network that isn't working: shown in the inbox and as a notification until it's fixed (texts in chat presentation). */
 data class ConnectionProblem(val network: ChatNetwork, val kind: Kind, val detail: String? = null) {
     enum class Kind {
         /** Connecting failed (it keeps retrying in the background). */
@@ -27,22 +27,6 @@ data class ConnectionProblem(val network: ChatNetwork, val kind: Kind, val detai
         /** The network no longer accepts the saved login; it has to be logged in again. */
         LOGIN_EXPIRED
     }
-
-    val title: String
-        get() = when (kind) {
-            Kind.FAILED -> "${network.displayName} isn't connected"
-            Kind.LOGGED_OUT -> "${network.displayName} was logged out"
-            Kind.RECONNECTING -> "${network.displayName} is reconnecting"
-            Kind.LOGIN_EXPIRED -> "${network.displayName} login expired"
-        }
-
-    val text: String
-        get() = when (kind) {
-            Kind.FAILED -> detail?.takeIf { it.isNotBlank() } ?: "Couldn't connect. Retrying in the background."
-            Kind.LOGGED_OUT -> "Connect it again in Networks to keep getting its messages."
-            Kind.RECONNECTING -> "New messages may be delayed until it's back."
-            Kind.LOGIN_EXPIRED -> "Disconnect it in Networks and log in again."
-        }
 }
 
 /** Watches the networks connected on this phone and reports the ones that stopped working. */

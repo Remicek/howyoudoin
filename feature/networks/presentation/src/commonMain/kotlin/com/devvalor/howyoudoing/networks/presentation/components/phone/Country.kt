@@ -6,6 +6,10 @@ data class Country(
     val name: String,
     val dialCode: String
 ) {
+    /** The country's name in the phone's language (the English [name] where the platform has none). */
+    val displayName: String
+        get() = localizedCountryName(isoCode) ?: name
+
     /** Flag emoji built from the ISO code's regional indicator symbols. */
     val flag: String
         get() = isoCode.uppercase().map { char ->
@@ -21,7 +25,7 @@ data class Country(
             COUNTRY_DATA.split(";").map { entry ->
                 val (iso, name, dial) = entry.split("|")
                 Country(iso, name, dial)
-            }.sortedBy { it.name }
+            }.sortedBy { it.displayName }
         }
 
         private val byIso: Map<String, Country> by lazy { all.associateBy { it.isoCode } }

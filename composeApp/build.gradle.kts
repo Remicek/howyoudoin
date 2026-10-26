@@ -15,6 +15,13 @@ android {
     buildFeatures {
         buildConfig = true
     }
+    // Lists the translations (res/values-xx) in Settings → Apps → HowYouDoin → Language
+    androidResources {
+        generateLocaleConfig = true
+    }
+    testOptions {
+        execution = "ANDROIDX_TEST_ORCHESTRATOR"
+    }
     // Release signing, also from local.properties (never in git):
     //   release.storeFile=/path/to/howyoudoin-release.jks, release.storePassword, release.keyAlias, release.keyPassword
     val releaseStore = localProperties.getProperty("release.storeFile")?.let(::file)
@@ -34,6 +41,9 @@ android {
         }
     }
     defaultConfig {
+        // End-to-end tests (src/androidInstrumentedTest); each test starts from a freshly cleared app
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunnerArguments["clearPackageData"] = "true"
         buildConfigField("long", "TELEGRAM_API_ID", "${localProperties.getProperty("telegram.apiId")?.trim()?.toLongOrNull() ?: 0}L")
         buildConfigField("String", "TELEGRAM_API_HASH", "\"${localProperties.getProperty("telegram.apiHash")?.trim().orEmpty()}\"")
     }
@@ -88,7 +98,20 @@ kotlin {
         commonTest.dependencies {
             implementation(libs.kotlin.test)
         }
+        androidInstrumentedTest.dependencies {
+            implementation(libs.androidx.test.runner)
+            implementation(libs.androidx.test.ext.junit)
+            implementation(libs.androidx.compose.ui.test.junit4)
+            // Older Espresso (pulled in by the compose test rule) fails on Android 15+
+            implementation(libs.androidx.test.espresso.core)
+        }
     }
+}
+
+dependencies {
+    androidTestUtil(libs.androidx.test.orchestrator)
+    // Lets the tests' compose rule start an empty activity to host content
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
 }
 
 // The app libraries' licenses, shown in Settings → Open-source licenses. Regenerate after changing dependencies:

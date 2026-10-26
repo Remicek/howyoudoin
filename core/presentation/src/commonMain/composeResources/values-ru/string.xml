@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="error_disk_full">Похоже, память устройства заполнена!</string>
+    <string name="error_not_found">Не удалось найти запрошенный элемент</string>
+    <string name="error_unknown">Произошла неизвестная ошибка</string>
+    <string name="error_bad_request">Неверный запрос</string>
+    <string name="error_request_timeout">Время ожидания запроса истекло</string>
+    <string name="error_unauthorized">Неверные учётные данные</string>
+    <string name="error_forbidden">У вас нет прав на это действие</string>
+    <string name="error_conflict">Произошёл конфликт</string>
+    <string name="error_too_many_requests">Превышен лимит запросов</string>
+    <string name="error_no_internet">Не удаётся подключиться. Проверьте подключение к интернету.</string>
+    <string name="error_payload_too_large">Прикреплённый файл слишком большой</string>
+    <string name="error_server">Произошла ошибка на сервере</string>
+    <string name="error_service_unavailable">Сервис недоступен, попробуйте позже</string>
+    <string name="error_serialization">Ошибка сериализации</string>
+    <string name="day_today">Сегодня</string>
+    <string name="day_yesterday">Вчера</string>
+    <string name="weekday_1">Понедельник</string>
+    <string name="weekday_2">Вторник</string>
+    <string name="weekday_3">Среда</string>
+    <string name="weekday_4">Четверг</string>
+    <string name="weekday_5">Пятница</string>
+    <string name="weekday_6">Суббота</string>
+    <string name="weekday_7">Воскресенье</string>
+    <string name="weekday_short_1">Пн</string>
+    <string name="weekday_short_2">Вт</string>
+    <string name="weekday_short_3">Ср</string>
+    <string name="weekday_short_4">Чт</string>
+    <string name="weekday_short_5">Пт</string>
+    <string name="weekday_short_6">Сб</string>
+    <string name="weekday_short_7">Вс</string>
+    <string name="month_1">января</string>
+    <string name="month_2">февраля</string>
+    <string name="month_3">марта</string>
+    <string name="month_4">апреля</string>
+    <string name="month_5">мая</string>
+    <string name="month_6">июня</string>
+    <string name="month_7">июля</string>
+    <string name="month_8">августа</string>
+    <string name="month_9">сентября</string>
+    <string name="month_10">октября</string>
+    <string name="month_11">ноября</string>
+    <string name="month_12">декабря</string>
+    <string name="date_long">%1$d %2$s %3$d г.</string>
+</resources>

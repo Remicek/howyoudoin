@@ -1,11 +1,27 @@
 package com.devvalor.howyoudoing.settings.presentation.about
 
+import howyoudoin.feature.settings.presentation.generated.resources.Res
+import howyoudoin.feature.settings.presentation.generated.resources.about_good_to_know
+import howyoudoin.feature.settings.presentation.generated.resources.about_licenses_sub
+import howyoudoin.feature.settings.presentation.generated.resources.about_opens_browser
+import howyoudoin.feature.settings.presentation.generated.resources.about_privacy
+import howyoudoin.feature.settings.presentation.generated.resources.about_source
+import howyoudoin.feature.settings.presentation.generated.resources.about_source_sub
+import howyoudoin.feature.settings.presentation.generated.resources.about_terms_sub
+import howyoudoin.feature.settings.presentation.generated.resources.about_title
+import howyoudoin.feature.settings.presentation.generated.resources.about_trademarks
+import howyoudoin.feature.settings.presentation.generated.resources.about_unofficial
+import howyoudoin.feature.settings.presentation.generated.resources.about_version
+import howyoudoin.feature.settings.presentation.generated.resources.settings_licenses
+import howyoudoin.feature.settings.presentation.generated.resources.settings_terms
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.OpenInNew
 import androidx.compose.material.icons.rounded.Code
 import androidx.compose.material.icons.rounded.Gavel
 import androidx.compose.material.icons.rounded.Info
+import androidx.compose.material.icons.rounded.Policy
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -20,55 +36,56 @@ import com.devvalor.howyoudoing.settings.presentation.components.SettingsSection
 import org.koin.compose.koinInject
 
 @Composable
-fun AboutRoot(onLicensesClick: () -> Unit, onBack: () -> Unit, appInfo: AppInfo = koinInject()) {
-    AboutScreen(appInfo = appInfo, onLicensesClick = onLicensesClick, onBack = onBack)
+fun AboutRoot(onLicensesClick: () -> Unit, onTermsClick: () -> Unit, onBack: () -> Unit, appInfo: AppInfo = koinInject()) {
+    AboutScreen(appInfo = appInfo, onLicensesClick = onLicensesClick, onTermsClick = onTermsClick, onBack = onBack)
 }
 
 @Composable
-fun AboutScreen(appInfo: AppInfo, onLicensesClick: () -> Unit, onBack: () -> Unit) {
+fun AboutScreen(appInfo: AppInfo, onLicensesClick: () -> Unit, onTermsClick: () -> Unit, onBack: () -> Unit) {
     val uriHandler = LocalUriHandler.current
-    SettingsScaffold(title = "About", onBack = onBack) {
+    SettingsScaffold(title = stringResource(Res.string.about_title), onBack = onBack) {
         item {
-            SettingsRow(title = "HowYouDoin", subtitle = "Version ${appInfo.versionName}", icon = Icons.Rounded.Info)
+            SettingsRow(title = "HowYouDoin", subtitle = stringResource(Res.string.about_version, appInfo.versionName), icon = Icons.Rounded.Info)
         }
         item {
             SettingsRow(
-                title = "Source code",
-                subtitle = "Free software under the GNU AGPL v3. You may study, change and share it.",
+                title = stringResource(Res.string.about_source),
+                subtitle = stringResource(Res.string.about_source_sub),
                 icon = Icons.Rounded.Code,
                 onClick = { uriHandler.openUri(appInfo.sourceCodeUrl) },
-                trailing = { Icon(Icons.AutoMirrored.Rounded.OpenInNew, contentDescription = "Opens in the browser") },
+                trailing = { Icon(Icons.AutoMirrored.Rounded.OpenInNew, contentDescription = stringResource(Res.string.about_opens_browser)) },
             )
         }
         item {
             SettingsRow(
-                title = "Open-source licenses",
-                subtitle = "The libraries HowYouDoin is built with",
+                title = stringResource(Res.string.settings_licenses),
+                subtitle = stringResource(Res.string.about_licenses_sub),
                 icon = Icons.Rounded.Gavel,
                 onClick = onLicensesClick,
             )
         }
-        item { SettingsSectionHeader("Good to know") }
+        item {
+            SettingsRow(
+                title = stringResource(Res.string.settings_terms),
+                subtitle = stringResource(Res.string.about_terms_sub),
+                icon = Icons.Rounded.Policy,
+                onClick = onTermsClick,
+            )
+        }
+        item { SettingsSectionHeader(stringResource(Res.string.about_good_to_know)) }
         item {
             AboutParagraph(
-                "HowYouDoin is an unofficial app. It is not made, endorsed or supported by Meta (WhatsApp, Messenger, " +
-                    "Instagram), Telegram, Signal or Slack. Most of these services don't officially allow third-party apps, " +
-                    "so they could limit or block an account that uses one. Use it at your own risk."
+                stringResource(Res.string.about_unofficial)
             )
         }
         item {
             AboutParagraph(
-                "Your accounts connect straight from this phone. Messages, contacts and login data stay on the phone and " +
-                    "go only to the networks themselves; HowYouDoin has no servers of its own in this mode and collects no " +
-                    "analytics. If \"Back up logins\" is on, the logins are also in your phone's Google backup, end-to-end " +
-                    "encrypted with your screen lock. Crash reports stay on the phone unless you share them."
+                stringResource(Res.string.about_privacy)
             )
         }
         item {
             AboutParagraph(
-                "WhatsApp, Messenger and Instagram are trademarks of Meta Platforms, Inc.; Telegram of Telegram FZ-LLC; " +
-                    "Signal of Signal Technology Foundation; Slack of Slack Technologies, LLC; Matrix of The Matrix.org " +
-                    "Foundation. Their logos are shown only to tell which network a chat belongs to (icons from Simple Icons, CC0)."
+                stringResource(Res.string.about_trademarks)
             )
         }
     }

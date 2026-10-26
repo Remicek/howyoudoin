@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="call_incoming_video">Appel vidéo entrant</string>
+    <string name="call_incoming">Appel entrant</string>
+    <string name="call_decline">Refuser</string>
+    <string name="call_answer">Répondre</string>
+    <string name="channel_calls_ringing">Appels entrants</string>
+    <string name="channel_calls_ringing_desc">Appels Matrix qui sonnent</string>
+    <string name="channel_calls_ongoing">Appels en cours</string>
+    <string name="channel_calls_ongoing_desc">Affiché pendant un appel</string>
+    <string name="call_in_progress">Appel en cours</string>
+    <string name="call_return">Touchez pour revenir à l\'appel</string>
+    <string name="call_hang_up">Raccrocher</string>
+    <string name="call_needs_mic">Les appels nécessitent le micro</string>
+    <string name="call_start_failed">Impossible de lancer l\'appel</string>
+    <string name="call_answer_needs_mic">Répondre nécessite le micro</string>
+    <string name="call_video">Vidéo</string>
+    <string name="call_mute">Muet</string>
+    <string name="call_speaker">Haut-parleur</string>
+    <string name="call_camera">Caméra</string>
+    <string name="call_flip">Retourner</string>
+    <string name="call_calling">Appel…</string>
+    <string name="call_connecting">Connexion…</string>
+    <string name="call_declined">Refusé</string>
+    <string name="call_missed">Appel manqué</string>
+    <string name="call_no_answer">Pas de réponse</string>
+    <string name="call_busy">Occupé</string>
+    <string name="call_elsewhere">Répondu sur un autre appareil</string>
+    <string name="call_failed">Échec de l\'appel</string>
+    <string name="call_ended">Appel terminé</string>
+    <string name="crash_share">Partager le rapport de plantage</string>
+    <string name="channel_crash">Rapports de plantage</string>
+    <string name="crash_title">HowYouDoin s\'est arrêtée la dernière fois</string>
+    <string name="crash_text">Touchez pour partager le rapport de plantage</string>
+    <string name="bio_use_pin">Utiliser le code PIN</string>
+    <string name="channel_messages">Messages</string>
+    <string name="channel_messages_desc">Nouveaux messages de vos discussions</string>
+    <string name="channel_problems">Problèmes de connexion</string>
+    <string name="channel_problems_desc">Quand un réseau connecté cesse de fonctionner</string>
+    <string name="channel_connections">Connexions sur l\'appareil</string>
+    <string name="channel_connections_desc">Affiché tant que les discussions sont connectées directement depuis ce téléphone</string>
+    <string name="connections_connecting">Connexion…</string>
+    <string name="connections_connected">Connecté sur cet appareil : %1$s</string>
+    <string name="connections_default">Connecté sur cet appareil</string>
+</resources>

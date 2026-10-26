@@ -1,5 +1,8 @@
 package com.devvalor.howyoudoing.chat.presentation.conversation.components
 
+import howyoudoin.feature.chat.presentation.generated.resources.Res
+import org.jetbrains.compose.resources.stringResource
+import howyoudoin.feature.chat.presentation.generated.resources.imageviewer_close
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Box
@@ -57,7 +60,7 @@ fun ImageViewer(media: MediaInfo, resolver: MediaResolver, onClose: () -> Unit) 
                     },
             )
             IconButton(onClick = onClose, modifier = Modifier.align(Alignment.TopStart).statusBarsPadding().padding(8.dp)) {
-                Icon(Icons.Rounded.Close, contentDescription = "Close", tint = Color.White)
+                Icon(Icons.Rounded.Close, contentDescription = stringResource(Res.string.imageviewer_close), tint = Color.White)
             }
         }
     }

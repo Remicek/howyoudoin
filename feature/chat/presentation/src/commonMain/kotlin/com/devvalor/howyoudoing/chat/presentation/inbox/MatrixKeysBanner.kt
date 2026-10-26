@@ -1,5 +1,44 @@
 package com.devvalor.howyoudoing.chat.presentation.inbox
 
+import com.devvalor.howyoudoing.core.presentation.util.UiText
+import howyoudoin.feature.chat.presentation.generated.resources.keys_error_retry
+import howyoudoin.feature.chat.presentation.generated.resources.keys_error_wrong
+import howyoudoin.feature.chat.presentation.generated.resources.keys_error_none
+import howyoudoin.feature.chat.presentation.generated.resources.keys_error_other
+import howyoudoin.feature.chat.presentation.generated.resources.keys_restored
+import howyoudoin.feature.chat.presentation.generated.resources.keys_restored_none
+import howyoudoin.feature.chat.presentation.generated.resources.keys_ok
+import howyoudoin.feature.chat.presentation.generated.resources.keys_open_networks
+import howyoudoin.feature.chat.presentation.generated.resources.keys_not_now
+import howyoudoin.feature.chat.presentation.generated.resources.keys_enter
+import howyoudoin.feature.chat.presentation.generated.resources.keys_web_1
+import howyoudoin.feature.chat.presentation.generated.resources.keys_web_2
+import howyoudoin.feature.chat.presentation.generated.resources.keys_web_3
+import howyoudoin.feature.chat.presentation.generated.resources.keys_web_4
+import howyoudoin.feature.chat.presentation.generated.resources.keys_phone_1
+import howyoudoin.feature.chat.presentation.generated.resources.keys_phone_2
+import howyoudoin.feature.chat.presentation.generated.resources.keys_phone_3
+import org.jetbrains.compose.resources.pluralStringResource
+import howyoudoin.feature.chat.presentation.generated.resources.Res
+import org.jetbrains.compose.resources.stringResource
+import howyoudoin.feature.chat.presentation.generated.resources.conversation_cancel
+import howyoudoin.feature.chat.presentation.generated.resources.imageviewer_close
+import howyoudoin.feature.chat.presentation.generated.resources.matrixkeys_element_can_t_show_an
+import howyoudoin.feature.chat.presentation.generated.resources.matrixkeys_element_on_a_computer_web
+import howyoudoin.feature.chat.presentation.generated.resources.matrixkeys_element_x_on_a_phone
+import howyoudoin.feature.chat.presentation.generated.resources.matrixkeys_find_your_recovery_key
+import howyoudoin.feature.chat.presentation.generated.resources.matrixkeys_i_have_my_key
+import howyoudoin.feature.chat.presentation.generated.resources.matrixkeys_matrix_device_verified
+import howyoudoin.feature.chat.presentation.generated.resources.matrixkeys_matrix_recovery_key
+import howyoudoin.feature.chat.presentation.generated.resources.matrixkeys_messages_sent_before_howyoudoin_was
+import howyoudoin.feature.chat.presentation.generated.resources.matrixkeys_recovery_key
+import howyoudoin.feature.chat.presentation.generated.resources.matrixkeys_sign_in_to_matrix_again
+import howyoudoin.feature.chat.presentation.generated.resources.matrixkeys_skip
+import howyoudoin.feature.chat.presentation.generated.resources.matrixkeys_the_recovery_key_element_may
+import howyoudoin.feature.chat.presentation.generated.resources.matrixkeys_unlock_older_encrypted_matrix_messages
+import howyoudoin.feature.chat.presentation.generated.resources.matrixkeys_verify
+import howyoudoin.feature.chat.presentation.generated.resources.matrixkeys_you_got_it_when_you
+import howyoudoin.feature.chat.presentation.generated.resources.matrixkeys_your_matrix_login_came_back
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.IconButton
@@ -61,7 +100,7 @@ data class MatrixKeysState(
     val isDialogOpen: Boolean = false,
     val recoveryKey: String = "",
     val isSubmitting: Boolean = false,
-    val error: String? = null,
+    val error: UiText? = null,
     /** After verifying: how many older message keys came back from the key backup. */
     val restoredKeys: Int? = null
 ) {
@@ -121,12 +160,11 @@ class MatrixKeysViewModel(private val encryption: MatrixEncryption) : ViewModel(
         }
     }
 
-    private fun friendlyError(message: String?): String = when {
-        message == null -> "Couldn't verify. Try again."
-        "wrong recovery key" in message || "invalid" in message.lowercase() ->
-            "That isn't this account's recovery key. Check it in Element (Settings → Encryption)."
-        "no recovery key" in message -> "This Matrix account has no recovery key yet. Set one up in Element first."
-        else -> "Couldn't verify: $message"
+    private fun friendlyError(message: String?): UiText = when {
+        message == null -> UiText.Resource(Res.string.keys_error_retry)
+        "wrong recovery key" in message || "invalid" in message.lowercase() -> UiText.Resource(Res.string.keys_error_wrong)
+        "no recovery key" in message -> UiText.Resource(Res.string.keys_error_none)
+        else -> UiText.Resource(Res.string.keys_error_other, arrayOf(message))
     }
 }
 
@@ -136,27 +174,25 @@ fun MatrixKeysBannerRoot(onNetworksClick: () -> Unit, viewModel: MatrixKeysViewM
     val restored = state.restoredKeys
     when {
         restored != null -> KeysCard(
-            title = "Matrix device verified",
+            title = stringResource(Res.string.matrixkeys_matrix_device_verified),
             body = if (restored > 0) {
-                "Keys for $restored older encrypted conversations were restored; their messages unlock as they load."
+                pluralStringResource(Res.plurals.keys_restored, restored, restored)
             } else {
-                "New encrypted messages can be read. There was no key backup with older messages to restore."
+                stringResource(Res.string.keys_restored_none)
             },
-            primary = "OK" to viewModel::dismissResult,
+            primary = stringResource(Res.string.keys_ok) to viewModel::dismissResult,
         )
         state.needsSignIn -> KeysCard(
-            title = "Sign in to Matrix again",
-            body = "Your Matrix login came back from a backup, but encryption keys never leave a phone, so " +
-                "encrypted chats can't be read here. In Networks, disconnect Matrix and sign in again.",
-            primary = "Open Networks" to onNetworksClick,
-            secondary = "Not now" to viewModel::notNow,
+            title = stringResource(Res.string.matrixkeys_sign_in_to_matrix_again),
+            body = stringResource(Res.string.matrixkeys_your_matrix_login_came_back),
+            primary = stringResource(Res.string.keys_open_networks) to onNetworksClick,
+            secondary = stringResource(Res.string.keys_not_now) to viewModel::notNow,
         )
         state.isOffered -> KeysCard(
-            title = "Unlock older encrypted Matrix messages",
-            body = "Messages sent before HowYouDoin was connected stay locked, and some apps won't share keys with an " +
-                "unverified device. Verify it with your Matrix recovery key.",
-            primary = "Enter recovery key" to viewModel::open,
-            secondary = "Not now" to viewModel::notNow,
+            title = stringResource(Res.string.matrixkeys_unlock_older_encrypted_matrix_messages),
+            body = stringResource(Res.string.matrixkeys_messages_sent_before_howyoudoin_was),
+            primary = stringResource(Res.string.keys_enter) to viewModel::open,
+            secondary = stringResource(Res.string.keys_not_now) to viewModel::notNow,
         )
     }
     if (state.isGuideOpen) {
@@ -209,19 +245,18 @@ private fun RecoveryKeyDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Matrix recovery key") },
+        title = { Text(stringResource(Res.string.matrixkeys_matrix_recovery_key)) },
         text = {
             Column {
                 Text(
-                    "The recovery key (Element may call it Security Key) you saved when setting up encryption, " +
-                        "48 letters and numbers in groups of four. Not your password.",
+                    stringResource(Res.string.matrixkeys_the_recovery_key_element_may),
                     style = MaterialTheme.typography.bodyMedium,
                 )
                 Spacer(Modifier.padding(top = HowYouDoinSpacing.sm))
                 OutlinedTextField(
                     value = state.recoveryKey,
                     onValueChange = onKeyChange,
-                    label = { Text("Recovery key") },
+                    label = { Text(stringResource(Res.string.matrixkeys_recovery_key)) },
                     enabled = !state.isSubmitting,
                     isError = state.error != null,
                     visualTransformation = PasswordVisualTransformation(),
@@ -230,7 +265,7 @@ private fun RecoveryKeyDialog(
                 )
                 state.error?.let {
                     Spacer(Modifier.padding(top = HowYouDoinSpacing.sm))
-                    Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+                    Text(it.asString(), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
                 }
             }
         },
@@ -239,11 +274,11 @@ private fun RecoveryKeyDialog(
                 if (state.isSubmitting) {
                     CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
                 } else {
-                    Text("Verify")
+                    Text(stringResource(Res.string.matrixkeys_verify))
                 }
             }
         },
-        dismissButton = { TextButton(onClick = onDismiss, enabled = !state.isSubmitting) { Text("Cancel") } },
+        dismissButton = { TextButton(onClick = onDismiss, enabled = !state.isSubmitting) { Text(stringResource(Res.string.conversation_cancel)) } },
     )
 }
 
@@ -254,42 +289,39 @@ private fun RecoveryKeyGuide(onContinue: () -> Unit, onClose: () -> Unit) {
         Surface(color = MaterialTheme.colorScheme.background, modifier = Modifier.fillMaxSize()) {
             Column(Modifier.fillMaxSize().safeDrawingPadding()) {
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                    IconButton(onClick = onClose) { Icon(Icons.Rounded.Close, contentDescription = "Close") }
+                    IconButton(onClick = onClose) { Icon(Icons.Rounded.Close, contentDescription = stringResource(Res.string.imageviewer_close)) }
                     Spacer(Modifier.weight(1f))
-                    TextButton(onClick = onContinue) { Text("Skip") }
+                    TextButton(onClick = onContinue) { Text(stringResource(Res.string.matrixkeys_skip)) }
                 }
                 Column(
                     Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = HowYouDoinSpacing.lg)
                 ) {
-                    Text("Find your recovery key", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+                    Text(stringResource(Res.string.matrixkeys_find_your_recovery_key), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
                     Spacer(Modifier.height(HowYouDoinSpacing.sm))
                     Text(
-                        "You got it when you turned on encryption backup in Element: 48 letters and numbers in groups " +
-                            "of four (EsTc 9Z3k …). Element may call it Security Key. Check your password manager, " +
-                            "notes or a saved file first.",
+                        stringResource(Res.string.matrixkeys_you_got_it_when_you),
                         style = MaterialTheme.typography.bodyLarge,
                     )
                     GuideSection(
-                        title = "Element on a computer (web or desktop)",
+                        title = stringResource(Res.string.matrixkeys_element_on_a_computer_web),
                         steps = listOf(
-                            "Click your profile picture in the top left, then All settings.",
-                            "Open Encryption.",
-                            "Under Recovery, choose Change recovery key (or Set up recovery if there's none yet).",
-                            "Save the new key somewhere safe, then type it here.",
+                            stringResource(Res.string.keys_web_1),
+                            stringResource(Res.string.keys_web_2),
+                            stringResource(Res.string.keys_web_3),
+                            stringResource(Res.string.keys_web_4),
                         ),
                     )
                     GuideSection(
-                        title = "Element X on a phone",
+                        title = stringResource(Res.string.matrixkeys_element_x_on_a_phone),
                         steps = listOf(
-                            "Tap your profile picture, then Encryption.",
-                            "Tap Recovery, then Change recovery key (or Set up recovery).",
-                            "Save the key, then type it here.",
+                            stringResource(Res.string.keys_phone_1),
+                            stringResource(Res.string.keys_phone_2),
+                            stringResource(Res.string.keys_phone_3),
                         ),
                     )
                     Spacer(Modifier.height(HowYouDoinSpacing.md))
                     Text(
-                        "Element can't show an existing key again; changing it makes a new one and the old one stops " +
-                            "working. Do it from a session that's already verified so your old messages stay readable.",
+                        stringResource(Res.string.matrixkeys_element_can_t_show_an),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -298,7 +330,7 @@ private fun RecoveryKeyGuide(onContinue: () -> Unit, onClose: () -> Unit) {
                 Button(
                     onClick = onContinue,
                     modifier = Modifier.fillMaxWidth().padding(HowYouDoinSpacing.lg),
-                ) { Text("I have my key") }
+                ) { Text(stringResource(Res.string.matrixkeys_i_have_my_key)) }
             }
         }
     }

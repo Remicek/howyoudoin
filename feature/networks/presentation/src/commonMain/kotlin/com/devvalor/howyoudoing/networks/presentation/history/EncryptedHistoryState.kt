@@ -1,4 +1,5 @@
 package com.devvalor.howyoudoing.networks.presentation.history
+import com.devvalor.howyoudoing.core.presentation.util.UiText
 
 data class EncryptedHistoryState(
     /** Messenger has a PIN backup that hasn't been restored, and the inbox has encrypted Messenger chats. */
@@ -6,7 +7,7 @@ data class EncryptedHistoryState(
     val isDialogOpen: Boolean = false,
     val pin: String = "",
     val isSubmitting: Boolean = false,
-    val error: String? = null,
+    val error: UiText? = null,
     /** Restore accepted; encrypted chats are being rebuilt with their history. */
     val isRestoring: Boolean = false,
     /** The offer is for Messenger connected on this phone rather than the server bridge. */

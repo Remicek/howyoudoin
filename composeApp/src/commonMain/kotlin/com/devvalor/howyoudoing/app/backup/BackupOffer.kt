@@ -1,5 +1,15 @@
 package com.devvalor.howyoudoing.app.backup
 
+import howyoudoin.composeapp.generated.resources.Res
+import org.jetbrains.compose.resources.stringResource
+import howyoudoin.composeapp.generated.resources.backupoffer_back_up
+import howyoudoin.composeapp.generated.resources.backupoffer_back_up_your_logins
+import howyoudoin.composeapp.generated.resources.backupoffer_done
+import howyoudoin.composeapp.generated.resources.backupoffer_if_you_reinstall_howyoudoin_on
+import howyoudoin.composeapp.generated.resources.backupoffer_open_backup_settings
+import howyoudoin.composeapp.generated.resources.backupoffer_skip
+import howyoudoin.composeapp.generated.resources.backupoffer_turn_on_google_backup
+import howyoudoin.composeapp.generated.resources.backupoffer_your_logins_are_only_saved
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -65,31 +75,25 @@ fun BackupOfferRoot(viewModel: BackupOfferViewModel = koinViewModel()) {
     when (step) {
         BackupOfferStep.ASK -> AlertDialog(
             onDismissRequest = {},
-            title = { Text("Back up your logins?") },
+            title = { Text(stringResource(Res.string.backupoffer_back_up_your_logins)) },
             text = {
                 Text(
-                    "If you reinstall HowYouDoin on this phone, your logins come back from your Google backup and you " +
-                        "won't have to log in to each network again. The backup is end-to-end encrypted with your " +
-                        "screen lock; nothing is sent to us.\n\nWhatsApp and Signal always need linking again."
+                    stringResource(Res.string.backupoffer_if_you_reinstall_howyoudoin_on)
                 )
             },
-            confirmButton = { TextButton(onClick = viewModel::backUp) { Text("Back up") } },
-            dismissButton = { TextButton(onClick = viewModel::skip) { Text("Skip") } },
+            confirmButton = { TextButton(onClick = viewModel::backUp) { Text(stringResource(Res.string.backupoffer_back_up)) } },
+            dismissButton = { TextButton(onClick = viewModel::skip) { Text(stringResource(Res.string.backupoffer_skip)) } },
         )
         BackupOfferStep.TURN_ON_GOOGLE_BACKUP -> AlertDialog(
             onDismissRequest = viewModel::done,
-            title = { Text("Turn on Google backup") },
+            title = { Text(stringResource(Res.string.backupoffer_turn_on_google_backup)) },
             text = {
                 Text(
-                    "Your logins are only saved if the phone's backup is on:\n\n" +
-                        "1. Open Settings → Google → Backup (on Samsung: Accounts and backup → Back up data).\n" +
-                        "2. Turn on \"Backup by Google One\" and choose your Google account.\n" +
-                        "3. Keep a screen lock (PIN, pattern or password): backups are encrypted with it.\n\n" +
-                        "If it's already on, you're all set. The phone backs up on its own, usually overnight while charging."
+                    stringResource(Res.string.backupoffer_your_logins_are_only_saved)
                 )
             },
-            confirmButton = { TextButton(onClick = viewModel::openBackupSettings) { Text("Open backup settings") } },
-            dismissButton = { TextButton(onClick = viewModel::done) { Text("Done") } },
+            confirmButton = { TextButton(onClick = viewModel::openBackupSettings) { Text(stringResource(Res.string.backupoffer_open_backup_settings)) } },
+            dismissButton = { TextButton(onClick = viewModel::done) { Text(stringResource(Res.string.backupoffer_done)) } },
         )
         null -> Unit
     }

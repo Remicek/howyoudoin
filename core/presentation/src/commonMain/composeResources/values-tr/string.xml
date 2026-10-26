@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="error_disk_full">Hay aksi, depolama alanınız dolu görünüyor!</string>
+    <string name="error_not_found">İstenen öğe bulunamadı</string>
+    <string name="error_unknown">Bilinmeyen bir hata oluştu</string>
+    <string name="error_bad_request">Geçersiz istek</string>
+    <string name="error_request_timeout">İstek zaman aşımına uğradı</string>
+    <string name="error_unauthorized">Geçersiz kimlik bilgileri</string>
+    <string name="error_forbidden">Bunu yapma izniniz yok</string>
+    <string name="error_conflict">Bir çakışma oluştu</string>
+    <string name="error_too_many_requests">İstek sınırına ulaştınız</string>
+    <string name="error_no_internet">Bağlanılamıyor. Lütfen internet bağlantınızı kontrol edin.</string>
+    <string name="error_payload_too_large">Eklediğiniz dosya çok büyük</string>
+    <string name="error_server">Hay aksi, sunucuda bir hata oluştu</string>
+    <string name="error_service_unavailable">Hizmet kullanılamıyor, lütfen daha sonra tekrar deneyin</string>
+    <string name="error_serialization">Serileştirme hatası</string>
+    <string name="day_today">Bugün</string>
+    <string name="day_yesterday">Dün</string>
+    <string name="weekday_1">Pazartesi</string>
+    <string name="weekday_2">Salı</string>
+    <string name="weekday_3">Çarşamba</string>
+    <string name="weekday_4">Perşembe</string>
+    <string name="weekday_5">Cuma</string>
+    <string name="weekday_6">Cumartesi</string>
+    <string name="weekday_7">Pazar</string>
+    <string name="weekday_short_1">Pzt</string>
+    <string name="weekday_short_2">Sal</string>
+    <string name="weekday_short_3">Çar</string>
+    <string name="weekday_short_4">Per</string>
+    <string name="weekday_short_5">Cum</string>
+    <string name="weekday_short_6">Cmt</string>
+    <string name="weekday_short_7">Paz</string>
+    <string name="month_1">Ocak</string>
+    <string name="month_2">Şubat</string>
+    <string name="month_3">Mart</string>
+    <string name="month_4">Nisan</string>
+    <string name="month_5">Mayıs</string>
+    <string name="month_6">Haziran</string>
+    <string name="month_7">Temmuz</string>
+    <string name="month_8">Ağustos</string>
+    <string name="month_9">Eylül</string>
+    <string name="month_10">Ekim</string>
+    <string name="month_11">Kasım</string>
+    <string name="month_12">Aralık</string>
+    <string name="date_long">%1$d %2$s %3$d</string>
+</resources>

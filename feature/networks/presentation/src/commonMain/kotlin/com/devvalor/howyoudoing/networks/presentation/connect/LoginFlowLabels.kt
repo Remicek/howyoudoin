@@ -1,13 +1,38 @@
 package com.devvalor.howyoudoing.networks.presentation.connect
 
+import com.devvalor.howyoudoing.core.presentation.util.UiText
+import com.devvalor.howyoudoing.core.presentation.util.asUiText
+import howyoudoin.feature.networks.presentation.generated.resources.Res
+import howyoudoin.feature.networks.presentation.generated.resources.flow_best_when_whatsapp_is_on_this
+import howyoudoin.feature.networks.presentation.generated.resources.flow_connects_through_your_matrix_server_instead
+import howyoudoin.feature.networks.presentation.generated.resources.flow_email_or_phone_password_alternative
+import howyoudoin.feature.networks.presentation.generated.resources.flow_email_or_phone_password_via_server
+import howyoudoin.feature.networks.presentation.generated.resources.flow_facebook_account_via_server_bridge
+import howyoudoin.feature.networks.presentation.generated.resources.flow_link_this_app_in_signal_on
+import howyoudoin.feature.networks.presentation.generated.resources.flow_log_in_on_facebook_com
+import howyoudoin.feature.networks.presentation.generated.resources.flow_log_in_on_instagram_com_direct
+import howyoudoin.feature.networks.presentation.generated.resources.flow_log_in_on_messenger_com_chats
+import howyoudoin.feature.networks.presentation.generated.resources.flow_log_in_with_a_code_telegram
+import howyoudoin.feature.networks.presentation.generated.resources.flow_matrix_account
+import howyoudoin.feature.networks.presentation.generated.resources.flow_messenger_via_server_bridge
+import howyoudoin.feature.networks.presentation.generated.resources.flow_pairing_code
+import howyoudoin.feature.networks.presentation.generated.resources.flow_pairing_code_via_server_bridge
+import howyoudoin.feature.networks.presentation.generated.resources.flow_phone_number
+import howyoudoin.feature.networks.presentation.generated.resources.flow_qr_code
+import howyoudoin.feature.networks.presentation.generated.resources.flow_qr_code_via_server_bridge
+import howyoudoin.feature.networks.presentation.generated.resources.flow_scan_it_with_whatsapp_on_another
+import howyoudoin.feature.networks.presentation.generated.resources.flow_sign_in_on_slack_com_your
+import howyoudoin.feature.networks.presentation.generated.resources.flow_sign_in_with_your_matrix_id
+import howyoudoin.feature.networks.presentation.generated.resources.flow_sign_in_without_a_web_page
+import howyoudoin.feature.networks.presentation.generated.resources.flow_use_this_if_the_first_one
 import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
 import com.devvalor.howyoudoing.networks.domain.BridgeLoginFlow
 
 /** How a bridge login flow is presented; the bridge's own name/description are often technical. */
 data class LoginFlowLabel(
     val flowId: String,
-    val title: String,
-    val description: String,
+    val title: UiText,
+    val description: UiText,
     val isRecommended: Boolean = false
 )
 
@@ -23,39 +48,39 @@ object LoginFlowLabels {
             .sortedBy { flow -> known.indexOfFirst { it.flowId == flow.id }.takeIf { it >= 0 } ?: Int.MAX_VALUE }
             .map { flow ->
                 known.firstOrNull { it.flowId == flow.id }
-                    ?: LoginFlowLabel(flow.id, flow.name, flow.description)
+                    ?: LoginFlowLabel(flow.id, flow.name.asUiText(), flow.description.asUiText())
             }
     }
 
     // Connecting on this phone is the default; the server bridge flows remain as an alternative
     private val KNOWN = mapOf(
         ChatNetwork.WHATSAPP to listOf(
-            LoginFlowLabel(ON_DEVICE_WHATSAPP_CODE, "Pairing code", "Best when WhatsApp is on this phone", isRecommended = true),
-            LoginFlowLabel(ON_DEVICE_WHATSAPP_QR, "QR code", "Scan it with WhatsApp on another phone"),
-            LoginFlowLabel("phone", "Pairing code via server bridge", "Connects through your Matrix server instead"),
-            LoginFlowLabel("qr", "QR code via server bridge", "Connects through your Matrix server instead"),
+            LoginFlowLabel(ON_DEVICE_WHATSAPP_CODE, UiText.Resource(Res.string.flow_pairing_code), UiText.Resource(Res.string.flow_best_when_whatsapp_is_on_this), isRecommended = true),
+            LoginFlowLabel(ON_DEVICE_WHATSAPP_QR, UiText.Resource(Res.string.flow_qr_code), UiText.Resource(Res.string.flow_scan_it_with_whatsapp_on_another)),
+            LoginFlowLabel("phone", UiText.Resource(Res.string.flow_pairing_code_via_server_bridge), UiText.Resource(Res.string.flow_connects_through_your_matrix_server_instead)),
+            LoginFlowLabel("qr", UiText.Resource(Res.string.flow_qr_code_via_server_bridge), UiText.Resource(Res.string.flow_connects_through_your_matrix_server_instead)),
         ),
         ChatNetwork.MESSENGER to listOf(
-            LoginFlowLabel(ON_DEVICE, "Messenger", "Log in on messenger.com; chats connect from this phone", isRecommended = true),
-            LoginFlowLabel("messenger", "Messenger via server bridge", "Log in on messenger.com; chats connect through your server"),
-            LoginFlowLabel("facebook", "Facebook account via server bridge", "Log in on facebook.com"),
-            LoginFlowLabel("messenger-lite", "Email or phone & password via server bridge", "Sign in without a web page"),
-            LoginFlowLabel("messenger-lite-android", "Email or phone & password (alternative)", "Use this if the first one is rejected"),
+            LoginFlowLabel(ON_DEVICE, "Messenger".asUiText(), UiText.Resource(Res.string.flow_log_in_on_messenger_com_chats), isRecommended = true),
+            LoginFlowLabel("messenger", UiText.Resource(Res.string.flow_messenger_via_server_bridge), UiText.Resource(Res.string.flow_log_in_on_messenger_com_chats)),
+            LoginFlowLabel("facebook", UiText.Resource(Res.string.flow_facebook_account_via_server_bridge), UiText.Resource(Res.string.flow_log_in_on_facebook_com)),
+            LoginFlowLabel("messenger-lite", UiText.Resource(Res.string.flow_email_or_phone_password_via_server), UiText.Resource(Res.string.flow_sign_in_without_a_web_page)),
+            LoginFlowLabel("messenger-lite-android", UiText.Resource(Res.string.flow_email_or_phone_password_alternative), UiText.Resource(Res.string.flow_use_this_if_the_first_one)),
         ),
         ChatNetwork.TELEGRAM to listOf(
-            LoginFlowLabel(ON_DEVICE_TELEGRAM, "Phone number", "Log in with a code Telegram sends you; chats connect from this phone", isRecommended = true),
+            LoginFlowLabel(ON_DEVICE_TELEGRAM, UiText.Resource(Res.string.flow_phone_number), UiText.Resource(Res.string.flow_log_in_with_a_code_telegram), isRecommended = true),
         ),
         ChatNetwork.SIGNAL to listOf(
-            LoginFlowLabel(ON_DEVICE_SIGNAL, "QR code", "Link this app in Signal on your phone, like Signal Desktop", isRecommended = true),
+            LoginFlowLabel(ON_DEVICE_SIGNAL, UiText.Resource(Res.string.flow_qr_code), UiText.Resource(Res.string.flow_link_this_app_in_signal_on), isRecommended = true),
         ),
         ChatNetwork.MATRIX to listOf(
-            LoginFlowLabel("howyoudoin-matrix-account", "Matrix account", "Sign in with your Matrix ID and password", isRecommended = true),
+            LoginFlowLabel("howyoudoin-matrix-account", UiText.Resource(Res.string.flow_matrix_account), UiText.Resource(Res.string.flow_sign_in_with_your_matrix_id), isRecommended = true),
         ),
         ChatNetwork.SLACK to listOf(
-            LoginFlowLabel(ON_DEVICE, "Slack", "Sign in on slack.com; your workspace connects from this phone", isRecommended = true),
+            LoginFlowLabel(ON_DEVICE, "Slack".asUiText(), UiText.Resource(Res.string.flow_sign_in_on_slack_com_your), isRecommended = true),
         ),
         ChatNetwork.INSTAGRAM to listOf(
-            LoginFlowLabel(ON_DEVICE, "Instagram", "Log in on instagram.com; direct messages connect from this phone", isRecommended = true),
+            LoginFlowLabel(ON_DEVICE, "Instagram".asUiText(), UiText.Resource(Res.string.flow_log_in_on_instagram_com_direct), isRecommended = true),
         ),
     )
 

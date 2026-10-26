@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="backupoffer_back_up_your_logins">ログイン情報をバックアップしますか？</string>
+    <string name="backupoffer_if_you_reinstall_howyoudoin_on">このスマホに HowYouDoin を再インストールしても、ログイン情報が Google バックアップから戻るため、各ネットワークにログインし直す必要はありません。バックアップは画面ロックでエンドツーエンド暗号化され、私たちには何も送信されません。\n\nWhatsApp と Signal は毎回リンクし直す必要があります。</string>
+    <string name="backupoffer_back_up">バックアップ</string>
+    <string name="backupoffer_skip">スキップ</string>
+    <string name="backupoffer_turn_on_google_backup">Google バックアップをオンにする</string>
+    <string name="backupoffer_your_logins_are_only_saved">ログイン情報は、スマホのバックアップがオンの場合にのみ保存されます：\n\n1. 設定 → Google → バックアップ を開きます（Samsung の場合：アカウントとバックアップ → データをバックアップ）。\n2. 「Google One バックアップ」をオンにし、Google アカウントを選びます。\n3. 画面ロック（PIN、パターン、パスワード）を設定したままにします。バックアップはこれで暗号化されます。\n\nすでにオンなら準備完了です。スマホは通常、夜間の充電中に自動でバックアップします。</string>
+    <string name="backupoffer_open_backup_settings">バックアップ設定を開く</string>
+    <string name="backupoffer_done">完了</string>
+    <string name="restorelogins_welcome_back">おかえりなさい</string>
+    <string name="restorelogins_your_phone_s_backup_has">スマホのバックアップに以前のログイン情報があります。再接続して、ログインし直す手間を省きますか？</string>
+    <string name="restorelogins_continue">続ける</string>
+    <string name="restorelogins_reconnect">再接続</string>
+    <string name="restorelogins_don_t_restore">復元しない</string>
+    <string name="restorelogins_not_now">後で</string>
+    <string name="restore_failed">次は再接続できませんでした。ネットワークでもう一度接続してください: %1$s</string>
+    <string name="restore_relink">%1$s はバックアップから戻せません（暗号鍵はスマホに残ります）。ネットワークでリンクし直してください。</string>
+    <string name="notification_new_message">新着メッセージ</string>
+</resources>

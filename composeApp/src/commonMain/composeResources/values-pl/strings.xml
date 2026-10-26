@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="backupoffer_back_up_your_logins">Zrobić kopię zapasową logowań?</string>
+    <string name="backupoffer_if_you_reinstall_howyoudoin_on">Jeśli zainstalujesz HowYouDoin ponownie na tym telefonie, Twoje logowania wrócą z kopii zapasowej Google i nie trzeba będzie logować się do każdej sieci od nowa. Kopia jest zaszyfrowana end-to-end blokadą ekranu; nic nie jest wysyłane do nas.\n\nWhatsApp i Signal zawsze trzeba połączyć ponownie.</string>
+    <string name="backupoffer_back_up">Zrób kopię</string>
+    <string name="backupoffer_skip">Pomiń</string>
+    <string name="backupoffer_turn_on_google_backup">Włącz kopię zapasową Google</string>
+    <string name="backupoffer_your_logins_are_only_saved">Logowania są zapisywane tylko wtedy, gdy kopia zapasowa telefonu jest włączona:\n\n1. Otwórz Ustawienia → Google → Kopia zapasowa (na Samsungu: Konta i kopia zapasowa → Utwórz kopię zapasową danych).\n2. Włącz „Kopia zapasowa przez Google One” i wybierz konto Google.\n3. Miej ustawioną blokadę ekranu (PIN, wzór lub hasło): kopie są nią szyfrowane.\n\nJeśli jest już włączona, wszystko gotowe. Telefon robi kopię sam, zwykle w nocy podczas ładowania.</string>
+    <string name="backupoffer_open_backup_settings">Otwórz ustawienia kopii</string>
+    <string name="backupoffer_done">Gotowe</string>
+    <string name="restorelogins_welcome_back">Witaj ponownie</string>
+    <string name="restorelogins_your_phone_s_backup_has">Kopia zapasowa telefonu zawiera logowania, których używałeś wcześniej. Połączyć je ponownie, żeby nie trzeba było się logować?</string>
+    <string name="restorelogins_continue">Dalej</string>
+    <string name="restorelogins_reconnect">Połącz ponownie</string>
+    <string name="restorelogins_don_t_restore">Nie przywracaj</string>
+    <string name="restorelogins_not_now">Nie teraz</string>
+    <string name="restore_failed">Tych nie udało się połączyć ponownie; podłącz je jeszcze raz w Sieciach: %1$s</string>
+    <string name="restore_relink">%1$s nie mogą wrócić z kopii zapasowej (ich klucze szyfrowania zostają na telefonie). Połącz je ponownie w Sieciach.</string>
+    <string name="notification_new_message">Nowa wiadomość</string>
+</resources>

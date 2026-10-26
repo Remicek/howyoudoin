@@ -1,5 +1,10 @@
 package com.devvalor.howyoudoing.networks.presentation.components.phone
 
+import howyoudoin.feature.networks.presentation.generated.resources.Res
+import org.jetbrains.compose.resources.stringResource
+import howyoudoin.feature.networks.presentation.generated.resources.countrypicker_choose_country
+import howyoudoin.feature.networks.presentation.generated.resources.countrypicker_search_country_or_code
+import howyoudoin.feature.networks.presentation.generated.resources.countrypicker_selected
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -47,7 +52,7 @@ fun CountryPickerSheet(
             listOf(selected) + Country.all.filter { it != selected }
         } else {
             Country.all.filter { country ->
-                country.name.lowercase().contains(q) || country.dialCode.startsWith(q) || country.isoCode.lowercase() == q
+                country.displayName.lowercase().contains(q) || country.name.lowercase().contains(q) || country.dialCode.startsWith(q) || country.isoCode.lowercase() == q
             }
         }
     }
@@ -58,14 +63,14 @@ fun CountryPickerSheet(
     ) {
         Column(modifier = Modifier.fillMaxHeight(0.85f)) {
             Text(
-                "Choose country",
+                stringResource(Res.string.countrypicker_choose_country),
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.padding(horizontal = HowYouDoinSpacing.md),
             )
             OutlinedTextField(
                 value = query,
                 onValueChange = { query = it },
-                placeholder = { Text("Search country or code") },
+                placeholder = { Text(stringResource(Res.string.countrypicker_search_country_or_code)) },
                 leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = null) },
                 singleLine = true,
                 modifier = Modifier
@@ -93,7 +98,7 @@ private fun CountryRow(country: Country, isSelected: Boolean, onClick: () -> Uni
     ) {
         Text(country.flag, fontSize = 24.sp)
         Spacer(Modifier.width(HowYouDoinSpacing.md))
-        Text(country.name, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+        Text(country.displayName, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
         Text(
             "+${country.dialCode}",
             style = MaterialTheme.typography.bodyMedium,
@@ -101,7 +106,7 @@ private fun CountryRow(country: Country, isSelected: Boolean, onClick: () -> Uni
         )
         if (isSelected) {
             Spacer(Modifier.width(HowYouDoinSpacing.sm))
-            Icon(Icons.Rounded.Check, contentDescription = "Selected", tint = MaterialTheme.colorScheme.primary)
+            Icon(Icons.Rounded.Check, contentDescription = stringResource(Res.string.countrypicker_selected), tint = MaterialTheme.colorScheme.primary)
         }
     }
 }

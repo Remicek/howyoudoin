@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="login_tagline">All your chats in one inbox</string>
+    <string name="login_get_started">Get started on this phone</string>
+    <string name="login_server_intro">Or sign in to your own Matrix homeserver with bridges.</string>
+    <string name="login_homeserver">Homeserver</string>
+    <string name="login_username">Username</string>
+    <string name="login_password">Password</string>
+    <string name="login_hide_password">Hide password</string>
+    <string name="login_show_password">Show password</string>
+    <string name="login_sign_in_server">Sign in to server</string>
+    <string name="login_demo">Try demo mode</string>
+    <string name="privacy_on_phone_title">Your chats stay on your phone</string>
+    <string name="privacy_on_phone_text">Messages, contacts and logins are kept only on this phone.</string>
+    <string name="privacy_direct_title">Straight to WhatsApp, Messenger and the rest</string>
+    <string name="privacy_direct_text">The app talks only to the networks you connect, the same way their own apps do.</string>
+    <string name="privacy_no_servers_title">No HowYouDoin servers</string>
+    <string name="privacy_no_servers_text">We have no servers and no accounts. We never see, keep or sell your messages or data.</string>
+</resources>

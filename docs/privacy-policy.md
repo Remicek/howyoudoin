@@ -1,9 +1,9 @@
 # HowYouDoin privacy policy
 
-Last updated: 19 October 2026
+Last updated: 24 October 2026
 
-HowYouDoin is a free, open-source chat app that brings your WhatsApp, Messenger, Instagram, Telegram and Signal
-conversations into one inbox. This policy explains what happens to your data.
+HowYouDoin is a free, open-source chat app that brings your WhatsApp, Messenger, Instagram, Telegram, Signal, Slack and
+Matrix conversations into one inbox. This policy explains what happens to your data.
 
 ## What we collect
 
@@ -19,13 +19,15 @@ To show your chats, the app keeps on your phone:
 - your chats, messages, contacts' names and pictures, and downloaded photos and files;
 - your settings, including the app lock PIN as a salted one-way hash (not the PIN itself).
 
-The app turns off Android backups, so none of this is copied to the cloud. Disconnecting a network in the app deletes its data from the
+Your chats and messages are never copied to the cloud. If you turn on Settings → Back up logins, only the network
+logins are included in your phone's Google backup, end-to-end encrypted with your screen lock, so a new phone can
+reconnect without logging in again; with it off, nothing is backed up. Disconnecting a network in the app deletes its data from the
 phone; uninstalling the app or clearing its data deletes everything.
 
 ## Where your data goes
 
 When you connect a network, the app talks directly to that network's servers (Meta for WhatsApp, Messenger and
-Instagram, Telegram, Signal) to send and receive your messages, just as the official apps do. Those companies'
+Instagram, Telegram, Signal, Slack, and the Matrix homeserver of your account) to send and receive your messages, just as the official apps do. Those companies'
 own privacy policies apply to what they receive.
 
 ## Server mode (optional)
@@ -53,6 +55,11 @@ choose whether the app offers to share it after a crash.
 ## Children
 
 HowYouDoin is not directed at children under the minimum age the connected networks require.
+
+## Terms of use
+
+Using the app is also subject to the [terms of use](terms-of-use.md), which explain that the app is unofficial,
+provided "as is", and that networks may block accounts that use it.
 
 ## Changes and contact
 

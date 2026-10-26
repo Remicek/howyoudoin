@@ -1,5 +1,12 @@
 package com.devvalor.howyoudoing.chat.presentation.conversation.components
 
+import howyoudoin.feature.chat.presentation.generated.resources.Res
+import howyoudoin.feature.chat.presentation.generated.resources.bubble_edited
+import howyoudoin.feature.chat.presentation.generated.resources.bubble_sending
+import howyoudoin.feature.chat.presentation.generated.resources.bubble_failed
+import howyoudoin.feature.chat.presentation.generated.resources.bubble_read
+import howyoudoin.feature.chat.presentation.generated.resources.bubble_sent
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -67,7 +74,7 @@ fun MessageBubble(
     val media = message.media
     // A media message's body is its file name unless the sender added a caption
     val caption = when {
-        media == null -> message.body
+        media == null -> message.body.asString()
         message.text.isNotBlank() && message.text != media.fileName -> message.text
         else -> null
     }
@@ -118,16 +125,16 @@ fun MessageBubble(
                 modifier = Modifier.align(Alignment.End).padding(horizontal = if (media != null) 6.dp else 0.dp),
             ) {
                 Text(
-                    if (message.isEdited) "edited · ${message.time}" else message.time,
+                    if (message.isEdited) stringResource(Res.string.bubble_edited, message.time) else message.time,
                     style = MaterialTheme.typography.labelSmall,
                     color = metaColor.copy(alpha = 0.7f)
                 )
                 if (isOutgoing) {
                     when {
-                        message.status == MessageStatus.SENDING -> StatusIcon(Icons.Rounded.Schedule, "Sending", metaColor.copy(alpha = 0.7f))
-                        message.status == MessageStatus.FAILED -> StatusIcon(Icons.Rounded.ErrorOutline, "Failed to send", MaterialTheme.colorScheme.error)
-                        message.isReadByOthers -> StatusIcon(Icons.Rounded.DoneAll, "Read", metaColor)
-                        else -> StatusIcon(Icons.Rounded.Done, "Sent", metaColor.copy(alpha = 0.7f))
+                        message.status == MessageStatus.SENDING -> StatusIcon(Icons.Rounded.Schedule, stringResource(Res.string.bubble_sending), metaColor.copy(alpha = 0.7f))
+                        message.status == MessageStatus.FAILED -> StatusIcon(Icons.Rounded.ErrorOutline, stringResource(Res.string.bubble_failed), MaterialTheme.colorScheme.error)
+                        message.isReadByOthers -> StatusIcon(Icons.Rounded.DoneAll, stringResource(Res.string.bubble_read), metaColor)
+                        else -> StatusIcon(Icons.Rounded.Done, stringResource(Res.string.bubble_sent), metaColor.copy(alpha = 0.7f))
                     }
                 }
             }

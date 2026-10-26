@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="error_disk_full">يبدو أن مساحة التخزين ممتلئة!</string>
+    <string name="error_not_found">تعذّر العثور على العنصر المطلوب</string>
+    <string name="error_unknown">حدث خطأ غير معروف</string>
+    <string name="error_bad_request">طلب غير صالح</string>
+    <string name="error_request_timeout">انتهت مهلة الطلب</string>
+    <string name="error_unauthorized">بيانات الدخول غير صحيحة</string>
+    <string name="error_forbidden">غير مسموح لك بذلك</string>
+    <string name="error_conflict">حدث تعارض</string>
+    <string name="error_too_many_requests">لقد بلغت الحد الأقصى للطلبات</string>
+    <string name="error_no_internet">تعذّر الاتصال. تحقّق من اتصالك بالإنترنت.</string>
+    <string name="error_payload_too_large">الملف المرفق كبير جدًا</string>
+    <string name="error_server">حدث خطأ في الخادم</string>
+    <string name="error_service_unavailable">الخدمة غير متاحة، حاول مرة أخرى لاحقًا</string>
+    <string name="error_serialization">خطأ في معالجة البيانات</string>
+    <string name="day_today">اليوم</string>
+    <string name="day_yesterday">أمس</string>
+    <string name="weekday_1">الاثنين</string>
+    <string name="weekday_2">الثلاثاء</string>
+    <string name="weekday_3">الأربعاء</string>
+    <string name="weekday_4">الخميس</string>
+    <string name="weekday_5">الجمعة</string>
+    <string name="weekday_6">السبت</string>
+    <string name="weekday_7">الأحد</string>
+    <string name="weekday_short_1">اثنين</string>
+    <string name="weekday_short_2">ثلاثاء</string>
+    <string name="weekday_short_3">أربعاء</string>
+    <string name="weekday_short_4">خميس</string>
+    <string name="weekday_short_5">جمعة</string>
+    <string name="weekday_short_6">سبت</string>
+    <string name="weekday_short_7">أحد</string>
+    <string name="month_1">يناير</string>
+    <string name="month_2">فبراير</string>
+    <string name="month_3">مارس</string>
+    <string name="month_4">أبريل</string>
+    <string name="month_5">مايو</string>
+    <string name="month_6">يونيو</string>
+    <string name="month_7">يوليو</string>
+    <string name="month_8">أغسطس</string>
+    <string name="month_9">سبتمبر</string>
+    <string name="month_10">أكتوبر</string>
+    <string name="month_11">نوفمبر</string>
+    <string name="month_12">ديسمبر</string>
+    <string name="date_long">%1$d %2$s %3$d</string>
+</resources>

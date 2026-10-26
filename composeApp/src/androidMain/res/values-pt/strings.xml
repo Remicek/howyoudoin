@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="call_incoming_video">Chamada de vídeo recebida</string>
+    <string name="call_incoming">Chamada recebida</string>
+    <string name="call_decline">Recusar</string>
+    <string name="call_answer">Atender</string>
+    <string name="channel_calls_ringing">Chamadas recebidas</string>
+    <string name="channel_calls_ringing_desc">Chamadas do Matrix tocando</string>
+    <string name="channel_calls_ongoing">Chamadas em andamento</string>
+    <string name="channel_calls_ongoing_desc">Aparece durante uma chamada</string>
+    <string name="call_in_progress">Chamada em andamento</string>
+    <string name="call_return">Toque para voltar à chamada</string>
+    <string name="call_hang_up">Desligar</string>
+    <string name="call_needs_mic">As chamadas precisam do microfone</string>
+    <string name="call_start_failed">Não foi possível iniciar a chamada</string>
+    <string name="call_answer_needs_mic">Para atender é preciso o microfone</string>
+    <string name="call_video">Vídeo</string>
+    <string name="call_mute">Silenciar</string>
+    <string name="call_speaker">Alto-falante</string>
+    <string name="call_camera">Câmera</string>
+    <string name="call_flip">Virar</string>
+    <string name="call_calling">Chamando…</string>
+    <string name="call_connecting">Conectando…</string>
+    <string name="call_declined">Recusada</string>
+    <string name="call_missed">Chamada perdida</string>
+    <string name="call_no_answer">Sem resposta</string>
+    <string name="call_busy">Ocupado</string>
+    <string name="call_elsewhere">Atendida em outro dispositivo</string>
+    <string name="call_failed">A chamada falhou</string>
+    <string name="call_ended">Chamada encerrada</string>
+    <string name="crash_share">Compartilhar relatório de falha</string>
+    <string name="channel_crash">Relatórios de falhas</string>
+    <string name="crash_title">O HowYouDoin parou da última vez</string>
+    <string name="crash_text">Toque para compartilhar o relatório de falha</string>
+    <string name="bio_use_pin">Usar PIN</string>
+    <string name="channel_messages">Mensagens</string>
+    <string name="channel_messages_desc">Novas mensagens das suas conversas</string>
+    <string name="channel_problems">Problemas de conexão</string>
+    <string name="channel_problems_desc">Quando uma rede conectada para de funcionar</string>
+    <string name="channel_connections">Conexões no dispositivo</string>
+    <string name="channel_connections_desc">Aparece enquanto as conversas estão conectadas direto deste celular</string>
+    <string name="connections_connecting">Conectando…</string>
+    <string name="connections_connected">Conectado neste dispositivo: %1$s</string>
+    <string name="connections_default">Conectado neste dispositivo</string>
+</resources>

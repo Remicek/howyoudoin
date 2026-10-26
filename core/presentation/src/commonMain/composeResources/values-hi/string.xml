@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="error_disk_full">लगता है आपका स्टोरेज भर गया है!</string>
+    <string name="error_not_found">माँगी गई चीज़ नहीं मिली</string>
+    <string name="error_unknown">कोई अज्ञात गड़बड़ी हुई</string>
+    <string name="error_bad_request">अमान्य अनुरोध</string>
+    <string name="error_request_timeout">अनुरोध का समय खत्म हो गया</string>
+    <string name="error_unauthorized">अमान्य लॉगिन जानकारी</string>
+    <string name="error_forbidden">आपको ऐसा करने की अनुमति नहीं है</string>
+    <string name="error_conflict">एक टकराव हुआ</string>
+    <string name="error_too_many_requests">आप अनुरोधों की सीमा तक पहुँच गए हैं</string>
+    <string name="error_no_internet">कनेक्ट नहीं हो पा रहा। कृपया अपना इंटरनेट कनेक्शन जाँचें।</string>
+    <string name="error_payload_too_large">आपकी जोड़ी गई फ़ाइल बहुत बड़ी है</string>
+    <string name="error_server">सर्वर पर कोई गड़बड़ी हुई</string>
+    <string name="error_service_unavailable">सेवा उपलब्ध नहीं है, कृपया बाद में फिर से कोशिश करें</string>
+    <string name="error_serialization">सीरियलाइज़ेशन की गड़बड़ी</string>
+    <string name="day_today">आज</string>
+    <string name="day_yesterday">कल</string>
+    <string name="weekday_1">सोमवार</string>
+    <string name="weekday_2">मंगलवार</string>
+    <string name="weekday_3">बुधवार</string>
+    <string name="weekday_4">गुरुवार</string>
+    <string name="weekday_5">शुक्रवार</string>
+    <string name="weekday_6">शनिवार</string>
+    <string name="weekday_7">रविवार</string>
+    <string name="weekday_short_1">सोम</string>
+    <string name="weekday_short_2">मंगल</string>
+    <string name="weekday_short_3">बुध</string>
+    <string name="weekday_short_4">गुरु</string>
+    <string name="weekday_short_5">शुक्र</string>
+    <string name="weekday_short_6">शनि</string>
+    <string name="weekday_short_7">रवि</string>
+    <string name="month_1">जनवरी</string>
+    <string name="month_2">फ़रवरी</string>
+    <string name="month_3">मार्च</string>
+    <string name="month_4">अप्रैल</string>
+    <string name="month_5">मई</string>
+    <string name="month_6">जून</string>
+    <string name="month_7">जुलाई</string>
+    <string name="month_8">अगस्त</string>
+    <string name="month_9">सितंबर</string>
+    <string name="month_10">अक्टूबर</string>
+    <string name="month_11">नवंबर</string>
+    <string name="month_12">दिसंबर</string>
+    <string name="date_long">%1$d %2$s %3$d</string>
+</resources>

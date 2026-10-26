@@ -1,5 +1,17 @@
 package com.devvalor.howyoudoing.settings.presentation.guide
 
+import howyoudoin.feature.settings.presentation.generated.resources.guide_connect
+import howyoudoin.feature.settings.presentation.generated.resources.guide_intro
+import howyoudoin.feature.settings.presentation.generated.resources.guide_unofficial
+import howyoudoin.feature.settings.presentation.generated.resources.settings_guide
+import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.stringResource
+import howyoudoin.feature.settings.presentation.generated.resources.Res
+import howyoudoin.feature.settings.presentation.generated.resources.guide_meta_name
+import howyoudoin.feature.settings.presentation.generated.resources.guide_whatsapp_steps
+import howyoudoin.feature.settings.presentation.generated.resources.guide_meta_steps
+import howyoudoin.feature.settings.presentation.generated.resources.guide_telegram_steps
+import howyoudoin.feature.settings.presentation.generated.resources.guide_signal_steps
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -17,40 +29,23 @@ import com.devvalor.howyoudoing.core.designsystem.theme.HowYouDoinSpacing
 import com.devvalor.howyoudoing.settings.presentation.components.SettingsScaffold
 
 /** One network's way of connecting, in the user's words. */
-private data class NetworkGuide(val name: String, val steps: String)
+private data class NetworkGuide(val nameRes: StringResource?, val brand: String?, val steps: StringResource) {
+    val name: String @Composable get() = nameRes?.let { stringResource(it) } ?: brand.orEmpty()
+}
 
 private val guides = listOf(
-    NetworkGuide(
-        "WhatsApp",
-        "Choose \"pairing code\" if WhatsApp is on this phone: WhatsApp → Linked devices → Link a device → " +
-            "Link with phone number instead, and type the code HowYouDoin shows. With WhatsApp on another phone, " +
-            "\"QR code\" works too.",
-    ),
-    NetworkGuide(
-        "Messenger and Instagram",
-        "Log in on the Facebook or Instagram page that opens inside HowYouDoin. For encrypted Messenger chats, " +
-            "enter your Messenger PIN once to bring back their history.",
-    ),
-    NetworkGuide(
-        "Telegram",
-        "Choose \"phone number\": Telegram sends a login code to the Telegram app (or by SMS). The QR code option " +
-            "needs a second screen, because Telegram only scans codes with the camera.",
-    ),
-    NetworkGuide(
-        "Signal",
-        "HowYouDoin joins your Signal account as a linked device, like Signal Desktop: in Signal open Settings → " +
-            "Linked devices → Link a new device and scan the code. Signal scans with the camera, so the code has " +
-            "to be on a different screen from the phone Signal runs on.",
-    ),
+    NetworkGuide(null, "WhatsApp", Res.string.guide_whatsapp_steps),
+    NetworkGuide(Res.string.guide_meta_name, null, Res.string.guide_meta_steps),
+    NetworkGuide(null, "Telegram", Res.string.guide_telegram_steps),
+    NetworkGuide(null, "Signal", Res.string.guide_signal_steps),
 )
 
 @Composable
 fun ConnectGuideRoot(onNetworksClick: () -> Unit, onBack: () -> Unit) {
-    SettingsScaffold(title = "How connecting works", onBack = onBack) {
+    SettingsScaffold(title = stringResource(Res.string.settings_guide), onBack = onBack) {
         item {
             Paragraph(
-                "Your chats connect straight from this phone; no server stores them. HowYouDoin keeps the " +
-                    "connections open in the background, which is what the \"Connected on this device\" notification means.",
+                stringResource(Res.string.guide_intro),
             )
         }
         guides.forEach { guide ->
@@ -63,21 +58,20 @@ fun ConnectGuideRoot(onNetworksClick: () -> Unit, onBack: () -> Unit) {
                         modifier = Modifier.semantics { heading() },
                     )
                     Spacer(Modifier.height(HowYouDoinSpacing.xs))
-                    Text(guide.steps, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(stringResource(guide.steps), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }
         item {
             Paragraph(
-                "HowYouDoin is unofficial: these networks don't make or support it. WhatsApp, Messenger, Instagram " +
-                    "and Signal don't officially allow other apps, so they could limit an account that uses one.",
+                stringResource(Res.string.guide_unofficial),
             )
         }
         item {
             FilledTonalButton(
                 onClick = onNetworksClick,
                 modifier = Modifier.padding(horizontal = HowYouDoinSpacing.md, vertical = HowYouDoinSpacing.md),
-            ) { Text("Connect a network") }
+            ) { Text(stringResource(Res.string.guide_connect)) }
         }
     }
 }

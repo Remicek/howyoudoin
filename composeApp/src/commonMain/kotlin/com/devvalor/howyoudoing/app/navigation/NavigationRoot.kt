@@ -42,7 +42,10 @@ fun NavigationRoot(
             },
             inboxBanner = { encryptedNetworks -> EncryptedHistoryBannerRoot(encryptedNetworks) },
         )
-        networksGraph(navController = navController)
+        networksGraph(
+            navController = navController,
+            onTermsClick = { navController.navigate(SettingsRoutes.Terms) { launchSingleTop = true } },
+        )
         settingsGraph(
             navController = navController,
             onNetworksClick = { navController.navigate(NetworksRoutes.Graph) { launchSingleTop = true } },

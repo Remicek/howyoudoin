@@ -44,10 +44,32 @@ Signal: Rust (via rustup) with the `aarch64-linux-android` target, `cargo-ndk`, 
 
 After changing Gradle dependencies, refresh the license list with `./gradlew :composeApp:exportLibraryDefinitions`.
 
+## Tests
+
+- Unit tests: `./gradlew testDebugUnitTest`.
+- End-to-end tests (`composeApp/src/androidInstrumentedTest`) walk through the app in demo mode: the welcome screen,
+  a chat, every screen Settings and About lead to, the themes, the warning before connecting a network, and the welcome
+  screen in each language. They clear the app's data, so run them on an emulator only:
+  `ANDROID_SERIAL=emulator-5554 ./gradlew :composeApp:connectedDebugAndroidTest`.
+
+## Translations
+
+The app is in English, Polish, Spanish, Portuguese, Russian, German, French, Indonesian, Turkish, Japanese, Hindi and
+Arabic. Texts live in each module's `composeResources/values/strings.xml` (Android-only ones, such as notifications, in
+`composeApp/src/androidMain/res/values/strings.xml`), with one `values-xx` folder per language. Indonesian is in both
+`values-in` (what Android reports) and `values-id` (iOS). On Android 13+ the language can be picked per app in the
+phone's settings. The translated terms of use say that the English version applies if they differ.
+
 ## Privacy
 
 See [docs/privacy-policy.md](docs/privacy-policy.md). In short: no analytics, no servers of ours in the default
 mode, nothing leaves the phone except to the networks you connect.
+
+## Terms of use and disclaimer
+
+HowYouDoin is unofficial and provided "as is", without warranty. Most of the networks don't allow third-party
+apps and may limit or ban accounts that use one; you use it at your own risk. See
+[docs/terms-of-use.md](docs/terms-of-use.md) (also in the app under Settings → Terms of use).
 
 ## License
 

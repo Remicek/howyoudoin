@@ -1,5 +1,7 @@
 package com.devvalor.howyoudoing.app.call
 
+import com.devvalor.howyoudoing.app.R
+import androidx.compose.ui.res.stringResource
 import android.Manifest
 import android.content.Context
 import android.content.Intent
@@ -137,13 +139,13 @@ class CallActivity : ComponentActivity() {
                 intent.removeExtra(EXTRA_CHAT_ID)
                 withPermissions(video) { audio, camera ->
                     if (!audio) {
-                        Toast.makeText(this, "Calls need the microphone", Toast.LENGTH_LONG).show()
+                        Toast.makeText(this, R.string.call_needs_mic, Toast.LENGTH_LONG).show()
                         finish()
                         return@withPermissions
                     }
                     lifecycleScope.launch {
                         if (callManager.startCall(chatId, video && camera) is com.devvalor.howyoudoing.core.domain.util.Result.Failure) {
-                            Toast.makeText(this@CallActivity, "Couldn't start the call", Toast.LENGTH_LONG).show()
+                            Toast.makeText(this@CallActivity, R.string.call_start_failed, Toast.LENGTH_LONG).show()
                             if (callManager.call.value == null) finish()
                         }
                     }
@@ -159,7 +161,7 @@ class CallActivity : ComponentActivity() {
     private fun answer(video: Boolean) {
         withPermissions(video) { audio, camera ->
             if (!audio) {
-                Toast.makeText(this, "Answering needs the microphone", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, R.string.call_answer_needs_mic, Toast.LENGTH_LONG).show()
                 return@withPermissions
             }
             lifecycleScope.launch { callManager.answer(video && camera) }
@@ -245,18 +247,18 @@ private fun CallScreen(
             Spacer(Modifier.weight(1f))
             when {
                 call.phase == CallPhase.RINGING -> Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                    RoundButton(Icons.Default.CallEnd, "Decline", Color(0xFFE5484D), onDecline)
-                    RoundButton(Icons.Default.Call, "Answer", Color(0xFF30A46C)) { onAnswer(false) }
-                    if (call.isVideo) RoundButton(Icons.Default.Videocam, "Video", Color(0xFF30A46C)) { onAnswer(true) }
+                    RoundButton(Icons.Default.CallEnd, stringResource(R.string.call_decline), Color(0xFFE5484D), onDecline)
+                    RoundButton(Icons.Default.Call, stringResource(R.string.call_answer), Color(0xFF30A46C)) { onAnswer(false) }
+                    if (call.isVideo) RoundButton(Icons.Default.Videocam, stringResource(R.string.call_video), Color(0xFF30A46C)) { onAnswer(true) }
                 }
                 call.phase != CallPhase.ENDED -> Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                    ToggleButton(if (call.isMuted) Icons.Default.MicOff else Icons.Default.Mic, "Mute", call.isMuted, onMute)
-                    ToggleButton(if (call.isSpeakerOn) Icons.AutoMirrored.Filled.VolumeUp else Icons.Default.PhoneInTalk, "Speaker", call.isSpeakerOn, onSpeaker)
+                    ToggleButton(if (call.isMuted) Icons.Default.MicOff else Icons.Default.Mic, stringResource(R.string.call_mute), call.isMuted, onMute)
+                    ToggleButton(if (call.isSpeakerOn) Icons.AutoMirrored.Filled.VolumeUp else Icons.Default.PhoneInTalk, stringResource(R.string.call_speaker), call.isSpeakerOn, onSpeaker)
                     if (call.isVideo) {
-                        ToggleButton(if (call.isCameraOn) Icons.Default.Videocam else Icons.Default.VideocamOff, "Camera", !call.isCameraOn, onCamera)
-                        if (call.isCameraOn) ToggleButton(Icons.Default.Cameraswitch, "Flip", false, onSwitchCamera)
+                        ToggleButton(if (call.isCameraOn) Icons.Default.Videocam else Icons.Default.VideocamOff, stringResource(R.string.call_camera), !call.isCameraOn, onCamera)
+                        if (call.isCameraOn) ToggleButton(Icons.Default.Cameraswitch, stringResource(R.string.call_flip), false, onSwitchCamera)
                     }
-                    RoundButton(Icons.Default.CallEnd, "Hang up", Color(0xFFE5484D), onHangUp)
+                    RoundButton(Icons.Default.CallEnd, stringResource(R.string.call_hang_up), Color(0xFFE5484D), onHangUp)
                 }
             }
             Spacer(Modifier.height(24.dp))
@@ -274,21 +276,21 @@ private fun statusText(call: CallState): String {
         }
     }
     return when (call.phase) {
-        CallPhase.RINGING -> if (call.isVideo) "Incoming video call" else "Incoming call"
-        CallPhase.CALLING -> "Calling…"
-        CallPhase.CONNECTING -> "Connecting…"
+        CallPhase.RINGING -> stringResource(if (call.isVideo) R.string.call_incoming_video else R.string.call_incoming)
+        CallPhase.CALLING -> stringResource(R.string.call_calling)
+        CallPhase.CONNECTING -> stringResource(R.string.call_connecting)
         CallPhase.CONNECTED -> {
             val seconds = ((now - (call.connectedAtMillis ?: now)) / 1000).coerceAtLeast(0)
             "%d:%02d".format(seconds / 60, seconds % 60)
         }
         CallPhase.ENDED -> when (call.endReason) {
-            CallEndReason.DECLINED -> "Declined"
-            CallEndReason.MISSED -> "Missed call"
-            CallEndReason.NO_ANSWER -> "No answer"
-            CallEndReason.BUSY -> "Busy"
-            CallEndReason.ANSWERED_ELSEWHERE -> "Answered on another device"
-            CallEndReason.FAILED -> "Call failed"
-            else -> "Call ended"
+            CallEndReason.DECLINED -> stringResource(R.string.call_declined)
+            CallEndReason.MISSED -> stringResource(R.string.call_missed)
+            CallEndReason.NO_ANSWER -> stringResource(R.string.call_no_answer)
+            CallEndReason.BUSY -> stringResource(R.string.call_busy)
+            CallEndReason.ANSWERED_ELSEWHERE -> stringResource(R.string.call_elsewhere)
+            CallEndReason.FAILED -> stringResource(R.string.call_failed)
+            else -> stringResource(R.string.call_ended)
         }
     }
 }

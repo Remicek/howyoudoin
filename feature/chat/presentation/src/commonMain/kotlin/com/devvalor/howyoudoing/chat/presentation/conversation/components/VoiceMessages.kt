@@ -1,5 +1,17 @@
 package com.devvalor.howyoudoing.chat.presentation.conversation.components
 
+import howyoudoin.feature.chat.presentation.generated.resources.voice_mic_denied
+import howyoudoin.feature.chat.presentation.generated.resources.voice_mic_failed
+import howyoudoin.feature.chat.presentation.generated.resources.voice_load_failed
+import howyoudoin.feature.chat.presentation.generated.resources.voice_play_failed
+import howyoudoin.feature.chat.presentation.generated.resources.voice_too_short
+import howyoudoin.feature.chat.presentation.generated.resources.voice_file_name
+import howyoudoin.feature.chat.presentation.generated.resources.Res
+import org.jetbrains.compose.resources.stringResource
+import howyoudoin.feature.chat.presentation.generated.resources.voicemessages_discard_voice_message
+import howyoudoin.feature.chat.presentation.generated.resources.voicemessages_pause_voice_message
+import howyoudoin.feature.chat.presentation.generated.resources.voicemessages_play_voice_message
+import howyoudoin.feature.chat.presentation.generated.resources.voicemessages_recording
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -74,8 +86,8 @@ fun VoiceNote(messageId: String, media: MediaInfo, playback: VoicePlayback, cont
         IconButton(onClick = { playback.toggle(messageId, media) }) {
             when {
                 isLoading -> CircularProgressIndicator(modifier = Modifier.size(22.dp), strokeWidth = 2.dp, color = contentColor)
-                isPlaying -> Icon(Icons.Rounded.Pause, contentDescription = "Pause voice message", tint = contentColor)
-                else -> Icon(Icons.Rounded.PlayArrow, contentDescription = "Play voice message", tint = contentColor)
+                isPlaying -> Icon(Icons.Rounded.Pause, contentDescription = stringResource(Res.string.voicemessages_pause_voice_message), tint = contentColor)
+                else -> Icon(Icons.Rounded.PlayArrow, contentDescription = stringResource(Res.string.voicemessages_play_voice_message), tint = contentColor)
             }
         }
         LinearProgressIndicator(
@@ -99,7 +111,7 @@ fun VoiceNote(messageId: String, media: MediaInfo, playback: VoicePlayback, cont
 fun RecordingBar(recording: VoiceRecordingUi, onCancel: () -> Unit, modifier: Modifier = Modifier) {
     Row(verticalAlignment = Alignment.CenterVertically, modifier = modifier.fillMaxWidth().height(52.dp)) {
         IconButton(onClick = onCancel) {
-            Icon(Icons.Rounded.Delete, contentDescription = "Discard voice message", tint = MaterialTheme.colorScheme.error)
+            Icon(Icons.Rounded.Delete, contentDescription = stringResource(Res.string.voicemessages_discard_voice_message), tint = MaterialTheme.colorScheme.error)
         }
         Box(Modifier.size(28.dp), contentAlignment = Alignment.Center) {
             val dot = 10.dp + (14 * recording.level / 255).dp
@@ -109,7 +121,7 @@ fun RecordingBar(recording: VoiceRecordingUi, onCancel: () -> Unit, modifier: Mo
         Text(formatClock(recording.elapsedMillis), style = MaterialTheme.typography.titleMedium)
         Spacer(Modifier.width(HowYouDoinSpacing.sm))
         Text(
-            "Recording…",
+            stringResource(Res.string.voicemessages_recording),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(end = HowYouDoinSpacing.sm),
@@ -147,6 +159,12 @@ fun rememberVoiceMessages(
     val player = rememberVoicePlayer()
     val scope = rememberCoroutineScope()
     val currentOnError by rememberUpdatedState(onError)
+    val micDenied = stringResource(Res.string.voice_mic_denied)
+    val micFailed = stringResource(Res.string.voice_mic_failed)
+    val loadFailed = stringResource(Res.string.voice_load_failed)
+    val playFailed = stringResource(Res.string.voice_play_failed)
+    val tooShort = stringResource(Res.string.voice_too_short)
+    val voiceFileName = stringResource(Res.string.voice_file_name)
     val currentOnRecorded by rememberUpdatedState(onRecorded)
     val currentLoadMedia by rememberUpdatedState(loadMedia)
 
@@ -179,7 +197,7 @@ fun rememberVoiceMessages(
 
     val askForMicrophone = rememberMicrophonePermission { granted ->
         when {
-            !granted -> currentOnError("Allow the microphone to record voice messages")
+            !granted -> currentOnError(micDenied)
             recorder == null || format == null -> Unit
             else -> {
                 player?.stop()
@@ -189,7 +207,7 @@ fun rememberVoiceMessages(
                     level = 0
                     isRecording = true
                 } else {
-                    currentOnError("Couldn't use the microphone")
+                    currentOnError(micFailed)
                 }
             }
         }
@@ -214,12 +232,12 @@ fun rememberVoiceMessages(
                     val bytes = currentLoadMedia(media.url)
                     loadingId = null
                     when {
-                        bytes == null -> currentOnError("Couldn't load the voice message")
+                        bytes == null -> currentOnError(loadFailed)
                         player.play(bytes, media.mimeType) { if (playingId == messageId) playingId = null } -> {
                             position = 0
                             playingId = messageId
                         }
-                        else -> currentOnError("Couldn't play this voice message")
+                        else -> currentOnError(playFailed)
                     }
                 }
             },
@@ -238,12 +256,12 @@ fun rememberVoiceMessages(
             val result = recorder?.stop()
             isRecording = false
             if (result == null) {
-                currentOnError("That was too short to send")
+                currentOnError(tooShort)
             } else {
                 currentOnRecorded(
                     Attachment(
                         bytes = result.bytes,
-                        fileName = "Voice message.${result.format.extension}",
+                        fileName = "$voiceFileName.${result.format.extension}",
                         mimeType = result.format.mimeType,
                         voiceDurationMillis = result.durationMillis,
                         waveform = result.waveform,

@@ -1,5 +1,8 @@
 package com.devvalor.howyoudoing.chat.presentation.platform
 
+import howyoudoin.feature.chat.presentation.generated.resources.Res
+import howyoudoin.feature.chat.presentation.generated.resources.attach_ios
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.runtime.Composable
 import com.devvalor.howyoudoing.chat.domain.Attachment
 import kotlinx.cinterop.ExperimentalForeignApi
@@ -17,8 +20,10 @@ import platform.UIKit.UIApplication
 actual val isAttachmentPickerSupported: Boolean = false
 
 @Composable
-actual fun rememberAttachmentPicker(onPicked: (Attachment) -> Unit, onError: (String) -> Unit): () -> Unit =
-    { onError("Sending files isn't available on iOS yet") }
+actual fun rememberAttachmentPicker(onPicked: (Attachment) -> Unit, onError: (String) -> Unit): () -> Unit {
+    val unavailable = stringResource(Res.string.attach_ios)
+    return { onError(unavailable) }
+}
 
 @OptIn(ExperimentalForeignApi::class)
 @Composable

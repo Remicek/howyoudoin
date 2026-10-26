@@ -1,25 +1,48 @@
 package com.devvalor.howyoudoing.networks.presentation.tutorial
 
+import howyoudoin.feature.networks.presentation.generated.resources.tutorial_step_1
+import howyoudoin.feature.networks.presentation.generated.resources.tutorial_step_2
+import howyoudoin.feature.networks.presentation.generated.resources.tutorial_option_1
+import howyoudoin.feature.networks.presentation.generated.resources.tutorial_option_2
+import howyoudoin.feature.networks.presentation.generated.resources.tutorial_pairing_code
+import howyoudoin.feature.networks.presentation.generated.resources.tutorial_pairing_code_sub
+import howyoudoin.feature.networks.presentation.generated.resources.tutorial_qr
+import howyoudoin.feature.networks.presentation.generated.resources.tutorial_qr_sub
+import howyoudoin.feature.networks.presentation.generated.resources.Res
+import org.jetbrains.compose.resources.StringResource
+import howyoudoin.feature.networks.presentation.generated.resources.tutorialpages_connect_your_whatsapp
+import howyoudoin.feature.networks.presentation.generated.resources.tutorialpages_enter_the_8_character_code
+import howyoudoin.feature.networks.presentation.generated.resources.tutorialpages_how_do_you_want_to
+import howyoudoin.feature.networks.presentation.generated.resources.tutorialpages_howyoudoin_joins_your_whatsapp_as
+import howyoudoin.feature.networks.presentation.generated.resources.tutorialpages_howyoudoin_shows_you_a_code
+import howyoudoin.feature.networks.presentation.generated.resources.tutorialpages_if_howyoudoin_is_open_on
+import howyoudoin.feature.networks.presentation.generated.resources.tutorialpages_in_whatsapp_open_settings_on
+import howyoudoin.feature.networks.presentation.generated.resources.tutorialpages_open_linked_devices
+import howyoudoin.feature.networks.presentation.generated.resources.tutorialpages_or_scan_a_qr_code
+import howyoudoin.feature.networks.presentation.generated.resources.tutorialpages_tap_link_a_device
+import howyoudoin.feature.networks.presentation.generated.resources.tutorialpages_use_a_pairing_code
+import howyoudoin.feature.networks.presentation.generated.resources.tutorialpages_whatsapp_may_ask_for_your
+import howyoudoin.feature.networks.presentation.generated.resources.tutorialpages_whatsapp_opens_the_camera_but
 import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
 
 enum class TutorialIllustration { LINK_INTRO, SETTINGS, LINKED_DEVICES, SCANNER, CODE_ENTRY, QR_OTHER_SCREEN }
 
 sealed interface TutorialPage {
     data class Info(
-        val badge: String?,
-        val title: String,
-        val body: String,
+        val badge: StringResource?,
+        val title: StringResource,
+        val body: StringResource,
         val illustration: TutorialIllustration
     ) : TutorialPage
 
     /** Last page: pick a login flow (ids match the bridge's login flows). */
-    data class Choice(val title: String, val options: List<TutorialOption>) : TutorialPage
+    data class Choice(val title: StringResource, val options: List<TutorialOption>) : TutorialPage
 }
 
 data class TutorialOption(
     val flowId: String,
-    val title: String,
-    val description: String,
+    val title: StringResource,
+    val description: StringResource,
     val isRecommended: Boolean
 )
 
@@ -33,47 +56,45 @@ object TutorialPages {
     private val whatsApp = listOf(
         TutorialPage.Info(
             badge = null,
-            title = "Connect your WhatsApp",
-            body = "HowYouDoin joins your WhatsApp as a linked device, just like WhatsApp Web. " +
-                "Your phone stays the main device and you can unlink it at any time.",
+            title = Res.string.tutorialpages_connect_your_whatsapp,
+            body = Res.string.tutorialpages_howyoudoin_joins_your_whatsapp_as,
             illustration = TutorialIllustration.LINK_INTRO
         ),
         TutorialPage.Info(
-            badge = "Step 1",
-            title = "Open Linked devices",
-            body = "In WhatsApp, open Settings (on Android: ⋮ menu → Settings) and tap Linked devices.",
+            badge = Res.string.tutorial_step_1,
+            title = Res.string.tutorialpages_open_linked_devices,
+            body = Res.string.tutorialpages_in_whatsapp_open_settings_on,
             illustration = TutorialIllustration.SETTINGS
         ),
         TutorialPage.Info(
-            badge = "Step 2",
-            title = "Tap “Link a device”",
-            body = "WhatsApp may ask for your fingerprint, face or PIN to confirm it's you.",
+            badge = Res.string.tutorial_step_2,
+            title = Res.string.tutorialpages_tap_link_a_device,
+            body = Res.string.tutorialpages_whatsapp_may_ask_for_your,
             illustration = TutorialIllustration.LINKED_DEVICES
         ),
         TutorialPage.Info(
-            badge = "Option 1 · On this phone",
-            title = "Use a pairing code",
-            body = "WhatsApp opens the camera, but you can't scan your own screen. " +
-                "Tap “Link with phone number instead” at the bottom.",
+            badge = Res.string.tutorial_option_1,
+            title = Res.string.tutorialpages_use_a_pairing_code,
+            body = Res.string.tutorialpages_whatsapp_opens_the_camera_but,
             illustration = TutorialIllustration.SCANNER
         ),
         TutorialPage.Info(
-            badge = "Option 1 · On this phone",
-            title = "Enter the 8-character code",
-            body = "HowYouDoin shows you a code like 1CDB-N2DG. Copy it, switch to WhatsApp and type or paste it.",
+            badge = Res.string.tutorial_option_1,
+            title = Res.string.tutorialpages_enter_the_8_character_code,
+            body = Res.string.tutorialpages_howyoudoin_shows_you_a_code,
             illustration = TutorialIllustration.CODE_ENTRY
         ),
         TutorialPage.Info(
-            badge = "Option 2 · Another screen",
-            title = "Or scan a QR code",
-            body = "If HowYouDoin is open on a tablet or computer, point WhatsApp's camera at the QR code it shows.",
+            badge = Res.string.tutorial_option_2,
+            title = Res.string.tutorialpages_or_scan_a_qr_code,
+            body = Res.string.tutorialpages_if_howyoudoin_is_open_on,
             illustration = TutorialIllustration.QR_OTHER_SCREEN
         ),
         TutorialPage.Choice(
-            title = "How do you want to connect?",
+            title = Res.string.tutorialpages_how_do_you_want_to,
             options = listOf(
-                TutorialOption("phone", "Pairing code", "Best when WhatsApp is on this phone", isRecommended = true),
-                TutorialOption("qr", "QR code", "Scan it from another screen", isRecommended = false),
+                TutorialOption("phone", Res.string.tutorial_pairing_code, Res.string.tutorial_pairing_code_sub, isRecommended = true),
+                TutorialOption("qr", Res.string.tutorial_qr, Res.string.tutorial_qr_sub, isRecommended = false),
             )
         ),
     )

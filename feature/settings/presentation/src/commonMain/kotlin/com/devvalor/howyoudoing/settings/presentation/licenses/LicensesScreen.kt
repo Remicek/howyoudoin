@@ -1,5 +1,11 @@
 package com.devvalor.howyoudoing.settings.presentation.licenses
 
+import howyoudoin.feature.settings.presentation.generated.resources.licenses_app
+import howyoudoin.feature.settings.presentation.generated.resources.licenses_intro
+import howyoudoin.feature.settings.presentation.generated.resources.licenses_missing
+import howyoudoin.feature.settings.presentation.generated.resources.licenses_native
+import howyoudoin.feature.settings.presentation.generated.resources.settings_licenses
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -114,24 +120,23 @@ fun LicensesRoot(onBack: () -> Unit, viewModel: LicensesViewModel = koinViewMode
 @Composable
 fun LicensesScreen(state: LicensesState, onBack: () -> Unit) {
     val uriHandler = LocalUriHandler.current
-    SettingsScaffold(title = "Open-source licenses", onBack = onBack) {
+    SettingsScaffold(title = stringResource(Res.string.settings_licenses), onBack = onBack) {
         item {
             Text(
-                "HowYouDoin itself is free software under the GNU Affero General Public License v3. It's built on these " +
-                    "open-source projects; tap one to see its website or license.",
+                stringResource(Res.string.licenses_intro),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(horizontal = HowYouDoinSpacing.md, vertical = HowYouDoinSpacing.sm),
             )
         }
         if (state.networkLibraries.isNotEmpty()) {
-            item { SettingsSectionHeader("Chat network clients (Go and Rust)") }
-            items(state.networkLibraries, key = { "native:" + it.name }) { lib ->
+            item { SettingsSectionHeader(stringResource(Res.string.licenses_native)) }
+            items(state.networkLibraries, key = { "native:" + it.name + ":" + it.version }) { lib ->
                 LibraryRow(lib) { lib.url?.let(uriHandler::openUri) }
             }
         }
         if (state.appLibraries.isNotEmpty()) {
-            item { SettingsSectionHeader("App libraries") }
+            item { SettingsSectionHeader(stringResource(Res.string.licenses_app)) }
             items(state.appLibraries, key = { "app:" + it.name + it.version }) { lib ->
                 LibraryRow(lib) { lib.url?.let(uriHandler::openUri) }
             }
@@ -139,7 +144,7 @@ fun LicensesScreen(state: LicensesState, onBack: () -> Unit) {
         if (!state.isLoading && state.networkLibraries.isEmpty() && state.appLibraries.isEmpty()) {
             item {
                 Text(
-                    "The license list wasn't included in this build.",
+                    stringResource(Res.string.licenses_missing),
                     modifier = Modifier.padding(HowYouDoinSpacing.md),
                 )
             }

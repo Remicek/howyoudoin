@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="call_incoming_video">Eingehender Videoanruf</string>
+    <string name="call_incoming">Eingehender Anruf</string>
+    <string name="call_decline">Ablehnen</string>
+    <string name="call_answer">Annehmen</string>
+    <string name="channel_calls_ringing">Eingehende Anrufe</string>
+    <string name="channel_calls_ringing_desc">Klingelnde Matrix-Anrufe</string>
+    <string name="channel_calls_ongoing">Laufende Anrufe</string>
+    <string name="channel_calls_ongoing_desc">Wird während eines Anrufs angezeigt</string>
+    <string name="call_in_progress">Anruf läuft</string>
+    <string name="call_return">Tippen, um zum Anruf zurückzukehren</string>
+    <string name="call_hang_up">Auflegen</string>
+    <string name="call_needs_mic">Anrufe brauchen das Mikrofon</string>
+    <string name="call_start_failed">Der Anruf konnte nicht gestartet werden</string>
+    <string name="call_answer_needs_mic">Zum Annehmen wird das Mikrofon benötigt</string>
+    <string name="call_video">Video</string>
+    <string name="call_mute">Stumm</string>
+    <string name="call_speaker">Lautsprecher</string>
+    <string name="call_camera">Kamera</string>
+    <string name="call_flip">Wechseln</string>
+    <string name="call_calling">Anruf läuft…</string>
+    <string name="call_connecting">Verbinden…</string>
+    <string name="call_declined">Abgelehnt</string>
+    <string name="call_missed">Verpasster Anruf</string>
+    <string name="call_no_answer">Keine Antwort</string>
+    <string name="call_busy">Besetzt</string>
+    <string name="call_elsewhere">Auf einem anderen Gerät angenommen</string>
+    <string name="call_failed">Anruf fehlgeschlagen</string>
+    <string name="call_ended">Anruf beendet</string>
+    <string name="crash_share">Absturzbericht teilen</string>
+    <string name="channel_crash">Absturzberichte</string>
+    <string name="crash_title">HowYouDoin wurde beim letzten Mal beendet</string>
+    <string name="crash_text">Tippen, um den Absturzbericht zu teilen</string>
+    <string name="bio_use_pin">PIN verwenden</string>
+    <string name="channel_messages">Nachrichten</string>
+    <string name="channel_messages_desc">Neue Nachrichten aus deinen Chats</string>
+    <string name="channel_problems">Verbindungsprobleme</string>
+    <string name="channel_problems_desc">Wenn ein verbundenes Netzwerk nicht mehr funktioniert</string>
+    <string name="channel_connections">Verbindungen auf dem Gerät</string>
+    <string name="channel_connections_desc">Wird angezeigt, solange Chats direkt von diesem Handy verbunden sind</string>
+    <string name="connections_connecting">Verbinden…</string>
+    <string name="connections_connected">Auf diesem Gerät verbunden: %1$s</string>
+    <string name="connections_default">Auf diesem Gerät verbunden</string>
+</resources>

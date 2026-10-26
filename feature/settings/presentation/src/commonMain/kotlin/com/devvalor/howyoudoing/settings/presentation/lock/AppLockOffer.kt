@@ -1,5 +1,12 @@
 package com.devvalor.howyoudoing.settings.presentation.lock
 
+import howyoudoin.feature.settings.presentation.generated.resources.lock_offer_fingerprint
+import howyoudoin.feature.settings.presentation.generated.resources.lock_offer_pin
+import howyoudoin.feature.settings.presentation.generated.resources.Res
+import howyoudoin.feature.settings.presentation.generated.resources.common_not_now
+import howyoudoin.feature.settings.presentation.generated.resources.lock_offer_set_up
+import howyoudoin.feature.settings.presentation.generated.resources.lock_offer_title
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material3.AlertDialog
@@ -46,13 +53,13 @@ fun AppLockOfferRoot(
     AlertDialog(
         onDismissRequest = viewModel::answer,
         icon = { Icon(Icons.Rounded.Lock, contentDescription = null) },
-        title = { Text("Lock HowYouDoin?") },
+        title = { Text(stringResource(Res.string.lock_offer_title)) },
         text = {
             Text(
                 if (viewModel.hasFingerprint) {
-                    "Ask for your fingerprint or a PIN before your chats are shown. You can change this any time in Settings → App lock."
+                    stringResource(Res.string.lock_offer_fingerprint)
                 } else {
-                    "Ask for a PIN before your chats are shown. You can change this any time in Settings → App lock."
+                    stringResource(Res.string.lock_offer_pin)
                 }
             )
         },
@@ -60,8 +67,8 @@ fun AppLockOfferRoot(
             TextButton(onClick = {
                 viewModel.answer()
                 onSetUp()
-            }) { Text("Set up") }
+            }) { Text(stringResource(Res.string.lock_offer_set_up)) }
         },
-        dismissButton = { TextButton(onClick = viewModel::answer) { Text("Not now") } },
+        dismissButton = { TextButton(onClick = viewModel::answer) { Text(stringResource(Res.string.common_not_now)) } },
     )
 }

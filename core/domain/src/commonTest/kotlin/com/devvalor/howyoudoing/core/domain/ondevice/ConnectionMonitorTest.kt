@@ -38,7 +38,7 @@ class ConnectionMonitorTest {
         val problem = monitor.problems.value.single()
         assertEquals(ChatNetwork.WHATSAPP, problem.network)
         assertEquals(ConnectionProblem.Kind.FAILED, problem.kind)
-        assertEquals("No network", problem.text)
+        assertEquals("No network", problem.detail)
 
         set(whatsApp, OnDeviceMessengerState.Connected("Remik"))
         assertTrue(monitor.problems.value.isEmpty())
@@ -50,7 +50,7 @@ class ConnectionMonitorTest {
         set(whatsApp, OnDeviceMessengerState.Failed("Failed to load inbox: access token is no longer valid: user id in initial data is zero"))
         val problem = monitor.problems.value.single()
         assertEquals(ConnectionProblem.Kind.LOGIN_EXPIRED, problem.kind)
-        assertEquals("WhatsApp login expired", problem.title)
+        assertEquals(ChatNetwork.WHATSAPP, problem.network)
     }
 
     @Test

@@ -10,6 +10,7 @@ kotlin {
                 implementation(projects.core.domain)
                 implementation(projects.feature.chat.domain)
                 implementation(compose.components.uiToolingPreview)
+                implementation(compose.components.resources)
                 implementation(libs.jetbrains.compose.material.icons.extended)
                 implementation(libs.coil.compose)
                 implementation(libs.coil.network.ktor3)

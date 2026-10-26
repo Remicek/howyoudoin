@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="error_disk_full">Oups, il semble que le stockage soit plein !</string>
+    <string name="error_not_found">Élément demandé introuvable</string>
+    <string name="error_unknown">Une erreur inconnue s\'est produite</string>
+    <string name="error_bad_request">Requête incorrecte</string>
+    <string name="error_request_timeout">La requête a expiré</string>
+    <string name="error_unauthorized">Identifiants non valides</string>
+    <string name="error_forbidden">Vous n\'êtes pas autorisé à faire cela</string>
+    <string name="error_conflict">Un conflit s\'est produit</string>
+    <string name="error_too_many_requests">Vous avez atteint la limite de requêtes</string>
+    <string name="error_no_internet">Connexion impossible. Vérifiez votre connexion Internet.</string>
+    <string name="error_payload_too_large">Le fichier joint est trop volumineux</string>
+    <string name="error_server">Oups, une erreur s\'est produite sur le serveur</string>
+    <string name="error_service_unavailable">Service indisponible, réessayez plus tard</string>
+    <string name="error_serialization">Erreur de sérialisation</string>
+    <string name="day_today">Aujourd\'hui</string>
+    <string name="day_yesterday">Hier</string>
+    <string name="weekday_1">Lundi</string>
+    <string name="weekday_2">Mardi</string>
+    <string name="weekday_3">Mercredi</string>
+    <string name="weekday_4">Jeudi</string>
+    <string name="weekday_5">Vendredi</string>
+    <string name="weekday_6">Samedi</string>
+    <string name="weekday_7">Dimanche</string>
+    <string name="weekday_short_1">lun.</string>
+    <string name="weekday_short_2">mar.</string>
+    <string name="weekday_short_3">mer.</string>
+    <string name="weekday_short_4">jeu.</string>
+    <string name="weekday_short_5">ven.</string>
+    <string name="weekday_short_6">sam.</string>
+    <string name="weekday_short_7">dim.</string>
+    <string name="month_1">janvier</string>
+    <string name="month_2">février</string>
+    <string name="month_3">mars</string>
+    <string name="month_4">avril</string>
+    <string name="month_5">mai</string>
+    <string name="month_6">juin</string>
+    <string name="month_7">juillet</string>
+    <string name="month_8">août</string>
+    <string name="month_9">septembre</string>
+    <string name="month_10">octobre</string>
+    <string name="month_11">novembre</string>
+    <string name="month_12">décembre</string>
+    <string name="date_long">%1$d %2$s %3$d</string>
+</resources>

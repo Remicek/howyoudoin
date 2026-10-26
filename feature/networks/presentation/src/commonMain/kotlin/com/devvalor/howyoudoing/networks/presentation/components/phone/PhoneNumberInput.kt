@@ -1,5 +1,11 @@
 package com.devvalor.howyoudoing.networks.presentation.components.phone
 
+import howyoudoin.feature.networks.presentation.generated.resources.Res
+import howyoudoin.feature.networks.presentation.generated.resources.phone_hint
+import howyoudoin.feature.networks.presentation.generated.resources.phone_incomplete
+import howyoudoin.feature.networks.presentation.generated.resources.phone_linked_as
+import howyoudoin.feature.networks.presentation.generated.resources.phone_choose_country
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -70,9 +76,9 @@ fun PhoneNumberInput(
         Spacer(Modifier.height(HowYouDoinSpacing.xs))
         Text(
             text = when {
-                number.isBlank() -> "Choose your country, then enter your number without the country code."
-                showError -> "That doesn't look like a complete ${country.name} number."
-                else -> "Will be linked as ${formatForDisplay(PhoneNumbers.toE164(country, number), country)}"
+                number.isBlank() -> stringResource(Res.string.phone_hint)
+                showError -> stringResource(Res.string.phone_incomplete, country.displayName)
+                else -> stringResource(Res.string.phone_linked_as, formatForDisplay(PhoneNumbers.toE164(country, number), country))
             },
             style = MaterialTheme.typography.bodySmall,
             color = if (showError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
@@ -101,7 +107,7 @@ private fun CountryButton(country: Country, onClick: () -> Unit) {
             .height(56.dp)
             .clip(MaterialTheme.shapes.extraSmall)
             .border(1.dp, MaterialTheme.colorScheme.outline, MaterialTheme.shapes.extraSmall)
-            .clickable(role = Role.DropdownList, onClickLabel = "Choose country", onClick = onClick)
+            .clickable(role = Role.DropdownList, onClickLabel = stringResource(Res.string.phone_choose_country), onClick = onClick)
             .padding(start = 12.dp, end = 4.dp),
     ) {
         Text(country.flag, fontSize = 22.sp)

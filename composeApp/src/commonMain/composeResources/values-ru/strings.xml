@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="backupoffer_back_up_your_logins">Сохранить входы в резервной копии?</string>
+    <string name="backupoffer_if_you_reinstall_howyoudoin_on">Если вы переустановите HowYouDoin на этом телефоне, ваши входы вернутся из резервной копии Google, и не придётся входить в каждую сеть заново. Копия защищена сквозным шифрованием по блокировке экрана; нам ничего не отправляется.\n\nWhatsApp и Signal всегда нужно привязать заново.</string>
+    <string name="backupoffer_back_up">Сохранить</string>
+    <string name="backupoffer_skip">Пропустить</string>
+    <string name="backupoffer_turn_on_google_backup">Включите резервное копирование Google</string>
+    <string name="backupoffer_your_logins_are_only_saved">Входы сохраняются только при включённом резервном копировании телефона:\n\n1. Откройте Настройки → Google → Резервное копирование (на Samsung: Учётные записи и архивация → Резервное копирование данных).\n2. Включите «Резервное копирование Google One» и выберите аккаунт Google.\n3. Не отключайте блокировку экрана (PIN-код, графический ключ или пароль): копии шифруются с её помощью.\n\nЕсли уже включено, всё готово. Телефон делает копию сам, обычно ночью во время зарядки.</string>
+    <string name="backupoffer_open_backup_settings">Открыть настройки копирования</string>
+    <string name="backupoffer_done">Готово</string>
+    <string name="restorelogins_welcome_back">С возвращением</string>
+    <string name="restorelogins_your_phone_s_backup_has">В резервной копии телефона есть входы, которыми вы пользовались раньше. Подключить их снова, чтобы не входить заново?</string>
+    <string name="restorelogins_continue">Продолжить</string>
+    <string name="restorelogins_reconnect">Подключить снова</string>
+    <string name="restorelogins_don_t_restore">Не восстанавливать</string>
+    <string name="restorelogins_not_now">Не сейчас</string>
+    <string name="restore_failed">Не удалось подключить снова; подключите их ещё раз в разделе «Сети»: %1$s</string>
+    <string name="restore_relink">%1$s не восстанавливаются из резервной копии (их ключи шифрования остаются на телефоне). Привяжите их снова в разделе «Сети».</string>
+    <string name="notification_new_message">Новое сообщение</string>
+</resources>

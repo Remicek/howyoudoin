@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="call_incoming_video">ビデオ通話の着信</string>
+    <string name="call_incoming">着信</string>
+    <string name="call_decline">拒否</string>
+    <string name="call_answer">応答</string>
+    <string name="channel_calls_ringing">着信</string>
+    <string name="channel_calls_ringing_desc">Matrix 通話の着信</string>
+    <string name="channel_calls_ongoing">通話中</string>
+    <string name="channel_calls_ongoing_desc">通話中に表示されます</string>
+    <string name="call_in_progress">通話中</string>
+    <string name="call_return">タップして通話に戻る</string>
+    <string name="call_hang_up">通話を終了</string>
+    <string name="call_needs_mic">通話にはマイクが必要です</string>
+    <string name="call_start_failed">通話を開始できませんでした</string>
+    <string name="call_answer_needs_mic">応答するにはマイクが必要です</string>
+    <string name="call_video">ビデオ</string>
+    <string name="call_mute">ミュート</string>
+    <string name="call_speaker">スピーカー</string>
+    <string name="call_camera">カメラ</string>
+    <string name="call_flip">切り替え</string>
+    <string name="call_calling">発信中…</string>
+    <string name="call_connecting">接続中…</string>
+    <string name="call_declined">拒否されました</string>
+    <string name="call_missed">不在着信</string>
+    <string name="call_no_answer">応答なし</string>
+    <string name="call_busy">話し中</string>
+    <string name="call_elsewhere">別のデバイスで応答しました</string>
+    <string name="call_failed">通話に失敗しました</string>
+    <string name="call_ended">通話終了</string>
+    <string name="crash_share">クラッシュレポートを共有</string>
+    <string name="channel_crash">クラッシュレポート</string>
+    <string name="crash_title">前回 HowYouDoin が停止しました</string>
+    <string name="crash_text">タップしてクラッシュレポートを共有</string>
+    <string name="bio_use_pin">PIN を使う</string>
+    <string name="channel_messages">メッセージ</string>
+    <string name="channel_messages_desc">チャットの新着メッセージ</string>
+    <string name="channel_problems">接続の問題</string>
+    <string name="channel_problems_desc">接続中のネットワークが動作しなくなったとき</string>
+    <string name="channel_connections">デバイス上の接続</string>
+    <string name="channel_connections_desc">このスマホから直接チャットを接続している間に表示されます</string>
+    <string name="connections_connecting">接続中…</string>
+    <string name="connections_connected">このデバイスで接続中: %1$s</string>
+    <string name="connections_default">このデバイスで接続中</string>
+</resources>

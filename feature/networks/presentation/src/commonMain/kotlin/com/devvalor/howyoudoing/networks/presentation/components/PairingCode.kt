@@ -1,5 +1,9 @@
 package com.devvalor.howyoudoing.networks.presentation.components
 
+import howyoudoin.feature.networks.presentation.generated.resources.Res
+import howyoudoin.feature.networks.presentation.generated.resources.pairing_copy
+import howyoudoin.feature.networks.presentation.generated.resources.pairing_copied
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -64,7 +68,7 @@ fun PairingCode(code: String, modifier: Modifier = Modifier) {
             textAlign = TextAlign.Center,
             modifier = Modifier
                 .background(MaterialTheme.colorScheme.surfaceContainerHigh, MaterialTheme.shapes.large)
-                .clickable(role = Role.Button, onClickLabel = "Copy code", onClick = copy)
+                .clickable(role = Role.Button, onClickLabel = stringResource(Res.string.pairing_copy), onClick = copy)
                 .padding(horizontal = HowYouDoinSpacing.lg, vertical = HowYouDoinSpacing.md),
         )
         Spacer(Modifier.height(HowYouDoinSpacing.md))
@@ -75,7 +79,7 @@ fun PairingCode(code: String, modifier: Modifier = Modifier) {
                 modifier = Modifier.size(18.dp),
             )
             Spacer(Modifier.width(HowYouDoinSpacing.sm))
-            Text(if (copied) "Copied" else "Copy code")
+            Text(stringResource(if (copied) Res.string.pairing_copied else Res.string.pairing_copy))
         }
     }
 }

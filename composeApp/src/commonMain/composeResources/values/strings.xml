@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="backupoffer_back_up_your_logins">Back up your logins?</string>
+    <string name="backupoffer_if_you_reinstall_howyoudoin_on">If you reinstall HowYouDoin on this phone, your logins come back from your Google backup and you won\'t have to log in to each network again. The backup is end-to-end encrypted with your screen lock; nothing is sent to us.\n\nWhatsApp and Signal always need linking again.</string>
+    <string name="backupoffer_back_up">Back up</string>
+    <string name="backupoffer_skip">Skip</string>
+    <string name="backupoffer_turn_on_google_backup">Turn on Google backup</string>
+    <string name="backupoffer_your_logins_are_only_saved">Your logins are only saved if the phone\'s backup is on:\n\n1. Open Settings → Google → Backup (on Samsung: Accounts and backup → Back up data).\n2. Turn on \"Backup by Google One\" and choose your Google account.\n3. Keep a screen lock (PIN, pattern or password): backups are encrypted with it.\n\nIf it\'s already on, you\'re all set. The phone backs up on its own, usually overnight while charging.</string>
+    <string name="backupoffer_open_backup_settings">Open backup settings</string>
+    <string name="backupoffer_done">Done</string>
+    <string name="restorelogins_welcome_back">Welcome back</string>
+    <string name="restorelogins_your_phone_s_backup_has">Your phone\'s backup has the logins you used before. Reconnect them so you don\'t have to log in again?</string>
+    <string name="restorelogins_continue">Continue</string>
+    <string name="restorelogins_reconnect">Reconnect</string>
+    <string name="restorelogins_don_t_restore">Don\'t restore</string>
+    <string name="restorelogins_not_now">Not now</string>
+    <string name="restore_failed">These couldn\'t be reconnected; connect them again in Networks: %1$s</string>
+    <string name="restore_relink">%1$s can\'t come back from a backup (their encryption keys stay on your phone). Link them again in Networks.</string>
+    <string name="notification_new_message">New message</string>
+</resources>

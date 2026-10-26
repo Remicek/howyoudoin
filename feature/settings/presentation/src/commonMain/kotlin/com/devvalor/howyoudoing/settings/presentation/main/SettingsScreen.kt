@@ -1,5 +1,36 @@
 package com.devvalor.howyoudoing.settings.presentation.main
 
+import howyoudoin.feature.settings.presentation.generated.resources.settings_not_backed_up
+import howyoudoin.feature.settings.presentation.generated.resources.Res
+import howyoudoin.feature.settings.presentation.generated.resources.settings_about
+import howyoudoin.feature.settings.presentation.generated.resources.settings_about_sub
+import howyoudoin.feature.settings.presentation.generated.resources.settings_app_lock
+import howyoudoin.feature.settings.presentation.generated.resources.settings_app_lock_on
+import howyoudoin.feature.settings.presentation.generated.resources.settings_appearance
+import howyoudoin.feature.settings.presentation.generated.resources.settings_appearance_sub
+import howyoudoin.feature.settings.presentation.generated.resources.settings_backup_logins
+import howyoudoin.feature.settings.presentation.generated.resources.settings_backup_logins_sub
+import howyoudoin.feature.settings.presentation.generated.resources.settings_crash_none
+import howyoudoin.feature.settings.presentation.generated.resources.settings_crash_present
+import howyoudoin.feature.settings.presentation.generated.resources.settings_crash_reports
+import howyoudoin.feature.settings.presentation.generated.resources.settings_days_ago
+import howyoudoin.feature.settings.presentation.generated.resources.settings_google_backup
+import howyoudoin.feature.settings.presentation.generated.resources.settings_guide
+import howyoudoin.feature.settings.presentation.generated.resources.settings_guide_sub
+import howyoudoin.feature.settings.presentation.generated.resources.settings_last_backup
+import howyoudoin.feature.settings.presentation.generated.resources.settings_licenses
+import howyoudoin.feature.settings.presentation.generated.resources.settings_networks
+import howyoudoin.feature.settings.presentation.generated.resources.settings_networks_sub
+import howyoudoin.feature.settings.presentation.generated.resources.settings_off
+import howyoudoin.feature.settings.presentation.generated.resources.settings_section_about
+import howyoudoin.feature.settings.presentation.generated.resources.settings_section_privacy
+import howyoudoin.feature.settings.presentation.generated.resources.settings_terms
+import howyoudoin.feature.settings.presentation.generated.resources.settings_terms_sub
+import howyoudoin.feature.settings.presentation.generated.resources.settings_title
+import howyoudoin.feature.settings.presentation.generated.resources.settings_today
+import howyoudoin.feature.settings.presentation.generated.resources.settings_yesterday
+import org.jetbrains.compose.resources.pluralStringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.BugReport
 import androidx.compose.material.icons.rounded.Gavel
@@ -7,6 +38,8 @@ import androidx.compose.material.icons.rounded.Hub
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.automirrored.rounded.HelpOutline
 import androidx.compose.material.icons.rounded.Lock
+import androidx.compose.material.icons.rounded.Palette
+import androidx.compose.material.icons.rounded.Policy
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.ViewModel
@@ -67,43 +100,53 @@ fun SettingsRoot(
     onNetworksClick: () -> Unit,
     onAppLockClick: () -> Unit,
     onCrashReportsClick: () -> Unit,
+    onAppearanceClick: () -> Unit,
     onLicensesClick: () -> Unit,
     onAboutClick: () -> Unit,
+    onTermsClick: () -> Unit,
     onGuideClick: () -> Unit,
     onBack: () -> Unit,
     viewModel: SettingsViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    SettingsScaffold(title = "Settings", onBack = onBack) {
+    SettingsScaffold(title = stringResource(Res.string.settings_title), onBack = onBack) {
         item {
             SettingsRow(
-                title = "Networks",
-                subtitle = "Connect or disconnect your accounts",
+                title = stringResource(Res.string.settings_networks),
+                subtitle = stringResource(Res.string.settings_networks_sub),
                 icon = Icons.Rounded.Hub,
                 onClick = onNetworksClick,
             )
         }
         item {
             SettingsRow(
-                title = "How connecting works",
-                subtitle = "Which login to use for each network",
+                title = stringResource(Res.string.settings_guide),
+                subtitle = stringResource(Res.string.settings_guide_sub),
                 icon = Icons.AutoMirrored.Rounded.HelpOutline,
                 onClick = onGuideClick,
             )
         }
-        item { SettingsSectionHeader("Privacy") }
         item {
             SettingsRow(
-                title = "App lock",
-                subtitle = if (state.isLockEnabled) "On: PIN or fingerprint before showing your chats" else "Off",
+                title = stringResource(Res.string.settings_appearance),
+                subtitle = stringResource(Res.string.settings_appearance_sub),
+                icon = Icons.Rounded.Palette,
+                onClick = onAppearanceClick,
+            )
+        }
+        item { SettingsSectionHeader(stringResource(Res.string.settings_section_privacy)) }
+        item {
+            SettingsRow(
+                title = stringResource(Res.string.settings_app_lock),
+                subtitle = if (state.isLockEnabled) stringResource(Res.string.settings_app_lock_on) else stringResource(Res.string.settings_off),
                 icon = Icons.Rounded.Lock,
                 onClick = onAppLockClick,
             )
         }
         item {
             SettingsRow(
-                title = "Crash reports",
-                subtitle = if (state.hasCrashReport) "A report from the last crash is on this phone" else "Kept on this phone; you choose what to share",
+                title = stringResource(Res.string.settings_crash_reports),
+                subtitle = if (state.hasCrashReport) stringResource(Res.string.settings_crash_present) else stringResource(Res.string.settings_crash_none),
                 icon = Icons.Rounded.BugReport,
                 onClick = onCrashReportsClick,
             )
@@ -111,10 +154,8 @@ fun SettingsRoot(
         if (state.canBackUpLogins) {
             item {
                 SettingsSwitchRow(
-                    title = "Back up logins",
-                    subtitle = "In your phone's Google backup, end-to-end encrypted with your screen lock. On a new phone " +
-                        "or after reinstalling, Messenger, Instagram, Slack, Telegram and Matrix reconnect without logging in. " +
-                        "WhatsApp and Signal always need linking again.",
+                    title = stringResource(Res.string.settings_backup_logins),
+                    subtitle = stringResource(Res.string.settings_backup_logins_sub),
                     icon = Icons.Rounded.CloudUpload,
                     checked = state.isLoginBackupOn,
                     onCheckedChange = viewModel::setLoginBackup,
@@ -123,29 +164,38 @@ fun SettingsRoot(
             if (state.isLoginBackupOn) {
                 item {
                     SettingsRow(
-                        title = "Google backup",
-                        subtitle = state.lastBackupMillis?.let { "Last backed up ${daysAgo(it)}" }
-                            ?: "Not backed up yet: make sure Google backup is on (Settings → Google → Backup)",
+                        title = stringResource(Res.string.settings_google_backup),
+                        subtitle = state.lastBackupMillis?.let { stringResource(Res.string.settings_last_backup, daysAgo(it)) }
+                            ?: stringResource(Res.string.settings_not_backed_up),
                         icon = Icons.Rounded.SettingsBackupRestore,
                         onClick = viewModel::openBackupSettings,
                     )
                 }
             }
         }
-        item { SettingsSectionHeader("About") }
+        item { SettingsSectionHeader(stringResource(Res.string.settings_section_about)) }
         item {
-            SettingsRow(title = "Open-source licenses", icon = Icons.Rounded.Gavel, onClick = onLicensesClick)
+            SettingsRow(title = stringResource(Res.string.settings_licenses), icon = Icons.Rounded.Gavel, onClick = onLicensesClick)
         }
         item {
-            SettingsRow(title = "About HowYouDoin", subtitle = "Version, source code, privacy", icon = Icons.Rounded.Info, onClick = onAboutClick)
+            SettingsRow(
+                title = stringResource(Res.string.settings_terms),
+                subtitle = stringResource(Res.string.settings_terms_sub),
+                icon = Icons.Rounded.Policy,
+                onClick = onTermsClick,
+            )
+        }
+        item {
+            SettingsRow(title = stringResource(Res.string.settings_about), subtitle = stringResource(Res.string.settings_about_sub), icon = Icons.Rounded.Info, onClick = onAboutClick)
         }
     }
 }
 
 @OptIn(ExperimentalTime::class)
+@Composable
 private fun daysAgo(millis: Long): String =
     when (val days = ((Clock.System.now().toEpochMilliseconds() - millis) / 86_400_000L).coerceAtLeast(0)) {
-        0L -> "today"
-        1L -> "yesterday"
-        else -> "$days days ago"
+        0L -> stringResource(Res.string.settings_today)
+        1L -> stringResource(Res.string.settings_yesterday)
+        else -> pluralStringResource(Res.plurals.settings_days_ago, days.toInt(), days.toInt())
     }

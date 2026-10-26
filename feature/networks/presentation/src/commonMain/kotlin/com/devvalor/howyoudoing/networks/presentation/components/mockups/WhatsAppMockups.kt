@@ -1,5 +1,19 @@
 package com.devvalor.howyoudoing.networks.presentation.components.mockups
 
+import howyoudoin.feature.networks.presentation.generated.resources.wa_settings
+import howyoudoin.feature.networks.presentation.generated.resources.wa_account
+import howyoudoin.feature.networks.presentation.generated.resources.wa_privacy
+import howyoudoin.feature.networks.presentation.generated.resources.wa_chats
+import howyoudoin.feature.networks.presentation.generated.resources.wa_notifications
+import howyoudoin.feature.networks.presentation.generated.resources.wa_link_with_phone
+import howyoudoin.feature.networks.presentation.generated.resources.Res
+import org.jetbrains.compose.resources.stringResource
+import howyoudoin.feature.networks.presentation.generated.resources.whatsappmockups_enter_code_on_phone
+import howyoudoin.feature.networks.presentation.generated.resources.whatsappmockups_link_a_device
+import howyoudoin.feature.networks.presentation.generated.resources.whatsappmockups_link_with_phone_number_instead
+import howyoudoin.feature.networks.presentation.generated.resources.whatsappmockups_linked_devices
+import howyoudoin.feature.networks.presentation.generated.resources.whatsappmockups_scan_qr_code
+import howyoudoin.feature.networks.presentation.generated.resources.whatsappmockups_use_whatsapp_on_other_devices
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -64,7 +78,7 @@ private fun SettingsRow(icon: ImageVector, label: String) {
 /** Settings with "Linked devices" highlighted. */
 @Composable
 fun MockSettingsScreen() = PhoneMockup {
-    Header("Settings")
+    Header(stringResource(Res.string.wa_settings))
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(12.dp)) {
         Box(Modifier.size(34.dp).background(MockColors.placeholder, CircleShape))
         Spacer(Modifier.width(10.dp))
@@ -73,8 +87,8 @@ fun MockSettingsScreen() = PhoneMockup {
             Placeholder(50.dp, 6.dp)
         }
     }
-    SettingsRow(Icons.Rounded.Key, "Account")
-    SettingsRow(Icons.Rounded.Lock, "Privacy")
+    SettingsRow(Icons.Rounded.Key, stringResource(Res.string.wa_account))
+    SettingsRow(Icons.Rounded.Lock, stringResource(Res.string.wa_privacy))
     Highlighted(Modifier.padding(horizontal = 4.dp)) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -83,31 +97,31 @@ fun MockSettingsScreen() = PhoneMockup {
         ) {
             Icon(Icons.Rounded.Devices, contentDescription = null, tint = MockColors.header, modifier = Modifier.size(16.dp))
             Spacer(Modifier.width(12.dp))
-            Text("Linked devices", color = textDark, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+            Text(stringResource(Res.string.whatsappmockups_linked_devices), color = textDark, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
         }
     }
-    SettingsRow(Icons.AutoMirrored.Rounded.Chat, "Chats")
-    SettingsRow(Icons.Rounded.Notifications, "Notifications")
+    SettingsRow(Icons.AutoMirrored.Rounded.Chat, stringResource(Res.string.wa_chats))
+    SettingsRow(Icons.Rounded.Notifications, stringResource(Res.string.wa_notifications))
 }
 
 /** Linked devices with the "Link a device" button highlighted. */
 @Composable
 fun MockLinkedDevicesScreen() = PhoneMockup {
-    Header("Linked devices")
+    Header(stringResource(Res.string.whatsappmockups_linked_devices))
     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth().padding(14.dp)) {
         Spacer(Modifier.height(10.dp))
         Box(contentAlignment = Alignment.Center, modifier = Modifier.size(70.dp).background(MockColors.accent.copy(alpha = 0.15f), CircleShape)) {
             Icon(Icons.Rounded.Laptop, contentDescription = null, tint = MockColors.header, modifier = Modifier.size(36.dp))
         }
         Spacer(Modifier.height(12.dp))
-        Text("Use WhatsApp on other devices", color = textDark, fontSize = 11.sp, textAlign = TextAlign.Center)
+        Text(stringResource(Res.string.whatsappmockups_use_whatsapp_on_other_devices), color = textDark, fontSize = 11.sp, textAlign = TextAlign.Center)
         Spacer(Modifier.height(16.dp))
         Highlighted {
             Box(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier.width(140.dp).background(MockColors.header, RoundedCornerShape(20.dp)).padding(vertical = 8.dp),
             ) {
-                Text("Link a device", color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                Text(stringResource(Res.string.whatsappmockups_link_a_device), color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
             }
         }
         Spacer(Modifier.height(26.dp))
@@ -125,13 +139,13 @@ fun MockScannerScreen() = PhoneMockup {
         modifier = Modifier.fillMaxSize().background(MockColors.scanner).padding(14.dp),
     ) {
         Spacer(Modifier.height(18.dp))
-        Text("Scan QR code", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+        Text(stringResource(Res.string.whatsappmockups_scan_qr_code), color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
         Spacer(Modifier.height(18.dp))
         Box(Modifier.size(130.dp).border(2.dp, Color.White.copy(alpha = 0.8f), RoundedCornerShape(12.dp)))
         Spacer(Modifier.weight(1f))
         Highlighted(tapMarkerColor = Color.White) {
             Text(
-                "Link with phone number instead",
+                stringResource(Res.string.whatsappmockups_link_with_phone_number_instead),
                 color = MockColors.accent,
                 fontSize = 11.sp,
                 fontWeight = FontWeight.SemiBold,
@@ -145,10 +159,10 @@ fun MockScannerScreen() = PhoneMockup {
 /** Code entry boxes, filled with an example code. */
 @Composable
 fun MockCodeEntryScreen() = PhoneMockup {
-    Header("Link with phone number")
+    Header(stringResource(Res.string.wa_link_with_phone))
     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth().padding(12.dp)) {
         Spacer(Modifier.height(14.dp))
-        Text("Enter code on phone", color = textDark, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+        Text(stringResource(Res.string.whatsappmockups_enter_code_on_phone), color = textDark, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
         Spacer(Modifier.height(16.dp))
         Highlighted {
             Column(verticalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.padding(6.dp)) {

@@ -1,5 +1,37 @@
 package com.devvalor.howyoudoing.networks.presentation.connect
 
+import howyoudoin.feature.networks.presentation.generated.resources.connect_title
+import howyoudoin.feature.networks.presentation.generated.resources.connect_bridge_intro
+import howyoudoin.feature.networks.presentation.generated.resources.connect_unofficial_telegram
+import howyoudoin.feature.networks.presentation.generated.resources.connect_matrix_open
+import howyoudoin.feature.networks.presentation.generated.resources.connect_unofficial
+import howyoudoin.feature.networks.presentation.generated.resources.connect_phone_intro
+import howyoudoin.feature.networks.presentation.generated.resources.connect_restore_history
+import howyoudoin.feature.networks.presentation.generated.resources.connect_continue
+import howyoudoin.feature.networks.presentation.generated.resources.connect_connected
+import howyoudoin.feature.networks.presentation.generated.resources.connect_logged_in_as
+import howyoudoin.feature.networks.presentation.generated.resources.connect_chats_soon
+import howyoudoin.feature.networks.presentation.generated.resources.connect_messenger_tip
+import howyoudoin.feature.networks.presentation.generated.resources.cookies_steps_slack
+import howyoudoin.feature.networks.presentation.generated.resources.cookies_steps
+import howyoudoin.feature.networks.presentation.generated.resources.Res
+import org.jetbrains.compose.resources.stringResource
+import howyoudoin.feature.networks.presentation.generated.resources.connectnetwork_bridge_address
+import howyoudoin.feature.networks.presentation.generated.resources.connectnetwork_bridge_settings
+import howyoudoin.feature.networks.presentation.generated.resources.connectnetwork_bridge_url
+import howyoudoin.feature.networks.presentation.generated.resources.connectnetwork_continue
+import howyoudoin.feature.networks.presentation.generated.resources.connectnetwork_done
+import howyoudoin.feature.networks.presentation.generated.resources.connectnetwork_enter_the_6_digit_pin
+import howyoudoin.feature.networks.presentation.generated.resources.connectnetwork_how_do_you_want_to
+import howyoudoin.feature.networks.presentation.generated.resources.connectnetwork_in_whatsapp_open_settings_linked
+import howyoudoin.feature.networks.presentation.generated.resources.connectnetwork_link_with_your_phone_number
+import howyoudoin.feature.networks.presentation.generated.resources.connectnetwork_messenger_allows_only_a_limited
+import howyoudoin.feature.networks.presentation.generated.resources.connectnetwork_restore_encrypted_chats
+import howyoudoin.feature.networks.presentation.generated.resources.connectnetwork_skip_for_now
+import howyoudoin.feature.networks.presentation.generated.resources.connectnetwork_try_again
+import howyoudoin.feature.networks.presentation.generated.resources.connectnetwork_waiting_for_confirmation
+import howyoudoin.feature.networks.presentation.generated.resources.tutorial_back
+import howyoudoin.feature.networks.presentation.generated.resources.tutorial_recommended
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -99,19 +131,19 @@ fun ConnectNetworkScreen(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         NetworkBadge(network = state.network, size = 28.dp, borderColor = Color.Transparent)
                         Spacer(Modifier.width(HowYouDoinSpacing.sm))
-                        Text("Connect ${state.network.displayName}")
+                        Text(stringResource(Res.string.connect_title, state.network.displayName))
                     }
                 },
                 navigationIcon = {
                     IconButton(onClick = { onAction(ConnectNetworkAction.OnBackClick) }) {
-                        Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = stringResource(Res.string.tutorial_back))
                     }
                 },
                 actions = {
                     // A Matrix account has no bridge to configure
                     if (state.phase is ConnectPhase.ChooseFlow && state.canEditBridgeUrl && state.network != ChatNetwork.MATRIX) {
                         IconButton(onClick = { onAction(ConnectNetworkAction.OnEditBridgeUrlClick) }) {
-                            Icon(Icons.Rounded.Settings, contentDescription = "Bridge settings")
+                            Icon(Icons.Rounded.Settings, contentDescription = stringResource(Res.string.connectnetwork_bridge_settings))
                         }
                     }
                 },
@@ -152,7 +184,7 @@ fun ConnectNetworkScreen(
                         Text(error.asString(), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
                         Spacer(Modifier.height(HowYouDoinSpacing.sm))
                         OutlinedButton(onClick = { onAction(ConnectNetworkAction.OnRetryClick) }) {
-                            Text("Try again")
+                            Text(stringResource(Res.string.connectnetwork_try_again))
                         }
                     }
                 }
@@ -163,11 +195,10 @@ fun ConnectNetworkScreen(
 
 @Composable
 private fun ConfigureBridge(state: ConnectNetworkState, onAction: (ConnectNetworkAction) -> Unit) {
-    Text("Bridge address", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+    Text(stringResource(Res.string.connectnetwork_bridge_address), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
     Spacer(Modifier.height(HowYouDoinSpacing.sm))
     Text(
-        "${state.network.displayName} is reached through a mautrix bridge running next to your homeserver. " +
-            "Enter the public URL where its provisioning API (/_matrix/provision) is served.",
+        stringResource(Res.string.connect_bridge_intro, state.network.displayName),
         style = MaterialTheme.typography.bodyMedium,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
@@ -175,7 +206,7 @@ private fun ConfigureBridge(state: ConnectNetworkState, onAction: (ConnectNetwor
     OutlinedTextField(
         value = state.bridgeUrl,
         onValueChange = { onAction(ConnectNetworkAction.OnBridgeUrlChange(it)) },
-        label = { Text("Bridge URL") },
+        label = { Text(stringResource(Res.string.connectnetwork_bridge_url)) },
         placeholder = { Text("https://matrix.example.com/${state.network.name.lowercase()}") },
         singleLine = true,
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
@@ -187,14 +218,14 @@ private fun ConfigureBridge(state: ConnectNetworkState, onAction: (ConnectNetwor
         enabled = state.bridgeUrl.isNotBlank(),
         modifier = Modifier.fillMaxWidth(),
     ) {
-        Text("Continue")
+        Text(stringResource(Res.string.connectnetwork_continue))
     }
 }
 
 @Composable
 private fun ChooseFlow(network: ChatNetwork, flows: List<BridgeLoginFlow>, onAction: (ConnectNetworkAction) -> Unit) {
     if (flows.isEmpty()) return
-    Text("How do you want to log in?", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+    Text(stringResource(Res.string.connectnetwork_how_do_you_want_to), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
     Spacer(Modifier.height(HowYouDoinSpacing.md))
     Column(verticalArrangement = Arrangement.spacedBy(HowYouDoinSpacing.sm)) {
         LoginFlowLabels.present(network, flows).forEach { label ->
@@ -209,11 +240,11 @@ private fun ChooseFlow(network: ChatNetwork, flows: List<BridgeLoginFlow>, onAct
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(HowYouDoinSpacing.md)) {
                     Column(modifier = Modifier.weight(1f)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(label.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                            Text(label.title.asString(), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                             if (label.isRecommended) {
                                 Spacer(Modifier.width(HowYouDoinSpacing.sm))
                                 Text(
-                                    "Recommended",
+                                    stringResource(Res.string.tutorial_recommended),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.onPrimary,
                                     modifier = Modifier
@@ -222,8 +253,9 @@ private fun ChooseFlow(network: ChatNetwork, flows: List<BridgeLoginFlow>, onAct
                                 )
                             }
                         }
-                        if (label.description.isNotBlank()) {
-                            Text(label.description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        val description = label.description.asString()
+                        if (description.isNotBlank()) {
+                            Text(description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
                     Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = null)
@@ -234,13 +266,11 @@ private fun ChooseFlow(network: ChatNetwork, flows: List<BridgeLoginFlow>, onAct
     Spacer(Modifier.height(HowYouDoinSpacing.lg))
     Text(
         if (network == ChatNetwork.TELEGRAM) {
-            "HowYouDoin is an unofficial app, not made or supported by Telegram. It uses Telegram's public API, " +
-                "which Telegram allows other apps to use."
+            stringResource(Res.string.connect_unofficial_telegram)
         } else if (network == ChatNetwork.MATRIX) {
-            "Matrix is an open standard: HowYouDoin is one of many apps that work with any Matrix homeserver."
+            stringResource(Res.string.connect_matrix_open)
         } else {
-            "HowYouDoin is an unofficial app, not made or supported by ${network.displayName}. ${network.displayName} " +
-                "doesn't officially allow other apps, so it could limit an account that uses one."
+            stringResource(Res.string.connect_unofficial, network.displayName)
         },
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -261,8 +291,7 @@ private fun DisplayStep(step: BridgeLoginStep.DisplayAndWait, network: ChatNetwo
                 if (network == ChatNetwork.WHATSAPP) {
                     Spacer(Modifier.height(HowYouDoinSpacing.lg))
                     Text(
-                        "In WhatsApp, open Settings → Linked devices → Link a device, then tap " +
-                            "\"Link with phone number instead\" and enter or paste this code.",
+                        stringResource(Res.string.connectnetwork_in_whatsapp_open_settings_linked),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center,
@@ -285,7 +314,7 @@ private fun DisplayStep(step: BridgeLoginStep.DisplayAndWait, network: ChatNetwo
         Row(verticalAlignment = Alignment.CenterVertically) {
             CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
             Spacer(Modifier.width(HowYouDoinSpacing.sm))
-            Text("Waiting for confirmation…", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(stringResource(Res.string.connectnetwork_waiting_for_confirmation), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
@@ -300,11 +329,10 @@ private fun UserInputStep(
     if (step.isMessengerHistoryPin) {
         HistoryPinHeader(step.instructions)
     } else if (step.instructions.isBlank() && asksForPhone) {
-        Text("Link with your phone number", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+        Text(stringResource(Res.string.connectnetwork_link_with_your_phone_number), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
         Spacer(Modifier.height(HowYouDoinSpacing.sm))
         Text(
-            "Enter the number of your ${state.network.displayName} account. You'll get a code to type into " +
-                "${state.network.displayName} on your phone, under Linked devices.",
+            stringResource(Res.string.connect_phone_intro, state.network.displayName),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -339,7 +367,7 @@ private fun UserInputStep(
         enabled = state.canSubmitInput && (!step.canSkip || step.fields.any { state.inputValues[it.id].orEmpty().isNotBlank() }),
         modifier = Modifier.fillMaxWidth(),
     ) {
-        Text(if (step.isMessengerHistoryPin) "Restore history" else "Continue")
+        Text(stringResource(if (step.isMessengerHistoryPin) Res.string.connect_restore_history else Res.string.connect_continue))
     }
     if (step.canSkip) {
         TextButton(
@@ -347,7 +375,7 @@ private fun UserInputStep(
             enabled = !state.isSubmitting,
             modifier = Modifier.fillMaxWidth(),
         ) {
-            Text("Skip for now")
+            Text(stringResource(Res.string.connectnetwork_skip_for_now))
         }
     }
 }
@@ -361,18 +389,16 @@ private fun UserInputStep(
 private fun HistoryPinHeader(instructions: String) {
     val problem = instructions.substringBefore("\n\n", missingDelimiterValue = "")
         .takeIf { instructions.contains("\n\n") && it.isNotBlank() }
-    Text("Restore encrypted chats", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+    Text(stringResource(Res.string.connectnetwork_restore_encrypted_chats), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
     Spacer(Modifier.height(HowYouDoinSpacing.sm))
     Text(
-        "Enter the 6-digit PIN you set in Messenger for end-to-end encrypted chats. It unlocks your saved message " +
-            "history so older encrypted messages appear here too.",
+        stringResource(Res.string.connectnetwork_enter_the_6_digit_pin),
         style = MaterialTheme.typography.bodyMedium,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
     Spacer(Modifier.height(HowYouDoinSpacing.sm))
     Text(
-        "Messenger allows only a limited number of wrong attempts. If you're not sure of your PIN, skip this; new " +
-            "messages arrive either way.",
+        stringResource(Res.string.connectnetwork_messenger_allows_only_a_limited),
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
@@ -452,25 +478,23 @@ private fun Connected(
     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth().padding(top = HowYouDoinSpacing.xl)) {
         Icon(Icons.Rounded.CheckCircle, contentDescription = null, tint = Color(0xFF2E9E5B), modifier = Modifier.size(72.dp))
         Spacer(Modifier.height(HowYouDoinSpacing.md))
-        Text("${state.network.displayName} connected", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+        Text(stringResource(Res.string.connect_connected, state.network.displayName), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(HowYouDoinSpacing.sm))
         Text(
-            buildString {
-                accountName?.let { append("Logged in as $it. ") }
-                append("Your ${state.network.displayName} chats will show up in the inbox over the next few minutes.")
-                if (state.network == ChatNetwork.MESSENGER) {
-                    // New encrypted devices are only picked up once the phone app refreshes its device list
-                    append("\n\nTip: open Messenger on your phone once so it recognises HowYouDoin as one of your " +
-                        "devices. Until then, encrypted messages sent from that phone may not arrive here.")
-                }
-            },
+            listOfNotNull(
+                accountName?.let { stringResource(Res.string.connect_logged_in_as, it) },
+                stringResource(Res.string.connect_chats_soon, state.network.displayName),
+            ).joinToString(" ") + if (state.network == ChatNetwork.MESSENGER) {
+                // New encrypted devices are only picked up once the phone app refreshes its device list
+                "\n\n" + stringResource(Res.string.connect_messenger_tip)
+            } else "",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
         )
         Spacer(Modifier.height(HowYouDoinSpacing.lg))
         Button(onClick = { onAction(ConnectNetworkAction.OnDoneClick) }, modifier = Modifier.fillMaxWidth()) {
-            Text("Done")
+            Text(stringResource(Res.string.connectnetwork_done))
         }
     }
 }
@@ -482,14 +506,8 @@ private fun Instructions(text: String) {
 }
 
 /** What to do on the network's sign-in page; HowYouDoin takes over once the session exists. */
+@Composable
 private fun cookieLoginInstructions(network: ChatNetwork): String = when (network) {
-    ChatNetwork.SLACK ->
-        "1. Enter the email you use for Slack. Slack emails you a code; type it here.\n" +
-            "2. If Slack asks, pick your workspace. When it offers the Slack app, stay in the browser.\n" +
-            "HowYouDoin continues by itself once the workspace opens. Pinch to zoom if the page looks small."
-    else ->
-        "1. Enter your ${network.displayName} email or phone number and password, then tap Log in.\n" +
-            "2. If it then shows \"Continue as <your name>\", tap it. Finish any \"confirm it's you\" steps " +
-            "here too.\n" +
-            "HowYouDoin continues by itself once you're in. Pinch to zoom if the page looks small."
+    ChatNetwork.SLACK -> stringResource(Res.string.cookies_steps_slack)
+    else -> stringResource(Res.string.cookies_steps, network.displayName)
 }

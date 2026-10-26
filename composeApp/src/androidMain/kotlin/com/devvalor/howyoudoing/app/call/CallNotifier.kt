@@ -1,5 +1,6 @@
 package com.devvalor.howyoudoing.app.call
 
+import com.devvalor.howyoudoing.app.R
 import android.Manifest
 import android.app.Notification
 import android.app.NotificationChannel
@@ -82,14 +83,14 @@ class CallNotifier(context: Context, callManager: CallManager, scope: CoroutineS
         val notification = NotificationCompat.Builder(context, RINGING_CHANNEL)
             .setSmallIcon(android.R.drawable.sym_call_incoming)
             .setContentTitle(call.peerName)
-            .setContentText(if (call.isVideo) "Incoming video call" else "Incoming call")
+            .setContentText(context.getString(if (call.isVideo) R.string.call_incoming_video else R.string.call_incoming))
             .setCategory(NotificationCompat.CATEGORY_CALL)
             .setPriority(NotificationCompat.PRIORITY_MAX)
             .setOngoing(true)
             .setFullScreenIntent(fullScreen, true)
             .setContentIntent(fullScreen)
-            .addAction(android.R.drawable.ic_menu_close_clear_cancel, "Decline", decline)
-            .addAction(android.R.drawable.sym_action_call, "Answer", answer)
+            .addAction(android.R.drawable.ic_menu_close_clear_cancel, context.getString(R.string.call_decline), decline)
+            .addAction(android.R.drawable.sym_action_call, context.getString(R.string.call_answer), answer)
             .build()
         runCatching { notifications.notify(RINGING_ID, notification) }
         if (ringtone == null) {
@@ -112,15 +113,15 @@ class CallNotifier(context: Context, callManager: CallManager, scope: CoroutineS
 
     private fun createChannels() {
         notifications.createNotificationChannel(
-            NotificationChannel(RINGING_CHANNEL, "Incoming calls", NotificationManager.IMPORTANCE_HIGH).apply {
-                description = "Matrix calls ringing"
+            NotificationChannel(RINGING_CHANNEL, context.getString(R.string.channel_calls_ringing), NotificationManager.IMPORTANCE_HIGH).apply {
+                description = context.getString(R.string.channel_calls_ringing_desc)
                 // The ringtone plays separately, so it stops as soon as the call is answered or ends
                 setSound(null, null)
             }
         )
         notifications.createNotificationChannel(
-            NotificationChannel(ONGOING_CHANNEL, "Ongoing calls", NotificationManager.IMPORTANCE_LOW).apply {
-                description = "Shown during a call"
+            NotificationChannel(ONGOING_CHANNEL, context.getString(R.string.channel_calls_ongoing), NotificationManager.IMPORTANCE_LOW).apply {
+                description = context.getString(R.string.channel_calls_ongoing_desc)
                 setShowBadge(false)
             }
         )
@@ -148,12 +149,12 @@ class CallService : Service() {
         )
         val notification: Notification = NotificationCompat.Builder(this, CallNotifier.ONGOING_CHANNEL)
             .setSmallIcon(android.R.drawable.sym_action_call)
-            .setContentTitle("Call in progress")
-            .setContentText("Tap to return to the call")
+            .setContentTitle(getString(R.string.call_in_progress))
+            .setContentText(getString(R.string.call_return))
             .setContentIntent(open)
             .setOngoing(true)
             .setCategory(NotificationCompat.CATEGORY_CALL)
-            .addAction(android.R.drawable.ic_menu_close_clear_cancel, "Hang up", hangUp)
+            .addAction(android.R.drawable.ic_menu_close_clear_cancel, getString(R.string.call_hang_up), hangUp)
             .build()
         val types = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE or (if (withCamera) ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA else 0)

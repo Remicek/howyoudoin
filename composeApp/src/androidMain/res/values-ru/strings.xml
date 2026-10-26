@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="call_incoming_video">Входящий видеозвонок</string>
+    <string name="call_incoming">Входящий звонок</string>
+    <string name="call_decline">Отклонить</string>
+    <string name="call_answer">Ответить</string>
+    <string name="channel_calls_ringing">Входящие звонки</string>
+    <string name="channel_calls_ringing_desc">Входящие звонки Matrix</string>
+    <string name="channel_calls_ongoing">Текущие звонки</string>
+    <string name="channel_calls_ongoing_desc">Показывается во время звонка</string>
+    <string name="call_in_progress">Идёт звонок</string>
+    <string name="call_return">Нажмите, чтобы вернуться к звонку</string>
+    <string name="call_hang_up">Завершить</string>
+    <string name="call_needs_mic">Для звонков нужен микрофон</string>
+    <string name="call_start_failed">Не удалось начать звонок</string>
+    <string name="call_answer_needs_mic">Чтобы ответить, нужен микрофон</string>
+    <string name="call_video">Видео</string>
+    <string name="call_mute">Без звука</string>
+    <string name="call_speaker">Динамик</string>
+    <string name="call_camera">Камера</string>
+    <string name="call_flip">Сменить</string>
+    <string name="call_calling">Вызов…</string>
+    <string name="call_connecting">Подключение…</string>
+    <string name="call_declined">Отклонён</string>
+    <string name="call_missed">Пропущенный звонок</string>
+    <string name="call_no_answer">Нет ответа</string>
+    <string name="call_busy">Занято</string>
+    <string name="call_elsewhere">Отвечено на другом устройстве</string>
+    <string name="call_failed">Звонок не удался</string>
+    <string name="call_ended">Звонок завершён</string>
+    <string name="crash_share">Поделиться отчётом о сбое</string>
+    <string name="channel_crash">Отчёты о сбоях</string>
+    <string name="crash_title">HowYouDoin завершился с ошибкой в прошлый раз</string>
+    <string name="crash_text">Нажмите, чтобы поделиться отчётом о сбое</string>
+    <string name="bio_use_pin">Использовать PIN-код</string>
+    <string name="channel_messages">Сообщения</string>
+    <string name="channel_messages_desc">Новые сообщения из ваших чатов</string>
+    <string name="channel_problems">Проблемы с подключением</string>
+    <string name="channel_problems_desc">Когда подключённая сеть перестаёт работать</string>
+    <string name="channel_connections">Подключения на устройстве</string>
+    <string name="channel_connections_desc">Показывается, пока чаты подключены прямо с этого телефона</string>
+    <string name="connections_connecting">Подключение…</string>
+    <string name="connections_connected">Подключено на этом устройстве: %1$s</string>
+    <string name="connections_default">Подключено на этом устройстве</string>
+</resources>

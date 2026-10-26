@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="backupoffer_back_up_your_logins">अपने लॉगिन का बैकअप लें?</string>
+    <string name="backupoffer_if_you_reinstall_howyoudoin_on">अगर आप इस फ़ोन पर HowYouDoin दोबारा इंस्टॉल करते हैं, तो आपके लॉगिन Google बैकअप से वापस आ जाएँगे और हर नेटवर्क में फिर से लॉग इन नहीं करना पड़ेगा। बैकअप आपके स्क्रीन लॉक से एंड-टू-एंड एन्क्रिप्टेड है; हमें कुछ नहीं भेजा जाता।\n\nWhatsApp और Signal को हर बार फिर से लिंक करना होता है।</string>
+    <string name="backupoffer_back_up">बैकअप लें</string>
+    <string name="backupoffer_skip">छोड़ें</string>
+    <string name="backupoffer_turn_on_google_backup">Google बैकअप चालू करें</string>
+    <string name="backupoffer_your_logins_are_only_saved">आपके लॉगिन तभी सेव होते हैं जब फ़ोन का बैकअप चालू हो:\n\n1. सेटिंग → Google → बैकअप खोलें (Samsung पर: खाते और बैकअप → डेटा का बैकअप लें)।\n2. \"Google One से बैकअप\" चालू करें और अपना Google खाता चुनें।\n3. स्क्रीन लॉक (PIN, पैटर्न या पासवर्ड) लगा रहने दें: बैकअप इसी से एन्क्रिप्ट होते हैं।\n\nअगर यह पहले से चालू है, तो सब तैयार है। फ़ोन अपने-आप बैकअप लेता है, आमतौर पर रात में चार्ज होते समय।</string>
+    <string name="backupoffer_open_backup_settings">बैकअप सेटिंग खोलें</string>
+    <string name="backupoffer_done">हो गया</string>
+    <string name="restorelogins_welcome_back">फिर से स्वागत है</string>
+    <string name="restorelogins_your_phone_s_backup_has">आपके फ़ोन के बैकअप में वे लॉगिन हैं जो आप पहले इस्तेमाल करते थे। उन्हें फिर से जोड़ें, ताकि दोबारा लॉग इन न करना पड़े?</string>
+    <string name="restorelogins_continue">आगे बढ़ें</string>
+    <string name="restorelogins_reconnect">फिर से जोड़ें</string>
+    <string name="restorelogins_don_t_restore">वापस न लाएँ</string>
+    <string name="restorelogins_not_now">अभी नहीं</string>
+    <string name="restore_failed">ये फिर से नहीं जुड़ सके; नेटवर्क में इन्हें फिर से जोड़ें: %1$s</string>
+    <string name="restore_relink">%1$s बैकअप से वापस नहीं आ सकते (उनकी एन्क्रिप्शन कुंजियाँ आपके फ़ोन पर रहती हैं)। नेटवर्क में उन्हें फिर से लिंक करें।</string>
+    <string name="notification_new_message">नया मैसेज</string>
+</resources>

@@ -1,5 +1,13 @@
 package com.devvalor.howyoudoing.settings.presentation.lock
 
+import org.jetbrains.compose.resources.pluralStringResource
+import howyoudoin.feature.settings.presentation.generated.resources.Res
+import howyoudoin.feature.settings.presentation.generated.resources.common_delete
+import howyoudoin.feature.settings.presentation.generated.resources.pin_delete_digit
+import howyoudoin.feature.settings.presentation.generated.resources.pin_digits_entered
+import howyoudoin.feature.settings.presentation.generated.resources.pin_done
+import howyoudoin.feature.settings.presentation.generated.resources.pin_use_fingerprint
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -51,12 +59,13 @@ fun PinPad(
     enabled: Boolean = true,
     onBiometricClick: (() -> Unit)? = null,
 ) {
+    val pinDescription = pluralStringResource(Res.plurals.pin_digits_entered, pinLength, pinLength)
     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = modifier) {
         Text(title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center)
         Spacer(Modifier.height(HowYouDoinSpacing.lg))
         Row(
             horizontalArrangement = Arrangement.spacedBy(HowYouDoinSpacing.sm),
-            modifier = Modifier.height(16.dp).semantics { contentDescription = "$pinLength digits entered" },
+            modifier = Modifier.height(16.dp).semantics { contentDescription = pinDescription },
         ) {
             repeat(maxOf(pinLength, PIN_MIN_LENGTH)) { index ->
                 Box(
@@ -87,11 +96,11 @@ fun PinPad(
             Box(Modifier.size(KEY_SIZE), contentAlignment = Alignment.Center) {
                 if (onBiometricClick != null) {
                     IconButton(onClick = onBiometricClick, enabled = enabled, modifier = Modifier.size(KEY_SIZE)) {
-                        Icon(Icons.Rounded.Fingerprint, contentDescription = "Use fingerprint", modifier = Modifier.size(32.dp))
+                        Icon(Icons.Rounded.Fingerprint, contentDescription = stringResource(Res.string.pin_use_fingerprint), modifier = Modifier.size(32.dp))
                     }
                 } else {
                     IconButton(onClick = onDelete, enabled = enabled && pinLength > 0, modifier = Modifier.size(KEY_SIZE)) {
-                        Icon(Icons.AutoMirrored.Rounded.Backspace, contentDescription = "Delete digit")
+                        Icon(Icons.AutoMirrored.Rounded.Backspace, contentDescription = stringResource(Res.string.pin_delete_digit))
                     }
                 }
             }
@@ -102,12 +111,12 @@ fun PinPad(
                     enabled = enabled && pinLength >= PIN_MIN_LENGTH,
                     modifier = Modifier.size(KEY_SIZE),
                 ) {
-                    Icon(Icons.Rounded.Check, contentDescription = "Done")
+                    Icon(Icons.Rounded.Check, contentDescription = stringResource(Res.string.pin_done))
                 }
             }
         }
         if (onBiometricClick != null) {
-            TextButton(onClick = onDelete, enabled = enabled && pinLength > 0) { Text("Delete") }
+            TextButton(onClick = onDelete, enabled = enabled && pinLength > 0) { Text(stringResource(Res.string.common_delete)) }
         }
     }
 }

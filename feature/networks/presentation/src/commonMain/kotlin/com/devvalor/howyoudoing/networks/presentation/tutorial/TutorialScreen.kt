@@ -1,5 +1,13 @@
 package com.devvalor.howyoudoing.networks.presentation.tutorial
 
+import howyoudoin.feature.networks.presentation.generated.resources.Res
+import org.jetbrains.compose.resources.stringResource
+import howyoudoin.feature.networks.presentation.generated.resources.tutorial_back
+import howyoudoin.feature.networks.presentation.generated.resources.tutorial_don_t_show_this_guide
+import howyoudoin.feature.networks.presentation.generated.resources.tutorial_how_to_connect
+import howyoudoin.feature.networks.presentation.generated.resources.tutorial_next
+import howyoudoin.feature.networks.presentation.generated.resources.tutorial_recommended
+import howyoudoin.feature.networks.presentation.generated.resources.tutorial_skip
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
@@ -106,19 +114,19 @@ fun TutorialScreen(
             TopAppBar(
                 navigationIcon = {
                     IconButton(onClick = { onAction(TutorialAction.OnBackClick) }) {
-                        Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = stringResource(Res.string.tutorial_back))
                     }
                 },
                 title = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         NetworkBadge(network = state.network, size = 26.dp, borderColor = Color.Transparent)
                         Spacer(Modifier.width(HowYouDoinSpacing.sm))
-                        Text("How to connect")
+                        Text(stringResource(Res.string.tutorial_how_to_connect))
                     }
                 },
                 actions = {
                     if (!state.isLastPage) {
-                        TextButton(onClick = { onAction(TutorialAction.OnSkipClick) }) { Text("Skip") }
+                        TextButton(onClick = { onAction(TutorialAction.OnSkipClick) }) { Text(stringResource(Res.string.tutorial_skip)) }
                     }
                 },
             )
@@ -161,13 +169,13 @@ private fun InfoPage(page: TutorialPage.Info) {
         }
         Spacer(Modifier.height(HowYouDoinSpacing.md))
         page.badge?.let { badge ->
-            AssistChip(onClick = {}, label = { Text(badge) }, enabled = false)
+            AssistChip(onClick = {}, label = { Text(stringResource(badge)) }, enabled = false)
             Spacer(Modifier.height(HowYouDoinSpacing.xs))
         }
-        Text(page.title, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+        Text(stringResource(page.title), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
         Spacer(Modifier.height(HowYouDoinSpacing.sm))
         Text(
-            page.body,
+            stringResource(page.body),
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
@@ -185,7 +193,7 @@ private fun ChoicePage(page: TutorialPage.Choice, state: TutorialState, onAction
             .padding(horizontal = HowYouDoinSpacing.containerPadding),
     ) {
         Spacer(Modifier.height(HowYouDoinSpacing.xl))
-        Text(page.title, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+        Text(stringResource(page.title), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(HowYouDoinSpacing.lg))
         page.options.forEach { option ->
             Card(
@@ -205,11 +213,11 @@ private fun ChoicePage(page: TutorialPage.Choice, state: TutorialState, onAction
                     Spacer(Modifier.width(HowYouDoinSpacing.md))
                     Column(Modifier.weight(1f)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(option.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                            Text(stringResource(option.title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                             if (option.isRecommended) {
                                 Spacer(Modifier.width(HowYouDoinSpacing.sm))
                                 Text(
-                                    "Recommended",
+                                    stringResource(Res.string.tutorial_recommended),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.onPrimary,
                                     modifier = Modifier
@@ -218,7 +226,7 @@ private fun ChoicePage(page: TutorialPage.Choice, state: TutorialState, onAction
                                 )
                             }
                         }
-                        Text(option.description, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(stringResource(option.description), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = null)
                 }
@@ -231,7 +239,7 @@ private fun ChoicePage(page: TutorialPage.Choice, state: TutorialState, onAction
             modifier = Modifier.fillMaxWidth().clickable { onAction(TutorialAction.OnDontShowAgainToggle) },
         ) {
             Checkbox(checked = state.dontShowAgain, onCheckedChange = { onAction(TutorialAction.OnDontShowAgainToggle) })
-            Text("Don't show this guide again", style = MaterialTheme.typography.bodyMedium)
+            Text(stringResource(Res.string.tutorial_don_t_show_this_guide), style = MaterialTheme.typography.bodyMedium)
         }
     }
 }
@@ -247,7 +255,7 @@ private fun BottomControls(state: TutorialState, onAction: (TutorialAction) -> U
     ) {
         Box(Modifier.weight(1f)) {
             if (state.currentPage > 0) {
-                TextButton(onClick = { onAction(TutorialAction.OnPreviousClick) }) { Text("Back") }
+                TextButton(onClick = { onAction(TutorialAction.OnPreviousClick) }) { Text(stringResource(Res.string.tutorial_back)) }
             }
         }
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -255,7 +263,7 @@ private fun BottomControls(state: TutorialState, onAction: (TutorialAction) -> U
         }
         Box(Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
             if (!state.isLastPage) {
-                Button(onClick = { onAction(TutorialAction.OnNextClick) }) { Text("Next") }
+                Button(onClick = { onAction(TutorialAction.OnNextClick) }) { Text(stringResource(Res.string.tutorial_next)) }
             }
         }
     }

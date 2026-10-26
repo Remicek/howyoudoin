@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="login_tagline">Toutes vos discussions dans une seule boîte</string>
+    <string name="login_get_started">Commencer sur ce téléphone</string>
+    <string name="login_server_intro">Ou connectez-vous à votre propre serveur Matrix avec des passerelles.</string>
+    <string name="login_homeserver">Serveur</string>
+    <string name="login_username">Nom d\'utilisateur</string>
+    <string name="login_password">Mot de passe</string>
+    <string name="login_hide_password">Masquer le mot de passe</string>
+    <string name="login_show_password">Afficher le mot de passe</string>
+    <string name="login_sign_in_server">Se connecter au serveur</string>
+    <string name="login_demo">Essayer le mode démo</string>
+    <string name="privacy_on_phone_title">Vos discussions restent sur votre téléphone</string>
+    <string name="privacy_on_phone_text">Messages, contacts et connexions sont conservés uniquement sur ce téléphone.</string>
+    <string name="privacy_direct_title">Directement vers WhatsApp, Messenger et les autres</string>
+    <string name="privacy_direct_text">L\'appli communique uniquement avec les réseaux que vous connectez, comme leurs propres applis.</string>
+    <string name="privacy_no_servers_title">Aucun serveur HowYouDoin</string>
+    <string name="privacy_no_servers_text">Nous n\'avons ni serveurs ni comptes. Nous ne voyons, ne conservons et ne vendons jamais vos messages ou vos données.</string>
+</resources>

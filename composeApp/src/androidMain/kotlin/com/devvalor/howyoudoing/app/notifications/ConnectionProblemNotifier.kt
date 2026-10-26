@@ -1,5 +1,8 @@
 package com.devvalor.howyoudoing.app.notifications
 
+import com.devvalor.howyoudoing.app.R
+import com.devvalor.howyoudoing.chat.presentation.model.text
+import com.devvalor.howyoudoing.chat.presentation.model.title
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -22,19 +25,19 @@ class ConnectionProblemNotifier(context: Context, monitor: ConnectionMonitor, sc
 
     init {
         notifications.createNotificationChannel(
-            NotificationChannel(CHANNEL_ID, "Connection problems", NotificationManager.IMPORTANCE_DEFAULT).apply {
-                description = "When a connected network stops working"
+            NotificationChannel(CHANNEL_ID, context.getString(R.string.channel_problems), NotificationManager.IMPORTANCE_DEFAULT).apply {
+                description = context.getString(R.string.channel_problems_desc)
             }
         )
         monitor.problems.onEach(::show).launchIn(scope)
     }
 
-    private fun show(problems: List<ConnectionProblem>) {
+    private suspend fun show(problems: List<ConnectionProblem>) {
         val current = problems.associateBy { NOTIFICATION_ID_BASE + it.network.ordinal }
         (shown.keys - current.keys).forEach(notifications::cancel)
-        current.forEach { (id, problem) ->
+        for ((id, problem) in current) {
             // Only new or changed problems notify again
-            if (shown[id] == problem) return@forEach
+            if (shown[id] == problem) continue
             val open = PendingIntent.getActivity(
                 context, id,
                 Intent(context, MainActivity::class.java)
@@ -42,11 +45,12 @@ class ConnectionProblemNotifier(context: Context, monitor: ConnectionMonitor, sc
                     .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP),
                 PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
             )
+            val text = problem.text.asStringAsync()
             val notification = NotificationCompat.Builder(context, CHANNEL_ID)
                 .setSmallIcon(android.R.drawable.stat_notify_error)
-                .setContentTitle(problem.title)
-                .setContentText(problem.text)
-                .setStyle(NotificationCompat.BigTextStyle().bigText(problem.text))
+                .setContentTitle(problem.title.asStringAsync())
+                .setContentText(text)
+                .setStyle(NotificationCompat.BigTextStyle().bigText(text))
                 .setContentIntent(open)
                 .setAutoCancel(true)
                 .setOnlyAlertOnce(true)

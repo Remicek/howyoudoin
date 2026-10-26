@@ -1,5 +1,6 @@
 package com.devvalor.howyoudoing.app.ondevice
 
+import com.devvalor.howyoudoing.app.R
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -43,7 +44,7 @@ class OnDeviceConnectionService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        val notification = notification(this, intent?.getStringExtra(EXTRA_TEXT) ?: "Connected on this device")
+        val notification = notification(this, intent?.getStringExtra(EXTRA_TEXT) ?: getString(R.string.connections_default))
         isRunning = true
         val type = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             ServiceInfo.FOREGROUND_SERVICE_TYPE_REMOTE_MESSAGING
@@ -84,8 +85,8 @@ class OnDeviceConnectionService : Service() {
         private fun notification(context: Context, text: String): Notification {
             val manager = context.getSystemService(NotificationManager::class.java)
             manager.createNotificationChannel(
-                NotificationChannel(CHANNEL_ID, "On-device connections", NotificationManager.IMPORTANCE_MIN).apply {
-                    description = "Shown while chats are connected directly from this phone"
+                NotificationChannel(CHANNEL_ID, context.getString(R.string.channel_connections), NotificationManager.IMPORTANCE_MIN).apply {
+                    description = context.getString(R.string.channel_connections_desc)
                     setShowBadge(false)
                 }
             )
@@ -173,7 +174,7 @@ class OnDeviceConnectionKeeper(
     }
 
     fun text(active: List<String>) =
-        if (active.isEmpty()) "Connecting…" else "Connected on this device: ${active.distinct().joinToString(", ")}"
+        if (active.isEmpty()) appContext.getString(R.string.connections_connecting) else appContext.getString(R.string.connections_connected, active.distinct().joinToString(", "))
 
     private companion object {
         const val STOP_DELAY_MILLIS = 15_000L

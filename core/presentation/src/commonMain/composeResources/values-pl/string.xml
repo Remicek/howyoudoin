@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="error_disk_full">Ups, wygląda na to, że pamięć jest pełna!</string>
+    <string name="error_not_found">Nie znaleziono żądanego elementu</string>
+    <string name="error_unknown">Wystąpił nieznany błąd</string>
+    <string name="error_bad_request">Nieprawidłowe żądanie</string>
+    <string name="error_request_timeout">Upłynął limit czasu żądania</string>
+    <string name="error_unauthorized">Nieprawidłowe dane logowania</string>
+    <string name="error_forbidden">Nie masz uprawnień, aby to zrobić</string>
+    <string name="error_conflict">Wystąpił konflikt</string>
+    <string name="error_too_many_requests">Przekroczono limit żądań</string>
+    <string name="error_no_internet">Nie można się połączyć. Sprawdź połączenie z internetem.</string>
+    <string name="error_payload_too_large">Załączony plik jest za duży</string>
+    <string name="error_server">Ups, wystąpił błąd po stronie serwera</string>
+    <string name="error_service_unavailable">Usługa niedostępna, spróbuj ponownie później</string>
+    <string name="error_serialization">Błąd serializacji</string>
+    <string name="day_today">Dzisiaj</string>
+    <string name="day_yesterday">Wczoraj</string>
+    <string name="weekday_1">Poniedziałek</string>
+    <string name="weekday_2">Wtorek</string>
+    <string name="weekday_3">Środa</string>
+    <string name="weekday_4">Czwartek</string>
+    <string name="weekday_5">Piątek</string>
+    <string name="weekday_6">Sobota</string>
+    <string name="weekday_7">Niedziela</string>
+    <string name="weekday_short_1">pon.</string>
+    <string name="weekday_short_2">wt.</string>
+    <string name="weekday_short_3">śr.</string>
+    <string name="weekday_short_4">czw.</string>
+    <string name="weekday_short_5">pt.</string>
+    <string name="weekday_short_6">sob.</string>
+    <string name="weekday_short_7">niedz.</string>
+    <string name="month_1">stycznia</string>
+    <string name="month_2">lutego</string>
+    <string name="month_3">marca</string>
+    <string name="month_4">kwietnia</string>
+    <string name="month_5">maja</string>
+    <string name="month_6">czerwca</string>
+    <string name="month_7">lipca</string>
+    <string name="month_8">sierpnia</string>
+    <string name="month_9">września</string>
+    <string name="month_10">października</string>
+    <string name="month_11">listopada</string>
+    <string name="month_12">grudnia</string>
+    <string name="date_long">%1$d %2$s %3$d</string>
+</resources>

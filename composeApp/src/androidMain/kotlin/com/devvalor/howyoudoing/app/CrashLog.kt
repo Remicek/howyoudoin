@@ -63,7 +63,7 @@ object CrashLog {
             .putExtra(Intent.EXTRA_SUBJECT, "HowYouDoin crash report")
             .putExtra(Intent.EXTRA_STREAM, uri)
             .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        return Intent.createChooser(send, "Share crash report")
+        return Intent.createChooser(send, context.getString(R.string.crash_share))
     }
 
     private fun describe(context: Context, thread: Thread, error: Throwable): String {
@@ -92,14 +92,14 @@ object CrashLog {
             )
         }.getOrNull() ?: return
         context.getSystemService(NotificationManager::class.java).createNotificationChannel(
-            NotificationChannel(CHANNEL_ID, "Crash reports", NotificationManager.IMPORTANCE_DEFAULT)
+            NotificationChannel(CHANNEL_ID, context.getString(R.string.channel_crash), NotificationManager.IMPORTANCE_DEFAULT)
         )
         val manager = NotificationManagerCompat.from(context)
         if (!manager.areNotificationsEnabled()) return
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.stat_notify_error)
-            .setContentTitle("HowYouDoin stopped last time")
-            .setContentText("Tap to share the crash report")
+            .setContentTitle(context.getString(R.string.crash_title))
+            .setContentText(context.getString(R.string.crash_text))
             .setContentIntent(open)
             .setAutoCancel(true)
             .build()

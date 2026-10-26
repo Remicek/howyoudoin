@@ -1,5 +1,30 @@
 package com.devvalor.howyoudoing.chat.presentation.inbox
 
+import com.devvalor.howyoudoing.chat.presentation.model.text
+import com.devvalor.howyoudoing.chat.presentation.model.title
+import howyoudoin.feature.chat.presentation.generated.resources.inbox_connecting
+import howyoudoin.feature.chat.presentation.generated.resources.inbox_offline
+import howyoudoin.feature.chat.presentation.generated.resources.inbox_no_match
+import howyoudoin.feature.chat.presentation.generated.resources.inbox_empty
+import howyoudoin.feature.chat.presentation.generated.resources.Res
+import org.jetbrains.compose.resources.stringResource
+import howyoudoin.feature.chat.presentation.generated.resources.inbox_all
+import howyoudoin.feature.chat.presentation.generated.resources.inbox_clear_search
+import howyoudoin.feature.chat.presentation.generated.resources.inbox_connect_a_network
+import howyoudoin.feature.chat.presentation.generated.resources.inbox_connect_whatsapp_messenger_instagram_telegram
+import howyoudoin.feature.chat.presentation.generated.resources.inbox_connected_networks
+import howyoudoin.feature.chat.presentation.generated.resources.inbox_connected_on_this_device
+import howyoudoin.feature.chat.presentation.generated.resources.inbox_dismiss
+import howyoudoin.feature.chat.presentation.generated.resources.inbox_end_to_end_encrypted
+import howyoudoin.feature.chat.presentation.generated.resources.inbox_group
+import howyoudoin.feature.chat.presentation.generated.resources.inbox_how_connecting_works
+import howyoudoin.feature.chat.presentation.generated.resources.inbox_inbox
+import howyoudoin.feature.chat.presentation.generated.resources.inbox_log_out
+import howyoudoin.feature.chat.presentation.generated.resources.inbox_more
+import howyoudoin.feature.chat.presentation.generated.resources.inbox_muted
+import howyoudoin.feature.chat.presentation.generated.resources.inbox_search_chats
+import howyoudoin.feature.chat.presentation.generated.resources.inbox_settings
+import howyoudoin.feature.chat.presentation.generated.resources.inbox_unread
 import com.devvalor.howyoudoing.chat.presentation.conversation.components.AvatarImage
 import com.devvalor.howyoudoing.chat.presentation.conversation.components.MediaResolver
 import androidx.compose.foundation.background
@@ -124,21 +149,21 @@ fun InboxScreen(
             TopAppBar(
                 title = {
                     Column {
-                        Text("Inbox", fontWeight = FontWeight.Bold)
+                        Text(stringResource(Res.string.inbox_inbox), fontWeight = FontWeight.Bold)
                         SyncStatusLabel(state.syncState)
                     }
                 },
                 actions = {
                     IconButton(onClick = { onAction(InboxAction.OnNetworksClick) }) {
-                        Icon(Icons.Rounded.Hub, contentDescription = "Connected networks")
+                        Icon(Icons.Rounded.Hub, contentDescription = stringResource(Res.string.inbox_connected_networks))
                     }
                     Box {
                         IconButton(onClick = { isMenuOpen = true }) {
-                            Icon(Icons.Rounded.MoreVert, contentDescription = "More")
+                            Icon(Icons.Rounded.MoreVert, contentDescription = stringResource(Res.string.inbox_more))
                         }
                         DropdownMenu(expanded = isMenuOpen, onDismissRequest = { isMenuOpen = false }) {
                             DropdownMenuItem(
-                                text = { Text("Settings") },
+                                text = { Text(stringResource(Res.string.inbox_settings)) },
                                 leadingIcon = { Icon(Icons.Rounded.Settings, contentDescription = null) },
                                 onClick = {
                                     isMenuOpen = false
@@ -146,7 +171,7 @@ fun InboxScreen(
                                 },
                             )
                             DropdownMenuItem(
-                                text = { Text("Log out") },
+                                text = { Text(stringResource(Res.string.inbox_log_out)) },
                                 leadingIcon = { Icon(Icons.AutoMirrored.Rounded.Logout, contentDescription = null) },
                                 onClick = {
                                     isMenuOpen = false
@@ -224,13 +249,13 @@ private fun ConnectionProblems(problems: List<ConnectionProblem>, onClick: () ->
             ) {
                 Icon(Icons.Rounded.ErrorOutline, contentDescription = null)
                 Column(Modifier.weight(1f).padding(horizontal = HowYouDoinSpacing.md)) {
-                    Text(problem.title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
-                    Text(problem.text, style = MaterialTheme.typography.bodySmall, maxLines = 3)
+                    Text(problem.title.asString(), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                    Text(problem.text.asString(), style = MaterialTheme.typography.bodySmall, maxLines = 3)
                 }
                 // A logged-out network can be ignored; the others clear themselves once they reconnect
                 if (problem.kind == ConnectionProblem.Kind.LOGGED_OUT) {
                     IconButton(onClick = { onDismiss(problem.network) }) {
-                        Icon(Icons.Rounded.Close, contentDescription = "Dismiss")
+                        Icon(Icons.Rounded.Close, contentDescription = stringResource(Res.string.inbox_dismiss))
                     }
                 } else {
                     Spacer(Modifier.width(HowYouDoinSpacing.md))
@@ -243,8 +268,8 @@ private fun ConnectionProblems(problems: List<ConnectionProblem>, onClick: () ->
 @Composable
 private fun SyncStatusLabel(syncState: SyncState) {
     val text = when (syncState) {
-        SyncState.CONNECTING -> "Connecting…"
-        SyncState.OFFLINE -> "Offline, retrying…"
+        SyncState.CONNECTING -> stringResource(Res.string.inbox_connecting)
+        SyncState.OFFLINE -> stringResource(Res.string.inbox_offline)
         SyncState.IDLE, SyncState.SYNCED -> return
     }
     Text(text, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -255,12 +280,12 @@ private fun SearchField(query: String, onQueryChange: (String) -> Unit) {
     TextField(
         value = query,
         onValueChange = onQueryChange,
-        placeholder = { Text("Search chats") },
+        placeholder = { Text(stringResource(Res.string.inbox_search_chats)) },
         leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = null) },
         trailingIcon = if (query.isNotEmpty()) {
             {
                 IconButton(onClick = { onQueryChange("") }) {
-                    Icon(Icons.Rounded.Close, contentDescription = "Clear search")
+                    Icon(Icons.Rounded.Close, contentDescription = stringResource(Res.string.inbox_clear_search))
                 }
             }
         } else null,
@@ -290,12 +315,12 @@ private fun FilterRow(state: InboxState, onAction: (InboxAction) -> Unit) {
         FilterChip(
             selected = state.filter == InboxFilter.All,
             onClick = { onAction(InboxAction.OnFilterSelect(InboxFilter.All)) },
-            label = { Text("All") },
+            label = { Text(stringResource(Res.string.inbox_all)) },
         )
         FilterChip(
             selected = state.filter == InboxFilter.Unread,
             onClick = { onAction(InboxAction.OnFilterSelect(InboxFilter.Unread)) },
-            label = { Text("Unread") },
+            label = { Text(stringResource(Res.string.inbox_unread)) },
         )
         state.networksInInbox.forEach { network ->
             val filter = InboxFilter.Network(network)
@@ -330,7 +355,7 @@ private fun ChatRow(chat: ChatUi, resolver: MediaResolver, onClick: () -> Unit) 
                 if (chat.isGroup) {
                     Icon(
                         Icons.Rounded.Groups,
-                        contentDescription = "Group",
+                        contentDescription = stringResource(Res.string.inbox_group),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(16.dp),
                     )
@@ -339,7 +364,7 @@ private fun ChatRow(chat: ChatUi, resolver: MediaResolver, onClick: () -> Unit) 
                 if (chat.isOnDevice) {
                     Icon(
                         Icons.Rounded.PhoneAndroid,
-                        contentDescription = "Connected on this device",
+                        contentDescription = stringResource(Res.string.inbox_connected_on_this_device),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(14.dp),
                     )
@@ -348,7 +373,7 @@ private fun ChatRow(chat: ChatUi, resolver: MediaResolver, onClick: () -> Unit) 
                 if (chat.isEncrypted) {
                     Icon(
                         Icons.Rounded.Lock,
-                        contentDescription = "End-to-end encrypted",
+                        contentDescription = stringResource(Res.string.inbox_end_to_end_encrypted),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(14.dp),
                     )
@@ -365,14 +390,14 @@ private fun ChatRow(chat: ChatUi, resolver: MediaResolver, onClick: () -> Unit) 
                 if (chat.isMuted) {
                     Icon(
                         Icons.Rounded.NotificationsOff,
-                        contentDescription = "Muted",
+                        contentDescription = stringResource(Res.string.inbox_muted),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(14.dp),
                     )
                     Spacer(Modifier.width(HowYouDoinSpacing.xs))
                 }
                 Text(
-                    chat.timestamp,
+                    chat.timestamp.asString(),
                     style = MaterialTheme.typography.labelSmall,
                     color = if (isUnread) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -380,7 +405,7 @@ private fun ChatRow(chat: ChatUi, resolver: MediaResolver, onClick: () -> Unit) 
             Spacer(Modifier.height(2.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    chat.typingText ?: chat.preview,
+                    (chat.typingText ?: chat.preview).asString(),
                     style = MaterialTheme.typography.bodyMedium,
                     color = when {
                         chat.typingText != null -> MaterialTheme.colorScheme.primary
@@ -431,24 +456,24 @@ private fun EmptyInbox(isFiltered: Boolean, onNetworksClick: () -> Unit, onGuide
         modifier = Modifier.fillMaxSize().padding(HowYouDoinSpacing.xl),
     ) {
         Text(
-            if (isFiltered) "No chats match" else "No chats yet",
+            stringResource(if (isFiltered) Res.string.inbox_no_match else Res.string.inbox_empty),
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.SemiBold,
         )
         Spacer(Modifier.height(HowYouDoinSpacing.sm))
         if (!isFiltered) {
             Text(
-                "Connect WhatsApp, Messenger, Instagram, Telegram or Signal and your conversations will show up here.",
+                stringResource(Res.string.inbox_connect_whatsapp_messenger_instagram_telegram),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
             )
             Spacer(Modifier.height(HowYouDoinSpacing.lg))
             FilledTonalButton(onClick = onNetworksClick) {
-                Text("Connect a network")
+                Text(stringResource(Res.string.inbox_connect_a_network))
             }
             TextButton(onClick = onGuideClick) {
-                Text("How connecting works")
+                Text(stringResource(Res.string.inbox_how_connecting_works))
             }
         }
     }

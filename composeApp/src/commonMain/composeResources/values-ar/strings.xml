@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="backupoffer_back_up_your_logins">نسخ بيانات الدخول احتياطيًا؟</string>
+    <string name="backupoffer_if_you_reinstall_howyoudoin_on">إذا أعدت تثبيت HowYouDoin على هذا الهاتف، تعود بيانات دخولك من نسخة Google الاحتياطية ولن تحتاج إلى تسجيل الدخول إلى كل شبكة من جديد. النسخة الاحتياطية مشفّرة تشفيرًا تامًا بقفل الشاشة؛ ولا يُرسل إلينا أي شيء.\n\nيجب ربط واتساب وسيجنال من جديد دائمًا.</string>
+    <string name="backupoffer_back_up">نسخ احتياطي</string>
+    <string name="backupoffer_skip">تخطٍّ</string>
+    <string name="backupoffer_turn_on_google_backup">فعّل نسخ Google الاحتياطي</string>
+    <string name="backupoffer_your_logins_are_only_saved">لا تُحفظ بيانات دخولك إلا إذا كان النسخ الاحتياطي للهاتف مفعّلًا:\n\n1. افتح الإعدادات ← Google ← النسخ الاحتياطي (على سامسونج: الحسابات والنسخ الاحتياطي ← نسخ البيانات احتياطيًا).\n2. فعّل \"النسخ الاحتياطي عبر Google One\" واختر حسابك في Google.\n3. أبقِ قفل الشاشة (رمز PIN أو نمط أو كلمة مرور): تُشفَّر النسخ الاحتياطية به.\n\nإن كان مفعّلًا بالفعل فكل شيء جاهز. ينسخ الهاتف احتياطيًا من تلقاء نفسه، عادةً ليلًا أثناء الشحن.</string>
+    <string name="backupoffer_open_backup_settings">فتح إعدادات النسخ الاحتياطي</string>
+    <string name="backupoffer_done">تم</string>
+    <string name="restorelogins_welcome_back">أهلًا بعودتك</string>
+    <string name="restorelogins_your_phone_s_backup_has">تحتوي النسخة الاحتياطية لهاتفك على بيانات الدخول التي استخدمتها سابقًا. هل تريد إعادة توصيلها حتى لا تضطر إلى تسجيل الدخول مجددًا؟</string>
+    <string name="restorelogins_continue">متابعة</string>
+    <string name="restorelogins_reconnect">إعادة التوصيل</string>
+    <string name="restorelogins_don_t_restore">عدم الاستعادة</string>
+    <string name="restorelogins_not_now">ليس الآن</string>
+    <string name="restore_failed">تعذّرت إعادة توصيل ما يلي؛ وصّلها مجددًا من الشبكات: %1$s</string>
+    <string name="restore_relink">لا يمكن استعادة %1$s من نسخة احتياطية (تبقى مفاتيح التشفير على هاتفك). اربطها مجددًا من الشبكات.</string>
+    <string name="notification_new_message">رسالة جديدة</string>
+</resources>

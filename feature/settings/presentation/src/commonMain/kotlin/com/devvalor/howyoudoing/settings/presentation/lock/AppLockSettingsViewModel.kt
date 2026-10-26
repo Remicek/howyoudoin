@@ -1,5 +1,15 @@
 package com.devvalor.howyoudoing.settings.presentation.lock
 
+import com.devvalor.howyoudoing.core.presentation.util.UiText
+import org.jetbrains.compose.resources.getString
+import howyoudoin.feature.settings.presentation.generated.resources.Res
+import howyoudoin.feature.settings.presentation.generated.resources.bio_use_title
+import howyoudoin.feature.settings.presentation.generated.resources.bio_confirm
+import howyoudoin.feature.settings.presentation.generated.resources.pin_wrong
+import howyoudoin.feature.settings.presentation.generated.resources.pin_too_many
+import howyoudoin.feature.settings.presentation.generated.resources.pin_again
+import howyoudoin.feature.settings.presentation.generated.resources.bio_instead_of_pin
+import howyoudoin.feature.settings.presentation.generated.resources.pin_mismatch
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.devvalor.howyoudoing.settings.domain.AppLockRepository
@@ -27,7 +37,7 @@ data class AppLockSettingsState(
     val isBiometricAvailable: Boolean = false,
     val pinStep: PinStep? = null,
     val pinLength: Int = 0,
-    val pinMessage: String? = null,
+    val pinMessage: UiText? = null,
     val pinError: Boolean = false,
     val isTimeoutDialogOpen: Boolean = false,
     /** Setup started from the sign-in prompt is over (PIN set, or cancelled); the screen closes. */
@@ -80,7 +90,7 @@ class AppLockSettingsViewModel(
             AppLockSettingsAction.OnChangePinClick -> startPin(PinStep.Current(PinPurpose.CHANGE))
             is AppLockSettingsAction.OnBiometricChange -> viewModelScope.launch {
                 // Make sure the fingerprint works before relying on it
-                if (!action.enabled || biometrics.authenticate("Use fingerprint for HowYouDoin", "Confirm it's you")) {
+                if (!action.enabled || biometrics.authenticate(getString(Res.string.bio_use_title), getString(Res.string.bio_confirm))) {
                     repository.setBiometricEnabled(action.enabled)
                 }
             }
@@ -115,7 +125,7 @@ class AppLockSettingsViewModel(
         _state.update { it.copy(pinStep = null, pinLength = 0, pinMessage = null, pinError = false) }
     }
 
-    private fun startPin(step: PinStep, message: String? = null, isError: Boolean = false) {
+    private fun startPin(step: PinStep, message: UiText? = null, isError: Boolean = false) {
         pin = ""
         _state.update { it.copy(pinStep = step, pinLength = 0, pinMessage = message, pinError = isError) }
     }
@@ -133,24 +143,24 @@ class AppLockSettingsViewModel(
                             closePin()
                         }
                     }
-                    is PinCheck.Wrong -> startPin(step, "Wrong PIN", isError = true)
-                    is PinCheck.TooManyAttempts -> startPin(step, "Too many wrong PINs. Try again in ${result.seconds} s.", isError = true)
+                    is PinCheck.Wrong -> startPin(step, UiText.Resource(Res.string.pin_wrong), isError = true)
+                    is PinCheck.TooManyAttempts -> startPin(step, UiText.Resource(Res.string.pin_too_many, arrayOf(result.seconds)), isError = true)
                 }
             }
-            PinStep.New -> startPin(PinStep.Confirm(entered), "Enter the same PIN again")
+            PinStep.New -> startPin(PinStep.Confirm(entered), UiText.Resource(Res.string.pin_again))
             is PinStep.Confirm -> if (entered == step.first) {
                 viewModelScope.launch {
                     repository.setPin(entered)
                     closePin()
                     if (isSetup) {
-                        if (biometrics.isAvailable() && biometrics.authenticate("Use fingerprint for HowYouDoin", "Unlock with your fingerprint instead of the PIN")) {
+                        if (biometrics.isAvailable() && biometrics.authenticate(getString(Res.string.bio_use_title), getString(Res.string.bio_instead_of_pin))) {
                             repository.setBiometricEnabled(true)
                         }
                         _state.update { it.copy(isSetupFinished = true) }
                     }
                 }
             } else {
-                startPin(PinStep.New, "The PINs didn't match. Choose a PIN again.", isError = true)
+                startPin(PinStep.New, UiText.Resource(Res.string.pin_mismatch), isError = true)
             }
             null -> Unit
         }

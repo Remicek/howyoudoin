@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="call_incoming_video">Przychodzące połączenie wideo</string>
+    <string name="call_incoming">Połączenie przychodzące</string>
+    <string name="call_decline">Odrzuć</string>
+    <string name="call_answer">Odbierz</string>
+    <string name="channel_calls_ringing">Połączenia przychodzące</string>
+    <string name="channel_calls_ringing_desc">Dzwoniące połączenia Matrix</string>
+    <string name="channel_calls_ongoing">Trwające połączenia</string>
+    <string name="channel_calls_ongoing_desc">Widoczne podczas rozmowy</string>
+    <string name="call_in_progress">Trwa połączenie</string>
+    <string name="call_return">Dotknij, aby wrócić do rozmowy</string>
+    <string name="call_hang_up">Rozłącz</string>
+    <string name="call_needs_mic">Połączenia wymagają mikrofonu</string>
+    <string name="call_start_failed">Nie udało się rozpocząć połączenia</string>
+    <string name="call_answer_needs_mic">Do odebrania potrzebny jest mikrofon</string>
+    <string name="call_video">Wideo</string>
+    <string name="call_mute">Wycisz</string>
+    <string name="call_speaker">Głośnik</string>
+    <string name="call_camera">Aparat</string>
+    <string name="call_flip">Obróć</string>
+    <string name="call_calling">Dzwonienie…</string>
+    <string name="call_connecting">Łączenie…</string>
+    <string name="call_declined">Odrzucono</string>
+    <string name="call_missed">Nieodebrane połączenie</string>
+    <string name="call_no_answer">Brak odpowiedzi</string>
+    <string name="call_busy">Zajęte</string>
+    <string name="call_elsewhere">Odebrano na innym urządzeniu</string>
+    <string name="call_failed">Połączenie nie powiodło się</string>
+    <string name="call_ended">Połączenie zakończone</string>
+    <string name="crash_share">Udostępnij raport o awarii</string>
+    <string name="channel_crash">Raporty o awariach</string>
+    <string name="crash_title">HowYouDoin ostatnio się zatrzymało</string>
+    <string name="crash_text">Dotknij, aby udostępnić raport o awarii</string>
+    <string name="bio_use_pin">Użyj PIN-u</string>
+    <string name="channel_messages">Wiadomości</string>
+    <string name="channel_messages_desc">Nowe wiadomości z Twoich czatów</string>
+    <string name="channel_problems">Problemy z połączeniem</string>
+    <string name="channel_problems_desc">Gdy podłączona sieć przestaje działać</string>
+    <string name="channel_connections">Połączenia na urządzeniu</string>
+    <string name="channel_connections_desc">Widoczne, gdy czaty są połączone bezpośrednio z tego telefonu</string>
+    <string name="connections_connecting">Łączenie…</string>
+    <string name="connections_connected">Połączono na tym urządzeniu: %1$s</string>
+    <string name="connections_default">Połączono na tym urządzeniu</string>
+</resources>

@@ -10,6 +10,7 @@ kotlin {
                 implementation(projects.core.domain)
                 implementation(projects.feature.networks.domain)
                 implementation(compose.components.uiToolingPreview)
+                implementation(compose.components.resources)
                 implementation(libs.jetbrains.compose.material.icons.extended)
                 implementation(libs.qrose)
                 implementation(libs.kotlinx.serialization.json)
