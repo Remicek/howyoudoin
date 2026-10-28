@@ -80,6 +80,12 @@ jobs:
       - name: Build the app and the tests
         run: ./gradlew :composeApp:assembleDebug :composeApp:assembleDebugAndroidTest
 
+      # The emulator's data partition needs more room than the runner leaves; these tools aren't used here
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/.ghcup /usr/local/share/boost /usr/local/lib/android/sdk/ndk /opt/hostedtoolcache/CodeQL
+          df -h /
+
       - name: Allow the emulator to use KVM
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
@@ -94,6 +100,9 @@ jobs:
           target: google_apis
           arch: x86_64
           profile: pixel_6
+          cores: 4
+          ram-size: 4096M
+          disk-size: 4096M
           disable-animations: true
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           script: ./gradlew :composeApp:connectedDebugAndroidTest
