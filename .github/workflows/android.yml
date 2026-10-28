@@ -77,8 +77,13 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
 
       # Built before the emulator starts, so it doesn't sit idle while Gradle compiles
+      # The emulator and Gradle's daemons together run the runner out of memory, so the daemons from this build
+      # are stopped and the test run below gets a small heap (it only installs and runs what's built here)
       - name: Build the app and the tests
-        run: ./gradlew :composeApp:assembleDebug :composeApp:assembleDebugAndroidTest
+        run: |
+          ./gradlew :composeApp:assembleDebug :composeApp:assembleDebugAndroidTest
+          ./gradlew --stop
+          pkill -f KotlinCompileDaemon || true
 
       # The emulator's data partition needs more room than the runner leaves; these tools aren't used here
       - name: Free disk space
@@ -101,11 +106,11 @@ jobs:
           arch: x86_64
           profile: pixel_6
           cores: 4
-          ram-size: 4096M
+          ram-size: 3072M
           disk-size: 4096M
           disable-animations: true
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
-          script: ./gradlew :composeApp:connectedDebugAndroidTest
+          script: ./gradlew :composeApp:connectedDebugAndroidTest -Dorg.gradle.jvmargs=-Xmx2g -Pkotlin.daemon.jvmargs=-Xmx1g
 
       - uses: actions/upload-artifact@v4
         if: always()
