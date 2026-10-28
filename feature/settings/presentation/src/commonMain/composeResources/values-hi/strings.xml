@@ -139,4 +139,6 @@
     <string name="appearance_dark_off">बंद</string>
     <string name="appearance_dark_on">चालू</string>
     <string name="appearance_themes">थीम</string>
+    <string name="settings_log_out">लॉग आउट</string>
+    <string name="settings_log_out_sub">यह सत्र छोड़ें और स्वागत स्क्रीन पर लौटें</string>
 </resources>

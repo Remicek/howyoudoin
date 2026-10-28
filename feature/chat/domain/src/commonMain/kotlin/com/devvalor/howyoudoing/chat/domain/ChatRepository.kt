@@ -1,5 +1,6 @@
 package com.devvalor.howyoudoing.chat.domain
 
+import kotlinx.coroutines.flow.map
 import com.devvalor.howyoudoing.core.domain.util.DataError
 import com.devvalor.howyoudoing.core.domain.util.EmptyResult
 import com.devvalor.howyoudoing.core.domain.util.Result
@@ -11,6 +12,25 @@ interface ChatRepository {
 
     /** Re-fetches all chats from the server (pull to refresh); returns when done. */
     suspend fun refresh()
+
+    /**
+     * People the user can write to, on every connected network. By default the people of the one-to-one chats;
+     * repositories that know more (the networks' contact lists) add them.
+     *
+     * TODO: only people the networks already told the app about are listed; searching a network's directory for
+     *  anyone else (e.g. a WhatsApp number, a Telegram username, a Bluesky handle) isn't supported yet.
+     */
+    @Suppress("ForbiddenComment")
+    fun observeContacts(): Flow<List<ChatContact>> = observeChats().map { chats ->
+        chats.filter { !it.isGroup }.map { ChatContact(it.id, it.name, it.network, it.avatarUrl, chatId = it.id) }
+    }
+
+    /**
+     * Opens a chat with a contact: the existing one, or a new one where the network allows it. Returns the chat ID;
+     * fails with [DataError.Remote.BAD_REQUEST] where a new chat can't be started from the app yet.
+     */
+    suspend fun startChat(contact: ChatContact): Result<String, DataError.Remote> =
+        contact.chatId?.let { Result.Success(it) } ?: Result.Failure(DataError.Remote.BAD_REQUEST)
     fun observeChat(chatId: String): Flow<Chat?>
 
     /** Messages ordered oldest first. */

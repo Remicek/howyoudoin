@@ -31,6 +31,12 @@ interface OnDeviceMessenger {
     /** Signs in with messenger.com session cookies (xs, c_user, datr) and keeps them for later launches. */
     suspend fun link(cookies: Map<String, String>): EmptyResult<DataError.Remote>
 
+    /**
+     * The key of the one-to-one chat with a contact, for writing to someone who isn't in the inbox yet; null where
+     * the network needs more than the contact's ID to start a chat (not supported from the app yet).
+     */
+    fun directChatKey(contactId: String): String? = null
+
     /** Connects with saved cookies, if any. */
     suspend fun connectIfLinked()
 

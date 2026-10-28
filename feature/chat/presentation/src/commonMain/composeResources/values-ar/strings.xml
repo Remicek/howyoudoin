@@ -156,4 +156,19 @@
         <item quantity="many">%1$d شخصًا يكتبون…</item>
         <item quantity="other">%1$d شخص يكتبون…</item>
     </plurals>
+    <string name="home_chats">المحادثات</string>
+    <string name="home_contacts">جهات الاتصال</string>
+    <string name="home_settings">الإعدادات</string>
+    <string name="inbox_new">جديد</string>
+    <string name="inbox_new_message">رسالة جديدة</string>
+    <string name="inbox_add_network">إضافة شبكة</string>
+    <string name="inbox_search">بحث</string>
+    <string name="inbox_more_filters">فلاتر أخرى</string>
+    <string name="contacts_title">جهات الاتصال</string>
+    <string name="contacts_search">ابحث عن أشخاص</string>
+    <string name="contacts_choose_network">أين تريد أن تكتب؟</string>
+    <string name="contacts_none">لم يُعثر على أحد</string>
+    <string name="contacts_only_known">يمكن حاليًا العثور فقط على الأشخاص الذين أخبرت شبكاتك HowYouDoin عنهم.</string>
+    <string name="contacts_cannot_start">لا يمكن بدء محادثة جديدة على %1$s من التطبيق بعد.</string>
+    <string name="contacts_no_networks">اربط شبكة لتكتب إلى الناس.</string>
 </resources>

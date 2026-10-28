@@ -147,4 +147,6 @@
     <string name="appearance_dark_off">إيقاف</string>
     <string name="appearance_dark_on">تشغيل</string>
     <string name="appearance_themes">السمة</string>
+    <string name="settings_log_out">تسجيل الخروج</string>
+    <string name="settings_log_out_sub">إنهاء هذه الجلسة والعودة إلى شاشة الترحيب</string>
 </resources>

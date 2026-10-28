@@ -152,4 +152,19 @@
         <item quantity="many">%1$d человек печатают…</item>
         <item quantity="other">%1$d человека печатают…</item>
     </plurals>
+    <string name="home_chats">Чаты</string>
+    <string name="home_contacts">Контакты</string>
+    <string name="home_settings">Настройки</string>
+    <string name="inbox_new">Создать</string>
+    <string name="inbox_new_message">Новое сообщение</string>
+    <string name="inbox_add_network">Добавить сеть</string>
+    <string name="inbox_search">Поиск</string>
+    <string name="inbox_more_filters">Другие фильтры</string>
+    <string name="contacts_title">Контакты</string>
+    <string name="contacts_search">Поиск людей</string>
+    <string name="contacts_choose_network">Где вы хотите написать?</string>
+    <string name="contacts_none">Никого не найдено</string>
+    <string name="contacts_only_known">Пока можно найти только людей, о которых ваши сети сообщили HowYouDoin.</string>
+    <string name="contacts_cannot_start">Начать новый чат в %1$s из приложения пока нельзя.</string>
+    <string name="contacts_no_networks">Подключите сеть, чтобы писать людям.</string>
 </resources>

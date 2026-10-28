@@ -1,5 +1,26 @@
 package com.devvalor.howyoudoing.chat.presentation.inbox
 
+import howyoudoin.feature.chat.presentation.generated.resources.inbox_more_filters
+import howyoudoin.feature.chat.presentation.generated.resources.inbox_search
+import howyoudoin.feature.chat.presentation.generated.resources.inbox_add_network
+import howyoudoin.feature.chat.presentation.generated.resources.inbox_new_message
+import howyoudoin.feature.chat.presentation.generated.resources.inbox_new
+import howyoudoin.feature.chat.presentation.generated.resources.home_chats
+import com.devvalor.howyoudoing.chat.presentation.components.HomeTab
+import com.devvalor.howyoudoing.chat.presentation.components.HomeBottomBar
+import com.devvalor.howyoudoing.core.designsystem.theme.Wordmark
+import com.devvalor.howyoudoing.core.designsystem.theme.AppMark
+import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.MoreHoriz
+import androidx.compose.material.icons.rounded.Edit
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.border
+import androidx.compose.foundation.Image
 import com.devvalor.howyoudoing.chat.presentation.model.text
 import com.devvalor.howyoudoing.chat.presentation.model.title
 import howyoudoin.feature.chat.presentation.generated.resources.inbox_connecting
@@ -108,6 +129,8 @@ fun InboxRoot(
     onChatClick: (chatId: String) -> Unit,
     onNetworksClick: () -> Unit,
     onSettingsClick: () -> Unit,
+    onContactsClick: () -> Unit = {},
+    onNewMessageClick: () -> Unit = {},
     onGuideClick: () -> Unit = {},
     banner: @Composable (encryptedNetworks: Set<ChatNetwork>) -> Unit = {},
     viewModel: InboxViewModel = koinViewModel()
@@ -126,6 +149,8 @@ fun InboxRoot(
                 is InboxAction.OnChatClick -> onChatClick(action.chatId)
                 InboxAction.OnNetworksClick -> onNetworksClick()
                 InboxAction.OnSettingsClick -> onSettingsClick()
+                InboxAction.OnContactsClick -> onContactsClick()
+                InboxAction.OnNewMessageClick -> onNewMessageClick()
                 InboxAction.OnGuideClick -> onGuideClick()
                 else -> viewModel.onAction(action)
             }
@@ -142,58 +167,53 @@ fun InboxScreen(
     banner: @Composable () -> Unit = {},
     resolver: MediaResolver = { _, _ -> null },
 ) {
-    var isMenuOpen by remember { mutableStateOf(false) }
+    var isSearchOpen by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Column {
-                        Text(stringResource(Res.string.inbox_inbox), fontWeight = FontWeight.Bold)
-                        SyncStatusLabel(state.syncState)
+            InboxTopBar(
+                onNewMessage = { onAction(InboxAction.OnNewMessageClick) },
+                onAddNetwork = { onAction(InboxAction.OnNetworksClick) },
+                onSearch = {
+                    if (isSearchOpen) onAction(InboxAction.OnQueryChange(""))
+                    isSearchOpen = !isSearchOpen
+                },
+            )
+        },
+        bottomBar = {
+            HomeBottomBar(
+                selected = HomeTab.CHATS,
+                unread = state.totalUnread,
+                onSelect = { tab ->
+                    when (tab) {
+                        HomeTab.CONTACTS -> onAction(InboxAction.OnContactsClick)
+                        HomeTab.SETTINGS -> onAction(InboxAction.OnSettingsClick)
+                        HomeTab.CHATS -> Unit
                     }
                 },
-                actions = {
-                    IconButton(onClick = { onAction(InboxAction.OnNetworksClick) }) {
-                        Icon(
-                            Icons.Rounded.Hub,
-                            contentDescription = stringResource(Res.string.inbox_connected_networks)
-                        )
-                    }
-                    Box {
-                        IconButton(onClick = { isMenuOpen = true }) {
-                            Icon(Icons.Rounded.MoreVert, contentDescription = stringResource(Res.string.inbox_more))
-                        }
-                        DropdownMenu(expanded = isMenuOpen, onDismissRequest = { isMenuOpen = false }) {
-                            DropdownMenuItem(
-                                text = { Text(stringResource(Res.string.inbox_settings)) },
-                                leadingIcon = { Icon(Icons.Rounded.Settings, contentDescription = null) },
-                                onClick = {
-                                    isMenuOpen = false
-                                    onAction(InboxAction.OnSettingsClick)
-                                },
-                            )
-                            DropdownMenuItem(
-                                text = { Text(stringResource(Res.string.inbox_log_out)) },
-                                leadingIcon = { Icon(Icons.AutoMirrored.Rounded.Logout, contentDescription = null) },
-                                onClick = {
-                                    isMenuOpen = false
-                                    onAction(InboxAction.OnLogoutClick)
-                                },
-                            )
-                        }
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
             )
         },
         containerColor = MaterialTheme.colorScheme.background,
     ) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding)) {
-            SearchField(
-                query = state.query,
-                onQueryChange = { onAction(InboxAction.OnQueryChange(it)) },
-            )
+            Row(
+                verticalAlignment = Alignment.Bottom,
+                modifier = Modifier.padding(horizontal = HowYouDoinSpacing.md, vertical = HowYouDoinSpacing.xs),
+            ) {
+                Text(
+                    stringResource(Res.string.home_chats),
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold,
+                )
+                Spacer(Modifier.width(HowYouDoinSpacing.sm))
+                SyncStatusLabel(state.syncState)
+            }
+            if (isSearchOpen || state.query.isNotEmpty()) {
+                SearchField(
+                    query = state.query,
+                    onQueryChange = { onAction(InboxAction.OnQueryChange(it)) },
+                )
+            }
             FilterRow(state = state, onAction = onAction)
             ConnectionProblems(
                 problems = state.connectionProblems,
@@ -236,6 +256,51 @@ fun InboxScreen(
             }
         }
     }
+}
+
+/** The logo and name, then "+" (a new message, or another network) and search. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun InboxTopBar(onNewMessage: () -> Unit, onAddNetwork: () -> Unit, onSearch: () -> Unit) {
+    var isNewMenuOpen by remember { mutableStateOf(false) }
+    TopAppBar(
+        title = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Image(AppMark, contentDescription = null, modifier = Modifier.size(30.dp))
+                Spacer(Modifier.width(6.dp))
+                Wordmark()
+            }
+        },
+        actions = {
+            Box {
+                IconButton(onClick = { isNewMenuOpen = true }) {
+                    Icon(Icons.Rounded.Add, contentDescription = stringResource(Res.string.inbox_new))
+                }
+                DropdownMenu(expanded = isNewMenuOpen, onDismissRequest = { isNewMenuOpen = false }) {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(Res.string.inbox_new_message)) },
+                        leadingIcon = { Icon(Icons.Rounded.Edit, contentDescription = null) },
+                        onClick = {
+                            isNewMenuOpen = false
+                            onNewMessage()
+                        },
+                    )
+                    DropdownMenuItem(
+                        text = { Text(stringResource(Res.string.inbox_add_network)) },
+                        leadingIcon = { Icon(Icons.Rounded.Hub, contentDescription = null) },
+                        onClick = {
+                            isNewMenuOpen = false
+                            onAddNetwork()
+                        },
+                    )
+                }
+            }
+            IconButton(onClick = onSearch) {
+                Icon(Icons.Rounded.Search, contentDescription = stringResource(Res.string.inbox_search))
+            }
+        },
+        colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
+    )
 }
 
 /** One card per network that stopped working; tapping opens Networks to fix it. */
@@ -325,8 +390,10 @@ private fun SearchField(query: String, onQueryChange: (String) -> Unit) {
 
 @Composable
 private fun FilterRow(state: InboxState, onAction: (InboxAction) -> Unit) {
+    var isMoreOpen by remember { mutableStateOf(false) }
     Row(
         horizontalArrangement = Arrangement.spacedBy(HowYouDoinSpacing.sm),
+        verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
             .horizontalScroll(rememberScrollState())
@@ -336,23 +403,56 @@ private fun FilterRow(state: InboxState, onAction: (InboxAction) -> Unit) {
             selected = state.filter == InboxFilter.All,
             onClick = { onAction(InboxAction.OnFilterSelect(InboxFilter.All)) },
             label = { Text(stringResource(Res.string.inbox_all)) },
-        )
-        FilterChip(
-            selected = state.filter == InboxFilter.Unread,
-            onClick = { onAction(InboxAction.OnFilterSelect(InboxFilter.Unread)) },
-            label = { Text(stringResource(Res.string.inbox_unread)) },
+            shape = CircleShape,
         )
         state.networksInInbox.forEach { network ->
             val filter = InboxFilter.Network(network)
+            NetworkFilter(network, isSelected = state.filter == filter) {
+                onAction(InboxAction.OnFilterSelect(if (state.filter == filter) InboxFilter.All else filter))
+            }
+        }
+        Box {
             FilterChip(
-                selected = state.filter == filter,
-                onClick = { onAction(InboxAction.OnFilterSelect(filter)) },
-                label = { Text(network.displayName) },
-                leadingIcon = { NetworkBadge(network = network, size = 16.dp, borderColor = Color.Transparent) },
+                selected = state.filter == InboxFilter.Unread,
+                onClick = { isMoreOpen = true },
+                label = { Icon(Icons.Rounded.MoreHoriz, stringResource(Res.string.inbox_more_filters)) },
+                shape = CircleShape,
             )
+            DropdownMenu(expanded = isMoreOpen, onDismissRequest = { isMoreOpen = false }) {
+                DropdownMenuItem(
+                    text = { Text(stringResource(Res.string.inbox_unread)) },
+                    trailingIcon = {
+                        if (state.filter == InboxFilter.Unread) Icon(Icons.Rounded.Check, contentDescription = null)
+                    },
+                    onClick = {
+                        isMoreOpen = false
+                        val unread = state.filter == InboxFilter.Unread
+                        onAction(InboxAction.OnFilterSelect(if (unread) InboxFilter.All else InboxFilter.Unread))
+                    },
+                )
+            }
         }
     }
 }
+
+/** A network's round icon; selected, it gets a ring in the primary colour. */
+@Composable
+private fun NetworkFilter(network: ChatNetwork, isSelected: Boolean, onClick: () -> Unit) {
+    val ring = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .size(NETWORK_FILTER_SIZE)
+            .border(2.dp, ring, CircleShape)
+            .clip(CircleShape)
+            .selectable(selected = isSelected, role = Role.Tab, onClick = onClick)
+            .semantics { contentDescription = network.displayName },
+    ) {
+        NetworkBadge(network = network, size = NETWORK_FILTER_SIZE - 8.dp, borderColor = Color.Transparent)
+    }
+}
+
+private val NETWORK_FILTER_SIZE = 40.dp
 
 @Composable
 private fun ChatRow(chat: ChatUi, resolver: MediaResolver, onClick: () -> Unit) {
@@ -366,12 +466,13 @@ private fun ChatRow(chat: ChatUi, resolver: MediaResolver, onClick: () -> Unit) 
     ) {
         ChatAvatar(
             name = chat.name,
-            network = chat.network,
             image = chat.avatarUrl?.let { url -> { AvatarImage(url, resolver) } },
         )
         Spacer(Modifier.width(HowYouDoinSpacing.md))
         Column(modifier = Modifier.weight(1f)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
+                NetworkBadge(network = chat.network, size = 16.dp, borderColor = Color.Transparent)
+                Spacer(Modifier.width(6.dp))
                 if (chat.isGroup) {
                     Icon(
                         Icons.Rounded.Groups,

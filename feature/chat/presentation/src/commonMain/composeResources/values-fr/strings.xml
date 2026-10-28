@@ -150,4 +150,19 @@
         <item quantity="many">%1$d personnes écrivent…</item>
         <item quantity="other">%1$d personnes écrivent…</item>
     </plurals>
+    <string name="home_chats">Discussions</string>
+    <string name="home_contacts">Contacts</string>
+    <string name="home_settings">Paramètres</string>
+    <string name="inbox_new">Nouveau</string>
+    <string name="inbox_new_message">Nouveau message</string>
+    <string name="inbox_add_network">Ajouter un réseau</string>
+    <string name="inbox_search">Rechercher</string>
+    <string name="inbox_more_filters">Plus de filtres</string>
+    <string name="contacts_title">Contacts</string>
+    <string name="contacts_search">Rechercher des personnes</string>
+    <string name="contacts_choose_network">Où voulez-vous écrire ?</string>
+    <string name="contacts_none">Personne trouvé</string>
+    <string name="contacts_only_known">Pour l'instant, seules les personnes que vos réseaux ont fait connaître à HowYouDoin peuvent être trouvées.</string>
+    <string name="contacts_cannot_start">Démarrer une nouvelle discussion sur %1$s n'est pas encore possible depuis l'app.</string>
+    <string name="contacts_no_networks">Connectez un réseau pour écrire à des gens.</string>
 </resources>

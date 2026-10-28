@@ -148,4 +148,19 @@
         <item quantity="one">%1$d Person schreibt…</item>
         <item quantity="other">%1$d Personen schreiben…</item>
     </plurals>
+    <string name="home_chats">Chats</string>
+    <string name="home_contacts">Kontakte</string>
+    <string name="home_settings">Einstellungen</string>
+    <string name="inbox_new">Neu</string>
+    <string name="inbox_new_message">Neue Nachricht</string>
+    <string name="inbox_add_network">Netzwerk hinzufügen</string>
+    <string name="inbox_search">Suchen</string>
+    <string name="inbox_more_filters">Weitere Filter</string>
+    <string name="contacts_title">Kontakte</string>
+    <string name="contacts_search">Personen suchen</string>
+    <string name="contacts_choose_network">Wo möchtest du schreiben?</string>
+    <string name="contacts_none">Niemand gefunden</string>
+    <string name="contacts_only_known">Vorerst findest du nur Personen, die deine Netzwerke HowYouDoin bekannt gemacht haben.</string>
+    <string name="contacts_cannot_start">Einen neuen Chat auf %1$s zu beginnen geht in der App noch nicht.</string>
+    <string name="contacts_no_networks">Verbinde ein Netzwerk, um Leuten zu schreiben.</string>
 </resources>

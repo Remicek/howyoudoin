@@ -141,4 +141,6 @@
     <string name="appearance_dark_off">Desligado</string>
     <string name="appearance_dark_on">Ligado</string>
     <string name="appearance_themes">Tema</string>
+    <string name="settings_log_out">Sair</string>
+    <string name="settings_log_out_sub">Encerrar esta sessão e voltar para a tela de boas-vindas</string>
 </resources>

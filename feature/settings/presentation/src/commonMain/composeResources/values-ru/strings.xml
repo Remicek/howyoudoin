@@ -143,4 +143,6 @@
     <string name="appearance_dark_off">Выкл.</string>
     <string name="appearance_dark_on">Вкл.</string>
     <string name="appearance_themes">Оформление</string>
+    <string name="settings_log_out">Выйти</string>
+    <string name="settings_log_out_sub">Завершить этот сеанс и вернуться на экран приветствия</string>
 </resources>

@@ -1,5 +1,6 @@
 package com.devvalor.howyoudoing.chat.data.ondevice
 
+import com.devvalor.howyoudoing.chat.domain.ChatContact
 import com.devvalor.howyoudoing.chat.data.SessionAwareChatRepository
 import com.devvalor.howyoudoing.core.domain.media.MessageRef
 import com.devvalor.howyoudoing.chat.domain.Attachment
@@ -90,6 +91,31 @@ class OnDeviceChatRepository(
             server.observeChats(),
             onDeviceNetworks
         ) { chats, networks -> chats.filterNot { it.network in networks } }
+    }
+
+    /** The server's contacts plus every connected network's, by network; a network connected here wins. */
+    override fun observeContacts(): Flow<List<ChatContact>> =
+        sources.fold(server.observeContacts()) { contacts, source ->
+            combine(contacts, source.store.snapshot, source.client.state) { soFar, _, state ->
+                if (state == OnDeviceMessengerState.NotLinked) {
+                    soFar
+                } else {
+                    val network = source.client.network
+                    soFar.filterNot { it.network == network } + source.store.contacts(network)
+                }
+            }
+        }.map { contacts -> contacts.sortedBy { it.name.lowercase() } }
+
+    override suspend fun startChat(contact: ChatContact): Result<String, DataError.Remote> {
+        val existing = contact.chatId
+        val source = sources.firstOrNull { it.client.network == contact.network && it.client.isSupported }
+        val key = source?.client?.directChatKey(contact.id)
+        return when {
+            existing != null -> Result.Success(existing)
+            source == null -> server.startChat(contact)
+            key == null -> Result.Failure(DataError.Remote.BAD_REQUEST)
+            else -> Result.Success(source.store.startDirectChat(key, contact.id, contact.name))
+        }
     }
 
     override fun observeChat(chatId: String): Flow<Chat?> {

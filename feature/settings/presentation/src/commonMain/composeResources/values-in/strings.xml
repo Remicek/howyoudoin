@@ -137,4 +137,6 @@
     <string name="appearance_dark_off">Mati</string>
     <string name="appearance_dark_on">Nyala</string>
     <string name="appearance_themes">Tema</string>
+    <string name="settings_log_out">Keluar</string>
+    <string name="settings_log_out_sub">Akhiri sesi ini dan kembali ke layar sambutan</string>
 </resources>

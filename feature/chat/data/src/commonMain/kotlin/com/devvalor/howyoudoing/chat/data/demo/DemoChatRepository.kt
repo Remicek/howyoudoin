@@ -1,5 +1,6 @@
 package com.devvalor.howyoudoing.chat.data.demo
 
+import com.devvalor.howyoudoing.chat.domain.ChatContact
 import com.devvalor.howyoudoing.chat.domain.Attachment
 import com.devvalor.howyoudoing.chat.domain.Chat
 import com.devvalor.howyoudoing.chat.domain.MediaRequest
@@ -54,6 +55,29 @@ class DemoChatRepository(
                 .map { it.chat.copy(lastMessage = it.messages.lastOrNull()) }
                 .sortedByDescending { it.lastActivity }
         }
+
+    /** The demo chats' people, plus a few contacts without a chat yet to start one with. */
+    override fun observeContacts(): Flow<List<ChatContact>> =
+        chats.map { all ->
+            val inChats = all.values.map { it.chat }.filter { !it.isGroup }
+                .map { ChatContact(it.id, it.name, it.network, it.avatarUrl, chatId = it.id) }
+            val started = inChats.mapTo(HashSet()) { it.name }
+            (inChats + NEW_CONTACTS.filter { it.name !in started }).sortedBy { it.name.lowercase() }
+        }
+
+    override suspend fun startChat(contact: ChatContact): Result<String, DataError.Remote> {
+        contact.chatId?.let { return Result.Success(it) }
+        val id = "new-${contact.network.name.lowercase()}-${contact.id}"
+        chats.update { all ->
+            if (id in all) return@update all
+            all + (id to DemoChat(
+                chat = Chat(id, contact.name, contact.network, null, 0, isGroup = false),
+                messages = emptyList(),
+                replies = listOf("Hi! 👋 Good to hear from you", "Sure, let's talk later")
+            ))
+        }
+        return Result.Success(id)
+    }
 
     override fun observeChat(chatId: String): Flow<Chat?> =
         chats.map { it[chatId]?.let { demo -> demo.chat.copy(lastMessage = demo.messages.lastOrNull()) } }
@@ -241,4 +265,14 @@ class DemoChatRepository(
     }
 
     override suspend fun downloadMedia(mxcUrl: String): ByteArray? = null
+
+    private companion object {
+        /** Demo contacts without a chat, to try writing to someone new. */
+        val NEW_CONTACTS = listOf(
+            ChatContact("ewa", "Ewa Kowalska", ChatNetwork.WHATSAPP),
+            ChatContact("grandma", "Grandma", ChatNetwork.WHATSAPP),
+            ChatContact("lucas", "Lucas Martin", ChatNetwork.MESSENGER),
+            ChatContact("maya", "Maya Chen", ChatNetwork.MESSENGER),
+        )
+    }
 }

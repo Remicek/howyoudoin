@@ -139,4 +139,6 @@
     <string name="appearance_dark_off">Aus</string>
     <string name="appearance_dark_on">An</string>
     <string name="appearance_themes">Design</string>
+    <string name="settings_log_out">Abmelden</string>
+    <string name="settings_log_out_sub">Diese Sitzung beenden und zum Startbildschirm zurückkehren</string>
 </resources>

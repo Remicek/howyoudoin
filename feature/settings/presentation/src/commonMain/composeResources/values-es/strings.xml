@@ -141,4 +141,6 @@
     <string name="appearance_dark_off">Desactivado</string>
     <string name="appearance_dark_on">Activado</string>
     <string name="appearance_themes">Tema</string>
+    <string name="settings_log_out">Cerrar sesión</string>
+    <string name="settings_log_out_sub">Sal de esta sesión y vuelve a la pantalla de bienvenida</string>
 </resources>

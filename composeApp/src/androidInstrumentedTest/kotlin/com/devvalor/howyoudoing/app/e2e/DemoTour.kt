@@ -111,7 +111,6 @@ class DemoTour {
 
     /** Networks: WhatsApp links like WhatsApp Web, with a QR code shown on this phone. */
     private fun connectWhatsApp() {
-        app.onNodeWithContentDescription("More").performClick()
         pause(SHORT)
         app.onNodeWithText("Settings").performClick()
         app.waitForText("App lock")
