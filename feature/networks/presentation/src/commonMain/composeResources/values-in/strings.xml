@@ -185,4 +185,5 @@
     <plurals name="status_accounts">
         <item quantity="other">%1$d akun tersambung</item>
     </plurals>
+    <string name="networks_calls_info">Untuk saat ini, panggilan suara dan video berjalan lewat Matrix: hubungkan akun Matrix untuk menelepon pengguna Matrix lain.</string>
 </resources>

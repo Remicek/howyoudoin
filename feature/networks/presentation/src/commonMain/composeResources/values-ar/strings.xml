@@ -195,4 +195,5 @@
         <item quantity="many">%1$d حسابًا متصلًا</item>
         <item quantity="other">%1$d حساب متصل</item>
     </plurals>
+    <string name="networks_calls_info">تعمل المكالمات الصوتية والمرئية حاليًا عبر Matrix فقط: اربط حساب Matrix للاتصال بمستخدمي Matrix الآخرين.</string>
 </resources>

@@ -189,4 +189,5 @@
         <item quantity="many">%1$d contas conectadas</item>
         <item quantity="other">%1$d contas conectadas</item>
     </plurals>
+    <string name="networks_calls_info">Por enquanto, chamadas de voz e vídeo funcionam pelo Matrix: conecte uma conta Matrix para ligar para outros usuários do Matrix.</string>
 </resources>

@@ -2,16 +2,17 @@
 
 # HowYouDoin
 
-All your chats in one inbox: WhatsApp, Messenger, Instagram, Telegram and Signal, connected straight from your
-Android phone. No server or account is needed. Your messages and logins stay on the phone and go only to the
-networks themselves.
+All your chats in one inbox: WhatsApp, Messenger, Instagram, Telegram, Signal, Slack and Matrix, connected straight
+from your Android phone. There are no HowYouDoin servers and no account to create: your messages and logins stay on the
+phone and go only to the networks themselves.
 
 <p align="center">
-  <img src="docs/demo.gif" alt="HowYouDoin in demo mode: the welcome screen, the inbox, a chat, and connecting WhatsApp with a QR code and Messenger with its login page" width="320">
+  <img src="docs/demo.gif" alt="HowYouDoin in demo mode: the welcome screen, the inbox, a chat, connecting WhatsApp with a QR code and Messenger with its login page, and the note that calls go through Matrix" width="320">
+  <br><sub>Demo mode: welcome, inbox, a chat, connecting WhatsApp and Messenger, and calls through Matrix</sub>
 </p>
 
 > **Unofficial app.** HowYouDoin is not made, endorsed or supported by Meta (WhatsApp, Messenger, Instagram),
-> Telegram or Signal. Those services don't officially allow third-party apps and could limit or block an account
+> Telegram, Signal or Slack. Those services don't officially allow third-party apps and could limit or block an account
 > that uses one. Use it at your own risk.
 
 Status: experimental, Android only for now. (An iOS build exists in the code but isn't released; see below.)
@@ -21,11 +22,14 @@ Status: experimental, Android only for now. (An iOS build exists in the code but
 - One inbox for all connected networks, with search and an unread filter
 - Text, photos, videos, voice messages and files; reactions, replies, edits, deletions, typing and read receipts
   where the network supports them
-- WhatsApp, Telegram and Signal link like a desktop app (QR code, pairing code or login code); Messenger and
-  Instagram log in through their websites inside the app
+- WhatsApp, Telegram and Signal link like a desktop app (QR code, pairing code or login code); Messenger,
+  Instagram and Slack log in through their websites inside the app
+- Voice and video calls with Matrix contacts (calls on the other networks aren't supported)
 - Notifications from a background connection, without push servers
 - App lock with a PIN or fingerprint, hidden message text in notifications, and no screenshots while locked
 - Crash reports stay on the phone; you choose whether to share them
+- 12 languages, four colour themes, light and dark
+- Try everything in demo mode without connecting an account
 - Optional: connect through your own Matrix homeserver with mautrix bridges instead (server mode)
 
 ## Building

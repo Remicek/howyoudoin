@@ -2,8 +2,13 @@ package com.devvalor.howyoudoing.app.e2e
 
 import android.os.ParcelFileDescriptor
 import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.hasAnyDescendant
+import androidx.compose.ui.test.hasContentDescription
+import androidx.compose.ui.test.hasScrollToNodeAction
+import androidx.compose.ui.test.onFirst
+import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.hasParent
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.onAllNodesWithText
@@ -13,7 +18,6 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performSemanticsAction
-import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import org.junit.After
@@ -64,9 +68,8 @@ class DemoTour {
         chat()
         connectWhatsApp()
         connectMessenger()
+        callsInfo()
         // Back to the inbox
-        app.waitForText("Connect your chat accounts", substring = true)
-        pause(LONG)
         app.pressBack()
         app.pressBack()
         app.waitForText("Mom")
@@ -94,7 +97,10 @@ class DemoTour {
         app.onNodeWithText("Mom").performClick()
         app.waitForText("Dad is making pierogi")
         pause(SHORT)
-        app.onNode(hasSetTextAction()).performTextInput("Yes! I'll bring dessert 🍰")
+        // Set without focusing the field, so no keyboard covers the chat in the recording
+        app.onNode(hasSetTextAction()).performSemanticsAction(SemanticsActions.SetText) {
+            it(AnnotatedString("Yes! I'll bring dessert 🍰"))
+        }
         pause(SHORT)
         app.onNodeWithContentDescription("Send").performClick()
         pause(REPLY)
@@ -143,6 +149,17 @@ class DemoTour {
         app.pressBack()
     }
 
+    /** Matrix's wiggling microphone and camera: calls go through Matrix for now. */
+    private fun callsInfo() {
+        app.waitForText("Connect your chat accounts", substring = true)
+        val badge = hasContentDescription("Voice and video calls", substring = true)
+        app.onAllNodes(hasScrollToNodeAction()).onFirst().performScrollToNode(badge)
+        pause(CALLS_BADGE)
+        app.onNode(badge).performClick()
+        pause(LONG)
+        pause(LONG)
+    }
+
     /** The network card's button: "Add" when an account is already connected, otherwise "Connect". */
     private fun connect(network: String) {
         val button: SemanticsMatcher =
@@ -170,6 +187,9 @@ class DemoTour {
         const val REPLY = 4_000L
         const val QR = 5_000L
         const val WEB_PAGE = 7_000L
+
+        /** Long enough to see the icons wiggle a couple of times. */
+        const val CALLS_BADGE = 6_000L
         const val LINKING_TIMEOUT_MILLIS = 30_000L
         const val FINISH_WRITING_MILLIS = 3_000L
     }

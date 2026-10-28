@@ -187,4 +187,5 @@
         <item quantity="one">%1$d खाता जुड़ा है</item>
         <item quantity="other">%1$d खाते जुड़े हैं</item>
     </plurals>
+    <string name="networks_calls_info">अभी वॉइस और वीडियो कॉल केवल Matrix से होती हैं: दूसरे Matrix उपयोगकर्ताओं को कॉल करने के लिए Matrix खाता जोड़ें।</string>
 </resources>

@@ -187,4 +187,5 @@
     <string name="wa_chats">Chats</string>
     <string name="wa_notifications">Notifications</string>
     <string name="wa_link_with_phone">Link with phone number</string>
+    <string name="networks_calls_info">Voice and video calls work through Matrix for now: connect a Matrix account to call other Matrix users.</string>
 </resources>

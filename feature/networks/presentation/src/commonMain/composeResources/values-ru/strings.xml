@@ -191,4 +191,5 @@
         <item quantity="many">Подключено %1$d аккаунтов</item>
         <item quantity="other">Подключено %1$d аккаунта</item>
     </plurals>
+    <string name="networks_calls_info">Пока голосовые и видеозвонки работают только через Matrix: подключите аккаунт Matrix, чтобы звонить другим пользователям Matrix.</string>
 </resources>

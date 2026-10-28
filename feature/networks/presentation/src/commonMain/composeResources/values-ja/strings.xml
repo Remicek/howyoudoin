@@ -185,4 +185,5 @@
     <plurals name="status_accounts">
         <item quantity="other">%1$d 件のアカウントを接続中</item>
     </plurals>
+    <string name="networks_calls_info">音声通話とビデオ通話は今のところ Matrix 経由でのみ使えます。Matrix アカウントを接続すると、ほかの Matrix ユーザーに発信できます。</string>
 </resources>

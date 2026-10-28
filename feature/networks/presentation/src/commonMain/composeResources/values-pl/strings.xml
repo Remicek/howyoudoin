@@ -191,4 +191,5 @@
         <item quantity="many">Połączono %1$d kont</item>
         <item quantity="other">Połączono %1$d konta</item>
     </plurals>
+    <string name="networks_calls_info">Połączenia głosowe i wideo działają na razie tylko przez Matrix: połącz konto Matrix, aby dzwonić do innych użytkowników Matrix.</string>
 </resources>

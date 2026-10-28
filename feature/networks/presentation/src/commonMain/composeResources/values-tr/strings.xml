@@ -187,4 +187,5 @@
         <item quantity="one">%1$d hesap bağlı</item>
         <item quantity="other">%1$d hesap bağlı</item>
     </plurals>
+    <string name="networks_calls_info">Sesli ve görüntülü aramalar şimdilik yalnızca Matrix üzerinden çalışır: diğer Matrix kullanıcılarını aramak için bir Matrix hesabı bağlayın.</string>
 </resources>

@@ -198,11 +198,17 @@ private fun NetworkCard(
                 NetworkBadge(network = network, size = 40.dp, borderColor = Color.Transparent, enabled = !isComingSoon)
                 Spacer(Modifier.width(HowYouDoinSpacing.md))
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        network.displayName,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            network.displayName,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        if (network == ChatNetwork.MATRIX) {
+                            Spacer(Modifier.width(HowYouDoinSpacing.sm))
+                            CallsBadge()
+                        }
+                    }
                     // Connected on the phone, the server bridge is optional: its trouble isn't this network's
                     val noLogins = (item.status as? NetworkStatus.Ready)?.logins.isNullOrEmpty()
                     Text(

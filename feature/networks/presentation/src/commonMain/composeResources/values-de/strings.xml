@@ -187,4 +187,5 @@
         <item quantity="one">%1$d Konto verbunden</item>
         <item quantity="other">%1$d Konten verbunden</item>
     </plurals>
+    <string name="networks_calls_info">Sprach- und Videoanrufe funktionieren vorerst nur über Matrix: Verbinde ein Matrix-Konto, um andere Matrix-Nutzer anzurufen.</string>
 </resources>
