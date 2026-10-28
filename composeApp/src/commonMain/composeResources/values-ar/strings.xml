@@ -5,7 +5,7 @@
     <string name="backupoffer_back_up">نسخ احتياطي</string>
     <string name="backupoffer_skip">تخطٍّ</string>
     <string name="backupoffer_turn_on_google_backup">فعّل نسخ Google الاحتياطي</string>
-    <string name="backupoffer_your_logins_are_only_saved">لا تُحفظ بيانات دخولك إلا إذا كان النسخ الاحتياطي للهاتف مفعّلًا:\n\n1. افتح الإعدادات ← Google ← النسخ الاحتياطي (على سامسونج: الحسابات والنسخ الاحتياطي ← نسخ البيانات احتياطيًا).\n2. فعّل \"النسخ الاحتياطي عبر Google One\" واختر حسابك في Google.\n3. أبقِ قفل الشاشة (رمز PIN أو نمط أو كلمة مرور): تُشفَّر النسخ الاحتياطية به.\n\nإن كان مفعّلًا بالفعل فكل شيء جاهز. ينسخ الهاتف احتياطيًا من تلقاء نفسه، عادةً ليلًا أثناء الشحن.</string>
+    <string name="backupoffer_your_logins_are_only_saved">لا تُحفظ بيانات دخولك إلا إذا كان النسخ الاحتياطي للهاتف مفعّلًا:\n\n1. افتح الإعدادات ← Google ← النسخ الاحتياطي (على سامسونج: الحسابات والنسخ الاحتياطي ← نسخ البيانات احتياطيًا).\n2. فعّل "النسخ الاحتياطي عبر Google One" واختر حسابك في Google.\n3. أبقِ قفل الشاشة (رمز PIN أو نمط أو كلمة مرور): تُشفَّر النسخ الاحتياطية به.\n\nإن كان مفعّلًا بالفعل فكل شيء جاهز. ينسخ الهاتف احتياطيًا من تلقاء نفسه، عادةً ليلًا أثناء الشحن.</string>
     <string name="backupoffer_open_backup_settings">فتح إعدادات النسخ الاحتياطي</string>
     <string name="backupoffer_done">تم</string>
     <string name="restorelogins_welcome_back">أهلًا بعودتك</string>

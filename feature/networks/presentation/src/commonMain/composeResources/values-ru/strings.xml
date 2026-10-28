@@ -105,6 +105,7 @@
     <string name="flow_connects_through_your_matrix_server_instead">Подключение через ваш сервер Matrix</string>
     <string name="flow_qr_code_via_server_bridge">QR-код через мост на сервере</string>
     <string name="flow_log_in_on_messenger_com_chats">Войдите на messenger.com; чаты подключаются через ваш сервер</string>
+    <string name="flow_log_in_on_messenger_com_phone">Войдите на messenger.com; чаты подключаются с этого телефона</string>
     <string name="flow_messenger_via_server_bridge">Messenger через мост на сервере</string>
     <string name="flow_facebook_account_via_server_bridge">Аккаунт Facebook через мост на сервере</string>
     <string name="flow_log_in_on_facebook_com">Войдите на facebook.com</string>

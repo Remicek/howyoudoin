@@ -10,10 +10,10 @@
     <string name="tutorialpages_howyoudoin_joins_your_whatsapp_as">HowYouDoin, WhatsApp Web की तरह, लिंक किए गए डिवाइस के रूप में आपके WhatsApp से जुड़ता है। आपका फ़ोन मुख्य डिवाइस बना रहता है और आप इसे कभी भी अनलिंक कर सकते हैं।</string>
     <string name="tutorialpages_open_linked_devices">लिंक किए गए डिवाइस खोलें</string>
     <string name="tutorialpages_in_whatsapp_open_settings_on">WhatsApp में सेटिंग खोलें (Android पर: ⋮ मेन्यू → सेटिंग) और लिंक किए गए डिवाइस पर टैप करें।</string>
-    <string name="tutorialpages_tap_link_a_device">\"डिवाइस लिंक करें\" पर टैप करें</string>
+    <string name="tutorialpages_tap_link_a_device">"डिवाइस लिंक करें" पर टैप करें</string>
     <string name="tutorialpages_whatsapp_may_ask_for_your">यह पक्का करने के लिए कि यह आप हैं, WhatsApp फ़िंगरप्रिंट, चेहरा या PIN माँग सकता है।</string>
     <string name="tutorialpages_use_a_pairing_code">पेयरिंग कोड इस्तेमाल करें</string>
-    <string name="tutorialpages_whatsapp_opens_the_camera_but">WhatsApp कैमरा खोलता है, लेकिन आप अपनी ही स्क्रीन स्कैन नहीं कर सकते। नीचे \"इसके बजाय फ़ोन नंबर से लिंक करें\" पर टैप करें।</string>
+    <string name="tutorialpages_whatsapp_opens_the_camera_but">WhatsApp कैमरा खोलता है, लेकिन आप अपनी ही स्क्रीन स्कैन नहीं कर सकते। नीचे "इसके बजाय फ़ोन नंबर से लिंक करें" पर टैप करें।</string>
     <string name="tutorialpages_enter_the_8_character_code">8 अक्षरों का कोड डालें</string>
     <string name="tutorialpages_howyoudoin_shows_you_a_code">HowYouDoin आपको 1CDB-N2DG जैसा कोड दिखाता है। उसे कॉपी करें, WhatsApp पर जाएँ और टाइप या पेस्ट करें।</string>
     <string name="tutorialpages_or_scan_a_qr_code">या QR कोड स्कैन करें</string>
@@ -26,7 +26,7 @@
     <string name="networks_cancel">रद्द करें</string>
     <string name="networks_disconnect">हटाएँ</string>
     <string name="networks_your_account_could_be_blocked">आपका खाता ब्लॉक हो सकता है</string>
-    <string name="networks_howyoudoin_is_unofficial_whatsapp_messenger">HowYouDoin अनौपचारिक है। WhatsApp, Messenger, Instagram, Signal और Slack तीसरे पक्ष के ऐप की अनुमति नहीं देते और ऐसा ऐप इस्तेमाल करने वाले खाते को सीमित या हमेशा के लिए बैन कर सकते हैं। डेवलपर उसे वापस नहीं ला सकता, इसलिए ऐसा खाता न जोड़ें जिसे खोना आपको भारी पड़े।\n\nऐप \"जैसा है वैसा\", बिना वारंटी के दिया जाता है, और मैसेज छूट या देर से आ सकते हैं। इस्तेमाल आपके अपने जोखिम पर है।</string>
+    <string name="networks_howyoudoin_is_unofficial_whatsapp_messenger">HowYouDoin अनौपचारिक है। WhatsApp, Messenger, Instagram, Signal और Slack तीसरे पक्ष के ऐप की अनुमति नहीं देते और ऐसा ऐप इस्तेमाल करने वाले खाते को सीमित या हमेशा के लिए बैन कर सकते हैं। डेवलपर उसे वापस नहीं ला सकता, इसलिए ऐसा खाता न जोड़ें जिसे खोना आपको भारी पड़े।\n\nऐप "जैसा है वैसा", बिना वारंटी के दिया जाता है, और मैसेज छूट या देर से आ सकते हैं। इस्तेमाल आपके अपने जोखिम पर है।</string>
     <string name="networks_read_the_terms_of_use">इस्तेमाल की शर्तें पढ़ें</string>
     <string name="networks_i_understand_continue">मैं समझता/समझती हूँ, आगे बढ़ें</string>
     <string name="encryptedhistory_restoring_encrypted_history">एन्क्रिप्टेड इतिहास वापस लाया जा रहा है</string>
@@ -50,7 +50,7 @@
     <string name="connectnetwork_bridge_url">ब्रिज URL</string>
     <string name="connectnetwork_continue">आगे बढ़ें</string>
     <string name="connectnetwork_how_do_you_want_to">आप कैसे लॉग इन करना चाहते हैं?</string>
-    <string name="connectnetwork_in_whatsapp_open_settings_linked">WhatsApp में सेटिंग → लिंक किए गए डिवाइस → डिवाइस लिंक करें खोलें, फिर \"इसके बजाय फ़ोन नंबर से लिंक करें\" पर टैप करें और यह कोड डालें या पेस्ट करें।</string>
+    <string name="connectnetwork_in_whatsapp_open_settings_linked">WhatsApp में सेटिंग → लिंक किए गए डिवाइस → डिवाइस लिंक करें खोलें, फिर "इसके बजाय फ़ोन नंबर से लिंक करें" पर टैप करें और यह कोड डालें या पेस्ट करें।</string>
     <string name="connectnetwork_waiting_for_confirmation">पुष्टि का इंतज़ार…</string>
     <string name="connectnetwork_link_with_your_phone_number">अपने फ़ोन नंबर से लिंक करें</string>
     <string name="connectnetwork_skip_for_now">अभी छोड़ें</string>
@@ -75,7 +75,7 @@
     <string name="field_phone">फ़ोन नंबर</string>
     <string name="telegram_phone_instructions">अपने Telegram खाते का फ़ोन नंबर डालें। Telegram आपको लॉगिन कोड भेजेगा।</string>
     <string name="tg_code_retry">वह कोड काम नहीं किया। जाँचें और फिर से कोशिश करें।</string>
-    <string name="tg_code_app">Telegram ने आपके Telegram ऐप में लॉगिन कोड भेजा है (\"Telegram\" की चैट में)।</string>
+    <string name="tg_code_app">Telegram ने आपके Telegram ऐप में लॉगिन कोड भेजा है ("Telegram" की चैट में)।</string>
     <string name="tg_code_sms">Telegram ने SMS से लॉगिन कोड भेजा है।</string>
     <string name="tg_code_email">Telegram ने आपके ईमेल पर लॉगिन कोड भेजा है।</string>
     <string name="tg_code_call">Telegram लॉगिन कोड बताने के लिए आपके फ़ोन पर कॉल कर रहा है।</string>
@@ -105,6 +105,7 @@
     <string name="flow_connects_through_your_matrix_server_instead">इसके बजाय आपके Matrix सर्वर से जुड़ता है</string>
     <string name="flow_qr_code_via_server_bridge">सर्वर ब्रिज से QR कोड</string>
     <string name="flow_log_in_on_messenger_com_chats">messenger.com पर लॉग इन करें; चैट आपके सर्वर से जुड़ती हैं</string>
+    <string name="flow_log_in_on_messenger_com_phone">messenger.com पर लॉग इन करें; चैट इसी फ़ोन से जुड़ती हैं</string>
     <string name="flow_messenger_via_server_bridge">सर्वर ब्रिज से Messenger</string>
     <string name="flow_facebook_account_via_server_bridge">सर्वर ब्रिज से Facebook खाता</string>
     <string name="flow_log_in_on_facebook_com">facebook.com पर लॉग इन करें</string>
@@ -140,7 +141,7 @@
     <string name="connect_chats_soon">आपकी %1$s चैट अगले कुछ मिनटों में इनबॉक्स में दिखेंगी।</string>
     <string name="connect_messenger_tip">सुझाव: अपने फ़ोन पर एक बार Messenger खोलें ताकि वह HowYouDoin को आपके डिवाइस के रूप में पहचान ले। तब तक उस फ़ोन से भेजे गए एन्क्रिप्टेड मैसेज शायद यहाँ न पहुँचें।</string>
     <string name="cookies_steps_slack">1. Slack के लिए इस्तेमाल होने वाला ईमेल डालें। Slack आपको ईमेल पर कोड भेजेगा; उसे यहाँ टाइप करें।\n2. अगर Slack पूछे, तो अपना वर्कस्पेस चुनें। जब वह Slack ऐप खोलने को कहे, तो ब्राउज़र में ही रहें।\nवर्कस्पेस खुलते ही HowYouDoin अपने-आप आगे बढ़ जाएगा। पेज छोटा दिखे तो दो उँगलियों से ज़ूम करें।</string>
-    <string name="cookies_steps">1. अपना %1$s ईमेल या फ़ोन नंबर और पासवर्ड डालें, फिर लॉग इन पर टैप करें।\n2. अगर \"&lt;आपका नाम&gt; के रूप में जारी रखें\" दिखे, तो उस पर टैप करें। \"पुष्टि करें कि यह आप हैं\" वाले चरण भी यहीं पूरे करें।\nलॉग इन होते ही HowYouDoin अपने-आप आगे बढ़ जाएगा। पेज छोटा दिखे तो दो उँगलियों से ज़ूम करें।</string>
+    <string name="cookies_steps">1. अपना %1$s ईमेल या फ़ोन नंबर और पासवर्ड डालें, फिर लॉग इन पर टैप करें।\n2. अगर "&lt;आपका नाम&gt; के रूप में जारी रखें" दिखे, तो उस पर टैप करें। "पुष्टि करें कि यह आप हैं" वाले चरण भी यहीं पूरे करें।\nलॉग इन होते ही HowYouDoin अपने-आप आगे बढ़ जाएगा। पेज छोटा दिखे तो दो उँगलियों से ज़ूम करें।</string>
     <string name="networks_connected_device">इस डिवाइस पर कनेक्टेड</string>
     <string name="networks_add">जोड़ें</string>
     <string name="networks_connect">जोड़ें</string>

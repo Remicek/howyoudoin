@@ -5,7 +5,7 @@
     <string name="backupoffer_back_up">Fazer backup</string>
     <string name="backupoffer_skip">Pular</string>
     <string name="backupoffer_turn_on_google_backup">Ative o backup do Google</string>
-    <string name="backupoffer_your_logins_are_only_saved">Seus logins só são salvos se o backup do celular estiver ativado:\n\n1. Abra Configurações → Google → Backup (no Samsung: Contas e backup → Fazer backup dos dados).\n2. Ative \"Backup do Google One\" e escolha sua conta do Google.\n3. Mantenha um bloqueio de tela (PIN, padrão ou senha): os backups são criptografados com ele.\n\nSe já estiver ativado, está tudo certo. O celular faz o backup sozinho, geralmente à noite enquanto carrega.</string>
+    <string name="backupoffer_your_logins_are_only_saved">Seus logins só são salvos se o backup do celular estiver ativado:\n\n1. Abra Configurações → Google → Backup (no Samsung: Contas e backup → Fazer backup dos dados).\n2. Ative "Backup do Google One" e escolha sua conta do Google.\n3. Mantenha um bloqueio de tela (PIN, padrão ou senha): os backups são criptografados com ele.\n\nSe já estiver ativado, está tudo certo. O celular faz o backup sozinho, geralmente à noite enquanto carrega.</string>
     <string name="backupoffer_open_backup_settings">Abrir configurações de backup</string>
     <string name="backupoffer_done">Concluído</string>
     <string name="restorelogins_welcome_back">Que bom ver você de novo</string>

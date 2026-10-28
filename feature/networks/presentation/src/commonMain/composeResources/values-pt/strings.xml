@@ -10,10 +10,10 @@
     <string name="tutorialpages_howyoudoin_joins_your_whatsapp_as">O HowYouDoin entra no seu WhatsApp como dispositivo conectado, igual ao WhatsApp Web. Seu celular continua sendo o dispositivo principal e você pode desconectar quando quiser.</string>
     <string name="tutorialpages_open_linked_devices">Abra Dispositivos conectados</string>
     <string name="tutorialpages_in_whatsapp_open_settings_on">No WhatsApp, abra Configurações (no Android: menu ⋮ → Configurações) e toque em Dispositivos conectados.</string>
-    <string name="tutorialpages_tap_link_a_device">Toque em \"Conectar dispositivo\"</string>
+    <string name="tutorialpages_tap_link_a_device">Toque em "Conectar dispositivo"</string>
     <string name="tutorialpages_whatsapp_may_ask_for_your">O WhatsApp pode pedir sua digital, rosto ou PIN para confirmar que é você.</string>
     <string name="tutorialpages_use_a_pairing_code">Use um código de pareamento</string>
-    <string name="tutorialpages_whatsapp_opens_the_camera_but">O WhatsApp abre a câmera, mas você não consegue ler a própria tela. Toque em \"Conectar com número de telefone\" na parte de baixo.</string>
+    <string name="tutorialpages_whatsapp_opens_the_camera_but">O WhatsApp abre a câmera, mas você não consegue ler a própria tela. Toque em "Conectar com número de telefone" na parte de baixo.</string>
     <string name="tutorialpages_enter_the_8_character_code">Digite o código de 8 caracteres</string>
     <string name="tutorialpages_howyoudoin_shows_you_a_code">O HowYouDoin mostra um código como 1CDB-N2DG. Copie, vá para o WhatsApp e digite ou cole.</string>
     <string name="tutorialpages_or_scan_a_qr_code">Ou leia um código QR</string>
@@ -26,7 +26,7 @@
     <string name="networks_cancel">Cancelar</string>
     <string name="networks_disconnect">Desconectar</string>
     <string name="networks_your_account_could_be_blocked">Sua conta pode ser bloqueada</string>
-    <string name="networks_howyoudoin_is_unofficial_whatsapp_messenger">O HowYouDoin não é oficial. WhatsApp, Messenger, Instagram, Signal e Slack não permitem apps de terceiros e podem limitar ou banir permanentemente uma conta que use um. O desenvolvedor não pode restaurá-la, então não conecte uma conta que você não pode perder.\n\nO app é fornecido \"no estado em que se encontra\", sem garantia, e pode perder ou atrasar mensagens. O uso é por sua conta e risco.</string>
+    <string name="networks_howyoudoin_is_unofficial_whatsapp_messenger">O HowYouDoin não é oficial. WhatsApp, Messenger, Instagram, Signal e Slack não permitem apps de terceiros e podem limitar ou banir permanentemente uma conta que use um. O desenvolvedor não pode restaurá-la, então não conecte uma conta que você não pode perder.\n\nO app é fornecido "no estado em que se encontra", sem garantia, e pode perder ou atrasar mensagens. O uso é por sua conta e risco.</string>
     <string name="networks_read_the_terms_of_use">Ler os termos de uso</string>
     <string name="networks_i_understand_continue">Entendi, continuar</string>
     <string name="encryptedhistory_restoring_encrypted_history">Restaurando histórico criptografado</string>
@@ -50,7 +50,7 @@
     <string name="connectnetwork_bridge_url">URL da ponte</string>
     <string name="connectnetwork_continue">Continuar</string>
     <string name="connectnetwork_how_do_you_want_to">Como você quer entrar?</string>
-    <string name="connectnetwork_in_whatsapp_open_settings_linked">No WhatsApp, abra Configurações → Dispositivos conectados → Conectar dispositivo, toque em \"Conectar com número de telefone\" e digite ou cole este código.</string>
+    <string name="connectnetwork_in_whatsapp_open_settings_linked">No WhatsApp, abra Configurações → Dispositivos conectados → Conectar dispositivo, toque em "Conectar com número de telefone" e digite ou cole este código.</string>
     <string name="connectnetwork_waiting_for_confirmation">Aguardando confirmação…</string>
     <string name="connectnetwork_link_with_your_phone_number">Conectar com seu número de telefone</string>
     <string name="connectnetwork_skip_for_now">Pular por enquanto</string>
@@ -75,7 +75,7 @@
     <string name="field_phone">Número de telefone</string>
     <string name="telegram_phone_instructions">Digite o número de telefone da sua conta do Telegram. O Telegram envia um código de login.</string>
     <string name="tg_code_retry">Esse código não funcionou. Confira e tente novamente.</string>
-    <string name="tg_code_app">O Telegram enviou um código de login para o seu app do Telegram (na conversa de \"Telegram\").</string>
+    <string name="tg_code_app">O Telegram enviou um código de login para o seu app do Telegram (na conversa de "Telegram").</string>
     <string name="tg_code_sms">O Telegram enviou um código de login por SMS.</string>
     <string name="tg_code_email">O Telegram enviou um código de login para o seu e-mail.</string>
     <string name="tg_code_call">O Telegram está ligando para o seu celular para informar o código de login.</string>
@@ -105,6 +105,7 @@
     <string name="flow_connects_through_your_matrix_server_instead">Conecta pelo seu servidor Matrix</string>
     <string name="flow_qr_code_via_server_bridge">Código QR via ponte no servidor</string>
     <string name="flow_log_in_on_messenger_com_chats">Entre em messenger.com; as conversas se conectam pelo seu servidor</string>
+    <string name="flow_log_in_on_messenger_com_phone">Entre em messenger.com; as conversas se conectam deste celular</string>
     <string name="flow_messenger_via_server_bridge">Messenger via ponte no servidor</string>
     <string name="flow_facebook_account_via_server_bridge">Conta do Facebook via ponte no servidor</string>
     <string name="flow_log_in_on_facebook_com">Entre em facebook.com</string>
@@ -140,7 +141,7 @@
     <string name="connect_chats_soon">Suas conversas do %1$s vão aparecer na caixa de entrada nos próximos minutos.</string>
     <string name="connect_messenger_tip">Dica: abra o Messenger no celular uma vez para ele reconhecer o HowYouDoin como um dos seus dispositivos. Até lá, mensagens criptografadas enviadas desse celular podem não chegar aqui.</string>
     <string name="cookies_steps_slack">1. Digite o e-mail que você usa no Slack. O Slack envia um código por e-mail; digite-o aqui.\n2. Se o Slack pedir, escolha seu workspace. Quando ele oferecer o app do Slack, continue no navegador.\nO HowYouDoin continua sozinho quando o workspace abrir. Faça pinça para ampliar se a página parecer pequena.</string>
-    <string name="cookies_steps">1. Digite seu e-mail ou número de telefone e a senha do %1$s e toque em Entrar.\n2. Se aparecer \"Continuar como &lt;seu nome&gt;\", toque nele. Conclua aqui também as etapas de \"confirme que é você\".\nO HowYouDoin continua sozinho quando você entrar. Faça pinça para ampliar se a página parecer pequena.</string>
+    <string name="cookies_steps">1. Digite seu e-mail ou número de telefone e a senha do %1$s e toque em Entrar.\n2. Se aparecer "Continuar como &lt;seu nome&gt;", toque nele. Conclua aqui também as etapas de "confirme que é você".\nO HowYouDoin continua sozinho quando você entrar. Faça pinça para ampliar se a página parecer pequena.</string>
     <string name="networks_connected_device">Conectado neste dispositivo</string>
     <string name="networks_add">Adicionar</string>
     <string name="networks_connect">Conectar</string>

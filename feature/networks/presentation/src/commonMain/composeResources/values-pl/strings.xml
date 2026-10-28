@@ -105,6 +105,7 @@
     <string name="flow_connects_through_your_matrix_server_instead">Łączy się przez Twój serwer Matrix</string>
     <string name="flow_qr_code_via_server_bridge">Kod QR przez mostek na serwerze</string>
     <string name="flow_log_in_on_messenger_com_chats">Zaloguj się na messenger.com; czaty łączą się przez Twój serwer</string>
+    <string name="flow_log_in_on_messenger_com_phone">Zaloguj się na messenger.com; czaty łączą się z tego telefonu</string>
     <string name="flow_messenger_via_server_bridge">Messenger przez mostek na serwerze</string>
     <string name="flow_facebook_account_via_server_bridge">Konto Facebook przez mostek na serwerze</string>
     <string name="flow_log_in_on_facebook_com">Zaloguj się na facebook.com</string>

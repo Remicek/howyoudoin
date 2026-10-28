@@ -105,6 +105,7 @@
     <string name="flow_connects_through_your_matrix_server_instead">代わりに Matrix サーバー経由で接続します</string>
     <string name="flow_qr_code_via_server_bridge">サーバーブリッジ経由の QR コード</string>
     <string name="flow_log_in_on_messenger_com_chats">messenger.com でログイン。チャットはサーバー経由で接続されます</string>
+    <string name="flow_log_in_on_messenger_com_phone">messenger.com でログイン。チャットはこのスマホから接続されます</string>
     <string name="flow_messenger_via_server_bridge">サーバーブリッジ経由の Messenger</string>
     <string name="flow_facebook_account_via_server_bridge">サーバーブリッジ経由の Facebook アカウント</string>
     <string name="flow_log_in_on_facebook_com">facebook.com でログイン</string>

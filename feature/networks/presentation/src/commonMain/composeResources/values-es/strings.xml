@@ -105,6 +105,7 @@
     <string name="flow_connects_through_your_matrix_server_instead">Se conecta a través de tu servidor Matrix</string>
     <string name="flow_qr_code_via_server_bridge">Código QR mediante puente en servidor</string>
     <string name="flow_log_in_on_messenger_com_chats">Inicia sesión en messenger.com; los chats se conectan a través de tu servidor</string>
+    <string name="flow_log_in_on_messenger_com_phone">Inicia sesión en messenger.com; los chats se conectan desde este teléfono</string>
     <string name="flow_messenger_via_server_bridge">Messenger mediante puente en servidor</string>
     <string name="flow_facebook_account_via_server_bridge">Cuenta de Facebook mediante puente en servidor</string>
     <string name="flow_log_in_on_facebook_com">Inicia sesión en facebook.com</string>

@@ -1,0 +1,74 @@
+# Records the README's demo GIF: Actions → Demo GIF → Run workflow. An emulator plays the DemoTour test (demo mode:
+# the welcome screen, the inbox, a chat, connecting WhatsApp and Messenger) while recording its screen; the GIF and
+# the original video are attached to the run as the "demo-gif" artifact, to be committed as docs/demo.gif.
+name: Demo GIF
+
+on:
+  workflow_dispatch:
+
+jobs:
+  bridge:
+    uses: ./.github/workflows/bridge.yml
+
+  record:
+    needs: bridge
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: hydbridge
+          path: composeApp/libs
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: gradle/actions/setup-gradle@v4
+
+      # As in android.yml: build first, then stop Gradle's daemons so the emulator has the memory
+      - name: Build the app and the tests
+        run: |
+          ./gradlew :composeApp:assembleDebug :composeApp:assembleDebugAndroidTest
+          ./gradlew --stop
+          pkill -f KotlinCompileDaemon || true
+
+      - name: Free disk space
+        run: sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/.ghcup /usr/local/share/boost /usr/local/lib/android/sdk/ndk /opt/hostedtoolcache/CodeQL
+
+      - name: Allow the emulator to use KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      # Animations stay on, so the recording looks like the app does
+      - name: Record the tour
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          cores: 4
+          ram-size: 3072M
+          disk-size: 4096M
+          disable-animations: false
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          script: |
+            ./gradlew :composeApp:connectedDebugAndroidTest -Dorg.gradle.jvmargs=-Xmx2g -Pkotlin.daemon.jvmargs=-Xmx1g -Pandroid.testInstrumentationRunnerArguments.class=com.devvalor.howyoudoing.app.e2e.DemoTour -Pandroid.testInstrumentationRunnerArguments.demoTour=true
+            adb pull /sdcard/tour.mp4 tour.mp4
+
+      - name: Make the GIF
+        run: |
+          mkdir -p demo
+          mv tour.mp4 demo/
+          ffmpeg -loglevel error -i demo/tour.mp4 \
+            -vf "fps=10,scale=320:-1:flags=lanczos,split[a][b];[a]palettegen=max_colors=128[p];[b][p]paletteuse=dither=bayer:bayer_scale=4" \
+            -loop 0 demo/demo.gif
+          ls -l demo
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: demo-gif
+          path: demo/

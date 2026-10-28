@@ -5,7 +5,7 @@
     <string name="backupoffer_back_up">बैकअप लें</string>
     <string name="backupoffer_skip">छोड़ें</string>
     <string name="backupoffer_turn_on_google_backup">Google बैकअप चालू करें</string>
-    <string name="backupoffer_your_logins_are_only_saved">आपके लॉगिन तभी सेव होते हैं जब फ़ोन का बैकअप चालू हो:\n\n1. सेटिंग → Google → बैकअप खोलें (Samsung पर: खाते और बैकअप → डेटा का बैकअप लें)।\n2. \"Google One से बैकअप\" चालू करें और अपना Google खाता चुनें।\n3. स्क्रीन लॉक (PIN, पैटर्न या पासवर्ड) लगा रहने दें: बैकअप इसी से एन्क्रिप्ट होते हैं।\n\nअगर यह पहले से चालू है, तो सब तैयार है। फ़ोन अपने-आप बैकअप लेता है, आमतौर पर रात में चार्ज होते समय।</string>
+    <string name="backupoffer_your_logins_are_only_saved">आपके लॉगिन तभी सेव होते हैं जब फ़ोन का बैकअप चालू हो:\n\n1. सेटिंग → Google → बैकअप खोलें (Samsung पर: खाते और बैकअप → डेटा का बैकअप लें)।\n2. "Google One से बैकअप" चालू करें और अपना Google खाता चुनें।\n3. स्क्रीन लॉक (PIN, पैटर्न या पासवर्ड) लगा रहने दें: बैकअप इसी से एन्क्रिप्ट होते हैं।\n\nअगर यह पहले से चालू है, तो सब तैयार है। फ़ोन अपने-आप बैकअप लेता है, आमतौर पर रात में चार्ज होते समय।</string>
     <string name="backupoffer_open_backup_settings">बैकअप सेटिंग खोलें</string>
     <string name="backupoffer_done">हो गया</string>
     <string name="restorelogins_welcome_back">फिर से स्वागत है</string>

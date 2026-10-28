@@ -4,6 +4,10 @@ All your chats in one inbox: WhatsApp, Messenger, Instagram, Telegram and Signal
 Android phone. No server or account is needed. Your messages and logins stay on the phone and go only to the
 networks themselves.
 
+<p align="center">
+  <img src="docs/demo.gif" alt="HowYouDoin in demo mode: the welcome screen, the inbox, a chat, and connecting WhatsApp with a QR code and Messenger with its login page" width="320">
+</p>
+
 > **Unofficial app.** HowYouDoin is not made, endorsed or supported by Meta (WhatsApp, Messenger, Instagram),
 > Telegram or Signal. Those services don't officially allow third-party apps and could limit or block an account
 > that uses one. Use it at your own risk.
@@ -50,7 +54,11 @@ After changing Gradle dependencies, refresh the license list with `./gradlew :co
   screen in each language. They clear the app's data, so run them on an emulator only:
   `ANDROID_SERIAL=emulator-5554 ./gradlew :composeApp:connectedDebugAndroidTest`.
 - GitHub Actions (`.github/workflows/android.yml`) builds the debug APK and runs the unit tests on every push and pull
-  request; the APK is attached to each run. Add the `TELEGRAM_API_ID` and `TELEGRAM_API_HASH` repository secrets to
+  request; the APK is attached to each run.
+- `docs/demo.gif` is recorded by the `DemoTour` UI test: run Actions → Demo GIF (it attaches a new GIF to the run), or
+  locally on an emulator with
+  `./gradlew :composeApp:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.devvalor.howyoudoing.app.e2e.DemoTour -Pandroid.testInstrumentationRunnerArguments.demoTour=true`
+  and convert `/sdcard/tour.mp4` with ffmpeg. Add the `TELEGRAM_API_ID` and `TELEGRAM_API_HASH` repository secrets to
   include Telegram.
 
 ## Translations

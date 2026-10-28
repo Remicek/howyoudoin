@@ -10,10 +10,10 @@
     <string name="tutorialpages_howyoudoin_joins_your_whatsapp_as">ينضم HowYouDoin إلى واتساب كجهاز مرتبط، تمامًا مثل واتساب ويب. يبقى هاتفك الجهاز الرئيسي ويمكنك إلغاء الربط في أي وقت.</string>
     <string name="tutorialpages_open_linked_devices">افتح الأجهزة المرتبطة</string>
     <string name="tutorialpages_in_whatsapp_open_settings_on">في واتساب، افتح الإعدادات (على أندرويد: القائمة ⋮ ← الإعدادات) واضغط على الأجهزة المرتبطة.</string>
-    <string name="tutorialpages_tap_link_a_device">اضغط على \"ربط جهاز\"</string>
+    <string name="tutorialpages_tap_link_a_device">اضغط على "ربط جهاز"</string>
     <string name="tutorialpages_whatsapp_may_ask_for_your">قد يطلب واتساب بصمتك أو وجهك أو رمز PIN للتأكد من أنك أنت.</string>
     <string name="tutorialpages_use_a_pairing_code">استخدم رمز الربط</string>
-    <string name="tutorialpages_whatsapp_opens_the_camera_but">يفتح واتساب الكاميرا، لكن لا يمكنك مسح شاشتك نفسها. اضغط على \"الربط برقم الهاتف بدلًا من ذلك\" في الأسفل.</string>
+    <string name="tutorialpages_whatsapp_opens_the_camera_but">يفتح واتساب الكاميرا، لكن لا يمكنك مسح شاشتك نفسها. اضغط على "الربط برقم الهاتف بدلًا من ذلك" في الأسفل.</string>
     <string name="tutorialpages_enter_the_8_character_code">أدخل الرمز المكوّن من 8 خانات</string>
     <string name="tutorialpages_howyoudoin_shows_you_a_code">يعرض لك HowYouDoin رمزًا مثل 1CDB-N2DG. انسخه وانتقل إلى واتساب واكتبه أو الصقه.</string>
     <string name="tutorialpages_or_scan_a_qr_code">أو امسح رمز QR</string>
@@ -26,7 +26,7 @@
     <string name="networks_cancel">إلغاء</string>
     <string name="networks_disconnect">فصل</string>
     <string name="networks_your_account_could_be_blocked">قد يُحظر حسابك</string>
-    <string name="networks_howyoudoin_is_unofficial_whatsapp_messenger">HowYouDoin غير رسمي. واتساب وماسنجر وإنستغرام وسيجنال وSlack لا تسمح بتطبيقات الجهات الخارجية، وقد تقيّد أو تحظر نهائيًا حسابًا يستخدم أحدها. لا يستطيع المطوّر استعادته، فلا توصل حسابًا لا تحتمل خسارته.\n\nيُقدَّم التطبيق \"كما هو\" بلا ضمان، وقد تفوته الرسائل أو تتأخر. الاستخدام على مسؤوليتك.</string>
+    <string name="networks_howyoudoin_is_unofficial_whatsapp_messenger">HowYouDoin غير رسمي. واتساب وماسنجر وإنستغرام وسيجنال وSlack لا تسمح بتطبيقات الجهات الخارجية، وقد تقيّد أو تحظر نهائيًا حسابًا يستخدم أحدها. لا يستطيع المطوّر استعادته، فلا توصل حسابًا لا تحتمل خسارته.\n\nيُقدَّم التطبيق "كما هو" بلا ضمان، وقد تفوته الرسائل أو تتأخر. الاستخدام على مسؤوليتك.</string>
     <string name="networks_read_the_terms_of_use">قراءة شروط الاستخدام</string>
     <string name="networks_i_understand_continue">فهمت، متابعة</string>
     <string name="encryptedhistory_restoring_encrypted_history">جارٍ استعادة السجل المشفّر</string>
@@ -50,7 +50,7 @@
     <string name="connectnetwork_bridge_url">رابط الجسر</string>
     <string name="connectnetwork_continue">متابعة</string>
     <string name="connectnetwork_how_do_you_want_to">كيف تريد تسجيل الدخول؟</string>
-    <string name="connectnetwork_in_whatsapp_open_settings_linked">في واتساب، افتح الإعدادات ← الأجهزة المرتبطة ← ربط جهاز، ثم اضغط على \"الربط برقم الهاتف بدلًا من ذلك\" وأدخل هذا الرمز أو الصقه.</string>
+    <string name="connectnetwork_in_whatsapp_open_settings_linked">في واتساب، افتح الإعدادات ← الأجهزة المرتبطة ← ربط جهاز، ثم اضغط على "الربط برقم الهاتف بدلًا من ذلك" وأدخل هذا الرمز أو الصقه.</string>
     <string name="connectnetwork_waiting_for_confirmation">في انتظار التأكيد…</string>
     <string name="connectnetwork_link_with_your_phone_number">الربط برقم هاتفك</string>
     <string name="connectnetwork_skip_for_now">التخطي الآن</string>
@@ -75,7 +75,7 @@
     <string name="field_phone">رقم الهاتف</string>
     <string name="telegram_phone_instructions">أدخل رقم هاتف حسابك في تيليجرام. سيرسل لك تيليجرام رمز الدخول.</string>
     <string name="tg_code_retry">هذا الرمز لم ينجح. تحقّق منه وحاول مرة أخرى.</string>
-    <string name="tg_code_app">أرسل تيليجرام رمز الدخول إلى تطبيق تيليجرام (في محادثة \"Telegram\").</string>
+    <string name="tg_code_app">أرسل تيليجرام رمز الدخول إلى تطبيق تيليجرام (في محادثة "Telegram").</string>
     <string name="tg_code_sms">أرسل تيليجرام رمز الدخول برسالة SMS.</string>
     <string name="tg_code_email">أرسل تيليجرام رمز الدخول إلى بريدك الإلكتروني.</string>
     <string name="tg_code_call">يتصل بك تيليجرام لإخبارك برمز الدخول.</string>
@@ -105,6 +105,7 @@
     <string name="flow_connects_through_your_matrix_server_instead">يتصل عبر خادم Matrix الخاص بك بدلًا من ذلك</string>
     <string name="flow_qr_code_via_server_bridge">رمز QR عبر جسر الخادم</string>
     <string name="flow_log_in_on_messenger_com_chats">سجّل الدخول على messenger.com؛ تتصل المحادثات عبر خادمك</string>
+    <string name="flow_log_in_on_messenger_com_phone">سجّل الدخول على messenger.com؛ تتصل المحادثات من هذا الهاتف</string>
     <string name="flow_messenger_via_server_bridge">ماسنجر عبر جسر الخادم</string>
     <string name="flow_facebook_account_via_server_bridge">حساب فيسبوك عبر جسر الخادم</string>
     <string name="flow_log_in_on_facebook_com">سجّل الدخول على facebook.com</string>
@@ -140,7 +141,7 @@
     <string name="connect_chats_soon">ستظهر محادثات %1$s في الصندوق خلال الدقائق القليلة القادمة.</string>
     <string name="connect_messenger_tip">نصيحة: افتح ماسنجر على هاتفك مرة واحدة ليتعرّف على HowYouDoin كأحد أجهزتك. حتى ذلك الحين، قد لا تصل إلى هنا الرسائل المشفّرة المرسلة من ذلك الهاتف.</string>
     <string name="cookies_steps_slack">1. أدخل البريد الإلكتروني الذي تستخدمه في Slack. سيرسل لك Slack رمزًا بالبريد؛ اكتبه هنا.\n2. إن طلب Slack، اختر مساحة العمل. عندما يعرض تطبيق Slack، ابقَ في المتصفح.\nيتابع HowYouDoin تلقائيًا بمجرد فتح مساحة العمل. كبّر بإصبعين إن بدت الصفحة صغيرة.</string>
-    <string name="cookies_steps">1. أدخل بريدك أو رقم هاتفك في %1$s وكلمة المرور، ثم اضغط على تسجيل الدخول.\n2. إن ظهر \"المتابعة باسم &lt;اسمك&gt;\"، فاضغط عليه. أكمل هنا أيضًا أي خطوات \"تأكيد أنك أنت\".\nيتابع HowYouDoin تلقائيًا بمجرد دخولك. كبّر بإصبعين إن بدت الصفحة صغيرة.</string>
+    <string name="cookies_steps">1. أدخل بريدك أو رقم هاتفك في %1$s وكلمة المرور، ثم اضغط على تسجيل الدخول.\n2. إن ظهر "المتابعة باسم &lt;اسمك&gt;"، فاضغط عليه. أكمل هنا أيضًا أي خطوات "تأكيد أنك أنت".\nيتابع HowYouDoin تلقائيًا بمجرد دخولك. كبّر بإصبعين إن بدت الصفحة صغيرة.</string>
     <string name="networks_connected_device">متصل على هذا الجهاز</string>
     <string name="networks_add">إضافة</string>
     <string name="networks_connect">توصيل</string>

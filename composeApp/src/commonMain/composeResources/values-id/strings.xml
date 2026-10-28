@@ -5,7 +5,7 @@
     <string name="backupoffer_back_up">Cadangkan</string>
     <string name="backupoffer_skip">Lewati</string>
     <string name="backupoffer_turn_on_google_backup">Aktifkan cadangan Google</string>
-    <string name="backupoffer_your_logins_are_only_saved">Info masuk hanya tersimpan jika cadangan ponsel aktif:\n\n1. Buka Setelan → Google → Cadangan (di Samsung: Akun dan cadangan → Cadangkan data).\n2. Aktifkan \"Cadangan oleh Google One\" dan pilih akun Google Anda.\n3. Tetap gunakan kunci layar (PIN, pola, atau kata sandi): cadangan dienkripsi dengannya.\n\nJika sudah aktif, semuanya siap. Ponsel mencadangkan sendiri, biasanya pada malam hari saat mengisi daya.</string>
+    <string name="backupoffer_your_logins_are_only_saved">Info masuk hanya tersimpan jika cadangan ponsel aktif:\n\n1. Buka Setelan → Google → Cadangan (di Samsung: Akun dan cadangan → Cadangkan data).\n2. Aktifkan "Cadangan oleh Google One" dan pilih akun Google Anda.\n3. Tetap gunakan kunci layar (PIN, pola, atau kata sandi): cadangan dienkripsi dengannya.\n\nJika sudah aktif, semuanya siap. Ponsel mencadangkan sendiri, biasanya pada malam hari saat mengisi daya.</string>
     <string name="backupoffer_open_backup_settings">Buka setelan cadangan</string>
     <string name="backupoffer_done">Selesai</string>
     <string name="restorelogins_welcome_back">Selamat datang kembali</string>

@@ -2,19 +2,19 @@
 <resources>
     <string name="error_disk_full">Oups, il semble que le stockage soit plein !</string>
     <string name="error_not_found">Élément demandé introuvable</string>
-    <string name="error_unknown">Une erreur inconnue s\'est produite</string>
+    <string name="error_unknown">Une erreur inconnue s'est produite</string>
     <string name="error_bad_request">Requête incorrecte</string>
     <string name="error_request_timeout">La requête a expiré</string>
     <string name="error_unauthorized">Identifiants non valides</string>
-    <string name="error_forbidden">Vous n\'êtes pas autorisé à faire cela</string>
-    <string name="error_conflict">Un conflit s\'est produit</string>
+    <string name="error_forbidden">Vous n'êtes pas autorisé à faire cela</string>
+    <string name="error_conflict">Un conflit s'est produit</string>
     <string name="error_too_many_requests">Vous avez atteint la limite de requêtes</string>
     <string name="error_no_internet">Connexion impossible. Vérifiez votre connexion Internet.</string>
     <string name="error_payload_too_large">Le fichier joint est trop volumineux</string>
-    <string name="error_server">Oups, une erreur s\'est produite sur le serveur</string>
+    <string name="error_server">Oups, une erreur s'est produite sur le serveur</string>
     <string name="error_service_unavailable">Service indisponible, réessayez plus tard</string>
     <string name="error_serialization">Erreur de sérialisation</string>
-    <string name="day_today">Aujourd\'hui</string>
+    <string name="day_today">Aujourd'hui</string>
     <string name="day_yesterday">Hier</string>
     <string name="weekday_1">Lundi</string>
     <string name="weekday_2">Mardi</string>

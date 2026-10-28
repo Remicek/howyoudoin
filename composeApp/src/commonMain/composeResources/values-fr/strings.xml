@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="backupoffer_back_up_your_logins">Sauvegarder vos connexions ?</string>
-    <string name="backupoffer_if_you_reinstall_howyoudoin_on">Si vous réinstallez HowYouDoin sur ce téléphone, vos connexions reviennent depuis votre sauvegarde Google et vous n\'aurez pas à vous reconnecter à chaque réseau. La sauvegarde est chiffrée de bout en bout avec votre verrouillage d\'écran ; rien ne nous est envoyé.\n\nWhatsApp et Signal doivent toujours être associés à nouveau.</string>
+    <string name="backupoffer_if_you_reinstall_howyoudoin_on">Si vous réinstallez HowYouDoin sur ce téléphone, vos connexions reviennent depuis votre sauvegarde Google et vous n'aurez pas à vous reconnecter à chaque réseau. La sauvegarde est chiffrée de bout en bout avec votre verrouillage d'écran ; rien ne nous est envoyé.\n\nWhatsApp et Signal doivent toujours être associés à nouveau.</string>
     <string name="backupoffer_back_up">Sauvegarder</string>
     <string name="backupoffer_skip">Passer</string>
     <string name="backupoffer_turn_on_google_backup">Activez la sauvegarde Google</string>
-    <string name="backupoffer_your_logins_are_only_saved">Vos connexions ne sont enregistrées que si la sauvegarde du téléphone est activée :\n\n1. Ouvrez Paramètres → Google → Sauvegarde (sur Samsung : Comptes et sauvegarde → Sauvegarder les données).\n2. Activez « Sauvegarde par Google One » et choisissez votre compte Google.\n3. Gardez un verrouillage d\'écran (code PIN, schéma ou mot de passe) : les sauvegardes sont chiffrées avec.\n\nSi c\'est déjà activé, tout est prêt. Le téléphone sauvegarde tout seul, généralement la nuit pendant la recharge.</string>
+    <string name="backupoffer_your_logins_are_only_saved">Vos connexions ne sont enregistrées que si la sauvegarde du téléphone est activée :\n\n1. Ouvrez Paramètres → Google → Sauvegarde (sur Samsung : Comptes et sauvegarde → Sauvegarder les données).\n2. Activez « Sauvegarde par Google One » et choisissez votre compte Google.\n3. Gardez un verrouillage d'écran (code PIN, schéma ou mot de passe) : les sauvegardes sont chiffrées avec.\n\nSi c'est déjà activé, tout est prêt. Le téléphone sauvegarde tout seul, généralement la nuit pendant la recharge.</string>
     <string name="backupoffer_open_backup_settings">Ouvrir les paramètres de sauvegarde</string>
     <string name="backupoffer_done">Terminé</string>
     <string name="restorelogins_welcome_back">Bon retour</string>
@@ -14,7 +14,7 @@
     <string name="restorelogins_reconnect">Reconnecter</string>
     <string name="restorelogins_don_t_restore">Ne pas restaurer</string>
     <string name="restorelogins_not_now">Plus tard</string>
-    <string name="restore_failed">Ceux-ci n\'ont pas pu être reconnectés ; reconnectez-les dans Réseaux : %1$s</string>
+    <string name="restore_failed">Ceux-ci n'ont pas pu être reconnectés ; reconnectez-les dans Réseaux : %1$s</string>
     <string name="restore_relink">%1$s ne peuvent pas être restaurés depuis une sauvegarde (leurs clés de chiffrement restent sur votre téléphone). Associez-les à nouveau dans Réseaux.</string>
     <string name="notification_new_message">Nouveau message</string>
 </resources>

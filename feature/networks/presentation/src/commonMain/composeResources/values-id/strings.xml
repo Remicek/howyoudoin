@@ -10,10 +10,10 @@
     <string name="tutorialpages_howyoudoin_joins_your_whatsapp_as">HowYouDoin bergabung ke WhatsApp Anda sebagai perangkat tertaut, sama seperti WhatsApp Web. Ponsel Anda tetap menjadi perangkat utama dan Anda bisa memutus tautannya kapan saja.</string>
     <string name="tutorialpages_open_linked_devices">Buka Perangkat tertaut</string>
     <string name="tutorialpages_in_whatsapp_open_settings_on">Di WhatsApp, buka Setelan (di Android: menu ⋮ → Setelan) lalu ketuk Perangkat tertaut.</string>
-    <string name="tutorialpages_tap_link_a_device">Ketuk \"Tautkan perangkat\"</string>
+    <string name="tutorialpages_tap_link_a_device">Ketuk "Tautkan perangkat"</string>
     <string name="tutorialpages_whatsapp_may_ask_for_your">WhatsApp mungkin meminta sidik jari, wajah, atau PIN untuk memastikan itu Anda.</string>
     <string name="tutorialpages_use_a_pairing_code">Gunakan kode penautan</string>
-    <string name="tutorialpages_whatsapp_opens_the_camera_but">WhatsApp membuka kamera, tetapi Anda tidak bisa memindai layar sendiri. Ketuk \"Tautkan dengan nomor telepon saja\" di bagian bawah.</string>
+    <string name="tutorialpages_whatsapp_opens_the_camera_but">WhatsApp membuka kamera, tetapi Anda tidak bisa memindai layar sendiri. Ketuk "Tautkan dengan nomor telepon saja" di bagian bawah.</string>
     <string name="tutorialpages_enter_the_8_character_code">Masukkan kode 8 karakter</string>
     <string name="tutorialpages_howyoudoin_shows_you_a_code">HowYouDoin menampilkan kode seperti 1CDB-N2DG. Salin, beralih ke WhatsApp, lalu ketik atau tempelkan.</string>
     <string name="tutorialpages_or_scan_a_qr_code">Atau pindai kode QR</string>
@@ -26,7 +26,7 @@
     <string name="networks_cancel">Batal</string>
     <string name="networks_disconnect">Putuskan</string>
     <string name="networks_your_account_could_be_blocked">Akun Anda bisa diblokir</string>
-    <string name="networks_howyoudoin_is_unofficial_whatsapp_messenger">HowYouDoin tidak resmi. WhatsApp, Messenger, Instagram, Signal, dan Slack tidak mengizinkan aplikasi pihak ketiga dan dapat membatasi atau memblokir permanen akun yang memakainya. Pengembang tidak bisa memulihkannya, jadi jangan hubungkan akun yang tidak boleh hilang.\n\nAplikasi disediakan \"apa adanya\", tanpa jaminan, dan mungkin melewatkan atau menunda pesan. Risiko penggunaan Anda tanggung sendiri.</string>
+    <string name="networks_howyoudoin_is_unofficial_whatsapp_messenger">HowYouDoin tidak resmi. WhatsApp, Messenger, Instagram, Signal, dan Slack tidak mengizinkan aplikasi pihak ketiga dan dapat membatasi atau memblokir permanen akun yang memakainya. Pengembang tidak bisa memulihkannya, jadi jangan hubungkan akun yang tidak boleh hilang.\n\nAplikasi disediakan "apa adanya", tanpa jaminan, dan mungkin melewatkan atau menunda pesan. Risiko penggunaan Anda tanggung sendiri.</string>
     <string name="networks_read_the_terms_of_use">Baca ketentuan penggunaan</string>
     <string name="networks_i_understand_continue">Saya mengerti, lanjutkan</string>
     <string name="encryptedhistory_restoring_encrypted_history">Memulihkan riwayat terenkripsi</string>
@@ -50,7 +50,7 @@
     <string name="connectnetwork_bridge_url">URL bridge</string>
     <string name="connectnetwork_continue">Lanjutkan</string>
     <string name="connectnetwork_how_do_you_want_to">Bagaimana Anda ingin masuk?</string>
-    <string name="connectnetwork_in_whatsapp_open_settings_linked">Di WhatsApp, buka Setelan → Perangkat tertaut → Tautkan perangkat, lalu ketuk \"Tautkan dengan nomor telepon saja\" dan masukkan atau tempelkan kode ini.</string>
+    <string name="connectnetwork_in_whatsapp_open_settings_linked">Di WhatsApp, buka Setelan → Perangkat tertaut → Tautkan perangkat, lalu ketuk "Tautkan dengan nomor telepon saja" dan masukkan atau tempelkan kode ini.</string>
     <string name="connectnetwork_waiting_for_confirmation">Menunggu konfirmasi…</string>
     <string name="connectnetwork_link_with_your_phone_number">Tautkan dengan nomor telepon Anda</string>
     <string name="connectnetwork_skip_for_now">Lewati dulu</string>
@@ -75,7 +75,7 @@
     <string name="field_phone">Nomor telepon</string>
     <string name="telegram_phone_instructions">Masukkan nomor telepon akun Telegram Anda. Telegram akan mengirimkan kode masuk.</string>
     <string name="tg_code_retry">Kode itu tidak berhasil. Periksa dan coba lagi.</string>
-    <string name="tg_code_app">Telegram mengirim kode masuk ke aplikasi Telegram Anda (di chat dari \"Telegram\").</string>
+    <string name="tg_code_app">Telegram mengirim kode masuk ke aplikasi Telegram Anda (di chat dari "Telegram").</string>
     <string name="tg_code_sms">Telegram mengirim kode masuk lewat SMS.</string>
     <string name="tg_code_email">Telegram mengirim kode masuk ke email Anda.</string>
     <string name="tg_code_call">Telegram sedang menelepon ponsel Anda untuk memberi tahu kode masuk.</string>
@@ -105,6 +105,7 @@
     <string name="flow_connects_through_your_matrix_server_instead">Tersambung lewat server Matrix Anda</string>
     <string name="flow_qr_code_via_server_bridge">Kode QR lewat bridge server</string>
     <string name="flow_log_in_on_messenger_com_chats">Masuk di messenger.com; chat tersambung lewat server Anda</string>
+    <string name="flow_log_in_on_messenger_com_phone">Masuk di messenger.com; chat tersambung dari ponsel ini</string>
     <string name="flow_messenger_via_server_bridge">Messenger lewat bridge server</string>
     <string name="flow_facebook_account_via_server_bridge">Akun Facebook lewat bridge server</string>
     <string name="flow_log_in_on_facebook_com">Masuk di facebook.com</string>
@@ -140,7 +141,7 @@
     <string name="connect_chats_soon">Chat %1$s Anda akan muncul di kotak masuk dalam beberapa menit ke depan.</string>
     <string name="connect_messenger_tip">Tips: buka Messenger di ponsel Anda sekali agar mengenali HowYouDoin sebagai salah satu perangkat Anda. Sampai saat itu, pesan terenkripsi yang dikirim dari ponsel itu mungkin tidak sampai ke sini.</string>
     <string name="cookies_steps_slack">1. Masukkan email yang Anda pakai untuk Slack. Slack mengirimkan kode lewat email; ketik di sini.\n2. Jika Slack meminta, pilih workspace Anda. Saat ditawari aplikasi Slack, tetaplah di browser.\nHowYouDoin melanjutkan sendiri setelah workspace terbuka. Cubit untuk memperbesar jika halaman terlihat kecil.</string>
-    <string name="cookies_steps">1. Masukkan email atau nomor telepon %1$s dan kata sandi Anda, lalu ketuk Masuk.\n2. Jika muncul \"Lanjutkan sebagai &lt;nama Anda&gt;\", ketuk. Selesaikan juga langkah \"konfirmasi bahwa ini Anda\" di sini.\nHowYouDoin melanjutkan sendiri setelah Anda masuk. Cubit untuk memperbesar jika halaman terlihat kecil.</string>
+    <string name="cookies_steps">1. Masukkan email atau nomor telepon %1$s dan kata sandi Anda, lalu ketuk Masuk.\n2. Jika muncul "Lanjutkan sebagai &lt;nama Anda&gt;", ketuk. Selesaikan juga langkah "konfirmasi bahwa ini Anda" di sini.\nHowYouDoin melanjutkan sendiri setelah Anda masuk. Cubit untuk memperbesar jika halaman terlihat kecil.</string>
     <string name="networks_connected_device">Tersambung di perangkat ini</string>
     <string name="networks_add">Tambah</string>
     <string name="networks_connect">Hubungkan</string>

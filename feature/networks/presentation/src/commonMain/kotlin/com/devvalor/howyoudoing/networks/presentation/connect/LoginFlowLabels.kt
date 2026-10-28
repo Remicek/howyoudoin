@@ -12,6 +12,7 @@ import howyoudoin.feature.networks.presentation.generated.resources.flow_link_th
 import howyoudoin.feature.networks.presentation.generated.resources.flow_log_in_on_facebook_com
 import howyoudoin.feature.networks.presentation.generated.resources.flow_log_in_on_instagram_com_direct
 import howyoudoin.feature.networks.presentation.generated.resources.flow_log_in_on_messenger_com_chats
+import howyoudoin.feature.networks.presentation.generated.resources.flow_log_in_on_messenger_com_phone
 import howyoudoin.feature.networks.presentation.generated.resources.flow_log_in_with_a_code_telegram
 import howyoudoin.feature.networks.presentation.generated.resources.flow_matrix_account
 import howyoudoin.feature.networks.presentation.generated.resources.flow_messenger_via_server_bridge
@@ -81,7 +82,7 @@ object LoginFlowLabels {
             LoginFlowLabel(
                 ON_DEVICE,
                 "Messenger".asUiText(),
-                UiText.Resource(Res.string.flow_log_in_on_messenger_com_chats),
+                UiText.Resource(Res.string.flow_log_in_on_messenger_com_phone),
                 isRecommended = true
             ),
             LoginFlowLabel(
