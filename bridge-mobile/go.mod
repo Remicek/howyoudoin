@@ -3,6 +3,7 @@ module com.devvalor/howyoudoin/bridgemobile
 go 1.26.0
 
 require (
+	github.com/bwmarrin/discordgo v0.27.0
 	github.com/google/uuid v1.6.0
 	github.com/mattn/go-sqlite3 v1.14.52
 	github.com/rs/zerolog v1.35.1
@@ -53,7 +54,7 @@ require (
 	github.com/google/go-querystring v1.2.0 // indirect
 	github.com/gtank/ristretto255 v0.2.0 // indirect
 	github.com/icholy/digest v1.2.0 // indirect
-	github.com/imroc/req/v3 v3.56.0 // indirect
+	github.com/imroc/req/v3 v3.56.0
 	github.com/klauspost/compress v1.20.0 // indirect
 	github.com/mattn/go-colorable v0.1.15 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
@@ -105,3 +106,5 @@ replace github.com/slack-go/slack => github.com/beeper/slackgo v0.0.0-2026101512
 replace go.mau.fi/mautrix-slack => ../../howyoudoin-bridges/mautrix-slack
 
 replace go.mau.fi/mautrix-linkedin => ../../howyoudoin-bridges/mautrix-linkedin
+
+replace github.com/bwmarrin/discordgo => github.com/beeper/discordgo v0.0.0-20260808090638-8051e14a4471
