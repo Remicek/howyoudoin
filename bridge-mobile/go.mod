@@ -13,14 +13,19 @@ require (
 	go.mau.fi/mautrix-linkedin v0.0.0
 	go.mau.fi/mautrix-meta v0.0.0
 	go.mau.fi/mautrix-slack v0.0.0
+	go.mau.fi/mautrix-twitter v0.0.0
 	go.mau.fi/whatsmeow v0.0.0-20261014094007-f16f9ca30d6a
 	go.uber.org/zap v1.28.0
 	google.golang.org/protobuf v1.36.12
 )
 
 require (
+	github.com/PuerkitoBio/goquery v1.13.0 // indirect
+	github.com/andybalholm/cascadia v1.3.4 // indirect
+	github.com/bwesterb/go-ristretto v1.2.4 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
+	github.com/fxamacker/cbor/v2 v2.9.4 // indirect
 	github.com/go-faster/errors v0.7.1 // indirect
 	github.com/go-faster/jx v1.2.0 // indirect
 	github.com/go-faster/xor v1.0.0 // indirect
@@ -28,7 +33,9 @@ require (
 	github.com/gotd/ige v0.2.2 // indirect
 	github.com/gotd/neo v0.1.5 // indirect
 	github.com/mattn/go-pointer v0.0.1 // indirect
+	github.com/openziti/secretstream v0.1.53 // indirect
 	github.com/segmentio/asm v1.2.1 // indirect
+	github.com/x448/float16 v0.8.4 // indirect
 	go.opentelemetry.io/otel v1.45.0 // indirect
 	go.opentelemetry.io/otel/trace v1.45.0 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
@@ -114,3 +121,5 @@ replace github.com/bwmarrin/discordgo => github.com/beeper/discordgo v0.0.0-2026
 replace go.mau.fi/mautrix-gvoice => ../../howyoudoin-bridges/mautrix-gvoice
 
 replace go.mau.fi/mautrix-gmessages => ../../howyoudoin-bridges/mautrix-gmessages
+
+replace go.mau.fi/mautrix-twitter => ../../howyoudoin-bridges/mautrix-twitter

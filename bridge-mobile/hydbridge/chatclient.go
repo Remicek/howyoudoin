@@ -6,7 +6,7 @@ import (
 )
 
 // ChatClient is one network logged in from its web page or with a password (Bluesky, LinkedIn, Discord, Google
-// Voice), as the app calls it: every network has the same methods, so the app needs one binding for all of them.
+// Voice, X), as the app calls it: every network has the same methods, so the app needs one binding for all of them.
 // What a network can't do fails with ErrUnsupported.
 type ChatClient interface {
 	Connect() error
@@ -43,6 +43,8 @@ func NewChatClient(network, credentialsJSON, dataDir string, listener Listener) 
 		return linkedInChat{l}, nil
 	case "discord":
 		return NewDiscord(credentialsJSON, dataDir, listener)
+	case "twitter":
+		return NewTwitter(credentialsJSON, dataDir, listener)
 	case "googlevoice":
 		g, err := NewGoogleVoice(credentialsJSON, dataDir, listener)
 		if err != nil {
