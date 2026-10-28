@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">HowYouDoin</string>
+    <string name="app_name" translatable="false">HowYouDoin</string>
     <string name="call_incoming_video">Incoming video call</string>
     <string name="call_incoming">Incoming call</string>
     <string name="call_decline">Decline</string>

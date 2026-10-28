@@ -1,4 +1,5 @@
-# One-button release: Actions → Release → Run workflow. Raises the version (patch by default) in
+# One-button release: Actions → Release → Run workflow. First the security and code-quality checks (checks.yml) must
+# pass. Then it raises the version (patch by default) in
 # gradle/libs.versions.toml, runs the unit tests, builds the signed APK and App Bundle, commits the new version, tags
 # it (v1.2.3) and publishes a GitHub release with the APK and the bundle attached.
 #
@@ -23,11 +24,12 @@ permissions:
   contents: write
 
 jobs:
-  bridge:
-    uses: ./.github/workflows/bridge.yml
+  # Also builds the network clients library the release uses
+  checks:
+    uses: ./.github/workflows/checks.yml
 
   release:
-    needs: bridge
+    needs: checks
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:

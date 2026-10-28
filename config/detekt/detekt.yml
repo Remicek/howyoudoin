@@ -1,0 +1,28 @@
+# Additions to detekt's default rules (buildUponDefaultConfig), tuned for Compose and this codebase.
+naming:
+  FunctionNaming:
+    # Composables are named like types
+    ignoreAnnotated: ["Composable"]
+  TopLevelPropertyNaming:
+    # Icons and colors are PascalCase, like Compose's own
+    constantPattern: "[A-Z][A-Za-z0-9_]*"
+  MatchingDeclarationName:
+    active: false
+
+complexity:
+  LongParameterList:
+    # Composables take their state and callbacks as parameters
+    ignoreAnnotated: ["Composable"]
+  LongMethod:
+    ignoreAnnotated: ["Composable"]
+
+style:
+  MagicNumber:
+    # Sizes, colors and durations in UI code read better inline
+    ignorePropertyDeclaration: true
+    ignoreCompanionObjectPropertyDeclaration: true
+    ignoreAnnotated: ["Composable", "Preview"]
+    excludes: ["**/test/**", "**/commonTest/**", "**/androidInstrumentedTest/**", "**/designsystem/**"]
+  UnusedPrivateMember:
+    # Previews are used by the IDE
+    ignoreAnnotated: ["Preview"]
