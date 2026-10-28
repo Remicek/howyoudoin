@@ -2,8 +2,8 @@
 
 # HowYouDoin
 
-All your chats in one inbox: WhatsApp, Messenger, Instagram, Telegram, Signal, Slack and Matrix, connected straight
-from your Android phone. There are no HowYouDoin servers and no account to create: your messages and logins stay on the
+All your chats in one inbox: WhatsApp, Messenger, Instagram, Telegram, Signal, Slack, Google Messages, Bluesky,
+LinkedIn, Discord, X, Google Voice and Matrix, connected straight from your Android phone. There are no HowYouDoin servers and no account to create: your messages and logins stay on the
 phone and go only to the networks themselves.
 
 <p align="center">
@@ -12,7 +12,7 @@ phone and go only to the networks themselves.
 </p>
 
 > **Unofficial app.** HowYouDoin is not made, endorsed or supported by Meta (WhatsApp, Messenger, Instagram),
-> Telegram, Signal or Slack. Those services don't officially allow third-party apps and could limit or block an account
+> Telegram, Signal, Slack, Google, Bluesky, LinkedIn, Discord or X. Those services don't officially allow third-party apps and could limit or block an account
 > that uses one. Use it at your own risk.
 
 Status: experimental, Android only for now. (An iOS build exists in the code but isn't released; see below.)
@@ -22,8 +22,11 @@ Status: experimental, Android only for now. (An iOS build exists in the code but
 - One inbox for all connected networks, with search and an unread filter
 - Text, photos, videos, voice messages and files; reactions, replies, edits, deletions, typing and read receipts
   where the network supports them
-- WhatsApp, Telegram and Signal link like a desktop app (QR code, pairing code or login code); Messenger,
-  Instagram and Slack log in through their websites inside the app
+- WhatsApp, Telegram, Signal and Google Messages link like a desktop app (QR code, pairing code, login code or an
+  emoji); Messenger, Instagram, Slack, LinkedIn, Discord, X and Google Voice log in through their websites inside the
+  app; Bluesky with an app password
+- Google Messages, Bluesky, LinkedIn, Discord, X and Google Voice are new and **untested with real accounts**; see
+  [docs/networks.md](docs/networks.md) for what each one can do and which networks were left out and why
 - Voice and video calls with Matrix contacts (calls on the other networks aren't supported)
 - Notifications from a background connection, without push servers
 - App lock with a PIN or fingerprint, hidden message text in notifications, and no screenshots while locked
@@ -38,8 +41,8 @@ Requirements: JDK 17+, the Android SDK and NDK, Go (see `bridge-mobile/go.mod`) 
 Signal: Rust (via rustup) with the `aarch64-linux-android` target, `cargo-ndk`, `cmake` and `protoc`.
 
 1. Check out the network clients next to this repository, in `../howyoudoin-bridges/`:
-   `bridge-mobile/scripts/fetch-bridges.sh`. It fetches mautrix-meta, -telegram, -signal (with libsignal) and -slack
-   at the versions the app uses and applies `bridge-mobile/patches/mautrix-meta.patch`.
+   `bridge-mobile/scripts/fetch-bridges.sh`. It fetches mautrix-meta, -telegram, -signal (with libsignal), -slack,
+   -linkedin, -gvoice, -gmessages and -twitter at the versions the app uses and applies `bridge-mobile/patches/mautrix-meta.patch`.
 2. Build the network clients library: `bridge-mobile/scripts/build-android.sh`. It writes
    `composeApp/libs/hydbridge.aar` and refreshes the in-app license list.
 3. Optional, for Telegram: create an app at <https://my.telegram.org> and add to `local.properties`:
@@ -55,6 +58,9 @@ After changing Gradle dependencies, refresh the license list with `./gradlew :co
 ## Tests
 
 - Unit tests: `./gradlew testDebugUnitTest`.
+- Network client tests (Go): `bridge-mobile/scripts/test-go.sh`, against fake servers; with `HYD_LIVE=1` they also
+  check that made-up logins are turned down by the real services with the right message. They need Signal's Rust
+  library built for the computer once (`cargo build -p libsignal-ffi --release` in the libsignal checkout).
 - End-to-end tests (`composeApp/src/androidInstrumentedTest`) walk through the app in demo mode: the welcome screen,
   a chat, every screen Settings and About lead to, the themes, the warning before connecting a network, and the welcome
   screen in each language. They clear the app's data, so run them on an emulator only:
@@ -92,8 +98,8 @@ HowYouDoin is free software: you can redistribute it and/or modify it under the 
 [GNU Affero General Public License v3](LICENSE) as published by the Free Software Foundation.
 
 It includes third-party code under its own licenses, listed in the app under Settings → Open-source licenses.
-Notably mautrix-meta, mautrix-signal and libsignal are AGPL-3.0, whatsmeow is MPL-2.0 and the Telegram MTProto
-library (a gotd fork) is MIT. Because of the AGPL components, anyone distributing a modified version must also
+Notably mautrix-meta, -signal, -gmessages, -gvoice, -linkedin and -twitter and libsignal are AGPL-3.0, whatsmeow is
+MPL-2.0, the Telegram MTProto library (a gotd fork) is MIT and discordgo is BSD-3-Clause. Because of the AGPL components, anyone distributing a modified version must also
 offer its source code.
 
 ### iOS
