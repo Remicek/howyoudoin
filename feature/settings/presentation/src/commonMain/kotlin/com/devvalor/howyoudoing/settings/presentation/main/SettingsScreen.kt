@@ -72,7 +72,8 @@ data class SettingsState(
     val lastBackupMillis: Long? = null,
 )
 
-class SettingsViewModel(appLock: AppLockRepository, crashReports: CrashReports, private val loginBackup: LoginBackup) : ViewModel() {
+class SettingsViewModel(appLock: AppLockRepository, crashReports: CrashReports, private val loginBackup: LoginBackup) :
+    ViewModel() {
     val state = combine(
         appLock.observeSettings(),
         crashReports.observeLastReport(),
@@ -138,7 +139,9 @@ fun SettingsRoot(
         item {
             SettingsRow(
                 title = stringResource(Res.string.settings_app_lock),
-                subtitle = if (state.isLockEnabled) stringResource(Res.string.settings_app_lock_on) else stringResource(Res.string.settings_off),
+                subtitle = if (state.isLockEnabled) stringResource(Res.string.settings_app_lock_on) else stringResource(
+                    Res.string.settings_off
+                ),
                 icon = Icons.Rounded.Lock,
                 onClick = onAppLockClick,
             )
@@ -146,7 +149,9 @@ fun SettingsRoot(
         item {
             SettingsRow(
                 title = stringResource(Res.string.settings_crash_reports),
-                subtitle = if (state.hasCrashReport) stringResource(Res.string.settings_crash_present) else stringResource(Res.string.settings_crash_none),
+                subtitle = stringResource(
+                    if (state.hasCrashReport) Res.string.settings_crash_present else Res.string.settings_crash_none
+                ),
                 icon = Icons.Rounded.BugReport,
                 onClick = onCrashReportsClick,
             )
@@ -165,7 +170,12 @@ fun SettingsRoot(
                 item {
                     SettingsRow(
                         title = stringResource(Res.string.settings_google_backup),
-                        subtitle = state.lastBackupMillis?.let { stringResource(Res.string.settings_last_backup, daysAgo(it)) }
+                        subtitle = state.lastBackupMillis?.let {
+                            stringResource(
+                                Res.string.settings_last_backup,
+                                daysAgo(it)
+                            )
+                        }
                             ?: stringResource(Res.string.settings_not_backed_up),
                         icon = Icons.Rounded.SettingsBackupRestore,
                         onClick = viewModel::openBackupSettings,
@@ -175,7 +185,11 @@ fun SettingsRoot(
         }
         item { SettingsSectionHeader(stringResource(Res.string.settings_section_about)) }
         item {
-            SettingsRow(title = stringResource(Res.string.settings_licenses), icon = Icons.Rounded.Gavel, onClick = onLicensesClick)
+            SettingsRow(
+                title = stringResource(Res.string.settings_licenses),
+                icon = Icons.Rounded.Gavel,
+                onClick = onLicensesClick
+            )
         }
         item {
             SettingsRow(
@@ -186,7 +200,12 @@ fun SettingsRoot(
             )
         }
         item {
-            SettingsRow(title = stringResource(Res.string.settings_about), subtitle = stringResource(Res.string.settings_about_sub), icon = Icons.Rounded.Info, onClick = onAboutClick)
+            SettingsRow(
+                title = stringResource(Res.string.settings_about),
+                subtitle = stringResource(Res.string.settings_about_sub),
+                icon = Icons.Rounded.Info,
+                onClick = onAboutClick
+            )
         }
     }
 }

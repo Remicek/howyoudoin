@@ -50,7 +50,9 @@ fun ConnectGuideRoot(onNetworksClick: () -> Unit, onBack: () -> Unit) {
         }
         guides.forEach { guide ->
             item {
-                Column(Modifier.fillMaxWidth().padding(horizontal = HowYouDoinSpacing.md, vertical = HowYouDoinSpacing.sm)) {
+                Column(
+                    Modifier.fillMaxWidth().padding(horizontal = HowYouDoinSpacing.md, vertical = HowYouDoinSpacing.sm)
+                ) {
                     Text(
                         guide.name,
                         style = MaterialTheme.typography.titleMedium,
@@ -58,7 +60,11 @@ fun ConnectGuideRoot(onNetworksClick: () -> Unit, onBack: () -> Unit) {
                         modifier = Modifier.semantics { heading() },
                     )
                     Spacer(Modifier.height(HowYouDoinSpacing.xs))
-                    Text(stringResource(guide.steps), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(
+                        stringResource(guide.steps),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             }
         }

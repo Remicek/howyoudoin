@@ -4,8 +4,8 @@
 # - Secrets: gitleaks scans the whole git history for keys, tokens and passwords
 # - Go vulnerabilities: govulncheck reports known vulnerabilities the network clients actually call
 # - Gradle wrapper: the gradle-wrapper.jar is an official Gradle release
-# - Android lint (correctness, security and translation checks) and detekt (Kotlin static analysis); findings that
-#   predate detekt are in config/detekt/baseline.xml, new ones fail
+# - Android lint (correctness, security and translation checks) and detekt (Kotlin static analysis, rules in
+#   config/detekt/detekt.yml, no baseline): any finding fails
 name: Checks
 
 on:

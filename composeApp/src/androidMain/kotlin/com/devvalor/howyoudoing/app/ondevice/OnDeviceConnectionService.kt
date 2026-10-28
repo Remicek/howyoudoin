@@ -44,7 +44,8 @@ class OnDeviceConnectionService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        val notification = notification(this, intent?.getStringExtra(EXTRA_TEXT) ?: getString(R.string.connections_default))
+        val notification =
+            notification(this, intent?.getStringExtra(EXTRA_TEXT) ?: getString(R.string.connections_default))
         isRunning = true
         val type = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             ServiceInfo.FOREGROUND_SERVICE_TYPE_REMOTE_MESSAGING
@@ -58,7 +59,10 @@ class OnDeviceConnectionService : Service() {
             follow = keeper.active
                 .drop(1)
                 .onEach { active ->
-                    getSystemService(NotificationManager::class.java).notify(NOTIFICATION_ID, notification(this, keeper.text(active)))
+                    getSystemService(NotificationManager::class.java).notify(
+                        NOTIFICATION_ID,
+                        notification(this, keeper.text(active))
+                    )
                 }
                 .launchIn(serviceScope)
         }
@@ -85,13 +89,20 @@ class OnDeviceConnectionService : Service() {
         private fun notification(context: Context, text: String): Notification {
             val manager = context.getSystemService(NotificationManager::class.java)
             manager.createNotificationChannel(
-                NotificationChannel(CHANNEL_ID, context.getString(R.string.channel_connections), NotificationManager.IMPORTANCE_MIN).apply {
+                NotificationChannel(
+                    CHANNEL_ID,
+                    context.getString(R.string.channel_connections),
+                    NotificationManager.IMPORTANCE_MIN
+                ).apply {
                     description = context.getString(R.string.channel_connections_desc)
                     setShowBadge(false)
                 }
             )
             val openApp = PendingIntent.getActivity(
-                context, 0, Intent(context, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+                context,
+                0,
+                Intent(context, MainActivity::class.java),
+                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
             )
             return NotificationCompat.Builder(context, CHANNEL_ID)
                 .setSmallIcon(android.R.drawable.stat_notify_sync_noanim)
@@ -109,7 +120,8 @@ class OnDeviceConnectionService : Service() {
                 // Already in the foreground: just update its notification (starting again from the background
                 // isn't allowed on Android 12+)
                 runCatching {
-                    context.getSystemService(NotificationManager::class.java).notify(NOTIFICATION_ID, notification(context, text))
+                    context.getSystemService(NotificationManager::class.java)
+                        .notify(NOTIFICATION_ID, notification(context, text))
                 }
                 return
             }
@@ -146,7 +158,11 @@ class OnDeviceConnectionKeeper(
     val active = MutableStateFlow<List<String>>(emptyList())
 
     init {
-        combine(clients.map { client -> client.state.combineName(client) } + linkedAccounts.map { it.pairing.combineName(it) }) { active ->
+        combine(clients.map { client -> client.state.combineName(client) } + linkedAccounts.map {
+            it.pairing.combineName(
+                it
+            )
+        }) { active ->
             active.filterNotNull()
         }
             .distinctUntilChanged()
@@ -174,7 +190,10 @@ class OnDeviceConnectionKeeper(
     }
 
     fun text(active: List<String>) =
-        if (active.isEmpty()) appContext.getString(R.string.connections_connecting) else appContext.getString(R.string.connections_connected, active.distinct().joinToString(", "))
+        if (active.isEmpty()) appContext.getString(R.string.connections_connecting) else appContext.getString(
+            R.string.connections_connected,
+            active.distinct().joinToString(", ")
+        )
 
     private companion object {
         const val STOP_DELAY_MILLIS = 15_000L
@@ -186,5 +205,8 @@ class OnDeviceConnectionKeeper(
         }
 
     private fun kotlinx.coroutines.flow.Flow<Any?>.combineName(account: OnDeviceLinkedAccount) =
-        combine(this, kotlinx.coroutines.flow.flowOf(account.network.displayName)) { pairing, name -> name.takeIf { pairing != null } }
+        combine(
+            this,
+            kotlinx.coroutines.flow.flowOf(account.network.displayName)
+        ) { pairing, name -> name.takeIf { pairing != null } }
 }

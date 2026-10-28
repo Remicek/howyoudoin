@@ -55,32 +55,95 @@ object LoginFlowLabels {
     // Connecting on this phone is the default; the server bridge flows remain as an alternative
     private val KNOWN = mapOf(
         ChatNetwork.WHATSAPP to listOf(
-            LoginFlowLabel(ON_DEVICE_WHATSAPP_CODE, UiText.Resource(Res.string.flow_pairing_code), UiText.Resource(Res.string.flow_best_when_whatsapp_is_on_this), isRecommended = true),
-            LoginFlowLabel(ON_DEVICE_WHATSAPP_QR, UiText.Resource(Res.string.flow_qr_code), UiText.Resource(Res.string.flow_scan_it_with_whatsapp_on_another)),
-            LoginFlowLabel("phone", UiText.Resource(Res.string.flow_pairing_code_via_server_bridge), UiText.Resource(Res.string.flow_connects_through_your_matrix_server_instead)),
-            LoginFlowLabel("qr", UiText.Resource(Res.string.flow_qr_code_via_server_bridge), UiText.Resource(Res.string.flow_connects_through_your_matrix_server_instead)),
+            LoginFlowLabel(
+                ON_DEVICE_WHATSAPP_CODE,
+                UiText.Resource(Res.string.flow_pairing_code),
+                UiText.Resource(Res.string.flow_best_when_whatsapp_is_on_this),
+                isRecommended = true
+            ),
+            LoginFlowLabel(
+                ON_DEVICE_WHATSAPP_QR,
+                UiText.Resource(Res.string.flow_qr_code),
+                UiText.Resource(Res.string.flow_scan_it_with_whatsapp_on_another)
+            ),
+            LoginFlowLabel(
+                "phone",
+                UiText.Resource(Res.string.flow_pairing_code_via_server_bridge),
+                UiText.Resource(Res.string.flow_connects_through_your_matrix_server_instead)
+            ),
+            LoginFlowLabel(
+                "qr",
+                UiText.Resource(Res.string.flow_qr_code_via_server_bridge),
+                UiText.Resource(Res.string.flow_connects_through_your_matrix_server_instead)
+            ),
         ),
         ChatNetwork.MESSENGER to listOf(
-            LoginFlowLabel(ON_DEVICE, "Messenger".asUiText(), UiText.Resource(Res.string.flow_log_in_on_messenger_com_chats), isRecommended = true),
-            LoginFlowLabel("messenger", UiText.Resource(Res.string.flow_messenger_via_server_bridge), UiText.Resource(Res.string.flow_log_in_on_messenger_com_chats)),
-            LoginFlowLabel("facebook", UiText.Resource(Res.string.flow_facebook_account_via_server_bridge), UiText.Resource(Res.string.flow_log_in_on_facebook_com)),
-            LoginFlowLabel("messenger-lite", UiText.Resource(Res.string.flow_email_or_phone_password_via_server), UiText.Resource(Res.string.flow_sign_in_without_a_web_page)),
-            LoginFlowLabel("messenger-lite-android", UiText.Resource(Res.string.flow_email_or_phone_password_alternative), UiText.Resource(Res.string.flow_use_this_if_the_first_one)),
+            LoginFlowLabel(
+                ON_DEVICE,
+                "Messenger".asUiText(),
+                UiText.Resource(Res.string.flow_log_in_on_messenger_com_chats),
+                isRecommended = true
+            ),
+            LoginFlowLabel(
+                "messenger",
+                UiText.Resource(Res.string.flow_messenger_via_server_bridge),
+                UiText.Resource(Res.string.flow_log_in_on_messenger_com_chats)
+            ),
+            LoginFlowLabel(
+                "facebook",
+                UiText.Resource(Res.string.flow_facebook_account_via_server_bridge),
+                UiText.Resource(Res.string.flow_log_in_on_facebook_com)
+            ),
+            LoginFlowLabel(
+                "messenger-lite",
+                UiText.Resource(Res.string.flow_email_or_phone_password_via_server),
+                UiText.Resource(Res.string.flow_sign_in_without_a_web_page)
+            ),
+            LoginFlowLabel(
+                "messenger-lite-android",
+                UiText.Resource(Res.string.flow_email_or_phone_password_alternative),
+                UiText.Resource(Res.string.flow_use_this_if_the_first_one)
+            ),
         ),
         ChatNetwork.TELEGRAM to listOf(
-            LoginFlowLabel(ON_DEVICE_TELEGRAM, UiText.Resource(Res.string.flow_phone_number), UiText.Resource(Res.string.flow_log_in_with_a_code_telegram), isRecommended = true),
+            LoginFlowLabel(
+                ON_DEVICE_TELEGRAM,
+                UiText.Resource(Res.string.flow_phone_number),
+                UiText.Resource(Res.string.flow_log_in_with_a_code_telegram),
+                isRecommended = true
+            ),
         ),
         ChatNetwork.SIGNAL to listOf(
-            LoginFlowLabel(ON_DEVICE_SIGNAL, UiText.Resource(Res.string.flow_qr_code), UiText.Resource(Res.string.flow_link_this_app_in_signal_on), isRecommended = true),
+            LoginFlowLabel(
+                ON_DEVICE_SIGNAL,
+                UiText.Resource(Res.string.flow_qr_code),
+                UiText.Resource(Res.string.flow_link_this_app_in_signal_on),
+                isRecommended = true
+            ),
         ),
         ChatNetwork.MATRIX to listOf(
-            LoginFlowLabel("howyoudoin-matrix-account", UiText.Resource(Res.string.flow_matrix_account), UiText.Resource(Res.string.flow_sign_in_with_your_matrix_id), isRecommended = true),
+            LoginFlowLabel(
+                "howyoudoin-matrix-account",
+                UiText.Resource(Res.string.flow_matrix_account),
+                UiText.Resource(Res.string.flow_sign_in_with_your_matrix_id),
+                isRecommended = true
+            ),
         ),
         ChatNetwork.SLACK to listOf(
-            LoginFlowLabel(ON_DEVICE, "Slack".asUiText(), UiText.Resource(Res.string.flow_sign_in_on_slack_com_your), isRecommended = true),
+            LoginFlowLabel(
+                ON_DEVICE,
+                "Slack".asUiText(),
+                UiText.Resource(Res.string.flow_sign_in_on_slack_com_your),
+                isRecommended = true
+            ),
         ),
         ChatNetwork.INSTAGRAM to listOf(
-            LoginFlowLabel(ON_DEVICE, "Instagram".asUiText(), UiText.Resource(Res.string.flow_log_in_on_instagram_com_direct), isRecommended = true),
+            LoginFlowLabel(
+                ON_DEVICE,
+                "Instagram".asUiText(),
+                UiText.Resource(Res.string.flow_log_in_on_instagram_com_direct),
+                isRecommended = true
+            ),
         ),
     )
 

@@ -7,10 +7,14 @@ import io.ktor.client.call.body
 import io.ktor.client.network.sockets.SocketTimeoutException
 import io.ktor.client.plugins.HttpRequestTimeoutException
 import io.ktor.client.statement.HttpResponse
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.isSuccess
 import io.ktor.util.network.UnresolvedAddressException
 import kotlinx.coroutines.CancellationException
 import kotlinx.serialization.SerializationException
 
+// Any failure to reach the server becomes a typed error the screens can explain, so every exception is caught here
+@Suppress("TooGenericExceptionCaught")
 suspend inline fun <reified T> safeCall(
     execute: () -> HttpResponse
 ): Result<T, DataError.Remote> {
@@ -18,44 +22,52 @@ suspend inline fun <reified T> safeCall(
         execute()
     } catch (e: CancellationException) {
         throw e
-    } catch (e: HttpRequestTimeoutException) {
-        return Result.Failure(DataError.Remote.REQUEST_TIMEOUT)
-    } catch (e: SocketTimeoutException) {
-        return Result.Failure(DataError.Remote.REQUEST_TIMEOUT)
-    } catch (e: UnresolvedAddressException) {
-        return Result.Failure(DataError.Remote.NO_INTERNET)
-    } catch (e: SerializationException) {
-        return Result.Failure(DataError.Remote.SERIALIZATION)
     } catch (e: Exception) {
-        println("HowYouDoin HTTP error: ${e.message}")
-        return Result.Failure(DataError.Remote.UNKNOWN)
+        return Result.Failure(e.toRemoteError())
     }
     return responseToResult(response)
+}
+
+/** What a failed request means for the user; unexpected failures are logged. */
+@PublishedApi
+internal fun Exception.toRemoteError(): DataError.Remote = when (this) {
+    is HttpRequestTimeoutException, is SocketTimeoutException -> DataError.Remote.REQUEST_TIMEOUT
+    is UnresolvedAddressException -> DataError.Remote.NO_INTERNET
+    is SerializationException -> DataError.Remote.SERIALIZATION
+    else -> {
+        println("HowYouDoin HTTP error: $message")
+        DataError.Remote.UNKNOWN
+    }
 }
 
 suspend inline fun <reified T> responseToResult(
     response: HttpResponse
 ): Result<T, DataError.Remote> {
-    return when (response.status.value) {
-        in 200..299 -> {
-            try {
-                Result.Success(response.body<T>())
-            } catch (e: NoTransformationFoundException) {
-                Result.Failure(DataError.Remote.SERIALIZATION)
-            } catch (e: SerializationException) {
-                Result.Failure(DataError.Remote.SERIALIZATION)
-            }
-        }
-        400 -> Result.Failure(DataError.Remote.BAD_REQUEST)
-        401 -> Result.Failure(DataError.Remote.UNAUTHORIZED)
-        403 -> Result.Failure(DataError.Remote.FORBIDDEN)
-        404 -> Result.Failure(DataError.Remote.NOT_FOUND)
-        408 -> Result.Failure(DataError.Remote.REQUEST_TIMEOUT)
-        409 -> Result.Failure(DataError.Remote.CONFLICT)
-        413 -> Result.Failure(DataError.Remote.PAYLOAD_TOO_LARGE)
-        429 -> Result.Failure(DataError.Remote.TOO_MANY_REQUESTS)
-        503 -> Result.Failure(DataError.Remote.SERVICE_UNAVAILABLE)
-        in 500..599 -> Result.Failure(DataError.Remote.SERVER_ERROR)
-        else -> Result.Failure(DataError.Remote.UNKNOWN)
+    val status = response.status
+    if (!status.isSuccess()) return Result.Failure(status.toRemoteError())
+    return try {
+        Result.Success(response.body<T>())
+    } catch (e: NoTransformationFoundException) {
+        println("HowYouDoin HTTP response not readable: ${e.message}")
+        Result.Failure(DataError.Remote.SERIALIZATION)
+    } catch (e: SerializationException) {
+        println("HowYouDoin HTTP response not readable: ${e.message}")
+        Result.Failure(DataError.Remote.SERIALIZATION)
     }
 }
+
+@PublishedApi
+internal fun HttpStatusCode.toRemoteError(): DataError.Remote = when (this) {
+    HttpStatusCode.BadRequest -> DataError.Remote.BAD_REQUEST
+    HttpStatusCode.Unauthorized -> DataError.Remote.UNAUTHORIZED
+    HttpStatusCode.Forbidden -> DataError.Remote.FORBIDDEN
+    HttpStatusCode.NotFound -> DataError.Remote.NOT_FOUND
+    HttpStatusCode.RequestTimeout -> DataError.Remote.REQUEST_TIMEOUT
+    HttpStatusCode.Conflict -> DataError.Remote.CONFLICT
+    HttpStatusCode.PayloadTooLarge -> DataError.Remote.PAYLOAD_TOO_LARGE
+    HttpStatusCode.TooManyRequests -> DataError.Remote.TOO_MANY_REQUESTS
+    HttpStatusCode.ServiceUnavailable -> DataError.Remote.SERVICE_UNAVAILABLE
+    else -> if (value in SERVER_ERRORS) DataError.Remote.SERVER_ERROR else DataError.Remote.UNKNOWN
+}
+
+private val SERVER_ERRORS = HttpStatusCode.InternalServerError.value..<HttpStatusCode.InternalServerError.value + 100

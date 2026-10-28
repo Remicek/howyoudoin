@@ -6,6 +6,7 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.devvalor.howyoudoing.app.MainActivity
@@ -17,7 +18,11 @@ class AndroidNotificationPresenter(private val context: Context) : MessageNotifi
 
     init {
         context.getSystemService(NotificationManager::class.java).createNotificationChannel(
-            NotificationChannel(CHANNEL_ID, context.getString(R.string.channel_messages), NotificationManager.IMPORTANCE_HIGH).apply {
+            NotificationChannel(
+                CHANNEL_ID,
+                context.getString(R.string.channel_messages),
+                NotificationManager.IMPORTANCE_HIGH
+            ).apply {
                 description = context.getString(R.string.channel_messages_desc)
             }
         )
@@ -49,6 +54,7 @@ class AndroidNotificationPresenter(private val context: Context) : MessageNotifi
             manager.notify(chatId.hashCode(), notification)
         } catch (e: SecurityException) {
             // Permission revoked meanwhile
+            Log.w(TAG, "Message notification not shown: ${e.message}")
         }
     }
 
@@ -59,5 +65,6 @@ class AndroidNotificationPresenter(private val context: Context) : MessageNotifi
     companion object {
         const val CHANNEL_ID = "messages"
         const val EXTRA_CHAT_ID = "chatId"
+        private const val TAG = "Notifications"
     }
 }

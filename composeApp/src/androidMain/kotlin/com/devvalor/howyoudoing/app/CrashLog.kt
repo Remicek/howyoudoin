@@ -4,6 +4,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
+import android.util.Log
 import android.content.Intent
 import android.os.Build
 import androidx.core.app.NotificationCompat
@@ -18,6 +19,7 @@ import java.io.StringWriter
  * it; if the user allows, a notification on the next launch offers to share it, so the user decides who sees it.
  */
 object CrashLog {
+    private const val TAG = "CrashLog"
 
     fun install(context: Context) {
         val previous = Thread.getDefaultUncaughtExceptionHandler()
@@ -68,10 +70,14 @@ object CrashLog {
 
     private fun describe(context: Context, thread: Thread, error: Throwable): String {
         val trace = StringWriter().also { error.printStackTrace(PrintWriter(it)) }
-        val version = runCatching { context.packageManager.getPackageInfo(context.packageName, 0).versionName }.getOrNull()
+        val version =
+            runCatching { context.packageManager.getPackageInfo(context.packageName, 0).versionName }.getOrNull()
         return buildString {
             appendLine("HowYouDoin $version crash report")
-            appendLine("Device: ${Build.MANUFACTURER} ${Build.MODEL}, Android ${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT})")
+            appendLine(
+                "Device: ${Build.MANUFACTURER} ${Build.MODEL}, " +
+                    "Android ${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT})"
+            )
             appendLine("Time: ${java.util.Date()}")
             appendLine("Thread: ${thread.name}")
             appendLine()
@@ -90,9 +96,17 @@ object CrashLog {
                 context, 0, shareChooser(context, text).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
                 PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
             )
-        }.getOrNull() ?: return
+        }.getOrNull()
+        if (open != null) showCrashNotification(context, open)
+    }
+
+    private fun showCrashNotification(context: Context, open: PendingIntent) {
         context.getSystemService(NotificationManager::class.java).createNotificationChannel(
-            NotificationChannel(CHANNEL_ID, context.getString(R.string.channel_crash), NotificationManager.IMPORTANCE_DEFAULT)
+            NotificationChannel(
+                CHANNEL_ID,
+                context.getString(R.string.channel_crash),
+                NotificationManager.IMPORTANCE_DEFAULT
+            )
         )
         val manager = NotificationManagerCompat.from(context)
         if (!manager.areNotificationsEnabled()) return
@@ -107,6 +121,7 @@ object CrashLog {
             manager.notify(NOTIFICATION_ID, notification)
         } catch (e: SecurityException) {
             // Notifications not allowed
+            Log.w(TAG, "Crash notification not shown: ${e.message}")
         }
     }
 
@@ -115,6 +130,7 @@ object CrashLog {
     private fun prefs(context: Context) = context.getSharedPreferences("crash_reports", Context.MODE_PRIVATE)
 
     private const val KEY_OFFERS = "offers_after_crash"
+
     /** The current report was already offered (or none was written since). */
     private const val KEY_OFFERED = "offered"
     private const val CHANNEL_ID = "crash_reports"

@@ -59,8 +59,15 @@ fun ImageViewer(media: MediaInfo, resolver: MediaResolver, onClose: () -> Unit) 
                         translationY = offset.y
                     },
             )
-            IconButton(onClick = onClose, modifier = Modifier.align(Alignment.TopStart).statusBarsPadding().padding(8.dp)) {
-                Icon(Icons.Rounded.Close, contentDescription = stringResource(Res.string.imageviewer_close), tint = Color.White)
+            IconButton(
+                onClick = onClose,
+                modifier = Modifier.align(Alignment.TopStart).statusBarsPadding().padding(8.dp)
+            ) {
+                Icon(
+                    Icons.Rounded.Close,
+                    contentDescription = stringResource(Res.string.imageviewer_close),
+                    tint = Color.White
+                )
             }
         }
     }

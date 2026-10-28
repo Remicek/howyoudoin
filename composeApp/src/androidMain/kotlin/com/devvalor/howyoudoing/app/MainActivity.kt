@@ -78,7 +78,8 @@ class MainActivity : FragmentActivity() {
     }
 
     private fun handleNotificationTap(intent: Intent?) {
-        intent?.getStringExtra(AndroidNotificationPresenter.EXTRA_CHAT_ID)?.let { NotificationRouter.pendingChatId.value = it }
+        intent?.getStringExtra(AndroidNotificationPresenter.EXTRA_CHAT_ID)
+            ?.let { NotificationRouter.pendingChatId.value = it }
         if (intent?.getBooleanExtra(ConnectionProblemNotifier.EXTRA_OPEN_NETWORKS, false) == true) {
             NotificationRouter.pendingNetworks.value = true
         }
@@ -86,7 +87,10 @@ class MainActivity : FragmentActivity() {
 
     private fun askForNotifications() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-            ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+            ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.POST_NOTIFICATIONS
+            ) != PackageManager.PERMISSION_GRANTED
         ) {
             notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
         }

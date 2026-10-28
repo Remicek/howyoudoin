@@ -23,7 +23,11 @@ class ConnectionMonitorTest {
     private val slack = FakeClient(ChatNetwork.SLACK)
 
     private fun TestScope.monitor() =
-        ConnectionMonitor(listOf(whatsApp, slack), backgroundScope, StandardTestDispatcher(testScheduler)).also { runCurrent() }
+        ConnectionMonitor(
+            listOf(whatsApp, slack),
+            backgroundScope,
+            StandardTestDispatcher(testScheduler)
+        ).also { runCurrent() }
 
     private fun TestScope.set(client: FakeClient, state: OnDeviceMessengerState) {
         client.state.value = state
@@ -47,7 +51,12 @@ class ConnectionMonitorTest {
     @Test
     fun expiredLoginSaysToLogInAgain() = runTest {
         val monitor = monitor()
-        set(whatsApp, OnDeviceMessengerState.Failed("Failed to load inbox: access token is no longer valid: user id in initial data is zero"))
+        set(
+            whatsApp,
+            OnDeviceMessengerState.Failed(
+                "Failed to load inbox: access token is no longer valid: user id in initial data is zero"
+            )
+        )
         val problem = monitor.problems.value.single()
         assertEquals(ConnectionProblem.Kind.LOGIN_EXPIRED, problem.kind)
         assertEquals(ChatNetwork.WHATSAPP, problem.network)

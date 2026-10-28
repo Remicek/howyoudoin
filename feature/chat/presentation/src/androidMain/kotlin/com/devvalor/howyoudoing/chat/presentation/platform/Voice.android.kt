@@ -2,6 +2,7 @@ package com.devvalor.howyoudoing.chat.presentation.platform
 
 import android.Manifest
 import android.content.Context
+import android.util.Log
 import android.content.pm.PackageManager
 import android.media.AudioAttributes
 import android.media.MediaPlayer
@@ -40,9 +41,15 @@ actual fun rememberVoicePlayer(): VoicePlayer? {
 actual fun rememberMicrophonePermission(onResult: (granted: Boolean) -> Unit): () -> Unit {
     val context = LocalContext.current
     val currentOnResult by rememberUpdatedState(onResult)
-    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted -> currentOnResult(granted) }
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        currentOnResult(granted)
+    }
     return {
-        if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.RECORD_AUDIO
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
             currentOnResult(true)
         } else {
             launcher.launch(Manifest.permission.RECORD_AUDIO)
@@ -58,32 +65,46 @@ private class AndroidVoiceRecorder(private val context: Context) : VoiceRecorder
     private val levels = ArrayList<Int>()
     private var lastLevel = 0
 
+    // MediaRecorder reports failures as IllegalStateException, IOException or a bare RuntimeException
+    @Suppress("TooGenericExceptionCaught")
     override fun start(format: VoiceFormat): Boolean {
         cancel()
         // Android records Ogg/Opus from 10 on; older phones send AAC, which the networks still play
-        val actual = if (format == VoiceFormat.OGG_OPUS && Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) VoiceFormat.M4A_AAC else format
+        val actual =
+            if (format == VoiceFormat.OGG_OPUS && Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+                VoiceFormat.M4A_AAC
+            } else {
+                format
+            }
         val output = File(context.cacheDir, "voice-${System.currentTimeMillis()}.${actual.extension}")
-        val created = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) MediaRecorder(context) else @Suppress("DEPRECATION") MediaRecorder()
+        val created =
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                MediaRecorder(context)
+            } else {
+                @Suppress("DEPRECATION") MediaRecorder()
+            }
         return try {
             created.setAudioSource(MediaRecorder.AudioSource.MIC)
             when (actual) {
                 VoiceFormat.OGG_OPUS -> {
                     created.setOutputFormat(MediaRecorder.OutputFormat.OGG)
                     created.setAudioEncoder(MediaRecorder.AudioEncoder.OPUS)
-                    created.setAudioSamplingRate(48_000)
-                    created.setAudioEncodingBitRate(32_000)
+                    created.setAudioSamplingRate(OPUS_SAMPLE_RATE)
+                    created.setAudioEncodingBitRate(OPUS_BIT_RATE)
                 }
+
                 VoiceFormat.M4A_AAC -> {
                     created.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
                     created.setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
-                    created.setAudioSamplingRate(44_100)
-                    created.setAudioEncodingBitRate(64_000)
+                    created.setAudioSamplingRate(AAC_SAMPLE_RATE)
+                    created.setAudioEncodingBitRate(AAC_BIT_RATE)
                 }
+
                 VoiceFormat.AAC_ADTS -> {
                     created.setOutputFormat(MediaRecorder.OutputFormat.AAC_ADTS)
                     created.setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
-                    created.setAudioSamplingRate(44_100)
-                    created.setAudioEncodingBitRate(64_000)
+                    created.setAudioSamplingRate(AAC_SAMPLE_RATE)
+                    created.setAudioEncodingBitRate(AAC_BIT_RATE)
                 }
             }
             created.setAudioChannels(1)
@@ -97,6 +118,7 @@ private class AndroidVoiceRecorder(private val context: Context) : VoiceRecorder
             levels.clear()
             true
         } catch (e: Exception) {
+            Log.w(TAG, "Recording didn't start: ${e.message}")
             created.release()
             output.delete()
             false
@@ -106,7 +128,9 @@ private class AndroidVoiceRecorder(private val context: Context) : VoiceRecorder
     override fun level(): Int {
         val current = recorder ?: return 0
         // getMaxAmplitude is the peak since the last call; the UI polls this regularly, which also builds the waveform
-        lastLevel = runCatching { (current.maxAmplitude / 32767f * 255).roundToInt().coerceIn(0, 255) }.getOrDefault(lastLevel)
+        lastLevel =
+            runCatching { (current.maxAmplitude / MAX_AMPLITUDE * MAX_LEVEL).roundToInt().coerceIn(0, MAX_LEVEL) }
+                .getOrDefault(lastLevel)
         levels += lastLevel
         return lastLevel
     }
@@ -146,7 +170,7 @@ private class AndroidVoiceRecorder(private val context: Context) : VoiceRecorder
             levels.subList(from.coerceAtMost(levels.size - 1), to).max()
         }
         val peak = buckets.max().coerceAtLeast(1)
-        return buckets.map { it * 255 / peak }
+        return buckets.map { it * MAX_LEVEL / peak }
     }
 
     private companion object {
@@ -159,6 +183,8 @@ private class AndroidVoicePlayer(private val context: Context) : VoicePlayer {
     private var player: MediaPlayer? = null
     private var file: File? = null
 
+    // MediaPlayer reports failures as IllegalStateException, IOException or a bare RuntimeException
+    @Suppress("TooGenericExceptionCaught")
     override fun play(bytes: ByteArray, mimeType: String?, onDone: () -> Unit): Boolean {
         stop()
         val extension = when {
@@ -173,7 +199,8 @@ private class AndroidVoicePlayer(private val context: Context) : VoicePlayer {
             output.writeBytes(bytes)
             val created = MediaPlayer()
             created.setAudioAttributes(
-                AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA).setContentType(AudioAttributes.CONTENT_TYPE_SPEECH).build()
+                AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH).build()
             )
             created.setDataSource(output.absolutePath)
             created.setOnCompletionListener { stop(); onDone() }
@@ -184,6 +211,7 @@ private class AndroidVoicePlayer(private val context: Context) : VoicePlayer {
             file = output
             true
         } catch (e: Exception) {
+            Log.w(TAG, "Playing didn't start: ${e.message}")
             output.delete()
             false
         }
@@ -198,5 +226,18 @@ private class AndroidVoicePlayer(private val context: Context) : VoicePlayer {
 
     override fun positionMillis(): Long = runCatching { player?.currentPosition?.toLong() }.getOrNull() ?: 0L
 
-    override fun durationMillis(): Long = runCatching { player?.duration?.toLong() }.getOrNull()?.takeIf { it > 0 } ?: 0L
+    override fun durationMillis(): Long =
+        runCatching { player?.duration?.toLong() }.getOrNull()?.takeIf { it > 0 } ?: 0L
 }
+
+private const val TAG = "Voice"
+
+// Voice notes: what WhatsApp and Messenger record
+private const val OPUS_SAMPLE_RATE = 48_000
+private const val OPUS_BIT_RATE = 32_000
+private const val AAC_SAMPLE_RATE = 44_100
+private const val AAC_BIT_RATE = 64_000
+
+/** MediaRecorder's amplitude range, scaled to waveform levels 0–[MAX_LEVEL]. */
+private const val MAX_AMPLITUDE = 32767f
+private const val MAX_LEVEL = 255

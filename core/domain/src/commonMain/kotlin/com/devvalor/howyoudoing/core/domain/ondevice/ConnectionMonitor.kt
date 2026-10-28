@@ -15,15 +15,21 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-/** A connected network that isn't working: shown in the inbox and as a notification until it's fixed (texts in chat presentation). */
+/**
+ * A connected network that isn't working: shown in the inbox and as a notification until it's fixed (texts in chat
+ * presentation).
+ */
 data class ConnectionProblem(val network: ChatNetwork, val kind: Kind, val detail: String? = null) {
     enum class Kind {
         /** Connecting failed (it keeps retrying in the background). */
         FAILED,
+
         /** The login ended without the user disconnecting (expired, revoked, unlinked on the phone). */
         LOGGED_OUT,
+
         /** Was connected, and has been trying to reconnect for a while. */
         RECONNECTING,
+
         /** The network no longer accepts the saved login; it has to be logged in again. */
         LOGIN_EXPIRED
     }
@@ -76,10 +82,16 @@ class ConnectionMonitor(
                     disconnecting -= network
                     clear(network)
                 }
+
                 is OnDeviceMessengerState.Failed -> report(
-                    if (isExpiredLogin(state.message)) ConnectionProblem(network, ConnectionProblem.Kind.LOGIN_EXPIRED, state.message)
+                    if (isExpiredLogin(state.message)) ConnectionProblem(
+                        network,
+                        ConnectionProblem.Kind.LOGIN_EXPIRED,
+                        state.message
+                    )
                     else ConnectionProblem(network, ConnectionProblem.Kind.FAILED, state.message)
                 )
+
                 OnDeviceMessengerState.Connecting -> if (wasConnected && reconnectTimers[network]?.isActive != true) {
                     // Brief reconnects are normal (network changes); only a long one is worth telling
                     reconnectTimers[network] = scope.launch {
@@ -87,6 +99,7 @@ class ConnectionMonitor(
                         report(ConnectionProblem(network, ConnectionProblem.Kind.RECONNECTING))
                     }
                 }
+
                 OnDeviceMessengerState.NotLinked -> {
                     val wasLinked = previous != null && previous != OnDeviceMessengerState.NotLinked
                     if (wasLinked && wasConnected && network !in disconnecting) {

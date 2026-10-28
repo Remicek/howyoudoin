@@ -3,14 +3,8 @@ package com.devvalor.howyoudoing.networks.presentation.list
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
-import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceInstagram
-import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceSignal
-import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceSlack
-import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceMatrix
 import com.devvalor.howyoudoing.core.domain.ondevice.ConnectionMonitor
-import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceTelegram
-import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceMessenger
-import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceWhatsApp
+import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceAccounts
 import com.devvalor.howyoudoing.core.domain.util.Result
 import com.devvalor.howyoudoing.core.domain.util.onFailure
 import com.devvalor.howyoudoing.core.domain.util.onSuccess
@@ -30,19 +24,11 @@ import kotlinx.coroutines.launch
 class NetworksViewModel(
     private val bridgeRepository: BridgeRepository,
     private val onboardingRepository: OnboardingRepository,
-    onDeviceMessenger: OnDeviceMessenger,
-    onDeviceWhatsApp: OnDeviceWhatsApp,
-    onDeviceInstagram: OnDeviceInstagram,
-    onDeviceTelegram: OnDeviceTelegram,
-    onDeviceSignal: OnDeviceSignal,
-    onDeviceSlack: OnDeviceSlack,
-    onDeviceMatrix: OnDeviceMatrix,
+    onDevice: OnDeviceAccounts,
     private val connectionMonitor: ConnectionMonitor
 ) : ViewModel() {
 
-    private val onDeviceClients =
-        listOf(onDeviceMessenger, onDeviceWhatsApp, onDeviceInstagram, onDeviceTelegram, onDeviceSignal, onDeviceSlack, onDeviceMatrix)
-            .associateBy { it.network }
+    private val onDeviceClients = onDevice.all.associateBy { it.network }
 
     private val eventChannel = Channel<NetworksEvent>()
     val events = eventChannel.receiveAsFlow()
@@ -73,6 +59,7 @@ class NetworksViewModel(
                 connectionMonitor.expectDisconnect(action.network)
                 onDeviceClients[action.network]?.unlink()
             }
+
             else -> Unit
         }
     }

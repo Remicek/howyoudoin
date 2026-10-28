@@ -91,11 +91,21 @@ class OnDeviceMessengerStore(
         val height: Int?,
         val durationMs: Long? = null
     ) {
-        val media: MediaInfo get() = MediaInfo(url, mimeType, fileName, sizeBytes = null, width, height, durationMillis = durationMs)
+        val media: MediaInfo
+            get() = MediaInfo(
+                url,
+                mimeType,
+                fileName,
+                sizeBytes = null,
+                width,
+                height,
+                durationMillis = durationMs
+            )
     }
 
     @Serializable
     data class Contact(val id: String, val name: String, val firstName: String, val avatarUrl: String?)
+
     @Serializable
     data class Thread(
         val key: String,
@@ -142,9 +152,13 @@ class OnDeviceMessengerStore(
         messenger.events.onEach(::apply).launchIn(scope)
         // Forget the inbox when the account is disconnected (not at launch, where the state also starts unlinked)
         messenger.state
-            .runningFold(null as OnDeviceMessengerState? to (null as OnDeviceMessengerState?)) { (_, previous), current -> previous to current }
+            .runningFold(null as OnDeviceMessengerState? to (null as OnDeviceMessengerState?)) {
+                    (_, previous), current ->
+                previous to current
+            }
             .onEach { (previous, current) ->
-                if (previous != null && previous != OnDeviceMessengerState.NotLinked && current == OnDeviceMessengerState.NotLinked) {
+                val wasLinked = previous != null && previous != OnDeviceMessengerState.NotLinked
+                if (wasLinked && current == OnDeviceMessengerState.NotLinked) {
                     _snapshot.value = Snapshot()
                     cache.clear()
                 }
@@ -163,18 +177,37 @@ class OnDeviceMessengerStore(
                 // Typing and messages still being sent only make sense while the app runs; failed ones are kept so
                 // they can be sent again (or deleted) later
                 val failed = snapshot.pending.filterValues { it.status == MessageStatus.FAILED }
-                runCatching { cache.write(cacheJson.encodeToString(snapshot.copy(typing = emptyMap(), pending = failed))) }
+                runCatching {
+                    cache.write(
+                        cacheJson.encodeToString(
+                            snapshot.copy(
+                                typing = emptyMap(),
+                                pending = failed
+                            )
+                        )
+                    )
+                }
             }
             .launchIn(scope)
     }
 
-    fun addPending(threadKey: String, otid: String, text: String, replyToId: String? = null, canRetry: Boolean = true) = _snapshot.update { s ->
-        s.copy(pending = s.pending + (otid to StoredMessage(
-            id = "pending-$otid", threadKey = threadKey, otid = otid, senderId = s.selfId.orEmpty(), text = text,
-            timestampMs = Clock.System.now().toEpochMilliseconds(), isUnsent = false, status = MessageStatus.SENDING,
-            replyToId = replyToId, canRetry = canRetry
-        )))
-    }
+    fun addPending(threadKey: String, otid: String, text: String, replyToId: String? = null, canRetry: Boolean = true) =
+        _snapshot.update { s ->
+            s.copy(
+                pending = s.pending + (otid to StoredMessage(
+                    id = "pending-$otid",
+                    threadKey = threadKey,
+                    otid = otid,
+                    senderId = s.selfId.orEmpty(),
+                    text = text,
+                    timestampMs = Clock.System.now().toEpochMilliseconds(),
+                    isUnsent = false,
+                    status = MessageStatus.SENDING,
+                    replyToId = replyToId,
+                    canRetry = canRetry
+                ))
+            )
+        }
 
     /** A local echo that failed to send, by its message ID. */
     fun failedMessage(messageId: String): StoredMessage? =
@@ -207,150 +240,210 @@ class OnDeviceMessengerStore(
     private fun apply(json: String) {
         val event = runCatching { Json.parseToJsonElement(json).jsonObject }.getOrNull() ?: return
         if (event.str("type") == "history") return resetEncryptedPaging()
-        _snapshot.update { current ->
-            // A thread's picture can come with its thread event (Messenger) or on its own (WhatsApp)
-            val pictureKey = event.str(if (event.str("type") == "avatar") "threadKey" else "key")
-            val picture = event.str(if (event.str("type") == "avatar") "url" else "pictureUrl")
-            val s = if (pictureKey.isNotEmpty() && picture.isNotEmpty()) current.copy(avatars = current.avatars + (pictureKey to picture)) else current
-            when (event.str("type")) {
-                "self" -> s.copy(selfId = event.str("id"))
-                "contact" -> event.str("id").takeIf { it.isNotEmpty() }?.let { id ->
-                    // WhatsApp's contact events carry only names; keep a picture learned before
-                    val avatar = event.str("avatarUrl").ifBlank { null } ?: s.contacts[id]?.avatarUrl
-                    s.copy(contacts = s.contacts + (id to Contact(id, event.str("name"), event.str("firstName"), avatar)))
-                } ?: s
-                // Group names from WhatsApp's group list carry no activity; don't let them reset it
-                "thread" if event.bool("nameOnly") -> event.str("key").takeIf { it.isNotEmpty() }?.let { key ->
-                    val existing = s.threads[key]
-                    s.copy(threads = s.threads + (key to (existing?.copy(name = event.str("name").ifBlank { existing.name }) ?: Thread(
-                        key = key, name = event.str("name"), isGroup = event.bool("isGroup"), isEncrypted = event.bool("isEncrypted"),
-                        lastActivityMs = 0L, lastReadMs = 0L, snippet = "", snippetSender = ""
-                    ))))
-                } ?: s
-                "thread" -> event.str("key").takeIf { it.isNotEmpty() }?.let { key ->
-                    s.copy(threads = s.threads + (key to Thread(
-                        key = key, name = event.str("name"), isGroup = event.bool("isGroup"), isEncrypted = event.bool("isEncrypted"),
-                        lastActivityMs = event.long("lastActivityMs"), lastReadMs = event.long("lastReadMs"),
-                        snippet = event.str("snippet"), snippetSender = event.str("snippetSender")
-                    )))
-                } ?: s
-                "participant" -> {
-                    val key = event.str("threadKey")
-                    val contact = event.str("contactId")
-                    if (key.isEmpty() || contact.isEmpty()) s
-                    else s.copy(participants = s.participants + (key to (s.participants[key].orEmpty() + contact)))
-                }
-                "range" -> {
-                    val key = event.str("threadKey")
-                    when {
-                        key.isEmpty() -> s
-                        event.bool("isEncrypted") -> s.copy(
-                            hasMoreBefore = s.hasMoreBefore + (key to event.bool("hasMoreBefore")),
-                            historyCursors = s.historyCursors + (key to event.long("minTimestampMs"))
-                        )
-                        else -> s.copy(hasMoreBefore = s.hasMoreBefore + (key to event.bool("hasMoreBefore")))
-                    }
-                }
-                "attachment" -> {
-                    val messageId = event.str("messageId")
-                    if (messageId.isEmpty() || messageId in s.attachments) s
-                    else s.copy(attachments = s.attachments + (messageId to StoredAttachment(
-                        kind = event.str("kind"),
-                        url = event.str("url"),
-                        mimeType = event.str("mimeType").ifBlank { null },
-                        fileName = event.str("fileName").ifBlank { null },
-                        width = event.long("width").toInt().takeIf { it > 0 },
-                        height = event.long("height").toInt().takeIf { it > 0 },
-                        durationMs = event.long("durationMs").takeIf { it > 0 }
-                    )))
-                }
-                "typing" -> {
-                    val key = event.str("threadKey")
-                    val sender = event.str("senderId")
-                    if (key.isEmpty() || sender.isEmpty() || sender == s.selfId) s
-                    else {
-                        val current = s.typing[key].orEmpty()
-                        s.copy(typing = s.typing + (key to if (event.bool("isTyping")) current + sender else current - sender))
-                    }
-                }
-                "read" -> {
-                    val key = event.str("threadKey")
-                    val contact = event.str("contactId")
-                    if (key.isEmpty() || contact.isEmpty()) s
-                    else {
-                        val current = s.readWatermarks[key].orEmpty()
-                        val watermark = maxOf(current[contact] ?: 0L, event.long("watermarkMs"))
-                        val read = s.copy(readWatermarks = s.readWatermarks + (key to (current + (contact to watermark))))
-                        // Our own receipt: the chat was read on another device (e.g. the network's own app)
-                        val ownThread = s.threads[key]
-                        if (contact == s.selfId && ownThread != null && watermark > ownThread.lastReadMs) {
-                            read.copy(threads = s.threads + (key to ownThread.copy(lastReadMs = watermark)))
-                        } else read
-                    }
-                }
-                "link" -> {
-                    val fbKey = event.str("fbThreadKey")
-                    val key = event.str("threadKey")
-                    if (fbKey.isEmpty() || key.isEmpty()) s
-                    else s.copy(links = s.links + (fbKey to Link(key, event.bool("isGroup"), event.long("lastActivityMs"))))
-                }
-                "reaction" -> {
-                    val key = event.str("threadKey")
-                    val target = event.str("targetId")
-                    val sender = event.str("senderId")
-                    if (key.isEmpty() || target.isEmpty() || sender.isEmpty()) s
-                    else {
-                        val byMessage = s.reactions[key].orEmpty()
-                        val bySender = byMessage[target].orEmpty().let { current ->
-                            val emoji = event.str("emoji")
-                            if (emoji.isEmpty()) current - sender else current + (sender to emoji)
-                        }
-                        s.copy(reactions = s.reactions + (key to (byMessage + (target to bySender))))
-                    }
-                }
-                "edit", "unsend" -> {
-                    // Messenger edits come without a thread key; the message ID is unique anyway
-                    val messageId = event.str("messageId")
-                    val threadKey = event.str("threadKey").ifEmpty {
-                        s.messages.entries.firstOrNull { messageId in it.value }?.key.orEmpty()
-                    }
-                    val original = s.messages[threadKey]?.get(messageId)
-                    if (original == null) s else {
-                        val changed = if (event.str("type") == "edit") original.copy(text = event.str("text"), isEdited = true)
-                        else original.copy(isUnsent = true, text = "", mediaRef = null)
-                        s.copy(messages = s.messages + (threadKey to (s.messages.getValue(threadKey) + (messageId to changed))))
-                    }
-                }
-                "message" -> {
-                    val message = StoredMessage(
-                        id = event.str("id"), threadKey = event.str("threadKey"), otid = event.str("otid"),
-                        senderId = event.str("senderId"), text = event.str("text"), timestampMs = event.long("timestampMs"),
-                        isUnsent = event.bool("isUnsent"), kind = event.str("kind").ifEmpty { "text" },
-                        isEncrypted = event.bool("isEncrypted"), mediaRef = event.str("mediaRef").ifEmpty { null },
-                        durationMs = event.long("durationMs").takeIf { it > 0 },
-                        replyToId = event.str("replyToId").ifEmpty { null }
-                    )
-                    val thread = s.messages[message.threadKey].orEmpty()
-                    s.copy(
-                        messages = s.messages + (message.threadKey to (thread + (message.id to message))),
-                        pending = s.pending - message.otid,
-                        threads = s.threads.withMessage(message, isOutgoing = message.senderId.isNotEmpty() && message.senderId == s.selfId)
-                    )
-                }
-                else -> s
-            }
+        _snapshot.update { current -> current.withAvatar(event).reduce(event) }
+    }
+
+    /** A thread's picture can come with its thread event (Messenger) or on its own (WhatsApp). */
+    private fun Snapshot.withAvatar(event: JsonObject): Snapshot {
+        val pictureKey = event.str(if (event.str("type") == "avatar") "threadKey" else "key")
+        val picture = event.str(if (event.str("type") == "avatar") "url" else "pictureUrl")
+        return if (pictureKey.isNotEmpty() && picture.isNotEmpty()) {
+            copy(avatars = avatars + (pictureKey to picture))
+        } else {
+            this
         }
     }
 
-    /** How a quote describes a message without text. */
-    private fun quotedKind(message: StoredMessage, s: Snapshot): String = when (s.attachments[message.id]?.kind ?: message.kind) {
-        "image" -> "📷 Photo"
-        "video" -> "🎬 Video"
-        "audio" -> "🎤 Voice message"
-        "sticker" -> "Sticker"
-        "file" -> "📎 File"
-        else -> "Message"
+    private fun Snapshot.reduce(event: JsonObject): Snapshot = when (event.str("type")) {
+        "self" -> copy(selfId = event.str("id"))
+        "contact" -> withContact(event)
+        // Group names from WhatsApp's group list carry no activity; don't let them reset it
+        "thread" if event.bool("nameOnly") -> withThreadName(event)
+        "thread" -> withThread(event)
+        "participant" -> withParticipant(event)
+        "range" -> withRange(event)
+        "attachment" -> withAttachment(event)
+        "typing" -> withTyping(event)
+        "read" -> withReadReceipt(event)
+        "link" -> withLink(event)
+        "reaction" -> withReaction(event)
+        "edit", "unsend" -> withChangedMessage(event)
+        "message" -> withMessageEvent(event)
+        else -> this
     }
+
+    private fun Snapshot.withContact(event: JsonObject): Snapshot =
+        event.str("id").takeIf { it.isNotEmpty() }?.let { id ->
+            // WhatsApp's contact events carry only names; keep a picture learned before
+            val avatar = event.str("avatarUrl").ifBlank { null } ?: contacts[id]?.avatarUrl
+            copy(contacts = contacts + (id to Contact(id, event.str("name"), event.str("firstName"), avatar)))
+        } ?: this
+
+    private fun Snapshot.withThreadName(event: JsonObject): Snapshot =
+        event.str("key").takeIf { it.isNotEmpty() }?.let { key ->
+            val existing = threads[key]
+            val named = existing?.copy(name = event.str("name").ifBlank { existing.name }) ?: Thread(
+                key = key,
+                name = event.str("name"),
+                isGroup = event.bool("isGroup"),
+                isEncrypted = event.bool("isEncrypted"),
+                lastActivityMs = 0L,
+                lastReadMs = 0L,
+                snippet = "",
+                snippetSender = ""
+            )
+            copy(threads = threads + (key to named))
+        } ?: this
+
+    private fun Snapshot.withThread(event: JsonObject): Snapshot =
+        event.str("key").takeIf { it.isNotEmpty() }?.let { key ->
+            val thread = Thread(
+                key = key,
+                name = event.str("name"),
+                isGroup = event.bool("isGroup"),
+                isEncrypted = event.bool("isEncrypted"),
+                lastActivityMs = event.long("lastActivityMs"),
+                lastReadMs = event.long("lastReadMs"),
+                snippet = event.str("snippet"),
+                snippetSender = event.str("snippetSender")
+            )
+            copy(threads = threads + (key to thread))
+        } ?: this
+
+    private fun Snapshot.withParticipant(event: JsonObject): Snapshot {
+        val key = event.str("threadKey")
+        val contact = event.str("contactId")
+        return if (key.isEmpty() || contact.isEmpty()) {
+            this
+        } else {
+            copy(participants = participants + (key to (participants[key].orEmpty() + contact)))
+        }
+    }
+
+    private fun Snapshot.withRange(event: JsonObject): Snapshot {
+        val key = event.str("threadKey")
+        return when {
+            key.isEmpty() -> this
+            event.bool("isEncrypted") -> copy(
+                hasMoreBefore = hasMoreBefore + (key to event.bool("hasMoreBefore")),
+                historyCursors = historyCursors + (key to event.long("minTimestampMs"))
+            )
+
+            else -> copy(hasMoreBefore = hasMoreBefore + (key to event.bool("hasMoreBefore")))
+        }
+    }
+
+    private fun Snapshot.withAttachment(event: JsonObject): Snapshot {
+        val messageId = event.str("messageId")
+        if (messageId.isEmpty() || messageId in attachments) return this
+        val attachment = StoredAttachment(
+            kind = event.str("kind"),
+            url = event.str("url"),
+            mimeType = event.str("mimeType").ifBlank { null },
+            fileName = event.str("fileName").ifBlank { null },
+            width = event.long("width").toInt().takeIf { it > 0 },
+            height = event.long("height").toInt().takeIf { it > 0 },
+            durationMs = event.long("durationMs").takeIf { it > 0 }
+        )
+        return copy(attachments = attachments + (messageId to attachment))
+    }
+
+    private fun Snapshot.withTyping(event: JsonObject): Snapshot {
+        val key = event.str("threadKey")
+        val sender = event.str("senderId")
+        if (key.isEmpty() || sender.isEmpty() || sender == selfId) return this
+        val current = typing[key].orEmpty()
+        val now = if (event.bool("isTyping")) current + sender else current - sender
+        return copy(typing = typing + (key to now))
+    }
+
+    private fun Snapshot.withReadReceipt(event: JsonObject): Snapshot {
+        val key = event.str("threadKey")
+        val contact = event.str("contactId")
+        if (key.isEmpty() || contact.isEmpty()) return this
+        val current = readWatermarks[key].orEmpty()
+        val watermark = maxOf(current[contact] ?: 0L, event.long("watermarkMs"))
+        val read = copy(readWatermarks = readWatermarks + (key to (current + (contact to watermark))))
+        // Our own receipt: the chat was read on another device (e.g. the network's own app)
+        val ownThread = threads[key]
+        return if (contact == selfId && ownThread != null && watermark > ownThread.lastReadMs) {
+            read.copy(threads = threads + (key to ownThread.copy(lastReadMs = watermark)))
+        } else {
+            read
+        }
+    }
+
+    private fun Snapshot.withLink(event: JsonObject): Snapshot {
+        val fbKey = event.str("fbThreadKey")
+        val key = event.str("threadKey")
+        if (fbKey.isEmpty() || key.isEmpty()) return this
+        return copy(links = links + (fbKey to Link(key, event.bool("isGroup"), event.long("lastActivityMs"))))
+    }
+
+    private fun Snapshot.withReaction(event: JsonObject): Snapshot {
+        val key = event.str("threadKey")
+        val target = event.str("targetId")
+        val sender = event.str("senderId")
+        if (key.isEmpty() || target.isEmpty() || sender.isEmpty()) return this
+        val byMessage = reactions[key].orEmpty()
+        val bySender = byMessage[target].orEmpty().let { current ->
+            val emoji = event.str("emoji")
+            if (emoji.isEmpty()) current - sender else current + (sender to emoji)
+        }
+        return copy(reactions = reactions + (key to (byMessage + (target to bySender))))
+    }
+
+    private fun Snapshot.withChangedMessage(event: JsonObject): Snapshot {
+        // Messenger edits come without a thread key; the message ID is unique anyway
+        val messageId = event.str("messageId")
+        val threadKey = event.str("threadKey").ifEmpty {
+            messages.entries.firstOrNull { messageId in it.value }?.key.orEmpty()
+        }
+        val original = messages[threadKey]?.get(messageId) ?: return this
+        val changed =
+            if (event.str("type") == "edit") {
+                original.copy(text = event.str("text"), isEdited = true)
+            } else {
+                original.copy(isUnsent = true, text = "", mediaRef = null)
+            }
+        return copy(messages = messages + (threadKey to (messages.getValue(threadKey) + (messageId to changed))))
+    }
+
+    private fun Snapshot.withMessageEvent(event: JsonObject): Snapshot {
+        val message = StoredMessage(
+            id = event.str("id"),
+            threadKey = event.str("threadKey"),
+            otid = event.str("otid"),
+            senderId = event.str("senderId"),
+            text = event.str("text"),
+            timestampMs = event.long("timestampMs"),
+            isUnsent = event.bool("isUnsent"),
+            kind = event.str("kind").ifEmpty { "text" },
+            isEncrypted = event.bool("isEncrypted"),
+            mediaRef = event.str("mediaRef").ifEmpty { null },
+            durationMs = event.long("durationMs").takeIf { it > 0 },
+            replyToId = event.str("replyToId").ifEmpty { null }
+        )
+        val thread = messages[message.threadKey].orEmpty()
+        return copy(
+            messages = messages + (message.threadKey to (thread + (message.id to message))),
+            pending = pending - message.otid,
+            threads = threads.withMessage(
+                message,
+                isOutgoing = message.senderId.isNotEmpty() && message.senderId == selfId
+            )
+        )
+    }
+
+    private fun quotedKind(message: StoredMessage, s: Snapshot): String =
+        when (s.attachments[message.id]?.kind ?: message.kind) {
+            "image" -> "📷 Photo"
+            "video" -> "🎬 Video"
+            "audio" -> "🎤 Voice message"
+            "sticker" -> "Sticker"
+            "file" -> "📎 File"
+            else -> "Message"
+        }
 
     /**
      * A new message moves its chat's last activity on, so it counts as unread (or, sent by us, as read). Some
@@ -386,14 +479,15 @@ class OnDeviceMessengerStore(
      * group pictures come with the thread sync.
      */
     fun avatarKeysToRefresh(): List<String> {
-        val soon = Clock.System.now().toEpochMilliseconds() / 1000 + AVATAR_REFRESH_AHEAD_SECONDS
+        val soon = Clock.System.now().epochSeconds + AVATAR_REFRESH_AHEAD_SECONDS
         return chats().filter { !it.isGroup }.filter { chat ->
-            val expiry = chat.avatarUrl?.let { EXPIRY_PARAM.find(it)?.groupValues?.get(1)?.toLongOrNull(16) }
+            val expiry = chat.avatarUrl?.let { EXPIRY_PARAM.find(it)?.groupValues?.get(1)?.toLongOrNull(HEX) }
             chat.avatarUrl == null || (expiry != null && expiry < soon)
         }.map { it.id.removePrefix(chatIdPrefix) }
     }
 
-    fun mediaRef(threadKey: String, messageId: String): String? = _snapshot.value.messages[threadKey]?.get(messageId)?.mediaRef
+    fun mediaRef(threadKey: String, messageId: String): String? =
+        _snapshot.value.messages[threadKey]?.get(messageId)?.mediaRef
 
     /**
      * Thread rows, plus encrypted chats known only from a link (no thread row) or only from live messages
@@ -401,7 +495,16 @@ class OnDeviceMessengerStore(
      */
     private fun allThreads(s: Snapshot): Map<String, Thread> {
         val fromLinks = s.links.values.filter { it.threadKey !in s.threads }.associate { link ->
-            link.threadKey to Thread(link.threadKey, "", link.isGroup, true, link.lastActivityMs, link.lastActivityMs, "", "")
+            link.threadKey to Thread(
+                link.threadKey,
+                "",
+                link.isGroup,
+                true,
+                link.lastActivityMs,
+                link.lastActivityMs,
+                "",
+                ""
+            )
         }
         val fromMessages = s.messages
             .filterKeys { it !in s.threads && it !in fromLinks }
@@ -442,10 +545,11 @@ class OnDeviceMessengerStore(
     private fun Thread.toChat(s: Snapshot): Chat {
         // Encrypted 1:1 chats are keyed by the other person's ID
         val others = (s.participants[key].orEmpty() + if (isEncrypted && !isGroup) setOf(key) else emptySet()) -
-            setOfNotNull(s.selfId)
+                setOfNotNull(s.selfId)
         val name = name.ifBlank {
             others.mapNotNull { s.contacts[it] }.let { people ->
-                if (isGroup) people.take(4).joinToString(", ") { it.firstName.ifBlank { it.name } } else people.firstOrNull()?.name.orEmpty()
+                if (isGroup) people.take(NAMED_MEMBERS)
+                    .joinToString(", ") { it.firstName.ifBlank { it.name } } else people.firstOrNull()?.name.orEmpty()
             }
         }.ifBlank {
             when {
@@ -468,7 +572,8 @@ class OnDeviceMessengerStore(
             lastMessage = lastMessage,
             unreadCount = if (lastActivityMs > lastReadMs && lastMessage.isOutgoing.not()) 1 else 0,
             isGroup = isGroup,
-            avatarUrl = s.avatars[key] ?: if (isGroup) null else others.firstNotNullOfOrNull { s.contacts[it]?.avatarUrl },
+            avatarUrl = s.avatars[key]
+                ?: if (isGroup) null else others.firstNotNullOfOrNull { s.contacts[it]?.avatarUrl },
             isEncrypted = isEncrypted,
             typingNames = s.typing[key].orEmpty().mapNotNull { s.contacts[it]?.name },
             isOnDevice = true
@@ -477,78 +582,97 @@ class OnDeviceMessengerStore(
 
     private fun StoredMessage.toMessage(s: Snapshot): Message {
         val attachment = s.attachments[id]
-        val effectiveKind = attachment?.kind ?: kind
-        val type = when {
-            isUnsent -> MessageType.NOTICE
-            effectiveKind == "image" -> MessageType.IMAGE
-            effectiveKind == "video" -> MessageType.VIDEO
-            effectiveKind == "audio" -> MessageType.AUDIO
-            effectiveKind == "file" -> MessageType.FILE
-            effectiveKind == "sticker" -> MessageType.STICKER
-            effectiveKind == "text" -> MessageType.TEXT
-            else -> MessageType.OTHER
-        }
-        // Media isn't downloaded on the device yet, so it's described in text
-        val placeholder = when (type) {
-            MessageType.IMAGE -> "📷 Photo"
-            MessageType.VIDEO -> "🎬 Video"
-            MessageType.AUDIO -> "🎤 Voice message"
-            MessageType.FILE -> "📎 File"
-            MessageType.STICKER -> "Sticker"
-            MessageType.OTHER -> "Unsupported message"
-            else -> ""
-        }
-        val reactions = s.reactions[threadKey]?.get(id).orEmpty()
-            .entries.groupBy({ it.value }, { it.key })
-            .map { (emoji, senders) ->
-                Reaction(key = emoji, count = senders.size, ownReactionId = if (s.selfId in senders) "own-$emoji" else null)
-            }
+        val type = messageType(attachment?.kind ?: kind, isUnsent)
         val isOutgoing = senderId.isNotEmpty() && senderId == s.selfId
-        val media = attachment?.media?.takeIf { it.url.isNotBlank() && !isUnsent }
-            ?.let { if (it.durationMillis == null && durationMs != null) it.copy(durationMillis = durationMs) else it }
-            // Not downloaded yet: shown as a card that downloads it when opened
-            ?: mediaRef?.takeIf { type in ON_REQUEST_TYPES }?.let {
-                // The real type arrives with the download; until then a typical one, so the file opens in a player
-                val (mimeType, fileName) = when (type) {
-                    MessageType.VIDEO -> "video/mp4" to "video.mp4"
-                    MessageType.AUDIO -> "audio/ogg" to "voice.ogg"
-                    else -> null to text.ifBlank { null }
-                }
-                MediaInfo(onRequestMediaUrl(chatIdPrefix + threadKey, id), mimeType, fileName, null, null, null, durationMs)
-            }
+        val media = mediaFor(attachment, type)
         return Message(
             id = id,
             chatId = chatIdPrefix + threadKey,
             senderId = senderId,
             senderName = s.contacts[senderId]?.name.orEmpty(),
-            body = when {
-                isUnsent -> "Message unsent"
-                // With media the body is the caption, or the file name (which the bubble doesn't repeat as a caption)
-                media != null -> text.ifBlank { media.fileName.orEmpty() }
-                placeholder.isNotEmpty() && text.isNotBlank() -> "$placeholder · $text"
-                placeholder.isNotEmpty() -> placeholder
-                else -> text
-            },
+            body = bodyWith(media, placeholderFor(type)),
             timestamp = timestampMs,
             isOutgoing = isOutgoing,
             canRetry = canRetry && status == MessageStatus.FAILED,
             // Encrypted media isn't downloaded on the device yet; without media it's a text bubble
             type = if (type in MEDIA_TYPES && media == null) MessageType.TEXT else type,
             status = status,
-            reactions = reactions,
+            reactions = reactionsIn(s),
             media = media,
             isEdited = isEdited,
-            replyTo = replyToId?.takeIf { !isUnsent }?.let { replyId ->
-                val target = s.messages[threadKey]?.get(replyId)
-                ReplyPreview(
-                    messageId = replyId,
-                    senderName = target?.let { if (it.senderId == s.selfId) "You" else s.contacts[it.senderId]?.firstName ?: s.contacts[it.senderId]?.name }.orEmpty(),
-                    body = target?.let { quoted -> if (quoted.isUnsent) "Message unsent" else quoted.text.ifBlank { quotedKind(quoted, s) } }
-                        ?: "Original message"
-                )
-            },
+            replyTo = replyToId?.takeIf { !isUnsent }?.let { replyPreview(it, s) },
             isReadByOthers = isOutgoing && s.readWatermarks[threadKey].orEmpty()
                 .any { (contact, watermark) -> contact != s.selfId && watermark >= timestampMs }
+        )
+    }
+
+    private fun messageType(kind: String, isUnsent: Boolean): MessageType = when {
+        isUnsent -> MessageType.NOTICE
+        kind == "image" -> MessageType.IMAGE
+        kind == "video" -> MessageType.VIDEO
+        kind == "audio" -> MessageType.AUDIO
+        kind == "file" -> MessageType.FILE
+        kind == "sticker" -> MessageType.STICKER
+        kind == "text" -> MessageType.TEXT
+        else -> MessageType.OTHER
+    }
+
+    /** Media isn't downloaded on the device yet, so it's described in text. */
+    private fun placeholderFor(type: MessageType): String = when (type) {
+        MessageType.IMAGE -> "📷 Photo"
+        MessageType.VIDEO -> "🎬 Video"
+        MessageType.AUDIO -> "🎤 Voice message"
+        MessageType.FILE -> "📎 File"
+        MessageType.STICKER -> "Sticker"
+        MessageType.OTHER -> "Unsupported message"
+        else -> ""
+    }
+
+    private fun StoredMessage.reactionsIn(s: Snapshot): List<Reaction> =
+        s.reactions[threadKey]?.get(id).orEmpty()
+            .entries.groupBy({ it.value }, { it.key })
+            .map { (emoji, senders) ->
+                val ownReactionId = if (s.selfId in senders) "own-$emoji" else null
+                Reaction(key = emoji, count = senders.size, ownReactionId = ownReactionId)
+            }
+
+    private fun StoredMessage.mediaFor(attachment: StoredAttachment?, type: MessageType): MediaInfo? =
+        attachment?.media?.takeIf { it.url.isNotBlank() && !isUnsent }
+            ?.let { if (it.durationMillis == null && durationMs != null) it.copy(durationMillis = durationMs) else it }
+        // Not downloaded yet: shown as a card that downloads it when opened
+            ?: mediaRef?.takeIf { type in ON_REQUEST_TYPES }?.let { onRequestMedia(type) }
+
+    private fun StoredMessage.onRequestMedia(type: MessageType): MediaInfo {
+        // The real type arrives with the download; until then a typical one, so the file opens in a player
+        val (mimeType, fileName) = when (type) {
+            MessageType.VIDEO -> "video/mp4" to "video.mp4"
+            MessageType.AUDIO -> "audio/ogg" to "voice.ogg"
+            else -> null to text.ifBlank { null }
+        }
+        val url = onRequestMediaUrl(chatIdPrefix + threadKey, id)
+        return MediaInfo(url, mimeType, fileName, null, null, null, durationMs)
+    }
+
+    private fun StoredMessage.bodyWith(media: MediaInfo?, placeholder: String): String = when {
+        isUnsent -> "Message unsent"
+        // With media the body is the caption, or the file name (which the bubble doesn't repeat as a caption)
+        media != null -> text.ifBlank { media.fileName.orEmpty() }
+        placeholder.isNotEmpty() && text.isNotBlank() -> "$placeholder · $text"
+        placeholder.isNotEmpty() -> placeholder
+        else -> text
+    }
+
+    private fun StoredMessage.replyPreview(replyId: String, s: Snapshot): ReplyPreview {
+        val target = s.messages[threadKey]?.get(replyId)
+        return ReplyPreview(
+            messageId = replyId,
+            senderName = target?.let {
+                val contact = s.contacts[it.senderId]
+                if (it.senderId == s.selfId) "You" else contact?.firstName ?: contact?.name
+            }.orEmpty(),
+            body = target?.let { quoted ->
+                if (quoted.isUnsent) "Message unsent" else quoted.text.ifBlank { quotedKind(quoted, s) }
+            } ?: "Original message"
         )
     }
 
@@ -565,7 +689,8 @@ class OnDeviceMessengerStore(
         const val SLACK_CHAT_ID_PREFIX = "skdevice:"
         private const val CACHE_WRITE_DELAY_MILLIS = 2_000L
         private val cacheJson = Json { ignoreUnknownKeys = true }
-        private val MEDIA_TYPES = setOf(MessageType.IMAGE, MessageType.VIDEO, MessageType.AUDIO, MessageType.FILE, MessageType.STICKER)
+        private val MEDIA_TYPES =
+            setOf(MessageType.IMAGE, MessageType.VIDEO, MessageType.AUDIO, MessageType.FILE, MessageType.STICKER)
         private const val CLOCK_SKEW_MS = 5_000L
         private const val AVATAR_REFRESH_AHEAD_SECONDS = 24 * 3600L
         private val EXPIRY_PARAM = Regex("[?&]oe=([0-9A-Fa-f]+)")
@@ -580,3 +705,9 @@ class OnDeviceMessengerStore(
                 ?.takeIf { it.size == 2 }?.let { it[0] to it[1] }
     }
 }
+
+/** The oe= expiry in Messenger's picture URLs is hexadecimal. */
+private const val HEX = 16
+
+/** How many people an unnamed group is named after. */
+private const val NAMED_MEMBERS = 4

@@ -1,5 +1,10 @@
+// Calls into the Go library (hydbridge) fail with plain Exceptions carrying Go's error text, so they're caught as such
+@file:Suppress("TooGenericExceptionCaught")
+
 package com.devvalor.howyoudoing.app.ondevice
 
+import com.devvalor.howyoudoing.core.domain.media.Attachment
+import com.devvalor.howyoudoing.core.domain.media.MessageRef
 import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceHistoryError
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceHistoryStatus
@@ -37,10 +42,14 @@ import kotlinx.serialization.json.jsonPrimitive
  * One of hydbridge's linked-device clients (WhatsApp, Telegram, Signal) as each platform's bindings expose it.
  * Calls throw on failure; what a network doesn't support throws too.
  */
+// gobind passes only plain values (strings, numbers, byte arrays), so calls take every field as its own parameter
+@Suppress("LongParameterList")
 interface NativeLinkedClient {
     fun isLinked(): Boolean
+
     /** Connects an existing login. */
     fun connect()
+
     /** Starts linking; what happens with the phone number depends on the network (see OnDeviceLinkedAccount). */
     fun startLinking(phoneNumber: String)
     fun submitCode(code: String): Unit = throw UnsupportedOperationException()
@@ -49,21 +58,40 @@ interface NativeLinkedClient {
     fun disconnect()
     fun logout()
     fun sendText(chat: String, text: String): String
+
     /** Sends text replying to a message (its ID, sender and text, which some networks quote). */
-    fun sendReply(chat: String, text: String, replyToId: String, replySenderId: String, quotedText: String): String = sendText(chat, text)
-    fun editMessage(chat: String, messageId: String, text: String): Unit = throw UnsupportedOperationException("Editing isn't supported here")
-    fun unsend(chat: String, messageId: String): Unit = throw UnsupportedOperationException("Deleting isn't supported here")
+    fun sendReply(chat: String, text: String, replyToId: String, replySenderId: String, quotedText: String): String =
+        sendText(chat, text)
+
+    fun editMessage(chat: String, messageId: String, text: String): Unit =
+        throw UnsupportedOperationException("Editing isn't supported here")
+
+    fun unsend(chat: String, messageId: String): Unit =
+        throw UnsupportedOperationException("Deleting isn't supported here")
+
     fun sendReaction(chat: String, messageId: String, senderId: String, emoji: String)
     fun markRead(chat: String, messageId: String, senderId: String)
     fun setTyping(chat: String, isTyping: Boolean)
+
     /** Asks for messages older than the given one (newest page when [beforeMessageId] is empty). */
     fun requestOlder(chat: String, beforeMessageId: String, beforeIsOutgoing: Boolean, beforeTimestampMs: Long)
-    fun sendMediaFile(chat: String, path: String, mimeType: String, fileName: String, caption: String, width: Long, height: Long): String
+    fun sendMediaFile(
+        chat: String,
+        path: String,
+        mimeType: String,
+        fileName: String,
+        caption: String,
+        width: Long,
+        height: Long
+    ): String
+
     /** Sends a recording as a voice note; [waveform] is comma-separated loudness values, 0–255. */
     fun sendVoice(chat: String, path: String, mimeType: String, durationMs: Long, waveform: String): String =
         throw UnsupportedOperationException("Voice messages aren't supported here yet")
+
     /** Downloads media from a message event's mediaRef and returns the file's path. */
     fun downloadMedia(chat: String, messageId: String, mediaRef: String): String
+
     /** Asks for these chats' pictures (comma-separated chat keys); they arrive as avatar events. */
     fun fetchAvatars(chats: String) = Unit
 }
@@ -81,6 +109,7 @@ abstract class NativeOnDeviceLinkedAccount(
 
     private val lock = Mutex()
     private var client: NativeLinkedClient? = null
+
     /** Retries connecting a linked account after a failure (e.g. no network yet after a reboot). */
     private var retryJob: Job? = null
 
@@ -148,24 +177,26 @@ abstract class NativeOnDeviceLinkedAccount(
         beginLinking { startLinking(phoneNumber.orEmpty()) }
 
     // These networks link by pairing or prompts, not with web cookies
-    override suspend fun link(cookies: Map<String, String>): EmptyResult<DataError.Remote> = Result.Failure(DataError.Remote.BAD_REQUEST)
+    override suspend fun link(cookies: Map<String, String>): EmptyResult<DataError.Remote> =
+        Result.Failure(DataError.Remote.BAD_REQUEST)
 
-    private suspend fun beginLinking(start: NativeLinkedClient.() -> Unit): EmptyResult<DataError.Remote> = lock.withLock {
-        withContext(Dispatchers.IO) {
-            try {
-                client?.cancelLinking()
-                _pairing.value = null
-                _events.resetReplayCache()
-                val created = createClient()
-                _state.value = OnDeviceMessengerState.Connecting
-                created.start()
-                Result.Success(Unit)
-            } catch (e: Exception) {
-                failed(e)
-                Result.Failure(DataError.Remote.UNKNOWN)
+    private suspend fun beginLinking(start: NativeLinkedClient.() -> Unit): EmptyResult<DataError.Remote> =
+        lock.withLock {
+            withContext(Dispatchers.IO) {
+                try {
+                    client?.cancelLinking()
+                    _pairing.value = null
+                    _events.resetReplayCache()
+                    val created = createClient()
+                    _state.value = OnDeviceMessengerState.Connecting
+                    created.start()
+                    Result.Success(Unit)
+                } catch (e: Exception) {
+                    failed(e)
+                    Result.Failure(DataError.Remote.UNKNOWN)
+                }
             }
         }
-    }
 
     override suspend fun submitLinkingInput(value: String): EmptyResult<DataError.Remote> {
         val prompt = _pairing.value?.prompt ?: return Result.Failure(DataError.Remote.BAD_REQUEST)
@@ -205,35 +236,73 @@ abstract class NativeOnDeviceLinkedAccount(
         }
     }
 
-    override suspend fun sendText(threadKey: String, text: String, isEncrypted: Boolean, isGroup: Boolean): Result<String, DataError.Remote> =
+    override suspend fun sendText(
+        threadKey: String,
+        text: String,
+        isEncrypted: Boolean,
+        isGroup: Boolean
+    ): Result<String, DataError.Remote> =
         native("Sending a message") { sendText(threadKey, text) }
 
     override suspend fun sendReply(
-        threadKey: String, text: String, isEncrypted: Boolean, isGroup: Boolean, replyToId: String, replySenderId: String, quotedText: String
-    ): Result<String, DataError.Remote> = native("Sending a reply") { sendReply(threadKey, text, replyToId, replySenderId, quotedText) }
+        threadKey: String,
+        text: String,
+        isEncrypted: Boolean,
+        isGroup: Boolean,
+        replyTo: MessageRef
+    ): Result<String, DataError.Remote> =
+        native("Sending a reply") { sendReply(threadKey, text, replyTo.id, replyTo.senderId, replyTo.text) }
 
-    override suspend fun editMessage(threadKey: String, messageId: String, text: String, isEncrypted: Boolean, isGroup: Boolean): EmptyResult<DataError.Remote> =
+    override suspend fun editMessage(
+        threadKey: String,
+        messageId: String,
+        text: String,
+        isEncrypted: Boolean,
+        isGroup: Boolean
+    ): EmptyResult<DataError.Remote> =
         native("Editing a message") { editMessage(threadKey, messageId, text) }
 
-    override suspend fun unsend(threadKey: String, messageId: String, isEncrypted: Boolean, isGroup: Boolean): EmptyResult<DataError.Remote> =
+    override suspend fun unsend(
+        threadKey: String,
+        messageId: String,
+        isEncrypted: Boolean,
+        isGroup: Boolean
+    ): EmptyResult<DataError.Remote> =
         native("Deleting a message") { unsend(threadKey, messageId) }
 
     override suspend fun sendAttachment(
-        threadKey: String, bytes: ByteArray, fileName: String, mimeType: String, width: Int?, height: Int?, caption: String?,
-        isEncrypted: Boolean, isGroup: Boolean, voiceDurationMillis: Long?, waveform: List<Int>?
+        threadKey: String,
+        attachment: Attachment,
+        caption: String?,
+        isEncrypted: Boolean,
+        isGroup: Boolean
     ): Result<String, DataError.Remote> = native("Sending an attachment") {
-        val path = dataDir.writeTemp(bytes)
-        if (voiceDurationMillis != null) {
-            sendVoice(threadKey, path, mimeType, voiceDurationMillis, waveform.orEmpty().joinToString(","))
+        val path = dataDir.writeTemp(attachment.bytes)
+        val voice = attachment.voice
+        if (voice != null) {
+            val waveform = voice.waveform.orEmpty().joinToString(",")
+            sendVoice(threadKey, path, attachment.mimeType, voice.durationMillis, waveform)
         } else {
-            sendMediaFile(threadKey, path, mimeType, fileName, caption.orEmpty(), (width ?: 0).toLong(), (height ?: 0).toLong())
+            sendMediaFile(
+                threadKey,
+                path,
+                attachment.mimeType,
+                attachment.fileName,
+                caption.orEmpty(),
+                (attachment.width ?: 0).toLong(),
+                (attachment.height ?: 0).toLong()
+            )
         }
     }
 
-    override suspend fun downloadMedia(threadKey: String, messageId: String, mediaRef: String): Result<ByteArray, DataError.Remote> =
+    override suspend fun downloadMedia(
+        threadKey: String,
+        messageId: String,
+        mediaRef: String
+    ): Result<ByteArray, DataError.Remote> =
         native("Downloading media") {
             val path = downloadMedia(threadKey, messageId, mediaRef)
-            dataDir.read(path) ?: throw IllegalStateException("Downloaded media is missing")
+            dataDir.read(path) ?: error("Downloaded media is missing")
         }
 
     override suspend fun readMediaFile(path: String): ByteArray? = withContext(Dispatchers.IO) { dataDir.read(path) }
@@ -243,13 +312,29 @@ abstract class NativeOnDeviceLinkedAccount(
     }
 
     override suspend fun sendReaction(
-        threadKey: String, messageId: String, emoji: String, isEncrypted: Boolean, isGroup: Boolean, messageSenderId: String
-    ): EmptyResult<DataError.Remote> = native("Sending a reaction") { sendReaction(threadKey, messageId, messageSenderId, emoji) }
+        threadKey: String,
+        message: MessageRef,
+        emoji: String,
+        isEncrypted: Boolean,
+        isGroup: Boolean
+    ): EmptyResult<DataError.Remote> =
+        native("Sending a reaction") { sendReaction(threadKey, message.id, message.senderId, emoji) }
 
-    override suspend fun markRead(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, lastMessageId: String, senderId: String): EmptyResult<DataError.Remote> =
+    override suspend fun markRead(
+        threadKey: String,
+        isEncrypted: Boolean,
+        isGroup: Boolean,
+        lastMessageId: String,
+        senderId: String
+    ): EmptyResult<DataError.Remote> =
         native("Marking read") { markRead(threadKey, lastMessageId, senderId) }
 
-    override suspend fun setTyping(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, isTyping: Boolean): EmptyResult<DataError.Remote> =
+    override suspend fun setTyping(
+        threadKey: String,
+        isEncrypted: Boolean,
+        isGroup: Boolean,
+        isTyping: Boolean
+    ): EmptyResult<DataError.Remote> =
         native("Sending typing") { setTyping(threadKey, isTyping) }
 
     override suspend fun requestOlder(
@@ -261,12 +346,20 @@ abstract class NativeOnDeviceLinkedAccount(
     override suspend fun historyStatus(): Result<OnDeviceHistoryStatus, DataError.Remote> =
         Result.Success(OnDeviceHistoryStatus(isRestored = false, isBackupAvailable = false))
 
-    override suspend fun restoreHistory(pin: String): EmptyResult<OnDeviceHistoryError> = Result.Failure(OnDeviceHistoryError.NoBackup)
+    override suspend fun restoreHistory(pin: String): EmptyResult<OnDeviceHistoryError> =
+        Result.Failure(OnDeviceHistoryError.NoBackup)
 
-    override suspend fun fetchEncryptedHistory(threadKey: String, isGroup: Boolean, beforeTimestampMs: Long): EmptyResult<DataError.Remote> =
+    override suspend fun fetchEncryptedHistory(
+        threadKey: String,
+        isGroup: Boolean,
+        beforeTimestampMs: Long
+    ): EmptyResult<DataError.Remote> =
         Result.Failure(DataError.Remote.BAD_REQUEST)
 
-    private suspend fun <T> native(description: String, block: NativeLinkedClient.() -> T): Result<T, DataError.Remote> {
+    private suspend fun <T> native(
+        description: String,
+        block: NativeLinkedClient.() -> T
+    ): Result<T, DataError.Remote> {
         val current = client ?: return Result.Failure(DataError.Remote.SERVICE_UNAVAILABLE)
         return withContext(Dispatchers.IO) {
             try {
@@ -280,7 +373,8 @@ abstract class NativeOnDeviceLinkedAccount(
 
     private fun failed(e: Throwable) {
         log("Connecting failed: ${e.message}")
-        _state.value = OnDeviceMessengerState.Failed(e.message?.replaceFirstChar { it.uppercase() } ?: "Couldn't connect")
+        _state.value =
+            OnDeviceMessengerState.Failed(e.message?.replaceFirstChar { it.uppercase() } ?: "Couldn't connect")
     }
 
     private fun onNativeEvent(json: String) {
@@ -288,47 +382,61 @@ abstract class NativeOnDeviceLinkedAccount(
         fun str(key: String) = event[key]?.jsonPrimitive?.contentOrNull
         when (str("type")) {
             "pairing" -> _pairing.value = OnDevicePairing(qrCode = str("qr"), pairingCode = str("code"))
-            "login" -> {
-                val kind = if (str("step") == "password") OnDeviceLoginPrompt.Kind.PASSWORD else OnDeviceLoginPrompt.Kind.CODE
-                val detail = if (kind == OnDeviceLoginPrompt.Kind.PASSWORD) str("hint") else str("codeType")
-                _pairing.value = OnDevicePairing(prompt = OnDeviceLoginPrompt(kind, detail?.ifBlank { null }, isRetry = str("error") == "invalid"))
-                if (_state.value !is OnDeviceMessengerState.Connected) _state.value = OnDeviceMessengerState.Connecting
-            }
+            "login" -> onLoginPrompt(str("step"), hint = str("hint"), codeType = str("codeType"), error = str("error"))
             "debug" -> log("debug $json")
             "self" -> {
                 _pairing.value = null
                 str("name")?.takeIf { it.isNotBlank() }?.let { accountName = it }
                 _state.value = OnDeviceMessengerState.Connected(accountName)
             }
+
             "state" -> {
                 log("state ${str("state")} ${str("error").orEmpty()}")
-                when (str("state")) {
-                    "reconnecting" -> if (_state.value is OnDeviceMessengerState.Connected) _state.value = OnDeviceMessengerState.Connecting
-                    "connected" -> if (_state.value == OnDeviceMessengerState.Connecting && _pairing.value == null) {
-                        _state.value = OnDeviceMessengerState.Connected(accountName)
-                    }
-                    // Telegram connected without a login, and nobody is logging in
-                    "needs_login" -> if (_pairing.value == null && _state.value !is OnDeviceMessengerState.Failed) {
-                        _state.value = OnDeviceMessengerState.NotLinked
-                    }
-                    "pairing_failed" -> if (_state.value !is OnDeviceMessengerState.Connected) {
-                        _pairing.value = null
-                        _state.value = OnDeviceMessengerState.Failed(
-                            when (val reason = str("error").orEmpty()) {
-                                "", "timeout" -> "Linking timed out, try again"
-                                else -> "Linking failed: $reason"
-                            }
-                        )
-                    }
-                    "logged_out" -> {
-                        _state.value = OnDeviceMessengerState.NotLinked
-                        accountName = null
-                        dataDir.clear()
-                    }
-                }
+                onStateChange(str("state"), str("error").orEmpty())
             }
         }
         _events.tryEmit(json)
+    }
+
+    private fun onLoginPrompt(step: String?, hint: String?, codeType: String?, error: String?) {
+        val kind = if (step == "password") OnDeviceLoginPrompt.Kind.PASSWORD else OnDeviceLoginPrompt.Kind.CODE
+        val detail = if (kind == OnDeviceLoginPrompt.Kind.PASSWORD) hint else codeType
+        _pairing.value = OnDevicePairing(
+            prompt = OnDeviceLoginPrompt(kind, detail?.ifBlank { null }, isRetry = error == "invalid")
+        )
+        if (_state.value !is OnDeviceMessengerState.Connected) _state.value = OnDeviceMessengerState.Connecting
+    }
+
+    private fun onStateChange(state: String?, error: String) {
+        when (state) {
+            "reconnecting" -> if (_state.value is OnDeviceMessengerState.Connected) {
+                _state.value = OnDeviceMessengerState.Connecting
+            }
+
+            "connected" -> if (_state.value == OnDeviceMessengerState.Connecting && _pairing.value == null) {
+                _state.value = OnDeviceMessengerState.Connected(accountName)
+            }
+            // Telegram connected without a login, and nobody is logging in
+            "needs_login" -> if (_pairing.value == null && _state.value !is OnDeviceMessengerState.Failed) {
+                _state.value = OnDeviceMessengerState.NotLinked
+            }
+
+            "pairing_failed" -> if (_state.value !is OnDeviceMessengerState.Connected) {
+                _pairing.value = null
+                _state.value = OnDeviceMessengerState.Failed(
+                    when (error) {
+                        "", "timeout" -> "Linking timed out, try again"
+                        else -> "Linking failed: $error"
+                    }
+                )
+            }
+
+            "logged_out" -> {
+                _state.value = OnDeviceMessengerState.NotLinked
+                accountName = null
+                dataDir.clear()
+            }
+        }
     }
 
     private fun log(message: String) = println("OnDevice${network.name}: $message")
@@ -340,12 +448,20 @@ abstract class NativeOnDeviceLinkedAccount(
     }
 }
 
-class NativeOnDeviceWhatsApp(factory: NativeLinkedClientFactory?, dataDir: OnDeviceDataDirectory, scope: CoroutineScope) :
+class NativeOnDeviceWhatsApp(
+    factory: NativeLinkedClientFactory?,
+    dataDir: OnDeviceDataDirectory,
+    scope: CoroutineScope
+) :
     NativeOnDeviceLinkedAccount(factory, dataDir, scope), OnDeviceWhatsApp {
     override val network: ChatNetwork get() = ChatNetwork.WHATSAPP
 }
 
-class NativeOnDeviceTelegram(factory: NativeLinkedClientFactory?, dataDir: OnDeviceDataDirectory, scope: CoroutineScope) :
+class NativeOnDeviceTelegram(
+    factory: NativeLinkedClientFactory?,
+    dataDir: OnDeviceDataDirectory,
+    scope: CoroutineScope
+) :
     NativeOnDeviceLinkedAccount(factory, dataDir, scope), OnDeviceTelegram {
     override val network: ChatNetwork get() = ChatNetwork.TELEGRAM
 }

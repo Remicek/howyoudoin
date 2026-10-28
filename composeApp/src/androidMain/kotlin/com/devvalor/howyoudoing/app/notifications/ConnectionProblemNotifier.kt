@@ -25,7 +25,11 @@ class ConnectionProblemNotifier(context: Context, monitor: ConnectionMonitor, sc
 
     init {
         notifications.createNotificationChannel(
-            NotificationChannel(CHANNEL_ID, context.getString(R.string.channel_problems), NotificationManager.IMPORTANCE_DEFAULT).apply {
+            NotificationChannel(
+                CHANNEL_ID,
+                context.getString(R.string.channel_problems),
+                NotificationManager.IMPORTANCE_DEFAULT
+            ).apply {
                 description = context.getString(R.string.channel_problems_desc)
             }
         )

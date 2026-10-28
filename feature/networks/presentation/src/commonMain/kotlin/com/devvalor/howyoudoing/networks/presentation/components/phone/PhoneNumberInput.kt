@@ -78,7 +78,10 @@ fun PhoneNumberInput(
             text = when {
                 number.isBlank() -> stringResource(Res.string.phone_hint)
                 showError -> stringResource(Res.string.phone_incomplete, country.displayName)
-                else -> stringResource(Res.string.phone_linked_as, formatForDisplay(PhoneNumbers.toE164(country, number), country))
+                else -> stringResource(
+                    Res.string.phone_linked_as,
+                    formatForDisplay(PhoneNumbers.toE164(country, number), country)
+                )
             },
             style = MaterialTheme.typography.bodySmall,
             color = if (showError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
@@ -107,7 +110,11 @@ private fun CountryButton(country: Country, onClick: () -> Unit) {
             .height(56.dp)
             .clip(MaterialTheme.shapes.extraSmall)
             .border(1.dp, MaterialTheme.colorScheme.outline, MaterialTheme.shapes.extraSmall)
-            .clickable(role = Role.DropdownList, onClickLabel = stringResource(Res.string.phone_choose_country), onClick = onClick)
+            .clickable(
+                role = Role.DropdownList,
+                onClickLabel = stringResource(Res.string.phone_choose_country),
+                onClick = onClick
+            )
             .padding(start = 12.dp, end = 4.dp),
     ) {
         Text(country.flag, fontSize = 22.sp)
@@ -120,5 +127,8 @@ private fun CountryButton(country: Country, onClick: () -> Unit) {
 /** "+48600123456" → "+48 600 123 456": groups of three after the country code, purely cosmetic. */
 private fun formatForDisplay(e164: String, country: Country): String {
     val national = e164.removePrefix("+${country.dialCode}")
-    return "+${country.dialCode} " + national.chunked(3).joinToString(" ")
+    return "+${country.dialCode} " + national.chunked(DIGIT_GROUP).joinToString(" ")
 }
+
+/** Digits are shown in groups of three for readability. */
+private const val DIGIT_GROUP = 3

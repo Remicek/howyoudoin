@@ -1,6 +1,7 @@
 package com.devvalor.howyoudoing.app.ondevice
 
 import com.devvalor.howyoudoing.auth.data.HomeserverResolver
+import com.devvalor.howyoudoing.core.domain.media.MessageRef
 import com.devvalor.howyoudoing.auth.data.MatrixAuthService
 import com.devvalor.howyoudoing.core.domain.auth.SessionStorage
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceHistoryError
@@ -35,7 +36,11 @@ class MatrixAccount(
     override val isSupported = true
 
     override val state: StateFlow<OnDeviceMessengerState> = sessionStorage.observeAuthInfo()
-        .map { session -> if (session == null) OnDeviceMessengerState.NotLinked else OnDeviceMessengerState.Connected(session.userId) }
+        .map { session ->
+            if (session == null) OnDeviceMessengerState.NotLinked else OnDeviceMessengerState.Connected(
+                session.userId
+            )
+        }
         .stateIn(scope, SharingStarted.Eagerly, OnDeviceMessengerState.NotLinked)
 
     override val events: Flow<String> = emptyFlow()
@@ -55,15 +60,25 @@ class MatrixAccount(
     // Signing in is all there is to connecting
     override suspend fun connectIfLinked() = Unit
 
-    override suspend fun sendText(threadKey: String, text: String, isEncrypted: Boolean, isGroup: Boolean): Result<String, DataError.Remote> =
+    override suspend fun sendText(
+        threadKey: String,
+        text: String,
+        isEncrypted: Boolean,
+        isGroup: Boolean
+    ): Result<String, DataError.Remote> =
         Result.Failure(DataError.Remote.BAD_REQUEST)
 
     override suspend fun historyStatus(): Result<OnDeviceHistoryStatus, DataError.Remote> =
         Result.Success(OnDeviceHistoryStatus(isRestored = false, isBackupAvailable = false))
 
-    override suspend fun restoreHistory(pin: String): EmptyResult<OnDeviceHistoryError> = Result.Failure(OnDeviceHistoryError.NoBackup)
+    override suspend fun restoreHistory(pin: String): EmptyResult<OnDeviceHistoryError> =
+        Result.Failure(OnDeviceHistoryError.NoBackup)
 
-    override suspend fun fetchEncryptedHistory(threadKey: String, isGroup: Boolean, beforeTimestampMs: Long): EmptyResult<DataError.Remote> =
+    override suspend fun fetchEncryptedHistory(
+        threadKey: String,
+        isGroup: Boolean,
+        beforeTimestampMs: Long
+    ): EmptyResult<DataError.Remote> =
         Result.Failure(DataError.Remote.BAD_REQUEST)
 
     override suspend fun requestOlder(
@@ -71,13 +86,28 @@ class MatrixAccount(
     ): EmptyResult<DataError.Remote> = Result.Failure(DataError.Remote.BAD_REQUEST)
 
     override suspend fun sendReaction(
-        threadKey: String, messageId: String, emoji: String, isEncrypted: Boolean, isGroup: Boolean, messageSenderId: String
+        threadKey: String,
+        message: MessageRef,
+        emoji: String,
+        isEncrypted: Boolean,
+        isGroup: Boolean
     ): EmptyResult<DataError.Remote> = Result.Failure(DataError.Remote.BAD_REQUEST)
 
-    override suspend fun markRead(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, lastMessageId: String, senderId: String): EmptyResult<DataError.Remote> =
+    override suspend fun markRead(
+        threadKey: String,
+        isEncrypted: Boolean,
+        isGroup: Boolean,
+        lastMessageId: String,
+        senderId: String
+    ): EmptyResult<DataError.Remote> =
         Result.Failure(DataError.Remote.BAD_REQUEST)
 
-    override suspend fun setTyping(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, isTyping: Boolean): EmptyResult<DataError.Remote> =
+    override suspend fun setTyping(
+        threadKey: String,
+        isEncrypted: Boolean,
+        isGroup: Boolean,
+        isTyping: Boolean
+    ): EmptyResult<DataError.Remote> =
         Result.Failure(DataError.Remote.BAD_REQUEST)
 
     companion object {

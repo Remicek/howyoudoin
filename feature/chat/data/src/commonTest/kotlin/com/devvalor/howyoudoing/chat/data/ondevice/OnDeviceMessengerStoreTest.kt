@@ -1,6 +1,7 @@
 package com.devvalor.howyoudoing.chat.data.ondevice
 
 import com.devvalor.howyoudoing.chat.domain.MessageType
+import com.devvalor.howyoudoing.core.domain.media.MessageRef
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceHistoryError
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceHistoryStatus
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceMessenger
@@ -31,41 +32,92 @@ class OnDeviceMessengerStoreTest {
         override val events = MutableSharedFlow<String>(extraBufferCapacity = 64)
         override suspend fun link(cookies: Map<String, String>): EmptyResult<DataError.Remote> = Result.Success(Unit)
         override suspend fun connectIfLinked() = Unit
-        override suspend fun sendText(threadKey: String, text: String, isEncrypted: Boolean, isGroup: Boolean) = Result.Success("sent")
+        override suspend fun sendText(threadKey: String, text: String, isEncrypted: Boolean, isGroup: Boolean) =
+            Result.Success("sent")
+
         override suspend fun historyStatus(): Result<OnDeviceHistoryStatus, DataError.Remote> =
             Result.Success(OnDeviceHistoryStatus(isRestored = false, isBackupAvailable = false))
+
         override suspend fun restoreHistory(pin: String): EmptyResult<OnDeviceHistoryError> = Result.Success(Unit)
-        override suspend fun fetchEncryptedHistory(threadKey: String, isGroup: Boolean, beforeTimestampMs: Long) = Result.Success(Unit)
-        override suspend fun requestOlder(threadKey: String, beforeTimestampMs: Long, beforeMessageId: String, beforeMessageIsOutgoing: Boolean) =
+        override suspend fun fetchEncryptedHistory(threadKey: String, isGroup: Boolean, beforeTimestampMs: Long) =
             Result.Success(Unit)
+
+        override suspend fun requestOlder(
+            threadKey: String,
+            beforeTimestampMs: Long,
+            beforeMessageId: String,
+            beforeMessageIsOutgoing: Boolean
+        ) =
+            Result.Success(Unit)
+
         override suspend fun sendReaction(
-            threadKey: String, messageId: String, emoji: String, isEncrypted: Boolean, isGroup: Boolean, messageSenderId: String
+            threadKey: String,
+            message: MessageRef,
+            emoji: String,
+            isEncrypted: Boolean,
+            isGroup: Boolean
         ) = Result.Success(Unit)
-        override suspend fun markRead(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, lastMessageId: String, senderId: String) =
+
+        override suspend fun markRead(
+            threadKey: String,
+            isEncrypted: Boolean,
+            isGroup: Boolean,
+            lastMessageId: String,
+            senderId: String
+        ) =
             Result.Success(Unit)
-        override suspend fun setTyping(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, isTyping: Boolean) = Result.Success(Unit)
+
+        override suspend fun setTyping(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, isTyping: Boolean) =
+            Result.Success(Unit)
+
         override suspend fun unlink() = Unit
     }
 
     private class MemoryCache : OnDeviceInboxCache {
         var value: String? = null
         override fun read() = value
-        override fun write(value: String) { this.value = value }
-        override fun clear() { value = null }
+        override fun write(value: String) {
+            this.value = value
+        }
+
+        override fun clear() {
+            value = null
+        }
     }
 
     private val client = FakeClient()
 
     private fun TestScope.store(cache: OnDeviceInboxCache = MemoryCache()) =
-        OnDeviceMessengerStore(client, cache, CoroutineScope(backgroundScope.coroutineContext + UnconfinedTestDispatcher(testScheduler)))
+        OnDeviceMessengerStore(
+            client,
+            cache,
+            CoroutineScope(backgroundScope.coroutineContext + UnconfinedTestDispatcher(testScheduler))
+        )
 
     private suspend fun emit(json: String) = client.events.emit(json)
 
     private suspend fun self() = emit("""{"type":"self","id":"1"}""")
     private suspend fun contact(id: String, name: String, avatar: String = "") =
-        emit("""{"type":"contact","id":"$id","name":"$name","firstName":"${name.substringBefore(' ')}","avatarUrl":"$avatar"}""")
-    private suspend fun message(thread: String, id: String, sender: String, text: String, ts: Long, kind: String = "text", extra: String = "") =
-        emit("""{"type":"message","threadKey":"$thread","id":"$id","otid":"$id","senderId":"$sender","text":"$text","kind":"$kind","timestampMs":$ts,"isEncrypted":true$extra}""")
+        emit(
+            """{"type":"contact","id":"$id","name":"$name","firstName":"${name.substringBefore(' ')}",""" +
+                """"avatarUrl":"$avatar"}"""
+        )
+
+    // Mirrors the fields of hydbridge's message event
+    @Suppress("LongParameterList")
+    private suspend fun message(
+        thread: String,
+        id: String,
+        sender: String,
+        text: String,
+        ts: Long,
+        kind: String = "text",
+        extra: String = ""
+    ) =
+        emit(
+            """{"type":"message","threadKey":"$thread","id":"$id","otid":"$id","senderId":"$sender","text":"$text",""" +
+                """"kind":"$kind","timestampMs":$ts,"isEncrypted":true$extra}"""
+        )
 
     @Test
     fun encrypted_chat_known_only_from_messages_is_named_after_the_other_person() = runTest {
@@ -117,7 +169,10 @@ class OnDeviceMessengerStoreTest {
         val store = store()
         self()
         message("2", "m1", "2", "", 1_000, kind = "image")
-        emit("""{"type":"attachment","threadKey":"2","messageId":"m1","kind":"image","url":"https://cdn/x.jpg","previewUrl":"https://cdn/x.jpg"}""")
+        emit(
+            """{"type":"attachment","threadKey":"2","messageId":"m1","kind":"image","url":"https://cdn/x.jpg",""" +
+                """"previewUrl":"https://cdn/x.jpg"}"""
+        )
         emit("""{"type":"unsend","threadKey":"2","messageId":"m1"}""")
 
         val unsent = store.messages("2").single()
@@ -190,7 +245,10 @@ class OnDeviceMessengerStoreTest {
     }
 
     private suspend fun thread(key: String, lastActivity: Long, lastRead: Long) =
-        emit("""{"type":"thread","key":"$key","name":"Anna","isGroup":false,"isEncrypted":false,"lastActivityMs":$lastActivity,"lastReadMs":$lastRead}""")
+        emit(
+            """{"type":"thread","key":"$key","name":"Anna","isGroup":false,"isEncrypted":false,""" +
+                """"lastActivityMs":$lastActivity,"lastReadMs":$lastRead}"""
+        )
 
     @Test
     fun a_new_message_after_the_chat_was_read_makes_it_unread() = runTest {

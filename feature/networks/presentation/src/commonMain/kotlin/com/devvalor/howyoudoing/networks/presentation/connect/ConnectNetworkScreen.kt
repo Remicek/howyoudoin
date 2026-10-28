@@ -136,14 +136,21 @@ fun ConnectNetworkScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = { onAction(ConnectNetworkAction.OnBackClick) }) {
-                        Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = stringResource(Res.string.tutorial_back))
+                        Icon(
+                            Icons.AutoMirrored.Rounded.ArrowBack,
+                            contentDescription = stringResource(Res.string.tutorial_back)
+                        )
                     }
                 },
                 actions = {
                     // A Matrix account has no bridge to configure
-                    if (state.phase is ConnectPhase.ChooseFlow && state.canEditBridgeUrl && state.network != ChatNetwork.MATRIX) {
+                    val canChooseServer = state.phase is ConnectPhase.ChooseFlow && state.canEditBridgeUrl
+                    if (canChooseServer && state.network != ChatNetwork.MATRIX) {
                         IconButton(onClick = { onAction(ConnectNetworkAction.OnEditBridgeUrlClick) }) {
-                            Icon(Icons.Rounded.Settings, contentDescription = stringResource(Res.string.connectnetwork_bridge_settings))
+                            Icon(
+                                Icons.Rounded.Settings,
+                                contentDescription = stringResource(Res.string.connectnetwork_bridge_settings)
+                            )
                         }
                     }
                 },
@@ -157,7 +164,13 @@ fun ConnectNetworkScreen(
             val phase = state.phase
             if (phase is ConnectPhase.Step && phase.step is BridgeLoginStep.Cookies) {
                 // The web view needs the full height and handles its own scrolling.
-                CookiesStep(step = phase.step, network = state.network, isSubmitting = state.isSubmitting, error = state.error?.asString(), onAction = onAction)
+                CookiesStep(
+                    step = phase.step,
+                    network = state.network,
+                    isSubmitting = state.isSubmitting,
+                    error = state.error?.asString(),
+                    onAction = onAction
+                )
             } else {
                 Column(
                     modifier = Modifier
@@ -166,22 +179,45 @@ fun ConnectNetworkScreen(
                         .padding(HowYouDoinSpacing.containerPadding),
                 ) {
                     when (phase) {
-                        ConnectPhase.Loading -> Box(Modifier.fillMaxWidth().padding(top = HowYouDoinSpacing.xl), contentAlignment = Alignment.Center) {
+                        ConnectPhase.Loading -> Box(
+                            Modifier.fillMaxWidth().padding(top = HowYouDoinSpacing.xl),
+                            contentAlignment = Alignment.Center
+                        ) {
                             CircularProgressIndicator()
                         }
+
                         ConnectPhase.ConfigureBridge -> ConfigureBridge(state = state, onAction = onAction)
-                        is ConnectPhase.ChooseFlow -> ChooseFlow(network = state.network, flows = phase.flows, onAction = onAction)
+                        is ConnectPhase.ChooseFlow -> ChooseFlow(
+                            network = state.network,
+                            flows = phase.flows,
+                            onAction = onAction
+                        )
+
                         is ConnectPhase.Step -> when (val step = phase.step) {
                             is BridgeLoginStep.DisplayAndWait -> DisplayStep(step, state.network)
-                            is BridgeLoginStep.UserInput -> UserInputStep(step = step, state = state, onAction = onAction)
+                            is BridgeLoginStep.UserInput -> UserInputStep(
+                                step = step,
+                                state = state,
+                                onAction = onAction
+                            )
+
                             is BridgeLoginStep.Cookies, is BridgeLoginStep.Complete -> Unit
                         }
-                        is ConnectPhase.Connected -> Connected(state = state, accountName = phase.accountName, onAction = onAction)
+
+                        is ConnectPhase.Connected -> Connected(
+                            state = state,
+                            accountName = phase.accountName,
+                            onAction = onAction
+                        )
                     }
 
                     state.error?.let { error ->
                         Spacer(Modifier.height(HowYouDoinSpacing.md))
-                        Text(error.asString(), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
+                        Text(
+                            error.asString(),
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
                         Spacer(Modifier.height(HowYouDoinSpacing.sm))
                         OutlinedButton(onClick = { onAction(ConnectNetworkAction.OnRetryClick) }) {
                             Text(stringResource(Res.string.connectnetwork_try_again))
@@ -195,7 +231,11 @@ fun ConnectNetworkScreen(
 
 @Composable
 private fun ConfigureBridge(state: ConnectNetworkState, onAction: (ConnectNetworkAction) -> Unit) {
-    Text(stringResource(Res.string.connectnetwork_bridge_address), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+    Text(
+        stringResource(Res.string.connectnetwork_bridge_address),
+        style = MaterialTheme.typography.titleLarge,
+        fontWeight = FontWeight.SemiBold
+    )
     Spacer(Modifier.height(HowYouDoinSpacing.sm))
     Text(
         stringResource(Res.string.connect_bridge_intro, state.network.displayName),
@@ -225,7 +265,11 @@ private fun ConfigureBridge(state: ConnectNetworkState, onAction: (ConnectNetwor
 @Composable
 private fun ChooseFlow(network: ChatNetwork, flows: List<BridgeLoginFlow>, onAction: (ConnectNetworkAction) -> Unit) {
     if (flows.isEmpty()) return
-    Text(stringResource(Res.string.connectnetwork_how_do_you_want_to), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+    Text(
+        stringResource(Res.string.connectnetwork_how_do_you_want_to),
+        style = MaterialTheme.typography.titleLarge,
+        fontWeight = FontWeight.SemiBold
+    )
     Spacer(Modifier.height(HowYouDoinSpacing.md))
     Column(verticalArrangement = Arrangement.spacedBy(HowYouDoinSpacing.sm)) {
         LoginFlowLabels.present(network, flows).forEach { label ->
@@ -240,7 +284,11 @@ private fun ChooseFlow(network: ChatNetwork, flows: List<BridgeLoginFlow>, onAct
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(HowYouDoinSpacing.md)) {
                     Column(modifier = Modifier.weight(1f)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(label.title.asString(), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                            Text(
+                                label.title.asString(),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.SemiBold
+                            )
                             if (label.isRecommended) {
                                 Spacer(Modifier.width(HowYouDoinSpacing.sm))
                                 Text(
@@ -255,7 +303,11 @@ private fun ChooseFlow(network: ChatNetwork, flows: List<BridgeLoginFlow>, onAct
                         }
                         val description = label.description.asString()
                         if (description.isNotBlank()) {
-                            Text(description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(
+                                description,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         }
                     }
                     Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = null)
@@ -298,6 +350,7 @@ private fun DisplayStep(step: BridgeLoginStep.DisplayAndWait, network: ChatNetwo
                     )
                 }
             }
+
             else -> Text(
                 data,
                 fontFamily = FontFamily.Monospace,
@@ -314,7 +367,11 @@ private fun DisplayStep(step: BridgeLoginStep.DisplayAndWait, network: ChatNetwo
         Row(verticalAlignment = Alignment.CenterVertically) {
             CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
             Spacer(Modifier.width(HowYouDoinSpacing.sm))
-            Text(stringResource(Res.string.connectnetwork_waiting_for_confirmation), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(
+                stringResource(Res.string.connectnetwork_waiting_for_confirmation),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }
@@ -329,7 +386,11 @@ private fun UserInputStep(
     if (step.isMessengerHistoryPin) {
         HistoryPinHeader(step.instructions)
     } else if (step.instructions.isBlank() && asksForPhone) {
-        Text(stringResource(Res.string.connectnetwork_link_with_your_phone_number), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+        Text(
+            stringResource(Res.string.connectnetwork_link_with_your_phone_number),
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.SemiBold
+        )
         Spacer(Modifier.height(HowYouDoinSpacing.sm))
         Text(
             stringResource(Res.string.connect_phone_intro, state.network.displayName),
@@ -364,10 +425,16 @@ private fun UserInputStep(
     Spacer(Modifier.height(HowYouDoinSpacing.sm))
     Button(
         onClick = { onAction(ConnectNetworkAction.OnSubmitInputClick) },
-        enabled = state.canSubmitInput && (!step.canSkip || step.fields.any { state.inputValues[it.id].orEmpty().isNotBlank() }),
+        enabled = state.canSubmitInput && (!step.canSkip || step.fields.any {
+            state.inputValues[it.id].orEmpty().isNotBlank()
+        }),
         modifier = Modifier.fillMaxWidth(),
     ) {
-        Text(stringResource(if (step.isMessengerHistoryPin) Res.string.connect_restore_history else Res.string.connect_continue))
+        Text(
+            stringResource(
+                if (step.isMessengerHistoryPin) Res.string.connect_restore_history else Res.string.connect_continue
+            )
+        )
     }
     if (step.canSkip) {
         TextButton(
@@ -389,7 +456,11 @@ private fun UserInputStep(
 private fun HistoryPinHeader(instructions: String) {
     val problem = instructions.substringBefore("\n\n", missingDelimiterValue = "")
         .takeIf { instructions.contains("\n\n") && it.isNotBlank() }
-    Text(stringResource(Res.string.connectnetwork_restore_encrypted_chats), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+    Text(
+        stringResource(Res.string.connectnetwork_restore_encrypted_chats),
+        style = MaterialTheme.typography.titleLarge,
+        fontWeight = FontWeight.SemiBold
+    )
     Spacer(Modifier.height(HowYouDoinSpacing.sm))
     Text(
         stringResource(Res.string.connectnetwork_enter_the_6_digit_pin),
@@ -431,7 +502,11 @@ private fun InputField(
         label = { Text(field.name) },
         supportingText = field.description.takeIf { it.isNotBlank() }?.let { { Text(it) } },
         singleLine = true,
-        visualTransformation = if (field.type == InputFieldType.PASSWORD) PasswordVisualTransformation() else VisualTransformation.None,
+        visualTransformation = if (field.type == InputFieldType.PASSWORD) {
+            PasswordVisualTransformation()
+        } else {
+            VisualTransformation.None
+        },
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
         modifier = Modifier.fillMaxWidth(),
     )
@@ -454,7 +529,11 @@ private fun CookiesStep(
             modifier = Modifier.padding(HowYouDoinSpacing.md),
         )
         error?.let {
-            Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(horizontal = HowYouDoinSpacing.md))
+            Text(
+                it,
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.padding(horizontal = HowYouDoinSpacing.md)
+            )
         }
         if (!isSubmitting) {
             CookieCaptureWebView(
@@ -475,10 +554,22 @@ private fun Connected(
     accountName: String?,
     onAction: (ConnectNetworkAction) -> Unit,
 ) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth().padding(top = HowYouDoinSpacing.xl)) {
-        Icon(Icons.Rounded.CheckCircle, contentDescription = null, tint = Color(0xFF2E9E5B), modifier = Modifier.size(72.dp))
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.fillMaxWidth().padding(top = HowYouDoinSpacing.xl)
+    ) {
+        Icon(
+            Icons.Rounded.CheckCircle,
+            contentDescription = null,
+            tint = Color(0xFF2E9E5B),
+            modifier = Modifier.size(72.dp)
+        )
         Spacer(Modifier.height(HowYouDoinSpacing.md))
-        Text(stringResource(Res.string.connect_connected, state.network.displayName), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+        Text(
+            stringResource(Res.string.connect_connected, state.network.displayName),
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold
+        )
         Spacer(Modifier.height(HowYouDoinSpacing.sm))
         Text(
             listOfNotNull(

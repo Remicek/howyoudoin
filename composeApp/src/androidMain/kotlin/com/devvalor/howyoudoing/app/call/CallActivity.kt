@@ -82,12 +82,13 @@ class CallActivity : ComponentActivity() {
 
     /** What to do once the permissions are answered. */
     private var afterPermissions: ((audio: Boolean, camera: Boolean) -> Unit)? = null
-    private val permissions = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { result ->
-        val audio = result[Manifest.permission.RECORD_AUDIO] ?: isGranted(Manifest.permission.RECORD_AUDIO)
-        val camera = result[Manifest.permission.CAMERA] ?: isGranted(Manifest.permission.CAMERA)
-        afterPermissions?.invoke(audio, camera)
-        afterPermissions = null
-    }
+    private val permissions =
+        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { result ->
+            val audio = result[Manifest.permission.RECORD_AUDIO] ?: isGranted(Manifest.permission.RECORD_AUDIO)
+            val camera = result[Manifest.permission.CAMERA] ?: isGranted(Manifest.permission.CAMERA)
+            afterPermissions?.invoke(audio, camera)
+            afterPermissions = null
+        }
 
     /** Set once a call was shown, so the screen closes when it goes away (not before it started). */
     private val hadCall = MutableStateFlow(false)
@@ -144,13 +145,18 @@ class CallActivity : ComponentActivity() {
                         return@withPermissions
                     }
                     lifecycleScope.launch {
-                        if (callManager.startCall(chatId, video && camera) is com.devvalor.howyoudoing.core.domain.util.Result.Failure) {
+                        if (callManager.startCall(
+                                chatId,
+                                video && camera
+                            ) is com.devvalor.howyoudoing.core.domain.util.Result.Failure
+                        ) {
                             Toast.makeText(this@CallActivity, R.string.call_start_failed, Toast.LENGTH_LONG).show()
                             if (callManager.call.value == null) finish()
                         }
                     }
                 }
             }
+
             intent.action == ACTION_ANSWER -> {
                 intent.action = null
                 answer(callManager.call.value?.isVideo == true)
@@ -183,7 +189,8 @@ class CallActivity : ComponentActivity() {
         }
     }
 
-    private fun isGranted(permission: String) = ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED
+    private fun isGranted(permission: String) =
+        ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED
 
     companion object {
         const val ACTION_ANSWER = "com.devvalor.howyoudoing.call.ANSWER"
@@ -195,7 +202,8 @@ class CallActivity : ComponentActivity() {
         /** Opens the screen and starts calling [chatId]. */
         fun startCall(context: Context, chatId: String, video: Boolean) {
             context.startActivity(
-                intent(context).putExtra(EXTRA_CHAT_ID, chatId).putExtra(EXTRA_VIDEO, video).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                intent(context).putExtra(EXTRA_CHAT_ID, chatId).putExtra(EXTRA_VIDEO, video)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             )
         }
     }
@@ -231,38 +239,83 @@ private fun CallScreen(
             Modifier.fillMaxSize().safeDrawingPadding().padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(Modifier.height(if (showRemote) 8.dp else 96.dp))
-            if (!showRemote) {
-                Box(
-                    Modifier.size(112.dp).clip(CircleShape).background(Color(0xFF0DBD8B)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(initials(call.peerName), color = Color.White, fontSize = 40.sp, fontWeight = FontWeight.Bold)
-                }
-                Spacer(Modifier.height(20.dp))
-            }
-            Text(call.peerName, color = Color.White, fontSize = 26.sp, fontWeight = FontWeight.SemiBold)
-            Spacer(Modifier.height(6.dp))
-            Text(statusText(call), color = Color(0xFFB8C2CC), fontSize = 16.sp)
+            PeerHeader(call, showRemote)
             Spacer(Modifier.weight(1f))
             when {
-                call.phase == CallPhase.RINGING -> Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                    RoundButton(Icons.Default.CallEnd, stringResource(R.string.call_decline), Color(0xFFE5484D), onDecline)
-                    RoundButton(Icons.Default.Call, stringResource(R.string.call_answer), Color(0xFF30A46C)) { onAnswer(false) }
-                    if (call.isVideo) RoundButton(Icons.Default.Videocam, stringResource(R.string.call_video), Color(0xFF30A46C)) { onAnswer(true) }
-                }
-                call.phase != CallPhase.ENDED -> Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                    ToggleButton(if (call.isMuted) Icons.Default.MicOff else Icons.Default.Mic, stringResource(R.string.call_mute), call.isMuted, onMute)
-                    ToggleButton(if (call.isSpeakerOn) Icons.AutoMirrored.Filled.VolumeUp else Icons.Default.PhoneInTalk, stringResource(R.string.call_speaker), call.isSpeakerOn, onSpeaker)
-                    if (call.isVideo) {
-                        ToggleButton(if (call.isCameraOn) Icons.Default.Videocam else Icons.Default.VideocamOff, stringResource(R.string.call_camera), !call.isCameraOn, onCamera)
-                        if (call.isCameraOn) ToggleButton(Icons.Default.Cameraswitch, stringResource(R.string.call_flip), false, onSwitchCamera)
-                    }
-                    RoundButton(Icons.Default.CallEnd, stringResource(R.string.call_hang_up), Color(0xFFE5484D), onHangUp)
-                }
+                call.phase == CallPhase.RINGING -> RingingButtons(call, onAnswer, onDecline)
+                call.phase != CallPhase.ENDED ->
+                    InCallButtons(call, onMute, onSpeaker, onCamera, onSwitchCamera, onHangUp)
             }
             Spacer(Modifier.height(24.dp))
         }
+    }
+}
+
+/** The other person's initials (unless their video shows), name and what the call is doing. */
+@Composable
+private fun PeerHeader(call: CallState, showRemote: Boolean) {
+    Spacer(Modifier.height(if (showRemote) 8.dp else 96.dp))
+    if (!showRemote) {
+        Box(
+            Modifier.size(112.dp).clip(CircleShape).background(Color(0xFF0DBD8B)),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(initials(call.peerName), color = Color.White, fontSize = 40.sp, fontWeight = FontWeight.Bold)
+        }
+        Spacer(Modifier.height(20.dp))
+    }
+    Text(call.peerName, color = Color.White, fontSize = 26.sp, fontWeight = FontWeight.SemiBold)
+    Spacer(Modifier.height(6.dp))
+    Text(statusText(call), color = Color(0xFFB8C2CC), fontSize = 16.sp)
+}
+
+@Composable
+private fun RingingButtons(call: CallState, onAnswer: (video: Boolean) -> Unit, onDecline: () -> Unit) {
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+        RoundButton(Icons.Default.CallEnd, stringResource(R.string.call_decline), Color(0xFFE5484D), onDecline)
+        RoundButton(Icons.Default.Call, stringResource(R.string.call_answer), Color(0xFF30A46C)) { onAnswer(false) }
+        if (call.isVideo) {
+            RoundButton(Icons.Default.Videocam, stringResource(R.string.call_video), Color(0xFF30A46C)) {
+                onAnswer(true)
+            }
+        }
+    }
+}
+
+@Composable
+private fun InCallButtons(
+    call: CallState,
+    onMute: () -> Unit,
+    onSpeaker: () -> Unit,
+    onCamera: () -> Unit,
+    onSwitchCamera: () -> Unit,
+    onHangUp: () -> Unit
+) {
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+        ToggleButton(
+            if (call.isMuted) Icons.Default.MicOff else Icons.Default.Mic,
+            stringResource(R.string.call_mute),
+            call.isMuted,
+            onMute
+        )
+        ToggleButton(
+            if (call.isSpeakerOn) Icons.AutoMirrored.Filled.VolumeUp else Icons.Default.PhoneInTalk,
+            stringResource(R.string.call_speaker),
+            call.isSpeakerOn,
+            onSpeaker
+        )
+        if (call.isVideo) {
+            ToggleButton(
+                if (call.isCameraOn) Icons.Default.Videocam else Icons.Default.VideocamOff,
+                stringResource(R.string.call_camera),
+                !call.isCameraOn,
+                onCamera
+            )
+            if (call.isCameraOn) {
+                ToggleButton(Icons.Default.Cameraswitch, stringResource(R.string.call_flip), false, onSwitchCamera)
+            }
+        }
+        RoundButton(Icons.Default.CallEnd, stringResource(R.string.call_hang_up), Color(0xFFE5484D), onHangUp)
     }
 }
 
@@ -283,6 +336,7 @@ private fun statusText(call: CallState): String {
             val seconds = ((now - (call.connectedAtMillis ?: now)) / 1000).coerceAtLeast(0)
             "%d:%02d".format(seconds / 60, seconds % 60)
         }
+
         CallPhase.ENDED -> when (call.endReason) {
             CallEndReason.DECLINED -> stringResource(R.string.call_declined)
             CallEndReason.MISSED -> stringResource(R.string.call_missed)

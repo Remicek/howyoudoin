@@ -27,10 +27,10 @@ import kotlin.coroutines.resume
 
 /** PBKDF2-HMAC-SHA256: slow enough that the stored hash doesn't give a short PIN away. */
 class AndroidPinHasher : PinHasher {
-    override fun newSalt(): ByteArray = ByteArray(16).also(SecureRandom()::nextBytes)
+    override fun newSalt(): ByteArray = ByteArray(SALT_BYTES).also(SecureRandom()::nextBytes)
 
     override fun hash(pin: String, salt: ByteArray): ByteArray {
-        val spec = PBEKeySpec(pin.toCharArray(), salt, ITERATIONS, 256)
+        val spec = PBEKeySpec(pin.toCharArray(), salt, ITERATIONS, KEY_BITS)
         try {
             return SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256").generateSecret(spec).encoded
         } finally {
@@ -56,7 +56,8 @@ object CurrentActivity {
 class AndroidBiometricAuthenticator(private val context: Context) : BiometricAuthenticator {
 
     override fun isAvailable(): Boolean =
-        BiometricManager.from(context).canAuthenticate(BIOMETRIC_STRONG or BIOMETRIC_WEAK) == BiometricManager.BIOMETRIC_SUCCESS
+        BiometricManager.from(context)
+            .canAuthenticate(BIOMETRIC_STRONG or BIOMETRIC_WEAK) == BiometricManager.BIOMETRIC_SUCCESS
 
     override suspend fun authenticate(title: String, subtitle: String): Boolean = withContext(Dispatchers.Main) {
         val activity = CurrentActivity.activity ?: return@withContext false
@@ -92,7 +93,8 @@ class AndroidBiometricAuthenticator(private val context: Context) : BiometricAut
 /** The crash report [CrashLog] keeps; the "offer after a crash" choice is read by CrashLog at start. */
 class AndroidCrashReports(private val context: Context) : CrashReports {
 
-    private val lastReport = MutableStateFlow(CrashLog.lastReport(context)?.let { (time, text) -> CrashReport(time, text) })
+    private val lastReport =
+        MutableStateFlow(CrashLog.lastReport(context)?.let { (time, text) -> CrashReport(time, text) })
     private val offers = MutableStateFlow(CrashLog.offersAfterCrash(context))
 
     override fun observeLastReport(): Flow<CrashReport?> = lastReport.asStateFlow()
@@ -113,3 +115,6 @@ class AndroidCrashReports(private val context: Context) : CrashReports {
         this.offers.value = offers
     }
 }
+
+private const val SALT_BYTES = 16
+private const val KEY_BITS = 256

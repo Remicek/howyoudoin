@@ -61,7 +61,12 @@ fun PinPad(
 ) {
     val pinDescription = pluralStringResource(Res.plurals.pin_digits_entered, pinLength, pinLength)
     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = modifier) {
-        Text(title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center)
+        Text(
+            title,
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.SemiBold,
+            textAlign = TextAlign.Center
+        )
         Spacer(Modifier.height(HowYouDoinSpacing.lg))
         Row(
             horizontalArrangement = Arrangement.spacedBy(HowYouDoinSpacing.sm),
@@ -70,7 +75,11 @@ fun PinPad(
             repeat(maxOf(pinLength, PIN_MIN_LENGTH)) { index ->
                 Box(
                     Modifier.size(14.dp).background(
-                        if (index < pinLength) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainerHighest,
+                        if (index < pinLength) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            MaterialTheme.colorScheme.surfaceContainerHighest
+                        },
                         CircleShape,
                     )
                 )
@@ -92,15 +101,29 @@ fun PinPad(
             }
             Spacer(Modifier.height(HowYouDoinSpacing.md))
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(HowYouDoinSpacing.lg), verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(HowYouDoinSpacing.lg),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Box(Modifier.size(KEY_SIZE), contentAlignment = Alignment.Center) {
                 if (onBiometricClick != null) {
                     IconButton(onClick = onBiometricClick, enabled = enabled, modifier = Modifier.size(KEY_SIZE)) {
-                        Icon(Icons.Rounded.Fingerprint, contentDescription = stringResource(Res.string.pin_use_fingerprint), modifier = Modifier.size(32.dp))
+                        Icon(
+                            Icons.Rounded.Fingerprint,
+                            contentDescription = stringResource(Res.string.pin_use_fingerprint),
+                            modifier = Modifier.size(32.dp)
+                        )
                     }
                 } else {
-                    IconButton(onClick = onDelete, enabled = enabled && pinLength > 0, modifier = Modifier.size(KEY_SIZE)) {
-                        Icon(Icons.AutoMirrored.Rounded.Backspace, contentDescription = stringResource(Res.string.pin_delete_digit))
+                    IconButton(
+                        onClick = onDelete,
+                        enabled = enabled && pinLength > 0,
+                        modifier = Modifier.size(KEY_SIZE)
+                    ) {
+                        Icon(
+                            Icons.AutoMirrored.Rounded.Backspace,
+                            contentDescription = stringResource(Res.string.pin_delete_digit)
+                        )
                     }
                 }
             }
@@ -116,14 +139,22 @@ fun PinPad(
             }
         }
         if (onBiometricClick != null) {
-            TextButton(onClick = onDelete, enabled = enabled && pinLength > 0) { Text(stringResource(Res.string.common_delete)) }
+            TextButton(
+                onClick = onDelete,
+                enabled = enabled && pinLength > 0
+            ) { Text(stringResource(Res.string.common_delete)) }
         }
     }
 }
 
 @Composable
 private fun DigitKey(digit: Int, enabled: Boolean, onDigit: (Int) -> Unit) {
-    TextButton(onClick = { onDigit(digit) }, enabled = enabled, shape = CircleShape, modifier = Modifier.size(KEY_SIZE)) {
+    TextButton(
+        onClick = { onDigit(digit) },
+        enabled = enabled,
+        shape = CircleShape,
+        modifier = Modifier.size(KEY_SIZE)
+    ) {
         Text(digit.toString(), fontSize = 28.sp, fontWeight = FontWeight.Medium)
     }
 }

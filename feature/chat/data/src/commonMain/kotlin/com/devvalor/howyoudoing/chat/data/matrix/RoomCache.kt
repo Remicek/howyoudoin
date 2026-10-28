@@ -62,7 +62,9 @@ data class RoomCache(
                     val readers = (byType as? JsonObject)?.obj("m.read")?.keys.orEmpty()
                     receipts = receipts + readers.associateWith { eventId }
                 }
-                "m.typing" -> typing = event.content["user_ids"]?.jsonArray?.mapNotNull { it.jsonPrimitive.contentOrNull }.orEmpty()
+
+                "m.typing" -> typing =
+                    event.content["user_ids"]?.jsonArray?.mapNotNull { it.jsonPrimitive.contentOrNull }.orEmpty()
             }
         }
         return copy(receipts = receipts, typingUserIds = typing)

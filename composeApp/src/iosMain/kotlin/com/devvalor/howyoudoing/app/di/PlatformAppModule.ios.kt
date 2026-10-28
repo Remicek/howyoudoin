@@ -55,16 +55,25 @@ actual val platformAppModule: Module = module {
     single(createdAtStart = true) { IncomingMessageNotifier(get(), get(), get(), get(), get(), get()) }
     single<OnDeviceInboxCache>(named(ON_DEVICE_INSTAGRAM_CACHE)) { IosInboxCache(INSTAGRAM_DIR) }
     single<OnDeviceInstagram>(createdAtStart = true) {
-        NativeOnDeviceInstagram(IosInstagramFactory(), IosSecretStore(INSTAGRAM_DIR), IosDataDirectory(INSTAGRAM_DIR), get())
+        NativeOnDeviceInstagram(
+            IosInstagramFactory(),
+            IosSecretStore(INSTAGRAM_DIR),
+            IosDataDirectory(INSTAGRAM_DIR),
+            get()
+        )
     }
     single<OnDeviceInboxCache>(named(ON_DEVICE_WHATSAPP_CACHE)) { IosInboxCache(WHATSAPP_DIR) }
     single<OnDeviceWhatsApp>(createdAtStart = true) {
         NativeOnDeviceWhatsApp(IosWhatsAppFactory(), IosDataDirectory(WHATSAPP_DIR), get())
     }
     // Telegram, Signal, Slack and calls aren't built for iOS yet
-    single<com.devvalor.howyoudoing.chat.domain.CallMediaEngine> { com.devvalor.howyoudoing.chat.domain.NoCallMediaEngine }
+    single<com.devvalor.howyoudoing.chat.domain.CallMediaEngine> {
+        com.devvalor.howyoudoing.chat.domain.NoCallMediaEngine
+    }
     single { com.devvalor.howyoudoing.chat.domain.CallLauncher { _, _ -> } }
-    single<com.devvalor.howyoudoing.core.domain.backup.LoginBackup> { com.devvalor.howyoudoing.core.domain.backup.NoLoginBackup }
+    single<com.devvalor.howyoudoing.core.domain.backup.LoginBackup> {
+        com.devvalor.howyoudoing.core.domain.backup.NoLoginBackup
+    }
     single<OnDeviceSlack> { UnsupportedOnDeviceSlack }
     single<OnDeviceInboxCache>(named(ON_DEVICE_SLACK_CACHE)) { IosInboxCache("on_device_slack") }
     single<OnDeviceTelegram> { UnsupportedOnDeviceTelegram }

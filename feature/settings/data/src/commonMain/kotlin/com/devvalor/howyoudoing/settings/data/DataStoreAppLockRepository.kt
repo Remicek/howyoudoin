@@ -14,12 +14,14 @@ import com.devvalor.howyoudoing.settings.domain.AppLockSettings
 import com.devvalor.howyoudoing.settings.domain.LockTimeout
 import com.devvalor.howyoudoing.settings.domain.PinCheck
 import com.devvalor.howyoudoing.settings.domain.PinHasher
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
 import kotlin.time.Clock
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 
 /**
  * The PIN is kept only as a salted, slow hash. After [FREE_ATTEMPTS] wrong PINs each further attempt waits
@@ -35,7 +37,8 @@ class DataStoreAppLockRepository(
         AppLockSettings(
             isEnabled = prefs[PIN_HASH] != null,
             isBiometricEnabled = prefs[BIOMETRIC] ?: false,
-            lockAfter = prefs[LOCK_AFTER]?.let { name -> LockTimeout.entries.firstOrNull { it.name == name } } ?: LockTimeout.ONE_MINUTE,
+            lockAfter = prefs[LOCK_AFTER]?.let { name -> LockTimeout.entries.firstOrNull { it.name == name } }
+                ?: LockTimeout.ONE_MINUTE,
             hidesNotificationContent = prefs[HIDE_NOTIFICATION_CONTENT] ?: true
         )
     }
@@ -57,19 +60,31 @@ class DataStoreAppLockRepository(
         val prefs = dataStore.data.first()
         val now = Clock.System.now().toEpochMilliseconds()
         val lockedOutUntil = prefs[LOCKED_OUT_UNTIL] ?: 0L
-        if (lockedOutUntil > now) return PinCheck.TooManyAttempts((lockedOutUntil - now + 999) / 1000)
-        val salt = prefs[PIN_SALT]?.let { Base64.decode(it) } ?: return PinCheck.Correct
-        val expected = prefs[PIN_HASH]?.let { Base64.decode(it) } ?: return PinCheck.Correct
-        if (constantTimeEquals(hasher.hash(pin, salt), expected)) {
-            dataStore.edit { it.remove(FAILED_ATTEMPTS); it.remove(LOCKED_OUT_UNTIL) }
-            return PinCheck.Correct
+        val salt = prefs[PIN_SALT]?.let { Base64.decode(it) }
+        val expected = prefs[PIN_HASH]?.let { Base64.decode(it) }
+        return when {
+            lockedOutUntil > now -> PinCheck.TooManyAttempts(secondsUntil(lockedOutUntil - now))
+            salt == null || expected == null -> PinCheck.Correct
+            constantTimeEquals(hasher.hash(pin, salt), expected) -> {
+                dataStore.edit { it.remove(FAILED_ATTEMPTS); it.remove(LOCKED_OUT_UNTIL) }
+                PinCheck.Correct
+            }
+
+            else -> recordWrongPin(prefs, now)
         }
+    }
+
+    private suspend fun recordWrongPin(prefs: Preferences, now: Long): PinCheck {
         val failures = (prefs[FAILED_ATTEMPTS] ?: 0) + 1
-        val waitSeconds = if (failures < FREE_ATTEMPTS) 0L
-        else (BASE_WAIT_SECONDS shl (failures - FREE_ATTEMPTS).coerceAtMost(10)).coerceAtMost(MAX_WAIT_SECONDS)
+        val waitSeconds = if (failures < FREE_ATTEMPTS) {
+            0L
+        } else {
+            val doublings = (failures - FREE_ATTEMPTS).coerceAtMost(MAX_DOUBLINGS)
+            (BASE_WAIT_SECONDS shl doublings).coerceAtMost(MAX_WAIT_SECONDS)
+        }
         dataStore.edit { edited ->
             edited[FAILED_ATTEMPTS] = failures
-            if (waitSeconds > 0) edited[LOCKED_OUT_UNTIL] = now + waitSeconds * 1000
+            if (waitSeconds > 0) edited[LOCKED_OUT_UNTIL] = now + waitSeconds.seconds.inWholeMilliseconds
         }
         return if (waitSeconds > 0) PinCheck.TooManyAttempts(waitSeconds) else PinCheck.Wrong(FREE_ATTEMPTS - failures)
     }
@@ -119,5 +134,14 @@ class DataStoreAppLockRepository(
         const val FREE_ATTEMPTS = 5
         const val BASE_WAIT_SECONDS = 30L
         const val MAX_WAIT_SECONDS = 15 * 60L
+
+        /** The wait stops doubling after this many more wrong attempts (and is capped anyway). */
+        const val MAX_DOUBLINGS = 10
     }
+}
+
+/** Whole seconds left, rounded up so the wait never shows 0 while it lasts. */
+private fun secondsUntil(millis: Long): Long {
+    val left = millis.milliseconds
+    return left.inWholeSeconds + if (left.inWholeMilliseconds % 1.seconds.inWholeMilliseconds > 0) 1 else 0
 }

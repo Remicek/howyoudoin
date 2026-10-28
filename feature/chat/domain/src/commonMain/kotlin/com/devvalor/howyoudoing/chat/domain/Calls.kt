@@ -16,6 +16,7 @@ interface CallManager {
     fun canCall(chat: Chat): Boolean
 
     suspend fun startCall(chatId: String, video: Boolean): EmptyResult<DataError.Remote>
+
     /** Answers the ringing call; [video] sends our camera too (only if the caller offered video). */
     suspend fun answer(video: Boolean)
     suspend fun decline()
@@ -44,8 +45,10 @@ data class CallState(
 enum class CallPhase {
     /** Incoming, not answered yet. */
     RINGING,
+
     /** Outgoing, the other side hasn't answered yet. */
     CALLING,
+
     /** Answered; the media connection is being set up. */
     CONNECTING,
     CONNECTED,
@@ -68,6 +71,7 @@ interface CallMediaEngine {
 interface CallMediaListener {
     fun onLocalCandidate(candidate: IceCandidate)
     fun onConnected()
+
     /** The media connection failed or was lost for good. */
     fun onFailed()
 }
@@ -76,6 +80,7 @@ interface CallMediaListener {
 interface CallMediaSession {
     /** Creates the offer for an outgoing call (local description set); returns its SDP. */
     suspend fun createOffer(): String
+
     /** Takes the caller's offer and returns our answer's SDP. */
     suspend fun answerOffer(offerSdp: String): String
     suspend fun setRemoteAnswer(answerSdp: String)
@@ -90,7 +95,11 @@ interface CallMediaSession {
 /** Where WebRTC isn't available. */
 object NoCallMediaEngine : CallMediaEngine {
     override val isSupported = false
-    override fun createSession(iceServers: List<IceServer>, video: Boolean, listener: CallMediaListener): CallMediaSession =
+    override fun createSession(
+        iceServers: List<IceServer>,
+        video: Boolean,
+        listener: CallMediaListener
+    ): CallMediaSession =
         throw UnsupportedOperationException("Calls aren't supported here")
 }
 

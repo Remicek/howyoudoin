@@ -24,6 +24,11 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlin.time.Clock
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.minutes
 import kotlin.time.ExperimentalTime
 
 /** Offline sample data so the app can be explored without a homeserver or bridges. */
@@ -62,7 +67,11 @@ class DemoChatRepository(
     override suspend fun loadOlderMessages(chatId: String): EmptyResult<DataError.Remote> =
         Result.Success(Unit)
 
-    override suspend fun sendAttachment(chatId: String, attachment: Attachment, caption: String?): EmptyResult<DataError.Remote> =
+    override suspend fun sendAttachment(
+        chatId: String,
+        attachment: Attachment,
+        caption: String?
+    ): EmptyResult<DataError.Remote> =
         sendMessage(chatId, caption ?: "📎 ${attachment.fileName}")
 
     override suspend fun toggleReaction(chatId: String, messageId: String, key: String): EmptyResult<DataError.Remote> {
@@ -73,9 +82,17 @@ class DemoChatRepository(
                 val existing = message.reactions.firstOrNull { it.key == key }
                 val reactions = when {
                     existing?.isOwn == true -> message.reactions.mapNotNull {
-                        if (it.key == key) it.copy(count = it.count - 1, ownReactionId = null).takeIf { r -> r.count > 0 } else it
+                        if (it.key == key) it.copy(count = it.count - 1, ownReactionId = null)
+                            .takeIf { r -> r.count > 0 } else it
                     }
-                    existing != null -> message.reactions.map { if (it.key == key) it.copy(count = it.count + 1, ownReactionId = "demo") else it }
+
+                    existing != null -> message.reactions.map {
+                        if (it.key == key) it.copy(
+                            count = it.count + 1,
+                            ownReactionId = "demo"
+                        ) else it
+                    }
+
                     else -> message.reactions + Reaction(key, 1, "demo")
                 }
                 message.copy(reactions = reactions)
@@ -84,7 +101,8 @@ class DemoChatRepository(
         return Result.Success(Unit)
     }
 
-    override suspend fun setTyping(chatId: String, isTyping: Boolean): EmptyResult<DataError.Remote> = Result.Success(Unit)
+    override suspend fun setTyping(chatId: String, isTyping: Boolean): EmptyResult<DataError.Remote> =
+        Result.Success(Unit)
 
     override suspend fun resolveMedia(mxcUrl: String, thumbnail: Boolean): MediaRequest? = null
 
@@ -93,14 +111,15 @@ class DemoChatRepository(
         val id = "demo-${now()}"
         val replyTo = replyToId?.let { rid -> demo.messages.firstOrNull { it.id == rid } }
             ?.let { ReplyPreview(it.id, it.senderName, it.body) }
-        append(chatId, message(chatId, id, myUserId, "You", body, now(), MessageStatus.SENDING).copy(replyTo = replyTo))
+        append(chatId, message(chatId, id, Author(myUserId, "You"), body, now())
+            .copy(status = MessageStatus.SENDING, replyTo = replyTo))
         applicationScope.launch {
-            delay(500)
+            delay(500.milliseconds)
             updateMessage(chatId, id) { it.copy(status = MessageStatus.SENT) }
-            delay(1_800)
+            delay(1_800.milliseconds)
             val reply = demo.replies.randomOrNull() ?: return@launch
             val sender = demo.messages.lastOrNull { !it.isOutgoing } ?: return@launch
-            append(chatId, message(chatId, "demo-${now()}", sender.senderId, sender.senderName, reply, now()))
+            append(chatId, message(chatId, "demo-${now()}", Author(sender.senderId, sender.senderName), reply, now()))
             chats.update { all ->
                 val target = all[chatId] ?: return@update all
                 all + (chatId to target.copy(chat = target.chat.copy(unreadCount = target.chat.unreadCount + 1)))
@@ -110,7 +129,7 @@ class DemoChatRepository(
     }
 
     override suspend fun refresh() {
-        delay(500)
+        delay(500.milliseconds)
     }
 
     override suspend fun markAsRead(chatId: String): EmptyResult<DataError.Remote> {
@@ -131,36 +150,28 @@ class DemoChatRepository(
     private fun updateMessage(chatId: String, messageId: String, transform: (Message) -> Message) {
         chats.update { all ->
             val target = all[chatId] ?: return@update all
-            all + (chatId to target.copy(messages = target.messages.map { if (it.id == messageId) transform(it) else it }))
+            val messages = target.messages.map { if (it.id == messageId) transform(it) else it }
+            all + (chatId to target.copy(messages = messages))
         }
     }
 
     private fun now() = Clock.System.now().toEpochMilliseconds()
 
-    private fun message(
-        chatId: String,
-        id: String,
-        senderId: String,
-        senderName: String,
-        body: String,
-        timestamp: Long,
-        status: MessageStatus = MessageStatus.SENT
-    ) = Message(
+    private data class Author(val id: String, val name: String)
+
+    private fun message(chatId: String, id: String, author: Author, body: String, timestamp: Long) = Message(
         id = id,
         chatId = chatId,
-        senderId = senderId,
-        senderName = senderName,
+        senderId = author.id,
+        senderName = author.name,
         body = body,
         timestamp = timestamp,
-        isOutgoing = senderId == myUserId,
-        status = status
+        isOutgoing = author.id == myUserId,
+        status = MessageStatus.SENT
     )
 
     private fun seed(): Map<String, DemoChat> {
         val now = now()
-        val minute = 60_000L
-        val hour = 60 * minute
-        val day = 24 * hour
 
         fun chat(
             id: String,
@@ -169,11 +180,11 @@ class DemoChatRepository(
             unread: Int,
             isGroup: Boolean,
             replies: List<String>,
-            vararg lines: Triple<String, String, Long>
+            vararg lines: Triple<String, String, Duration>
         ): Pair<String, DemoChat> {
             val messages = lines.mapIndexed { index, (sender, body, ago) ->
                 val senderId = if (sender == "You") myUserId else "@${network.name.lowercase()}_$index:howyoudoin.local"
-                message(id, "$id-$index", senderId, sender, body, now - ago)
+                message(id, "$id-$index", Author(senderId, sender), body, now - ago.inWholeMilliseconds)
             }
             return id to DemoChat(
                 chat = Chat(id, name, network, messages.lastOrNull(), unread, isGroup),
@@ -186,45 +197,45 @@ class DemoChatRepository(
             chat(
                 "wa-mom", "Mom", ChatNetwork.WHATSAPP, unread = 2, isGroup = false,
                 replies = listOf("❤️", "Call me when you can", "Ok, see you Sunday!"),
-                Triple("Mom", "Did you eat today?", 3 * hour),
-                Triple("You", "Yes mom 😄", 3 * hour - 5 * minute),
-                Triple("Mom", "Are you coming for dinner on Sunday?", 12 * minute),
-                Triple("Mom", "Dad is making pierogi", 11 * minute),
+                Triple("Mom", "Did you eat today?", 3.hours),
+                Triple("You", "Yes mom 😄", 3.hours - 5.minutes),
+                Triple("Mom", "Are you coming for dinner on Sunday?", 12.minutes),
+                Triple("Mom", "Dad is making pierogi", 11.minutes),
             ),
             chat(
                 "wa-hiking", "Weekend Hiking 🏔️", ChatNetwork.WHATSAPP, unread = 5, isGroup = true,
                 replies = listOf("Count me in!", "Weather looks great 🌤️", "I'll bring snacks"),
-                Triple("Kasia", "Who's in for Saturday?", 2 * hour),
-                Triple("Tomek", "Me! What time?", 2 * hour - 10 * minute),
-                Triple("Kasia", "Meeting at 7:00 at the station", 50 * minute),
-                Triple("Ola", "Can someone grab an extra map?", 40 * minute),
+                Triple("Kasia", "Who's in for Saturday?", 2.hours),
+                Triple("Tomek", "Me! What time?", 2.hours - 10.minutes),
+                Triple("Kasia", "Meeting at 7:00 at the station", 50.minutes),
+                Triple("Ola", "Can someone grab an extra map?", 40.minutes),
             ),
             chat(
                 "msg-tom", "Tom Becker", ChatNetwork.MESSENGER, unread = 0, isGroup = false,
                 replies = listOf("Haha nice", "Sounds good 👍", "Let me check and get back to you"),
-                Triple("Tom Becker", "Did you see the match yesterday?", day + 2 * hour),
-                Triple("You", "That last-minute goal was insane", day + hour),
-                Triple("Tom Becker", "Unreal. Drinks on Friday?", 5 * hour),
-                Triple("You", "Sure, the usual place", 4 * hour),
+                Triple("Tom Becker", "Did you see the match yesterday?", 1.days + 2.hours),
+                Triple("You", "That last-minute goal was insane", 1.days + 1.hours),
+                Triple("Tom Becker", "Unreal. Drinks on Friday?", 5.hours),
+                Triple("You", "Sure, the usual place", 4.hours),
             ),
             chat(
                 "msg-bookclub", "Book Club 📚", ChatNetwork.MESSENGER, unread = 1, isGroup = true,
                 replies = listOf("Finished chapter 5!", "No spoilers please 🙈"),
-                Triple("Anna", "Next pick: Project Hail Mary", 3 * day),
-                Triple("Mark", "Already started it, so good", 2 * day),
-                Triple("Anna", "Meeting moved to Thursday", 30 * minute),
+                Triple("Anna", "Next pick: Project Hail Mary", 3.days),
+                Triple("Mark", "Already started it, so good", 2.days),
+                Triple("Anna", "Meeting moved to Thursday", 30.minutes),
             ),
             chat(
                 "wa-kasia", "Kasia Nowak", ChatNetwork.WHATSAPP, unread = 0, isGroup = false,
                 replies = listOf("Thanks!", "👍"),
-                Triple("You", "Sending you the photos from the trip", 6 * day),
-                Triple("Kasia Nowak", "These are amazing, thank you!", 6 * day - hour),
+                Triple("You", "Sending you the photos from the trip", 6.days),
+                Triple("Kasia Nowak", "These are amazing, thank you!", 6.days - 1.hours),
             ),
             chat(
                 "msg-anna", "Anna Schmidt", ChatNetwork.MESSENGER, unread = 0, isGroup = false,
                 replies = listOf("Perfect", "See you there"),
-                Triple("Anna Schmidt", "Could you review my slides?", 9 * day),
-                Triple("You", "Sure, send them over", 9 * day - 2 * hour),
+                Triple("Anna Schmidt", "Could you review my slides?", 9.days),
+                Triple("You", "Sure, send them over", 9.days - 2.hours),
             ),
         )
     }

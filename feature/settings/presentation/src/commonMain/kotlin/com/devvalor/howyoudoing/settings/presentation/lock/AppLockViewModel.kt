@@ -2,27 +2,28 @@
 
 package com.devvalor.howyoudoing.settings.presentation.lock
 
-import com.devvalor.howyoudoing.core.presentation.util.UiText
-import org.jetbrains.compose.resources.getString
-import howyoudoin.feature.settings.presentation.generated.resources.Res
-import howyoudoin.feature.settings.presentation.generated.resources.pin_wrong
-import howyoudoin.feature.settings.presentation.generated.resources.pin_wrong_tries_left
-import howyoudoin.feature.settings.presentation.generated.resources.pin_too_many
-import howyoudoin.feature.settings.presentation.generated.resources.bio_unlock_title
-import howyoudoin.feature.settings.presentation.generated.resources.bio_unlock_sub
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.devvalor.howyoudoing.core.presentation.util.UiText
 import com.devvalor.howyoudoing.settings.domain.AppLockRepository
 import com.devvalor.howyoudoing.settings.domain.AppLockSettings
 import com.devvalor.howyoudoing.settings.domain.BiometricAuthenticator
 import com.devvalor.howyoudoing.settings.domain.PinCheck
+import howyoudoin.feature.settings.presentation.generated.resources.Res
+import howyoudoin.feature.settings.presentation.generated.resources.bio_unlock_sub
+import howyoudoin.feature.settings.presentation.generated.resources.bio_unlock_title
+import howyoudoin.feature.settings.presentation.generated.resources.pin_too_many
+import howyoudoin.feature.settings.presentation.generated.resources.pin_wrong
+import howyoudoin.feature.settings.presentation.generated.resources.pin_wrong_tries_left
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlin.time.Clock
+import org.jetbrains.compose.resources.getString
 
 data class AppLockState(
     /** Settings loaded; until then nothing is shown, so the inbox can't flash before the lock. */
@@ -42,6 +43,7 @@ sealed interface AppLockAction {
     data object OnDelete : AppLockAction
     data object OnSubmit : AppLockAction
     data object OnBiometricClick : AppLockAction
+
     /** The app went to the background (screen off, another app). */
     data object OnAppHidden : AppLockAction
     data object OnAppShown : AppLockAction
@@ -90,17 +92,20 @@ class AppLockViewModel(
                 pin += action.digit
                 _state.update { it.copy(pinLength = pin.length, message = null, isError = false) }
             }
+
             AppLockAction.OnDelete -> if (pin.isNotEmpty()) {
                 pin = pin.dropLast(1)
                 _state.update { it.copy(pinLength = pin.length) }
             }
+
             AppLockAction.OnSubmit -> submit()
             AppLockAction.OnBiometricClick -> promptBiometric()
             AppLockAction.OnAppHidden -> hiddenAtMillis = now()
             AppLockAction.OnAppShown -> {
                 val hiddenAt = hiddenAtMillis ?: return
                 hiddenAtMillis = null
-                if (settings.isEnabled && !_state.value.isLocked && now() - hiddenAt >= settings.lockAfter.seconds * 1000) {
+                val hiddenLongEnough = now() - hiddenAt >= settings.lockAfter.duration.inWholeMilliseconds
+                if (settings.isEnabled && !_state.value.isLocked && hiddenLongEnough) {
                     lock()
                 }
             }
@@ -141,6 +146,7 @@ class AppLockViewModel(
                         )
                     }
                 }
+
                 is PinCheck.TooManyAttempts -> {
                     pin = ""
                     _state.update { it.copy(isChecking = false, pinLength = 0) }
@@ -154,8 +160,14 @@ class AppLockViewModel(
         waitJob?.cancel()
         waitJob = viewModelScope.launch {
             for (left in seconds downTo 1) {
-                _state.update { it.copy(waitSeconds = left, isError = true, message = UiText.Resource(Res.string.pin_too_many, arrayOf(left))) }
-                delay(1000)
+                _state.update {
+                    it.copy(
+                        waitSeconds = left,
+                        isError = true,
+                        message = UiText.Resource(Res.string.pin_too_many, arrayOf(left))
+                    )
+                }
+                delay(1.seconds)
             }
             _state.update { it.copy(waitSeconds = 0, isError = false, message = null) }
         }
@@ -164,7 +176,11 @@ class AppLockViewModel(
     private fun promptBiometric() {
         if (!_state.value.canUseBiometric || biometricJob?.isActive == true) return
         biometricJob = viewModelScope.launch {
-            if (biometrics.authenticate(title = getString(Res.string.bio_unlock_title), subtitle = getString(Res.string.bio_unlock_sub))) unlock()
+            if (biometrics.authenticate(
+                    title = getString(Res.string.bio_unlock_title),
+                    subtitle = getString(Res.string.bio_unlock_sub)
+                )
+            ) unlock()
         }
     }
 

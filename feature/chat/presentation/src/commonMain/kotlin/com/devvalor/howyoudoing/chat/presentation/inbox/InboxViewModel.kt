@@ -55,10 +55,12 @@ class InboxViewModel(
                 query.value = action.query
                 _state.update { it.copy(query = action.query) }
             }
+
             is InboxAction.OnFilterSelect -> {
                 filter.value = action.filter
                 _state.update { it.copy(filter = action.filter) }
             }
+
             InboxAction.OnLogoutClick -> viewModelScope.launch { authService.logout() }
             InboxAction.OnRefresh -> refresh()
             is InboxAction.OnDismissProblem -> connectionMonitor.dismiss(action.network)
@@ -67,7 +69,12 @@ class InboxViewModel(
     }
 
     private fun observeChats() {
-        combine(chatRepository.observeChats(), query, filter, notificationPreferences.observeMutedChats()) { chats, query, filter, muted ->
+        combine(
+            chatRepository.observeChats(),
+            query,
+            filter,
+            notificationPreferences.observeMutedChats()
+        ) { chats, query, filter, muted ->
             val visible = chats
                 .filter { chat -> filter.matches(chat) }
                 .filter { chat -> query.isBlank() || chat.name.contains(query.trim(), ignoreCase = true) }
@@ -78,7 +85,12 @@ class InboxViewModel(
         }
             .onEach { (visible, networks, encrypted) ->
                 _state.update {
-                    it.copy(chats = visible, networksInInbox = networks, encryptedNetworks = encrypted, isLoading = false)
+                    it.copy(
+                        chats = visible,
+                        networksInInbox = networks,
+                        encryptedNetworks = encrypted,
+                        isLoading = false
+                    )
                 }
             }
             .launchIn(viewModelScope)

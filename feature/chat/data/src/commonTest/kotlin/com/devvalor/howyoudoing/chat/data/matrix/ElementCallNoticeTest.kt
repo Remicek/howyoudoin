@@ -18,7 +18,12 @@ class ElementCallNoticeTest {
         sender = sender,
         originServerTs = 1L,
         stateKey = "_${sender}_DEVICE_m.call",
-        content = if (joined) buildJsonObject { put("application", JsonPrimitive("m.call")) } else JsonObject(emptyMap())
+        content = if (joined) buildJsonObject {
+            put(
+                "application",
+                JsonPrimitive("m.call")
+            )
+        } else JsonObject(emptyMap())
     )
 
     @Test

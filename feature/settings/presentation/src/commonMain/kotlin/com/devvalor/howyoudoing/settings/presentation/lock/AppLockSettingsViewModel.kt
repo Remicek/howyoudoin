@@ -46,6 +46,7 @@ data class AppLockSettingsState(
 
 sealed interface AppLockSettingsAction {
     data object OnTurnOnClick : AppLockSettingsAction
+
     /** Opened from the prompt after signing in: go straight to choosing a PIN, then offer the fingerprint. */
     data object OnStartSetup : AppLockSettingsAction
     data object OnTurnOffClick : AppLockSettingsAction
@@ -86,36 +87,47 @@ class AppLockSettingsViewModel(
                 isSetup = true
                 startPin(PinStep.New)
             }
+
             AppLockSettingsAction.OnTurnOffClick -> startPin(PinStep.Current(PinPurpose.TURN_OFF))
             AppLockSettingsAction.OnChangePinClick -> startPin(PinStep.Current(PinPurpose.CHANGE))
             is AppLockSettingsAction.OnBiometricChange -> viewModelScope.launch {
                 // Make sure the fingerprint works before relying on it
-                if (!action.enabled || biometrics.authenticate(getString(Res.string.bio_use_title), getString(Res.string.bio_confirm))) {
+                if (!action.enabled || biometrics.authenticate(
+                        getString(Res.string.bio_use_title),
+                        getString(Res.string.bio_confirm)
+                    )
+                ) {
                     repository.setBiometricEnabled(action.enabled)
                 }
             }
+
             is AppLockSettingsAction.OnHideNotificationsChange -> viewModelScope.launch {
                 repository.setHidesNotificationContent(action.hides)
             }
+
             AppLockSettingsAction.OnLockAfterClick -> _state.update { it.copy(isTimeoutDialogOpen = true) }
             is AppLockSettingsAction.OnLockAfterSelect -> {
                 _state.update { it.copy(isTimeoutDialogOpen = false) }
                 viewModelScope.launch { repository.setLockAfter(action.timeout) }
             }
+
             AppLockSettingsAction.OnDismissDialog -> _state.update { it.copy(isTimeoutDialogOpen = false) }
             is AppLockSettingsAction.OnDigit -> if (pin.length < PIN_MAX_LENGTH) {
                 pin += action.digit
                 _state.update { it.copy(pinLength = pin.length, pinMessage = null, pinError = false) }
             }
+
             AppLockSettingsAction.OnDelete -> if (pin.isNotEmpty()) {
                 pin = pin.dropLast(1)
                 _state.update { it.copy(pinLength = pin.length) }
             }
+
             AppLockSettingsAction.OnSubmit -> submitPin()
             AppLockSettingsAction.OnCancelPin -> {
                 closePin()
                 if (isSetup) _state.update { it.copy(isSetupFinished = true) }
             }
+
             AppLockSettingsAction.OnBackClick -> Unit
         }
     }
@@ -143,17 +155,27 @@ class AppLockSettingsViewModel(
                             closePin()
                         }
                     }
+
                     is PinCheck.Wrong -> startPin(step, UiText.Resource(Res.string.pin_wrong), isError = true)
-                    is PinCheck.TooManyAttempts -> startPin(step, UiText.Resource(Res.string.pin_too_many, arrayOf(result.seconds)), isError = true)
+                    is PinCheck.TooManyAttempts -> startPin(
+                        step,
+                        UiText.Resource(Res.string.pin_too_many, arrayOf(result.seconds)),
+                        isError = true
+                    )
                 }
             }
+
             PinStep.New -> startPin(PinStep.Confirm(entered), UiText.Resource(Res.string.pin_again))
             is PinStep.Confirm -> if (entered == step.first) {
                 viewModelScope.launch {
                     repository.setPin(entered)
                     closePin()
                     if (isSetup) {
-                        if (biometrics.isAvailable() && biometrics.authenticate(getString(Res.string.bio_use_title), getString(Res.string.bio_instead_of_pin))) {
+                        if (biometrics.isAvailable() && biometrics.authenticate(
+                                getString(Res.string.bio_use_title),
+                                getString(Res.string.bio_instead_of_pin)
+                            )
+                        ) {
                             repository.setBiometricEnabled(true)
                         }
                         _state.update { it.copy(isSetupFinished = true) }
@@ -162,6 +184,7 @@ class AppLockSettingsViewModel(
             } else {
                 startPin(PinStep.New, UiText.Resource(Res.string.pin_mismatch), isError = true)
             }
+
             null -> Unit
         }
     }

@@ -50,6 +50,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
@@ -148,6 +149,7 @@ fun ConversationRoot(
                 clipboard.setText(AnnotatedString(event.text))
                 snackbarHostState.showSnackbar(getString(Res.string.conversation_copied))
             }
+
             is ConversationEvent.OpenFile -> openFile(event.bytes, event.fileName, event.mimeType)
             ConversationEvent.Close -> onBack()
         }
@@ -211,25 +213,39 @@ fun ConversationScreen(
                 actions = {
                     if (state.canCall) {
                         IconButton(onClick = { onAction(ConversationAction.OnCallClick(video = false)) }) {
-                            Icon(Icons.Rounded.Call, contentDescription = stringResource(Res.string.conversation_audio_call))
+                            Icon(
+                                Icons.Rounded.Call,
+                                contentDescription = stringResource(Res.string.conversation_audio_call)
+                            )
                         }
                         IconButton(onClick = { onAction(ConversationAction.OnCallClick(video = true)) }) {
-                            Icon(Icons.Rounded.Videocam, contentDescription = stringResource(Res.string.conversation_video_call))
+                            Icon(
+                                Icons.Rounded.Videocam,
+                                contentDescription = stringResource(Res.string.conversation_video_call)
+                            )
                         }
                     }
                     IconButton(onClick = { onAction(ConversationAction.OnSearchClick) }) {
-                        Icon(Icons.Rounded.Search, contentDescription = stringResource(Res.string.conversation_search_in_chat))
+                        Icon(
+                            Icons.Rounded.Search,
+                            contentDescription = stringResource(Res.string.conversation_search_in_chat)
+                        )
                     }
                     IconButton(onClick = { onAction(ConversationAction.OnToggleMute) }) {
                         Icon(
                             if (state.isMuted) Icons.Rounded.NotificationsOff else Icons.Rounded.Notifications,
-                            contentDescription = stringResource(if (state.isMuted) Res.string.conversation_unmute else Res.string.conversation_mute),
+                            contentDescription = stringResource(
+                                if (state.isMuted) Res.string.conversation_unmute else Res.string.conversation_mute
+                            ),
                         )
                     }
                 },
                 navigationIcon = {
                     IconButton(onClick = { onAction(ConversationAction.OnBackClick) }) {
-                        Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = stringResource(Res.string.conversation_back))
+                        Icon(
+                            Icons.AutoMirrored.Rounded.ArrowBack,
+                            contentDescription = stringResource(Res.string.conversation_back)
+                        )
                     }
                 },
                 title = {
@@ -267,7 +283,8 @@ fun ConversationScreen(
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
         // The composer handles the bottom (navigation bar / keyboard) inset itself
-        contentWindowInsets = ScaffoldDefaults.contentWindowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
+        contentWindowInsets = ScaffoldDefaults.contentWindowInsets
+            .only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
         containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
     ) { padding ->
         Column(
@@ -333,7 +350,13 @@ fun ConversationScreen(
                     Text(stringResource(Res.string.conversation_delete), color = MaterialTheme.colorScheme.error)
                 }
             },
-            dismissButton = { TextButton(onClick = { onAction(ConversationAction.OnDismissDelete) }) { Text(stringResource(Res.string.conversation_cancel)) } },
+            dismissButton = {
+                TextButton(onClick = { onAction(ConversationAction.OnDismissDelete) }) {
+                    Text(
+                        stringResource(Res.string.conversation_cancel)
+                    )
+                }
+            },
         )
     }
     state.viewingImage?.media?.let { media ->
@@ -378,13 +401,19 @@ private fun SearchBar(state: ConversationState, onAction: (ConversationAction) -
                 onClick = { onAction(ConversationAction.OnSearchOlder) },
                 enabled = state.searchIndex < state.searchMatches.size - 1,
             ) {
-                Icon(Icons.Rounded.KeyboardArrowUp, contentDescription = stringResource(Res.string.conversation_older_match))
+                Icon(
+                    Icons.Rounded.KeyboardArrowUp,
+                    contentDescription = stringResource(Res.string.conversation_older_match)
+                )
             }
             IconButton(
                 onClick = { onAction(ConversationAction.OnSearchNewer) },
                 enabled = state.searchIndex > 0,
             ) {
-                Icon(Icons.Rounded.KeyboardArrowDown, contentDescription = stringResource(Res.string.conversation_newer_match))
+                Icon(
+                    Icons.Rounded.KeyboardArrowDown,
+                    contentDescription = stringResource(Res.string.conversation_newer_match)
+                )
             }
         },
     )
@@ -401,41 +430,7 @@ private fun MessageList(
     // reverseLayout: index 0 is the newest message, so the end of the list is the oldest.
     val reversed = remember(state.messages) { state.messages.asReversed() }
 
-    val isNearTop by remember {
-        derivedStateOf {
-            val lastVisible = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
-            lastVisible >= listState.layoutInfo.totalItemsCount - 5
-        }
-    }
-    LaunchedEffect(isNearTop, state.hasMoreHistory, state.messages.size) {
-        if (isNearTop && state.hasMoreHistory) onAction(ConversationAction.OnLoadOlder)
-    }
-    // Stay on the newest message (a chat opens at the bottom, even while its messages arrive in several batches)
-    // until the user scrolls up themselves; scrolling back down to the newest one turns it on again.
-    var followNewest by remember { mutableStateOf(true) }
-    LaunchedEffect(listState) {
-        listState.interactionSource.interactions.collect { interaction ->
-            if (interaction is DragInteraction.Start) followNewest = false
-        }
-    }
-    LaunchedEffect(listState) {
-        snapshotFlow { listState.firstVisibleItemIndex == 0 && !listState.isScrollInProgress }
-            .collect { atNewest -> if (atNewest) followNewest = true }
-    }
-    var shownCount by remember { mutableStateOf(0) }
-    LaunchedEffect(state.messages.lastOrNull()?.id, state.messages.size) {
-        val previousCount = shownCount
-        shownCount = state.messages.size
-        if (!followNewest || state.messages.isEmpty()) return@LaunchedEffect
-        // One new message slides in; a batch (opening the chat, history arriving) jumps without animation
-        if (state.messages.size - previousCount == 1) listState.animateScrollToItem(0) else listState.scrollToItem(0)
-    }
-
-    // Searching: bring the current match into view
-    LaunchedEffect(state.currentMatchId) {
-        val index = reversed.indexOfFirst { it.id == state.currentMatchId }
-        if (index >= 0) listState.animateScrollToItem(index)
-    }
+    MessageListScrolling(listState, state, reversed, onAction)
 
     LazyColumn(
         state = listState,
@@ -445,21 +440,7 @@ private fun MessageList(
         modifier = modifier.fillMaxWidth(),
     ) {
         items(reversed, key = { it.id }) { message ->
-            val isMatch = message.id == state.currentMatchId
-            Column(
-                modifier = if (isMatch) {
-                    Modifier.background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f), RoundedCornerShape(12.dp))
-                } else Modifier
-            ) {
-                message.dayHeader?.let { DayHeader(it) }
-                MessageBubble(
-                    message = message,
-                    resolver = resolver,
-                    onLongPress = { onAction(ConversationAction.OnMessageLongPress(message.id)) },
-                    onMediaClick = { onAction(ConversationAction.OnMediaClick(message.id)) },
-                    onReactionClick = { onAction(ConversationAction.OnReactionClick(message.id, it)) },
-                )
-            }
+            MessageItem(message, isMatch = message.id == state.currentMatchId, resolver, onAction)
         }
         if (!state.hasMoreHistory && !state.isLoadingOlder) {
             item(key = "history-start") { HistoryStartNote(state) }
@@ -497,9 +478,82 @@ private fun HistoryStartNote(state: ConversationState) {
     )
 }
 
+/**
+ * Loads older messages near the top, stays on the newest message (a chat opens at the bottom, even while its
+ * messages arrive in several batches) until the user scrolls up themselves, and brings a search match into view.
+ */
+@Composable
+private fun MessageListScrolling(
+    listState: LazyListState,
+    state: ConversationState,
+    reversed: List<MessageUi>,
+    onAction: (ConversationAction) -> Unit
+) {
+    val isNearTop by remember {
+        derivedStateOf {
+            val lastVisible = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+            lastVisible >= listState.layoutInfo.totalItemsCount - 5
+        }
+    }
+    LaunchedEffect(isNearTop, state.hasMoreHistory, state.messages.size) {
+        if (isNearTop && state.hasMoreHistory) onAction(ConversationAction.OnLoadOlder)
+    }
+    // Scrolling back down to the newest message follows new ones again
+    var followNewest by remember { mutableStateOf(true) }
+    LaunchedEffect(listState) {
+        listState.interactionSource.interactions.collect { interaction ->
+            if (interaction is DragInteraction.Start) followNewest = false
+        }
+    }
+    LaunchedEffect(listState) {
+        snapshotFlow { listState.firstVisibleItemIndex == 0 && !listState.isScrollInProgress }
+            .collect { atNewest -> if (atNewest) followNewest = true }
+    }
+    var shownCount by remember { mutableStateOf(0) }
+    LaunchedEffect(state.messages.lastOrNull()?.id, state.messages.size) {
+        val previousCount = shownCount
+        shownCount = state.messages.size
+        if (!followNewest || state.messages.isEmpty()) return@LaunchedEffect
+        // One new message slides in; a batch (opening the chat, history arriving) jumps without animation
+        if (state.messages.size - previousCount == 1) listState.animateScrollToItem(0) else listState.scrollToItem(0)
+    }
+    LaunchedEffect(state.currentMatchId) {
+        val index = reversed.indexOfFirst { it.id == state.currentMatchId }
+        if (index >= 0) listState.animateScrollToItem(index)
+    }
+}
+
+@Composable
+private fun MessageItem(
+    message: MessageUi,
+    isMatch: Boolean,
+    resolver: MediaResolver,
+    onAction: (ConversationAction) -> Unit
+) {
+    Column(
+        modifier = if (isMatch) {
+            Modifier.background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f), RoundedCornerShape(12.dp))
+        } else {
+            Modifier
+        }
+    ) {
+        message.dayHeader?.let { DayHeader(it) }
+        MessageBubble(
+            message = message,
+            resolver = resolver,
+            onLongPress = { onAction(ConversationAction.OnMessageLongPress(message.id)) },
+            onMediaClick = { onAction(ConversationAction.OnMediaClick(message.id)) },
+            onReactionClick = { onAction(ConversationAction.OnReactionClick(message.id, it)) },
+        )
+    }
+}
+
 @Composable
 private fun DayHeader(label: UiText) {
-    Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxWidth().padding(vertical = HowYouDoinSpacing.sm)) {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier.fillMaxWidth().padding(vertical = HowYouDoinSpacing.sm)
+    ) {
         Text(
             label.asString(),
             style = MaterialTheme.typography.labelMedium,
@@ -513,7 +567,8 @@ private fun DayHeader(label: UiText) {
 
 /** Our own sent text messages can be edited. */
 private fun MessageUi.canEdit(): Boolean =
-    isOutgoing && type == MessageType.TEXT && status == MessageStatus.SENT && !id.startsWith("pending-") && text.isNotBlank()
+    isOutgoing && type == MessageType.TEXT && status == MessageStatus.SENT &&
+        !id.startsWith("pending-") && text.isNotBlank()
 
 /** Our own sent messages can be deleted for everyone (not ones already unsent). */
 private fun MessageUi.canDelete(): Boolean =
@@ -523,11 +578,25 @@ private fun MessageUi.canDelete(): Boolean =
 private fun InviteBar(isAnswering: Boolean, onAccept: () -> Unit, onDecline: () -> Unit) {
     Surface(tonalElevation = 2.dp, modifier = Modifier.fillMaxWidth()) {
         Column(Modifier.navigationBarsPadding().padding(HowYouDoinSpacing.md)) {
-            Text(stringResource(Res.string.conversation_you_were_invited_to_this), style = MaterialTheme.typography.bodyMedium)
+            Text(
+                stringResource(Res.string.conversation_you_were_invited_to_this),
+                style = MaterialTheme.typography.bodyMedium
+            )
             Spacer(Modifier.height(HowYouDoinSpacing.sm))
-            Row(horizontalArrangement = Arrangement.spacedBy(HowYouDoinSpacing.sm), modifier = Modifier.fillMaxWidth()) {
-                OutlinedButton(onClick = onDecline, enabled = !isAnswering, modifier = Modifier.weight(1f)) { Text(stringResource(Res.string.conversation_decline)) }
-                Button(onClick = onAccept, enabled = !isAnswering, modifier = Modifier.weight(1f)) { Text(stringResource(Res.string.conversation_accept)) }
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(HowYouDoinSpacing.sm),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                OutlinedButton(onClick = onDecline, enabled = !isAnswering, modifier = Modifier.weight(1f)) {
+                    Text(
+                        stringResource(Res.string.conversation_decline)
+                    )
+                }
+                Button(
+                    onClick = onAccept,
+                    enabled = !isAnswering,
+                    modifier = Modifier.weight(1f)
+                ) { Text(stringResource(Res.string.conversation_accept)) }
             }
         }
     }

@@ -1,3 +1,6 @@
+// Calls into the Go library (hydbridge) fail with plain Exceptions carrying Go's error text, so they're caught as such
+@file:Suppress("TooGenericExceptionCaught")
+
 package com.devvalor.howyoudoing.app.ondevice
 
 import android.content.Context
@@ -25,10 +28,16 @@ class GoMatrixCrypto(private val crypto: GoCrypto) : MatrixCrypto {
         DecryptResult.Decrypted(crypto.decrypt(roomId, eventJson))
     } catch (e: Exception) {
         val message = e.message.orEmpty()
-        if (message.startsWith(Hydbridge.MissingKeysPrefix)) DecryptResult.MissingKeys else DecryptResult.Failed(message)
+        if (message.startsWith(Hydbridge.MissingKeysPrefix)) {
+            DecryptResult.MissingKeys
+        } else {
+            DecryptResult.Failed(message)
+        }
     }
 
-    override fun encrypt(roomId: String, type: String, contentJson: String): String = crypto.encrypt(roomId, type, contentJson)
+    override fun encrypt(roomId: String, type: String, contentJson: String): String =
+        crypto.encrypt(roomId, type, contentJson)
+
     override fun isVerified(): Boolean = crypto.isVerified
     override fun verifyWithRecoveryKey(recoveryKey: String): Int = crypto.verifyWithRecoveryKey(recoveryKey).toInt()
 
@@ -37,6 +46,7 @@ class GoMatrixCrypto(private val crypto: GoCrypto) : MatrixCrypto {
 
     override fun decryptAttachment(ciphertext: ByteArray, fileJson: String): ByteArray =
         Hydbridge.decryptAttachment(ciphertext, fileJson)
+
     override fun close() = crypto.close()
 }
 
@@ -54,7 +64,12 @@ class GoMatrixCryptoFactory(context: Context) : MatrixCryptoFactory {
             val db = File(dir, "${session.deviceId.replace(Regex("[^A-Za-z0-9_-]"), "_")}.db")
             GoMatrixCrypto(
                 Hydbridge.newMatrixCrypto(
-                    session.homeserverUrl, session.userId, session.deviceId, session.accessToken, db.absolutePath, pickleKey()
+                    session.homeserverUrl,
+                    session.userId,
+                    session.deviceId,
+                    session.accessToken,
+                    db.absolutePath,
+                    pickleKey()
                 )
             )
         } catch (e: Exception) {
@@ -68,7 +83,7 @@ class GoMatrixCryptoFactory(context: Context) : MatrixCryptoFactory {
         }
     }
 
-    private fun pickleKey(): String = pickleKeyStore.read() ?: ByteArray(32)
+    private fun pickleKey(): String = pickleKeyStore.read() ?: ByteArray(PICKLE_KEY_BYTES)
         .also { SecureRandom().nextBytes(it) }
         .let { Base64.encodeToString(it, Base64.NO_WRAP) }
         .also(pickleKeyStore::write)
@@ -100,3 +115,6 @@ class AndroidMatrixMediaCache(context: Context) : MatrixMediaCache {
 
     override fun read(mxcUrl: String): ByteArray? = file(mxcUrl).takeIf { it.isFile }?.readBytes()
 }
+
+/** An empty key for databases created before the pickle key was stored. */
+private const val PICKLE_KEY_BYTES = 32

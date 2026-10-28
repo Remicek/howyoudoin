@@ -49,7 +49,7 @@ object TimestampFormatter {
         val daysAgo = today.date.toEpochDays() - then.date.toEpochDays()
         return when {
             daysAgo <= 0L -> UiText.DynamicString(then.hourMinute())
-            daysAgo < 7L -> UiText.Resource(WEEKDAYS_SHORT.getValue(then.dayOfWeek))
+            daysAgo < DAYS_IN_WEEK -> UiText.Resource(WEEKDAYS_SHORT.getValue(then.dayOfWeek))
             else -> UiText.DynamicString("${then.day.pad()}.${then.month.ordinal.plus(1).pad()}")
         }
     }
@@ -60,7 +60,10 @@ object TimestampFormatter {
             .hourMinute()
     }
 
-    /** Conversation separators: "Today", "Yesterday", "Monday" within a week, else "12 March 2026" (in the user's language). */
+    /**
+     * Conversation separators: "Today", "Yesterday", "Monday" within a week, else "12 March 2026" (in the user's
+     * language).
+     */
     fun formatDayHeader(epochMillis: Long): UiText {
         val zone = TimeZone.currentSystemDefault()
         val day = Instant.fromEpochMilliseconds(epochMillis).toLocalDateTime(zone).date
@@ -69,16 +72,19 @@ object TimestampFormatter {
         return when {
             daysAgo == 0L -> UiText.Resource(Res.string.day_today)
             daysAgo == 1L -> UiText.Resource(Res.string.day_yesterday)
-            daysAgo in 2L..6L -> UiText.Resource(WEEKDAYS.getValue(day.dayOfWeek))
+            daysAgo in 2L..<DAYS_IN_WEEK -> UiText.Resource(WEEKDAYS.getValue(day.dayOfWeek))
             // Each language orders day, month and year itself (and may need the month's genitive form)
-            else -> UiText.Resource(Res.string.date_long, arrayOf(day.day, UiText.Resource(MONTHS[day.month.ordinal]), day.year))
+            else -> UiText.Resource(
+                Res.string.date_long,
+                arrayOf(day.day, UiText.Resource(MONTHS[day.month.ordinal]), day.year)
+            )
         }
     }
 
     fun isSameDay(firstMillis: Long, secondMillis: Long): Boolean {
         val zone = TimeZone.currentSystemDefault()
         return Instant.fromEpochMilliseconds(firstMillis).toLocalDateTime(zone).date ==
-            Instant.fromEpochMilliseconds(secondMillis).toLocalDateTime(zone).date
+                Instant.fromEpochMilliseconds(secondMillis).toLocalDateTime(zone).date
     }
 
     private fun LocalDateTime.hourMinute(): String = "${hour.pad()}:${minute.pad()}"
@@ -105,3 +111,5 @@ object TimestampFormatter {
 
     private fun Int.pad(): String = toString().padStart(2, '0')
 }
+
+private const val DAYS_IN_WEEK = 7L

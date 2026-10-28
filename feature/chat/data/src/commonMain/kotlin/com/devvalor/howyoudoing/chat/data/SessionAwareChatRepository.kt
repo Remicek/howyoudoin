@@ -59,7 +59,11 @@ class SessionAwareChatRepository(
     override suspend fun sendMessage(chatId: String, body: String, replyToId: String?): EmptyResult<DataError.Remote> =
         current().sendMessage(chatId, body, replyToId)
 
-    override suspend fun sendAttachment(chatId: String, attachment: Attachment, caption: String?): EmptyResult<DataError.Remote> =
+    override suspend fun sendAttachment(
+        chatId: String,
+        attachment: Attachment,
+        caption: String?
+    ): EmptyResult<DataError.Remote> =
         current().sendAttachment(chatId, attachment, caption)
 
     override suspend fun toggleReaction(chatId: String, messageId: String, key: String): EmptyResult<DataError.Remote> =
@@ -89,7 +93,8 @@ class SessionAwareChatRepository(
     override suspend fun retryMessage(chatId: String, messageId: String): EmptyResult<DataError.Remote> =
         current().retryMessage(chatId, messageId)
 
-    override suspend fun discardFailedMessage(chatId: String, messageId: String) = current().discardFailedMessage(chatId, messageId)
+    override suspend fun discardFailedMessage(chatId: String, messageId: String) =
+        current().discardFailedMessage(chatId, messageId)
 
     override suspend fun downloadMedia(mxcUrl: String): ByteArray? = current().downloadMedia(mxcUrl)
 }

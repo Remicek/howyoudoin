@@ -30,6 +30,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import android.util.Log
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
@@ -60,6 +61,7 @@ class CallNotifier(context: Context, callManager: CallManager, scope: CoroutineS
                 openCallScreen()
                 CallService.start(context, call.isVideo)
             }
+
             CallPhase.RINGING -> if (CurrentActivity.activity?.hasWindowFocus() == true) openCallScreen()
             CallPhase.CONNECTING, CallPhase.CONNECTED -> CallService.start(context, call.isVideo && call.isCameraOn)
             CallPhase.ENDED, null -> CallService.stop(context)
@@ -71,7 +73,12 @@ class CallNotifier(context: Context, callManager: CallManager, scope: CoroutineS
     }
 
     private fun ring(call: CallState) {
-        val fullScreen = PendingIntent.getActivity(context, 0, CallActivity.intent(context), PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
+        val fullScreen = PendingIntent.getActivity(
+            context,
+            0,
+            CallActivity.intent(context),
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
         val answer = PendingIntent.getActivity(
             context, 1, CallActivity.intent(context).setAction(CallActivity.ACTION_ANSWER),
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
@@ -83,7 +90,9 @@ class CallNotifier(context: Context, callManager: CallManager, scope: CoroutineS
         val notification = NotificationCompat.Builder(context, RINGING_CHANNEL)
             .setSmallIcon(android.R.drawable.sym_call_incoming)
             .setContentTitle(call.peerName)
-            .setContentText(context.getString(if (call.isVideo) R.string.call_incoming_video else R.string.call_incoming))
+            .setContentText(
+                context.getString(if (call.isVideo) R.string.call_incoming_video else R.string.call_incoming)
+            )
             .setCategory(NotificationCompat.CATEGORY_CALL)
             .setPriority(NotificationCompat.PRIORITY_MAX)
             .setOngoing(true)
@@ -94,14 +103,16 @@ class CallNotifier(context: Context, callManager: CallManager, scope: CoroutineS
             .build()
         runCatching { notifications.notify(RINGING_ID, notification) }
         if (ringtone == null) {
-            ringtone = RingtoneManager.getRingtone(context, RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE))?.apply {
-                audioAttributes = AudioAttributes.Builder()
-                    .setUsage(AudioAttributes.USAGE_NOTIFICATION_RINGTONE)
-                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-                    .build()
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) isLooping = true
-                play()
-            }
+            ringtone =
+                RingtoneManager.getRingtone(context, RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE))
+                    ?.apply {
+                        audioAttributes = AudioAttributes.Builder()
+                            .setUsage(AudioAttributes.USAGE_NOTIFICATION_RINGTONE)
+                            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                            .build()
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) isLooping = true
+                        play()
+                    }
         }
     }
 
@@ -113,14 +124,22 @@ class CallNotifier(context: Context, callManager: CallManager, scope: CoroutineS
 
     private fun createChannels() {
         notifications.createNotificationChannel(
-            NotificationChannel(RINGING_CHANNEL, context.getString(R.string.channel_calls_ringing), NotificationManager.IMPORTANCE_HIGH).apply {
+            NotificationChannel(
+                RINGING_CHANNEL,
+                context.getString(R.string.channel_calls_ringing),
+                NotificationManager.IMPORTANCE_HIGH
+            ).apply {
                 description = context.getString(R.string.channel_calls_ringing_desc)
                 // The ringtone plays separately, so it stops as soon as the call is answered or ends
                 setSound(null, null)
             }
         )
         notifications.createNotificationChannel(
-            NotificationChannel(ONGOING_CHANNEL, context.getString(R.string.channel_calls_ongoing), NotificationManager.IMPORTANCE_LOW).apply {
+            NotificationChannel(
+                ONGOING_CHANNEL,
+                context.getString(R.string.channel_calls_ongoing),
+                NotificationManager.IMPORTANCE_LOW
+            ).apply {
                 description = context.getString(R.string.channel_calls_ongoing_desc)
                 setShowBadge(false)
             }
@@ -142,9 +161,16 @@ class CallService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val withCamera = intent?.getBooleanExtra(EXTRA_CAMERA, false) == true
-        val open = PendingIntent.getActivity(this, 3, CallActivity.intent(this), PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
+        val open = PendingIntent.getActivity(
+            this,
+            REQUEST_OPEN,
+            CallActivity.intent(this),
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
         val hangUp = PendingIntent.getBroadcast(
-            this, 4, Intent(this, CallActionReceiver::class.java).setAction(CallActionReceiver.ACTION_HANG_UP),
+            this,
+            REQUEST_HANG_UP,
+            Intent(this, CallActionReceiver::class.java).setAction(CallActionReceiver.ACTION_HANG_UP),
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
         val notification: Notification = NotificationCompat.Builder(this, CallNotifier.ONGOING_CHANNEL)
@@ -157,23 +183,28 @@ class CallService : Service() {
             .addAction(android.R.drawable.ic_menu_close_clear_cancel, getString(R.string.call_hang_up), hangUp)
             .build()
         val types = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE or (if (withCamera) ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA else 0)
+            val camera = if (withCamera) ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA else 0
+            ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE or camera
         } else 0
         try {
             ServiceCompat.startForeground(this, CallNotifier.ONGOING_ID, notification, types)
-        } catch (e: Exception) {
+        } catch (e: SecurityException) {
             // Without the permission (e.g. camera not granted) keep at least the microphone
-            runCatching {
-                ServiceCompat.startForeground(
-                    this, CallNotifier.ONGOING_ID, notification,
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE else 0
-                )
+            Log.w(TAG, "Call service without camera: ${e.message}")
+            val microphone = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE
+            } else {
+                0
             }
+            runCatching { ServiceCompat.startForeground(this, CallNotifier.ONGOING_ID, notification, microphone) }
         }
         return START_NOT_STICKY
     }
 
     companion object {
+        private const val TAG = "CallService"
+        private const val REQUEST_OPEN = 3
+        private const val REQUEST_HANG_UP = 4
         private const val EXTRA_CAMERA = "camera"
 
         fun start(context: Context, withCamera: Boolean) {
@@ -181,7 +212,10 @@ class CallService : Service() {
             if (!context.isGranted(Manifest.permission.RECORD_AUDIO)) return
             val camera = withCamera && context.isGranted(Manifest.permission.CAMERA)
             runCatching {
-                ContextCompat.startForegroundService(context, Intent(context, CallService::class.java).putExtra(EXTRA_CAMERA, camera))
+                ContextCompat.startForegroundService(
+                    context,
+                    Intent(context, CallService::class.java).putExtra(EXTRA_CAMERA, camera)
+                )
             }
         }
 

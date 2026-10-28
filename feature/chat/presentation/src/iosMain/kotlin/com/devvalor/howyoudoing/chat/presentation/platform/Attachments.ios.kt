@@ -16,7 +16,7 @@ import platform.Foundation.writeToURL
 import platform.UIKit.UIActivityViewController
 import platform.UIKit.UIApplication
 
-// TODO: PHPickerViewController / UIDocumentPickerViewController based picker
+// No picker on iOS yet (it would be PHPickerViewController / UIDocumentPickerViewController)
 actual val isAttachmentPickerSupported: Boolean = false
 
 @Composable
@@ -27,10 +27,15 @@ actual fun rememberAttachmentPicker(onPicked: (Attachment) -> Unit, onError: (St
 
 @OptIn(ExperimentalForeignApi::class)
 @Composable
-actual fun rememberFileOpener(): (bytes: ByteArray, fileName: String, mimeType: String?) -> Unit = { bytes, fileName, _ ->
-    val url = NSURL.fileURLWithPath(NSTemporaryDirectory() + fileName.replace("/", "_"))
-    val data = bytes.usePinned { NSData.create(bytes = it.addressOf(0), length = bytes.size.toULong()) }
-    data.writeToURL(url, atomically = true)
-    val sheet = UIActivityViewController(activityItems = listOf(url), applicationActivities = null)
-    UIApplication.sharedApplication.keyWindow?.rootViewController?.presentViewController(sheet, animated = true, completion = null)
-}
+actual fun rememberFileOpener(): (bytes: ByteArray, fileName: String, mimeType: String?) -> Unit =
+    { bytes, fileName, _ ->
+        val url = NSURL.fileURLWithPath(NSTemporaryDirectory() + fileName.replace("/", "_"))
+        val data = bytes.usePinned { NSData.create(bytes = it.addressOf(0), length = bytes.size.toULong()) }
+        data.writeToURL(url, atomically = true)
+        val sheet = UIActivityViewController(activityItems = listOf(url), applicationActivities = null)
+        UIApplication.sharedApplication.keyWindow?.rootViewController?.presentViewController(
+            sheet,
+            animated = true,
+            completion = null
+        )
+    }

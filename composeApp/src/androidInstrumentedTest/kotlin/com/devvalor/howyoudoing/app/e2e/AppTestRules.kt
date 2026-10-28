@@ -31,7 +31,12 @@ class AppTestRules(locale: String = "en-US") {
     val app: AppRule = createAndroidComposeRule<MainActivity>()
 
     val chain: TestRule = RuleChain
-        .outerRule(shell("pm grant $PACKAGE android.permission.POST_NOTIFICATIONS", minSdk = Build.VERSION_CODES.TIRAMISU))
+        .outerRule(
+            shell(
+                "pm grant $PACKAGE android.permission.POST_NOTIFICATIONS",
+                minSdk = Build.VERSION_CODES.TIRAMISU
+            )
+        )
         .around(shell("cmd locale set-app-locales $PACKAGE --locales $locale", minSdk = Build.VERSION_CODES.TIRAMISU))
         .around(app)
 

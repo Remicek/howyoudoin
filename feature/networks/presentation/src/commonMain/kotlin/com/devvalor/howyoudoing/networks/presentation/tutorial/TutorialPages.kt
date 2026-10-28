@@ -93,7 +93,12 @@ object TutorialPages {
         TutorialPage.Choice(
             title = Res.string.tutorialpages_how_do_you_want_to,
             options = listOf(
-                TutorialOption("phone", Res.string.tutorial_pairing_code, Res.string.tutorial_pairing_code_sub, isRecommended = true),
+                TutorialOption(
+                    "phone",
+                    Res.string.tutorial_pairing_code,
+                    Res.string.tutorial_pairing_code_sub,
+                    isRecommended = true
+                ),
                 TutorialOption("qr", Res.string.tutorial_qr, Res.string.tutorial_qr_sub, isRecommended = false),
             )
         ),

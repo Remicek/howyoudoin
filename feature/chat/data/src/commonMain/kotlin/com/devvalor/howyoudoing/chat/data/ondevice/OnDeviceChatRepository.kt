@@ -1,6 +1,7 @@
 package com.devvalor.howyoudoing.chat.data.ondevice
 
 import com.devvalor.howyoudoing.chat.data.SessionAwareChatRepository
+import com.devvalor.howyoudoing.core.domain.media.MessageRef
 import com.devvalor.howyoudoing.chat.domain.Attachment
 import com.devvalor.howyoudoing.chat.domain.Chat
 import com.devvalor.howyoudoing.chat.domain.ChatRepository
@@ -44,7 +45,8 @@ class OnDeviceChatRepository(
     }
 
     private fun route(chatId: String): Route? = sources.firstNotNullOfOrNull { source ->
-        chatId.takeIf { it.startsWith(source.store.chatIdPrefix) }?.let { Route(source, it.removePrefix(source.store.chatIdPrefix)) }
+        chatId.takeIf { it.startsWith(source.store.chatIdPrefix) }
+            ?.let { Route(source, it.removePrefix(source.store.chatIdPrefix)) }
     }
 
     /**
@@ -71,15 +73,23 @@ class OnDeviceChatRepository(
      * would only be duplicates, so they're hidden.
      */
     override fun observeChats(): Flow<List<Chat>> =
-        sources.fold(combine(visibleServerChats(), matrixAccount.observeChats()) { server, account -> server + account }) { chats, source ->
+        sources.fold(
+            combine(
+                visibleServerChats(),
+                matrixAccount.observeChats()
+            ) { server, account -> server + account }) { chats, source ->
             combine(chats, source.store.snapshot) { soFar, _ -> soFar + source.store.chats() }
         }.map { chats -> chats.sortedByDescending { it.lastActivity } }
 
     private fun visibleServerChats(): Flow<List<Chat>> {
-        val onDeviceNetworks = combine(sources.map { source -> source.client.state.map { source.client.network to it } }) { states ->
-            states.filter { (_, state) -> state != OnDeviceMessengerState.NotLinked }.mapTo(HashSet()) { it.first }
-        }
-        return combine(server.observeChats(), onDeviceNetworks) { chats, networks -> chats.filterNot { it.network in networks } }
+        val onDeviceNetworks =
+            combine(sources.map { source -> source.client.state.map { source.client.network to it } }) { states ->
+                states.filter { (_, state) -> state != OnDeviceMessengerState.NotLinked }.mapTo(HashSet()) { it.first }
+            }
+        return combine(
+            server.observeChats(),
+            onDeviceNetworks
+        ) { chats, networks -> chats.filterNot { it.network in networks } }
     }
 
     override fun observeChat(chatId: String): Flow<Chat?> {
@@ -107,15 +117,24 @@ class OnDeviceChatRepository(
     override suspend fun loadOlderMessages(chatId: String): EmptyResult<DataError.Remote> {
         if (matrixAccount.owns(chatId)) return matrixAccount.loadOlderMessages(chatId)
         val route = route(chatId) ?: return server.loadOlderMessages(chatId)
-        val (key, store, client) = Triple(route.key, route.store, route.client)
-        if (!store.hasMoreBefore(key)) return Result.Success(Unit)
-        val oldest = store.oldestMessage(key)
-        if (client.network == ChatNetwork.WHATSAPP) return loadWhatsAppHistory(route, oldest)
-        val thread = store.thread(key)
-        // Messenger's encrypted chats load history from its PIN-protected backup; other networks page as usual
-        if (thread?.isEncrypted == true && client.network == ChatNetwork.MESSENGER) {
-            return loadEncryptedHistory(route, thread.isGroup, oldest?.timestampMs)
+        if (!route.store.hasMoreBefore(route.key)) return Result.Success(Unit)
+        val oldest = route.store.oldestMessage(route.key)
+        val thread = route.store.thread(route.key)
+        return when {
+            route.client.network == ChatNetwork.WHATSAPP -> loadWhatsAppHistory(route, oldest)
+            // Messenger's encrypted chats load history from its PIN-protected backup; other networks page as usual
+            thread?.isEncrypted == true && route.client.network == ChatNetwork.MESSENGER ->
+                loadEncryptedHistory(route, thread.isGroup, oldest?.timestampMs)
+
+            else -> loadOlderPage(route, oldest)
         }
+    }
+
+    private suspend fun loadOlderPage(
+        route: Route,
+        oldest: OnDeviceMessengerStore.StoredMessage?
+    ): EmptyResult<DataError.Remote> {
+        val (key, store, client) = Triple(route.key, route.store, route.client)
         val result = if (oldest == null) {
             // Nothing loaded for this chat yet: fetch the latest page
             client.requestOlder(key, Long.MAX_VALUE / 2, "")
@@ -126,7 +145,7 @@ class OnDeviceChatRepository(
         withTimeoutOrNull(HISTORY_TIMEOUT_MILLIS) {
             store.snapshot.first { s ->
                 s.hasMoreBefore[key] == false ||
-                    s.messages[key].orEmpty().values.any { oldest == null || it.timestampMs < oldest.timestampMs }
+                        s.messages[key].orEmpty().values.any { oldest == null || it.timestampMs < oldest.timestampMs }
             }
         }
         return Result.Success(Unit)
@@ -136,28 +155,38 @@ class OnDeviceChatRepository(
      * WhatsApp history comes from the user's own phone (an on-demand history sync anchored at the oldest message we
      * have). Without any message there's no anchor; if nothing older arrives, the chat has no more history here.
      */
-    private suspend fun loadWhatsAppHistory(route: Route, oldest: OnDeviceMessengerStore.StoredMessage?): EmptyResult<DataError.Remote> {
+    private suspend fun loadWhatsAppHistory(
+        route: Route,
+        oldest: OnDeviceMessengerStore.StoredMessage?
+    ): EmptyResult<DataError.Remote> {
         val (key, store) = route.key to route.store
-        if (oldest == null) {
-            store.markNoMoreHistory(key)
-            return Result.Success(Unit)
+        val arrived = oldest != null && run {
+            val isOutgoing = oldest.senderId == store.snapshot.value.selfId
+            val requested = route.client.requestOlder(key, oldest.timestampMs, oldest.id, isOutgoing)
+            requested is Result.Success && withTimeoutOrNull(HISTORY_TIMEOUT_MILLIS) {
+                store.snapshot.first { s ->
+                    s.messages[key].orEmpty().values.any { it.timestampMs < oldest.timestampMs }
+                }
+            } != null
         }
-        val isOutgoing = oldest.senderId == store.snapshot.value.selfId
-        if (route.client.requestOlder(key, oldest.timestampMs, oldest.id, isOutgoing) is Result.Failure) {
-            store.markNoMoreHistory(key)
-            return Result.Success(Unit)
-        }
-        val arrived = withTimeoutOrNull(HISTORY_TIMEOUT_MILLIS) {
-            store.snapshot.first { s -> s.messages[key].orEmpty().values.any { it.timestampMs < oldest.timestampMs } }
-        }
-        if (arrived == null) store.markNoMoreHistory(key)
+        // Nothing older came (or there's nothing to page from): WhatsApp has no more history to give
+        if (!arrived) store.markNoMoreHistory(key)
         return Result.Success(Unit)
     }
 
     /** Encrypted history comes from the PIN-protected backup; without a restored backup there's nothing older. */
-    private suspend fun loadEncryptedHistory(route: Route, isGroup: Boolean, oldestTimestampMs: Long?): EmptyResult<DataError.Remote> {
+    private suspend fun loadEncryptedHistory(
+        route: Route,
+        isGroup: Boolean,
+        oldestTimestampMs: Long?
+    ): EmptyResult<DataError.Remote> {
         val before = route.store.historyCursor(route.key) ?: oldestTimestampMs ?: 0L
-        if (route.client.fetchEncryptedHistory(route.key, isGroup, before) is Result.Failure) route.store.markNoMoreHistory(route.key)
+        if (route.client.fetchEncryptedHistory(
+                route.key,
+                isGroup,
+                before
+            ) is Result.Failure
+        ) route.store.markNoMoreHistory(route.key)
         return Result.Success(Unit)
     }
 
@@ -178,7 +207,8 @@ class OnDeviceChatRepository(
         val isEncrypted = thread?.isEncrypted == true
         val isGroup = thread?.isGroup == true
         val sent = if (replyTo != null) {
-            route.client.sendReply(route.key, body, isEncrypted, isGroup, replyTo.id, replyTo.senderId, replyTo.body)
+            val quoted = MessageRef(replyTo.id, replyTo.senderId, replyTo.body)
+            route.client.sendReply(route.key, body, isEncrypted, isGroup, quoted)
         } else {
             route.client.sendText(route.key, body, isEncrypted, isGroup)
         }
@@ -188,6 +218,7 @@ class OnDeviceChatRepository(
                 store.rekeyPending(pendingId, result.data)
                 Result.Success(Unit)
             }
+
             is Result.Failure -> {
                 store.failPending(pendingId)
                 result
@@ -195,25 +226,35 @@ class OnDeviceChatRepository(
         }
     }
 
-    override suspend fun sendAttachment(chatId: String, attachment: Attachment, caption: String?): EmptyResult<DataError.Remote> {
+    override suspend fun sendAttachment(
+        chatId: String,
+        attachment: Attachment,
+        caption: String?
+    ): EmptyResult<DataError.Remote> {
         if (matrixAccount.owns(chatId)) return matrixAccount.sendAttachment(chatId, attachment, caption)
         val route = route(chatId) ?: return server.sendAttachment(chatId, attachment, caption)
         val store = route.store
         val pendingId = store.newPendingId()
         store.addPending(
-            route.key, pendingId, caption ?: if (attachment.isVoice) "🎤 Voice message" else attachment.fileName, canRetry = false
+            route.key,
+            pendingId,
+            caption ?: if (attachment.isVoice) "🎤 Voice message" else attachment.fileName,
+            canRetry = false
         )
         val thread = store.thread(route.key)
         val result = route.client.sendAttachment(
-            route.key, attachment.bytes, attachment.fileName, attachment.mimeType, attachment.width, attachment.height, caption,
-            isEncrypted = thread?.isEncrypted == true, isGroup = thread?.isGroup == true,
-            voiceDurationMillis = attachment.voiceDurationMillis, waveform = attachment.waveform
+            route.key,
+            attachment,
+            caption,
+            isEncrypted = thread?.isEncrypted == true,
+            isGroup = thread?.isGroup == true
         )
         return when (result) {
             is Result.Success -> {
                 store.rekeyPending(pendingId, result.data)
                 Result.Success(Unit)
             }
+
             is Result.Failure -> {
                 store.failPending(pendingId)
                 result
@@ -231,7 +272,8 @@ class OnDeviceChatRepository(
     override suspend fun retryMessage(chatId: String, messageId: String): EmptyResult<DataError.Remote> {
         if (matrixAccount.owns(chatId)) return matrixAccount.retryMessage(chatId, messageId)
         val route = route(chatId) ?: return server.retryMessage(chatId, messageId)
-        val failed = route.store.failedMessage(messageId)?.takeIf { it.canRetry } ?: return Result.Failure(DataError.Remote.BAD_REQUEST)
+        val failed = route.store.failedMessage(messageId)?.takeIf { it.canRetry }
+            ?: return Result.Failure(DataError.Remote.BAD_REQUEST)
         route.store.removePending(messageId)
         return sendMessage(chatId, failed.text, failed.replyToId)
     }
@@ -249,8 +291,11 @@ class OnDeviceChatRepository(
         val target = route.store.messages(route.key).firstOrNull { it.id == messageId }
         val isOwn = target?.reactions?.any { it.key == key && it.isOwn } == true
         return route.client.sendReaction(
-            route.key, messageId, if (isOwn) "" else key,
-            isEncrypted = thread?.isEncrypted == true, isGroup = thread?.isGroup == true, messageSenderId = target?.senderId.orEmpty()
+            route.key,
+            MessageRef(messageId, target?.senderId.orEmpty()),
+            if (isOwn) "" else key,
+            isEncrypted = thread?.isEncrypted == true,
+            isGroup = thread?.isGroup == true
         )
     }
 
@@ -265,7 +310,13 @@ class OnDeviceChatRepository(
         if (matrixAccount.owns(chatId)) return matrixAccount.editMessage(chatId, messageId, body)
         val route = route(chatId) ?: return server.editMessage(chatId, messageId, body)
         val thread = route.store.thread(route.key)
-        return route.client.editMessage(route.key, messageId, body, thread?.isEncrypted == true, thread?.isGroup == true)
+        return route.client.editMessage(
+            route.key,
+            messageId,
+            body,
+            thread?.isEncrypted == true,
+            thread?.isGroup == true
+        )
     }
 
     override suspend fun deleteMessage(chatId: String, messageId: String): EmptyResult<DataError.Remote> {
@@ -280,7 +331,13 @@ class OnDeviceChatRepository(
         val route = route(chatId) ?: return server.markAsRead(chatId)
         val thread = route.store.thread(route.key) ?: return Result.Success(Unit)
         val newest = route.store.messages(route.key).lastOrNull { !it.isOutgoing }
-        return route.client.markRead(route.key, thread.isEncrypted, thread.isGroup, newest?.id.orEmpty(), newest?.senderId.orEmpty())
+        return route.client.markRead(
+            route.key,
+            thread.isEncrypted,
+            thread.isGroup,
+            newest?.id.orEmpty(),
+            newest?.senderId.orEmpty()
+        )
     }
 
     // On-device media are CDN URLs (signed, no extra headers) or decrypted files in private storage
@@ -291,6 +348,8 @@ class OnDeviceChatRepository(
         else -> server.resolveMedia(mxcUrl, thumbnail)
     }
 
+    // Each HTTP engine has its own network exceptions; a failed download just shows no media
+    @Suppress("TooGenericExceptionCaught")
     override suspend fun downloadMedia(mxcUrl: String): ByteArray? {
         if (matrixAccount.owns(mxcUrl)) return matrixAccount.downloadMedia(mxcUrl)
         OnDeviceMessengerStore.parseOnRequestMediaUrl(mxcUrl)?.let { (chatId, messageId) ->
@@ -308,6 +367,7 @@ class OnDeviceChatRepository(
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
+            println("OnDeviceChats: media download failed: ${e.message}")
             null
         }
     }

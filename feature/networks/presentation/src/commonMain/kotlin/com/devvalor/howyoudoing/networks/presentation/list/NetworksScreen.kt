@@ -124,7 +124,9 @@ fun NetworksRoot(
         onAction = { action ->
             when (action) {
                 is NetworksAction.OnConnectClick ->
-                    if (state.shouldWarnAboutRisk(action.network)) riskWarningFor = action.network else connect(action.network)
+                    if (state.shouldWarnAboutRisk(action.network)) riskWarningFor =
+                        action.network else connect(action.network)
+
                 NetworksAction.OnBackClick -> onBack()
                 else -> viewModel.onAction(action)
             }
@@ -145,7 +147,10 @@ fun NetworksScreen(
                 title = { Text(stringResource(Res.string.networks_networks), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = { onAction(NetworksAction.OnBackClick) }) {
-                        Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = stringResource(Res.string.tutorial_back))
+                        Icon(
+                            Icons.AutoMirrored.Rounded.ArrowBack,
+                            contentDescription = stringResource(Res.string.tutorial_back)
+                        )
                     }
                 },
             )
@@ -193,29 +198,43 @@ private fun NetworkCard(
                 NetworkBadge(network = network, size = 40.dp, borderColor = Color.Transparent, enabled = !isComingSoon)
                 Spacer(Modifier.width(HowYouDoinSpacing.md))
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(network.displayName, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                     Text(
-                        // Connected on the phone, the server bridge is optional: its trouble isn't this network's
-                        if (onDevice != OnDeviceMessengerState.NotLinked && (item.status as? NetworkStatus.Ready)?.logins.isNullOrEmpty()) {
+                        network.displayName,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    // Connected on the phone, the server bridge is optional: its trouble isn't this network's
+                    val noLogins = (item.status as? NetworkStatus.Ready)?.logins.isNullOrEmpty()
+                    Text(
+                        if (onDevice != OnDeviceMessengerState.NotLinked && noLogins) {
                             stringResource(Res.string.networks_connected_device)
-                        } else item.status.summary(),
+                        } else {
+                            item.status.summary()
+                        },
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
                 when (item.status) {
                     NetworkStatus.Loading if onDevice != OnDeviceMessengerState.NotLinked -> Unit
-                    NetworkStatus.Loading -> CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                    NetworkStatus.Loading -> CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        strokeWidth = 2.dp
+                    )
+
                     NetworkStatus.ComingSoon -> Unit
                     else -> FilledTonalButton(onClick = { onAction(NetworksAction.OnConnectClick(network)) }) {
-                        Text(stringResource(if (item.status is NetworkStatus.Ready && item.status.logins.isNotEmpty()) Res.string.networks_add else Res.string.networks_connect))
+                        val hasLogins = item.status is NetworkStatus.Ready && item.status.logins.isNotEmpty()
+                        Text(stringResource(if (hasLogins) Res.string.networks_add else Res.string.networks_connect))
                     }
                 }
             }
             if (item.status is NetworkStatus.Ready && item.status.logins.isNotEmpty()) {
                 Spacer(Modifier.height(HowYouDoinSpacing.sm))
                 item.status.logins.forEach { login ->
-                    LoginRow(login = login, onDisconnect = { onAction(NetworksAction.OnDisconnectClick(network, login.id)) })
+                    LoginRow(
+                        login = login,
+                        onDisconnect = { onAction(NetworksAction.OnDisconnectClick(network, login.id)) })
                 }
             }
             if (onDevice != OnDeviceMessengerState.NotLinked) {
@@ -233,16 +252,28 @@ private fun NetworkCard(
                             TextButton(onClick = {
                                 confirmDisconnect = false
                                 onAction(NetworksAction.OnDisconnectOnDeviceClick(network))
-                            }) { Text(stringResource(Res.string.networks_disconnect_and_delete), color = MaterialTheme.colorScheme.error) }
+                            }) {
+                                Text(
+                                    stringResource(Res.string.networks_disconnect_and_delete),
+                                    color = MaterialTheme.colorScheme.error
+                                )
+                            }
                         },
-                        dismissButton = { TextButton(onClick = { confirmDisconnect = false }) { Text(stringResource(Res.string.networks_cancel)) } },
+                        dismissButton = {
+                            TextButton(onClick = {
+                                confirmDisconnect = false
+                            }) { Text(stringResource(Res.string.networks_cancel)) }
+                        },
                     )
                 }
                 Spacer(Modifier.height(HowYouDoinSpacing.sm))
                 LoginRow(
                     login = NetworkLogin(
                         id = "on-device",
-                        name = stringResource(Res.string.networks_on_device_name, (onDevice as? OnDeviceMessengerState.Connected)?.accountName ?: network.displayName),
+                        name = stringResource(
+                            Res.string.networks_on_device_name,
+                            (onDevice as? OnDeviceMessengerState.Connected)?.accountName ?: network.displayName
+                        ),
                         state = when (onDevice) {
                             is OnDeviceMessengerState.Connected -> "CONNECTED"
                             OnDeviceMessengerState.Connecting -> "CONNECTING"
@@ -263,14 +294,22 @@ private fun LoginRow(login: NetworkLogin, onDisconnect: () -> Unit) {
         Icon(
             Icons.Rounded.CheckCircle,
             contentDescription = null,
-            tint = if (login.state == null || login.state == "CONNECTED") Color(0xFF2E9E5B) else MaterialTheme.colorScheme.outline,
+            tint = if (login.state == null || login.state == "CONNECTED") {
+                Color(0xFF2E9E5B)
+            } else {
+                MaterialTheme.colorScheme.outline
+            },
             modifier = Modifier.size(18.dp),
         )
         Spacer(Modifier.width(HowYouDoinSpacing.sm))
         Column(modifier = Modifier.weight(1f)) {
             Text(login.name, style = MaterialTheme.typography.bodyMedium)
             login.state?.let {
-                Text(loginStateLabel(it), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(
+                    loginStateLabel(it),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
         TextButton(onClick = onDisconnect) {
@@ -318,7 +357,9 @@ private fun RiskWarningDialog(onAccept: () -> Unit, onReadTerms: () -> Unit, onD
                 }
             }
         },
-        confirmButton = { TextButton(onClick = onAccept) { Text(stringResource(Res.string.networks_i_understand_continue)) } },
+        confirmButton = {
+            TextButton(onClick = onAccept) { Text(stringResource(Res.string.networks_i_understand_continue)) }
+        },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(Res.string.networks_cancel)) } },
     )
 }

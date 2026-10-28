@@ -26,7 +26,13 @@ class SavedLoginsTest {
         relink = listOf(ChatNetwork.WHATSAPP, ChatNetwork.SIGNAL)
     )
 
-    private val nothingHere = LoginsHere(emptySet(), hasTelegram = false, hasMatrixAccount = false, hasAppSession = false, linked = emptySet())
+    private val nothingHere = LoginsHere(
+        emptySet(),
+        hasTelegram = false,
+        hasMatrixAccount = false,
+        hasAppSession = false,
+        linked = emptySet()
+    )
 
     @Test
     fun theFileReadsBackWhatWasSaved() {
@@ -37,7 +43,8 @@ class SavedLoginsTest {
 
     @Test
     fun aDemoSessionIsNeverSaved() {
-        val read = assertNotNull(SavedLoginsFormat.decode(SavedLoginsFormat.encode(saved.copy(appSession = AuthInfo.demo()))))
+        val read =
+            assertNotNull(SavedLoginsFormat.decode(SavedLoginsFormat.encode(saved.copy(appSession = AuthInfo.demo()))))
         assertNull(read.appSession)
     }
 

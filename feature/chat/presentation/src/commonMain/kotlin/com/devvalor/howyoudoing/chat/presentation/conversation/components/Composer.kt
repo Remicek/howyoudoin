@@ -76,28 +76,44 @@ fun Composer(
     Surface(color = MaterialTheme.colorScheme.surface, tonalElevation = 2.dp) {
         Column(Modifier.fillMaxWidth().navigationBarsPadding()) {
             if (editing != null) {
-                ReplyBar(editing, onCancelEdit, label = stringResource(Res.string.composer_editing_message), cancelDescription = stringResource(Res.string.composer_cancel_editing))
+                ReplyBar(
+                    editing,
+                    onCancelEdit,
+                    label = stringResource(Res.string.composer_editing_message),
+                    cancelDescription = stringResource(Res.string.composer_cancel_editing)
+                )
             } else {
                 replyingTo?.let { ReplyBar(it, onCancelReply, chatName = chatName) }
             }
             Row(
                 verticalAlignment = Alignment.Bottom,
-                modifier = Modifier.fillMaxWidth().padding(horizontal = HowYouDoinSpacing.sm, vertical = HowYouDoinSpacing.sm),
+                modifier = Modifier.fillMaxWidth()
+                    .padding(horizontal = HowYouDoinSpacing.sm, vertical = HowYouDoinSpacing.sm),
             ) {
                 if (recording != null) {
                     RecordingBar(recording, onCancel = onRecordCancel, modifier = Modifier.weight(1f))
                     Spacer(Modifier.width(HowYouDoinSpacing.sm))
                     FilledIconButton(onClick = onRecordSend, shape = CircleShape, modifier = Modifier.size(52.dp)) {
-                        Icon(Icons.AutoMirrored.Rounded.Send, contentDescription = stringResource(Res.string.composer_send_voice_message))
+                        Icon(
+                            Icons.AutoMirrored.Rounded.Send,
+                            contentDescription = stringResource(Res.string.composer_send_voice_message)
+                        )
                     }
                     return@Row
                 }
                 if (canAttach) {
-                    IconButton(onClick = onAttach, enabled = !isSendingAttachment, modifier = Modifier.padding(bottom = 4.dp)) {
+                    IconButton(
+                        onClick = onAttach,
+                        enabled = !isSendingAttachment,
+                        modifier = Modifier.padding(bottom = 4.dp)
+                    ) {
                         if (isSendingAttachment) {
                             CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
                         } else {
-                            Icon(Icons.Rounded.AttachFile, contentDescription = stringResource(Res.string.composer_attach_a_photo_or_file))
+                            Icon(
+                                Icons.Rounded.AttachFile,
+                                contentDescription = stringResource(Res.string.composer_attach_a_photo_or_file)
+                            )
                         }
                     }
                 }
@@ -123,11 +139,22 @@ fun Composer(
                         shape = CircleShape,
                         modifier = Modifier.size(52.dp),
                     ) {
-                        Icon(Icons.Rounded.Mic, contentDescription = stringResource(Res.string.composer_record_a_voice_message))
+                        Icon(
+                            Icons.Rounded.Mic,
+                            contentDescription = stringResource(Res.string.composer_record_a_voice_message)
+                        )
                     }
                 } else {
-                    FilledIconButton(onClick = onSend, enabled = canSend, shape = CircleShape, modifier = Modifier.size(52.dp)) {
-                        Icon(Icons.AutoMirrored.Rounded.Send, contentDescription = stringResource(Res.string.composer_send))
+                    FilledIconButton(
+                        onClick = onSend,
+                        enabled = canSend,
+                        shape = CircleShape,
+                        modifier = Modifier.size(52.dp)
+                    ) {
+                        Icon(
+                            Icons.AutoMirrored.Rounded.Send,
+                            contentDescription = stringResource(Res.string.composer_send)
+                        )
                     }
                 }
             }
@@ -151,7 +178,9 @@ private fun ReplyBar(
             .padding(start = HowYouDoinSpacing.md, end = HowYouDoinSpacing.xs, top = HowYouDoinSpacing.sm)
             .height(48.dp),
     ) {
-        Box(Modifier.width(3.dp).fillMaxHeight().background(MaterialTheme.colorScheme.primary, RoundedCornerShape(2.dp)))
+        Box(
+            Modifier.width(3.dp).fillMaxHeight().background(MaterialTheme.colorScheme.primary, RoundedCornerShape(2.dp))
+        )
         Spacer(Modifier.width(HowYouDoinSpacing.sm))
         Column(Modifier.weight(1f)) {
             Text(
@@ -159,13 +188,21 @@ private fun ReplyBar(
                     stringResource(Res.string.composer_replying_self)
                 } else {
                     val name = message.senderName ?: message.authorName ?: chatName
-                    if (name != null) stringResource(Res.string.composer_replying_to, name) else stringResource(Res.string.composer_replying)
+                    if (name != null) stringResource(
+                        Res.string.composer_replying_to,
+                        name
+                    ) else stringResource(Res.string.composer_replying)
                 },
                 style = MaterialTheme.typography.labelMedium,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.primary,
             )
-            Text(message.body.asString(), style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(
+                message.body.asString(),
+                style = MaterialTheme.typography.bodySmall,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
         }
         IconButton(onClick = onCancel) { Icon(Icons.Rounded.Close, contentDescription = cancelDescription) }
     }

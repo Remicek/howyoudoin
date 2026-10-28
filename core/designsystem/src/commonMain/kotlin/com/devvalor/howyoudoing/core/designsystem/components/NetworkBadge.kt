@@ -39,7 +39,12 @@ fun NetworkBadge(
     ) {
         val logo = network.logo
         if (logo != null) {
-            Icon(logo, contentDescription = network.displayName, tint = Color.White, modifier = Modifier.size(size * 0.55f))
+            Icon(
+                logo,
+                contentDescription = network.displayName,
+                tint = Color.White,
+                modifier = Modifier.size(size * 0.55f)
+            )
         } else {
             Text(
                 text = network.monogram,

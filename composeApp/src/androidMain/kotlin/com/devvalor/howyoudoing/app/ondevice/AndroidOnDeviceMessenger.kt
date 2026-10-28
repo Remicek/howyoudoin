@@ -21,33 +21,78 @@ private class AndroidMessengerClient(private val m: Messenger) : NativeMessenger
     override fun connect() = m.connect()
     override fun disconnect() = m.disconnect()
     override fun sendText(threadKey: String, text: String): String = m.sendText(threadKey, text)
-    override fun sendReply(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, text: String, replyToId: String, replySenderId: String): String =
+    override fun sendReply(
+        threadKey: String,
+        isEncrypted: Boolean,
+        isGroup: Boolean,
+        text: String,
+        replyToId: String,
+        replySenderId: String
+    ): String =
         m.sendReply(threadKey, isEncrypted, isGroup, text, replyToId, replySenderId)
-    override fun editMessage(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, messageId: String, text: String) =
+
+    override fun editMessage(
+        threadKey: String,
+        isEncrypted: Boolean,
+        isGroup: Boolean,
+        messageId: String,
+        text: String
+    ) =
         m.editMessage(threadKey, isEncrypted, isGroup, messageId, text)
+
     override fun unsend(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, messageId: String) =
         m.unsend(threadKey, isEncrypted, isGroup, messageId)
-    override fun sendEncryptedText(threadKey: String, isGroup: Boolean, text: String): String = m.sendEncryptedText(threadKey, isGroup, text)
+
+    override fun sendEncryptedText(threadKey: String, isGroup: Boolean, text: String): String =
+        m.sendEncryptedText(threadKey, isGroup, text)
+
     override fun sendMediaFile(
         threadKey: String, isEncrypted: Boolean, isGroup: Boolean, path: String, mimeType: String, fileName: String,
         caption: String, width: Long, height: Long
     ): String = m.sendMediaFile(threadKey, isEncrypted, isGroup, path, mimeType, fileName, caption, width, height)
+
     override fun sendVoice(
-        threadKey: String, isEncrypted: Boolean, isGroup: Boolean, path: String, mimeType: String, durationMs: Long, waveform: String
+        threadKey: String,
+        isEncrypted: Boolean,
+        isGroup: Boolean,
+        path: String,
+        mimeType: String,
+        durationMs: Long,
+        waveform: String
     ): String = m.sendVoice(threadKey, isEncrypted, isGroup, path, mimeType, durationMs, waveform)
+
     override fun requestOlder(threadKey: String, beforeTimestampMs: Long, beforeMessageId: String) =
         m.requestOlder(threadKey, beforeTimestampMs, beforeMessageId)
+
     override fun historyStatus(): String = m.historyStatus()
     override fun restoreHistory(pin: String) = m.restoreHistory(pin)
     override fun fetchEncryptedHistory(threadKey: String, isGroup: Boolean, beforeTimestampMs: Long, count: Long) =
         m.fetchEncryptedHistory(threadKey, isGroup, beforeTimestampMs, count)
-    override fun sendReaction(threadKey: String, messageId: String, emoji: String) = m.sendReaction(threadKey, messageId, emoji)
-    override fun sendEncryptedReaction(threadKey: String, isGroup: Boolean, messageId: String, messageSenderId: String, emoji: String) =
+
+    override fun sendReaction(threadKey: String, messageId: String, emoji: String) =
+        m.sendReaction(threadKey, messageId, emoji)
+
+    override fun sendEncryptedReaction(
+        threadKey: String,
+        isGroup: Boolean,
+        messageId: String,
+        messageSenderId: String,
+        emoji: String
+    ) =
         m.sendEncryptedReaction(threadKey, isGroup, messageId, messageSenderId, emoji)
-    override fun markRead(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, lastMessageId: String, senderId: String) =
+
+    override fun markRead(
+        threadKey: String,
+        isEncrypted: Boolean,
+        isGroup: Boolean,
+        lastMessageId: String,
+        senderId: String
+    ) =
         m.markRead(threadKey, isEncrypted, isGroup, lastMessageId, senderId)
+
     override fun setTyping(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, isTyping: Boolean) =
         m.setTyping(threadKey, isEncrypted, isGroup, isTyping)
+
     override fun fetchAvatars(contactIds: String) = m.fetchAvatars(contactIds)
 }
 
@@ -83,8 +128,10 @@ class AndroidDataDirectory(context: Context, name: String = "on_device_messenger
         dir.deleteRecursively()
         dir.mkdirs()
     }
+
     override fun writeTemp(bytes: ByteArray): String =
         File.createTempFile("outgoing", null, dir.also { it.mkdirs() }).apply { writeBytes(bytes) }.absolutePath
+
     override fun read(path: String): ByteArray? {
         val file = File(path).canonicalFile
         return file.takeIf { it.path.startsWith(dir.canonicalPath + File.separator) && it.isFile }?.readBytes()
@@ -100,6 +147,7 @@ class AndroidInboxCache(context: Context, directory: String = "on_device_messeng
         tmp.writeText(value)
         tmp.renameTo(file)
     }
+
     override fun clear() {
         file.delete()
     }
@@ -112,29 +160,65 @@ class AndroidWhatsAppFactory : NativeLinkedClientFactory {
         return object : NativeLinkedClient {
             override fun isLinked() = w.isLinked
             override fun connect() = w.connect("")
+
             // A phone number asks for a pairing code, none for QR codes
             override fun startLinking(phoneNumber: String) = w.connect(phoneNumber)
             override fun cancelLinking() = w.disconnect()
             override fun disconnect() = w.disconnect()
             override fun logout() = w.logout()
             override fun sendText(chat: String, text: String): String = w.sendText(chat, text)
-            override fun sendReply(chat: String, text: String, replyToId: String, replySenderId: String, quotedText: String): String =
+            override fun sendReply(
+                chat: String,
+                text: String,
+                replyToId: String,
+                replySenderId: String,
+                quotedText: String
+            ): String =
                 w.sendReply(chat, text, replyToId, replySenderId, quotedText)
-            override fun editMessage(chat: String, messageId: String, text: String) = w.editMessage(chat, messageId, text)
+
+            override fun editMessage(chat: String, messageId: String, text: String) =
+                w.editMessage(chat, messageId, text)
+
             override fun unsend(chat: String, messageId: String) = w.unsend(chat, messageId)
             override fun sendReaction(chat: String, messageId: String, senderId: String, emoji: String) =
                 w.sendReaction(chat, messageId, senderId, emoji)
-            override fun markRead(chat: String, messageId: String, senderId: String) = w.markRead(chat, messageId, senderId)
+
+            override fun markRead(chat: String, messageId: String, senderId: String) =
+                w.markRead(chat, messageId, senderId)
+
             override fun setTyping(chat: String, isTyping: Boolean) = w.setTyping(chat, isTyping)
+
             // Older messages come from the user's own phone as an on-demand history sync
-            override fun requestOlder(chat: String, beforeMessageId: String, beforeIsOutgoing: Boolean, beforeTimestampMs: Long) =
+            override fun requestOlder(
+                chat: String,
+                beforeMessageId: String,
+                beforeIsOutgoing: Boolean,
+                beforeTimestampMs: Long
+            ) =
                 w.requestHistory(chat, beforeMessageId, beforeIsOutgoing, beforeTimestampMs, WHATSAPP_HISTORY_PAGE)
+
             override fun sendMediaFile(
-                chat: String, path: String, mimeType: String, fileName: String, caption: String, width: Long, height: Long
+                chat: String,
+                path: String,
+                mimeType: String,
+                fileName: String,
+                caption: String,
+                width: Long,
+                height: Long
             ): String = w.sendMediaFile(chat, path, mimeType, fileName, caption, width, height)
-            override fun sendVoice(chat: String, path: String, mimeType: String, durationMs: Long, waveform: String): String =
+
+            override fun sendVoice(
+                chat: String,
+                path: String,
+                mimeType: String,
+                durationMs: Long,
+                waveform: String
+            ): String =
                 w.sendVoice(chat, path, mimeType, durationMs, waveform)
-            override fun downloadMedia(chat: String, messageId: String, mediaRef: String): String = w.downloadMedia(chat, messageId, mediaRef)
+
+            override fun downloadMedia(chat: String, messageId: String, mediaRef: String): String =
+                w.downloadMedia(chat, messageId, mediaRef)
+
             override fun fetchAvatars(chats: String) = w.fetchAvatars(chats)
         }
     }
@@ -158,25 +242,58 @@ class AndroidTelegramFactory(private val apiId: Long, private val apiHash: Strin
                 t.cancelQRLogin()
                 if (!t.isLoggedIn) t.disconnect()
             }
+
             override fun disconnect() = t.disconnect()
             override fun logout() = t.logout()
             override fun sendText(chat: String, text: String): String = t.sendText(chat, text)
-            override fun sendReply(chat: String, text: String, replyToId: String, replySenderId: String, quotedText: String): String =
+            override fun sendReply(
+                chat: String,
+                text: String,
+                replyToId: String,
+                replySenderId: String,
+                quotedText: String
+            ): String =
                 t.sendReply(chat, text, replyToId)
-            override fun editMessage(chat: String, messageId: String, text: String) = t.editMessage(chat, messageId, text)
+
+            override fun editMessage(chat: String, messageId: String, text: String) =
+                t.editMessage(chat, messageId, text)
+
             override fun unsend(chat: String, messageId: String) = t.unsend(chat, messageId)
             override fun sendReaction(chat: String, messageId: String, senderId: String, emoji: String) =
                 t.sendReaction(chat, messageId, emoji)
+
             override fun markRead(chat: String, messageId: String, senderId: String) = t.markRead(chat, messageId)
             override fun setTyping(chat: String, isTyping: Boolean) = t.setTyping(chat, isTyping)
-            override fun requestOlder(chat: String, beforeMessageId: String, beforeIsOutgoing: Boolean, beforeTimestampMs: Long) =
+            override fun requestOlder(
+                chat: String,
+                beforeMessageId: String,
+                beforeIsOutgoing: Boolean,
+                beforeTimestampMs: Long
+            ) =
                 t.requestOlder(chat, beforeMessageId)
+
             override fun sendMediaFile(
-                chat: String, path: String, mimeType: String, fileName: String, caption: String, width: Long, height: Long
+                chat: String,
+                path: String,
+                mimeType: String,
+                fileName: String,
+                caption: String,
+                width: Long,
+                height: Long
             ): String = t.sendMediaFile(chat, path, mimeType, fileName, caption, width, height)
-            override fun sendVoice(chat: String, path: String, mimeType: String, durationMs: Long, waveform: String): String =
+
+            override fun sendVoice(
+                chat: String,
+                path: String,
+                mimeType: String,
+                durationMs: Long,
+                waveform: String
+            ): String =
                 t.sendVoice(chat, path, mimeType, durationMs, waveform)
-            override fun downloadMedia(chat: String, messageId: String, mediaRef: String): String = t.downloadMedia(chat, messageId, mediaRef)
+
+            override fun downloadMedia(chat: String, messageId: String, mediaRef: String): String =
+                t.downloadMedia(chat, messageId, mediaRef)
+
             override fun fetchAvatars(chats: String) = t.fetchAvatars(chats)
         }
     }
@@ -194,22 +311,53 @@ class AndroidSignalFactory : NativeLinkedClientFactory {
             override fun disconnect() = s.disconnect()
             override fun logout() = s.logout()
             override fun sendText(chat: String, text: String): String = s.sendText(chat, text)
-            override fun sendReply(chat: String, text: String, replyToId: String, replySenderId: String, quotedText: String): String =
+            override fun sendReply(
+                chat: String,
+                text: String,
+                replyToId: String,
+                replySenderId: String,
+                quotedText: String
+            ): String =
                 s.sendReply(chat, text, replyToId, quotedText)
-            override fun editMessage(chat: String, messageId: String, text: String) = s.editMessage(chat, messageId, text)
+
+            override fun editMessage(chat: String, messageId: String, text: String) =
+                s.editMessage(chat, messageId, text)
+
             override fun unsend(chat: String, messageId: String) = s.unsend(chat, messageId)
             override fun sendReaction(chat: String, messageId: String, senderId: String, emoji: String) =
                 s.sendReaction(chat, messageId, emoji)
+
             override fun markRead(chat: String, messageId: String, senderId: String) = s.markRead(chat, messageId)
             override fun setTyping(chat: String, isTyping: Boolean) = s.setTyping(chat, isTyping)
-            override fun requestOlder(chat: String, beforeMessageId: String, beforeIsOutgoing: Boolean, beforeTimestampMs: Long) =
+            override fun requestOlder(
+                chat: String,
+                beforeMessageId: String,
+                beforeIsOutgoing: Boolean,
+                beforeTimestampMs: Long
+            ) =
                 s.requestOlder(chat, beforeTimestampMs)
+
             override fun sendMediaFile(
-                chat: String, path: String, mimeType: String, fileName: String, caption: String, width: Long, height: Long
+                chat: String,
+                path: String,
+                mimeType: String,
+                fileName: String,
+                caption: String,
+                width: Long,
+                height: Long
             ): String = s.sendMediaFile(chat, path, mimeType, fileName, caption, width, height)
-            override fun sendVoice(chat: String, path: String, mimeType: String, durationMs: Long, waveform: String): String =
+
+            override fun sendVoice(
+                chat: String,
+                path: String,
+                mimeType: String,
+                durationMs: Long,
+                waveform: String
+            ): String =
                 s.sendVoice(chat, path, mimeType, durationMs, waveform)
-            override fun downloadMedia(chat: String, messageId: String, mediaRef: String): String = s.downloadMedia(chat, messageId, mediaRef)
+
+            override fun downloadMedia(chat: String, messageId: String, mediaRef: String): String =
+                s.downloadMedia(chat, messageId, mediaRef)
         }
     }
 }
@@ -226,29 +374,85 @@ class AndroidInstagramFactory : NativeMessengerFactory {
             override fun connect() = ig.connect()
             override fun disconnect() = ig.disconnect()
             override fun sendText(threadKey: String, text: String): String = ig.sendText(threadKey, text)
-            override fun sendReply(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, text: String, replyToId: String, replySenderId: String): String =
+            override fun sendReply(
+                threadKey: String,
+                isEncrypted: Boolean,
+                isGroup: Boolean,
+                text: String,
+                replyToId: String,
+                replySenderId: String
+            ): String =
                 ig.sendReply(threadKey, text, replyToId)
-            override fun editMessage(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, messageId: String, text: String) =
+
+            override fun editMessage(
+                threadKey: String,
+                isEncrypted: Boolean,
+                isGroup: Boolean,
+                messageId: String,
+                text: String
+            ) =
                 ig.editMessage(threadKey, messageId, text)
+
             override fun unsend(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, messageId: String) =
                 ig.unsend(threadKey, messageId)
+
             override fun sendEncryptedText(threadKey: String, isGroup: Boolean, text: String): String = unsupported()
-            override fun requestOlder(threadKey: String, beforeTimestampMs: Long, beforeMessageId: String) = ig.requestOlder(threadKey, beforeMessageId)
+            override fun requestOlder(threadKey: String, beforeTimestampMs: Long, beforeMessageId: String) =
+                ig.requestOlder(threadKey, beforeMessageId)
+
             override fun historyStatus(): String = unsupported()
             override fun restoreHistory(pin: String) = unsupported()
-            override fun fetchEncryptedHistory(threadKey: String, isGroup: Boolean, beforeTimestampMs: Long, count: Long) = unsupported()
-            override fun sendReaction(threadKey: String, messageId: String, emoji: String) = ig.sendReaction(threadKey, messageId, emoji)
-            override fun sendEncryptedReaction(threadKey: String, isGroup: Boolean, messageId: String, messageSenderId: String, emoji: String) =
+            override fun fetchEncryptedHistory(
+                threadKey: String,
+                isGroup: Boolean,
+                beforeTimestampMs: Long,
+                count: Long
+            ) = unsupported()
+
+            override fun sendReaction(threadKey: String, messageId: String, emoji: String) =
+                ig.sendReaction(threadKey, messageId, emoji)
+
+            override fun sendEncryptedReaction(
+                threadKey: String,
+                isGroup: Boolean,
+                messageId: String,
+                messageSenderId: String,
+                emoji: String
+            ) =
                 unsupported()
-            override fun markRead(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, lastMessageId: String, senderId: String) =
+
+            override fun markRead(
+                threadKey: String,
+                isEncrypted: Boolean,
+                isGroup: Boolean,
+                lastMessageId: String,
+                senderId: String
+            ) =
                 ig.markRead(threadKey, lastMessageId)
-            override fun setTyping(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, isTyping: Boolean) = ig.setTyping(threadKey, isTyping)
+
+            override fun setTyping(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, isTyping: Boolean) =
+                ig.setTyping(threadKey, isTyping)
+
             override fun sendMediaFile(
-                threadKey: String, isEncrypted: Boolean, isGroup: Boolean, path: String, mimeType: String, fileName: String,
-                caption: String, width: Long, height: Long
+                threadKey: String,
+                isEncrypted: Boolean,
+                isGroup: Boolean,
+                path: String,
+                mimeType: String,
+                fileName: String,
+                caption: String,
+                width: Long,
+                height: Long
             ): String = ig.sendMediaFile(threadKey, path, mimeType, fileName, caption)
+
             override fun sendVoice(
-                threadKey: String, isEncrypted: Boolean, isGroup: Boolean, path: String, mimeType: String, durationMs: Long, waveform: String
+                threadKey: String,
+                isEncrypted: Boolean,
+                isGroup: Boolean,
+                path: String,
+                mimeType: String,
+                durationMs: Long,
+                waveform: String
             ): String = ig.sendVoice(threadKey, path, mimeType, durationMs, waveform)
         }
     }
@@ -264,28 +468,85 @@ class AndroidSlackFactory : NativeMessengerFactory {
             override fun connect() = s.connect()
             override fun disconnect() = s.disconnect()
             override fun sendText(threadKey: String, text: String): String = s.sendText(threadKey, text)
-            override fun sendReply(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, text: String, replyToId: String, replySenderId: String): String =
+            override fun sendReply(
+                threadKey: String,
+                isEncrypted: Boolean,
+                isGroup: Boolean,
+                text: String,
+                replyToId: String,
+                replySenderId: String
+            ): String =
                 s.sendReply(threadKey, text, replyToId)
-            override fun editMessage(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, messageId: String, text: String) =
+
+            override fun editMessage(
+                threadKey: String,
+                isEncrypted: Boolean,
+                isGroup: Boolean,
+                messageId: String,
+                text: String
+            ) =
                 s.editMessage(threadKey, messageId, text)
-            override fun unsend(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, messageId: String) = s.unsend(threadKey, messageId)
+
+            override fun unsend(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, messageId: String) =
+                s.unsend(threadKey, messageId)
+
             override fun sendEncryptedText(threadKey: String, isGroup: Boolean, text: String): String = unsupported()
-            override fun requestOlder(threadKey: String, beforeTimestampMs: Long, beforeMessageId: String) = s.requestOlder(threadKey, beforeMessageId)
+            override fun requestOlder(threadKey: String, beforeTimestampMs: Long, beforeMessageId: String) =
+                s.requestOlder(threadKey, beforeMessageId)
+
             override fun historyStatus(): String = unsupported()
             override fun restoreHistory(pin: String) = unsupported()
-            override fun fetchEncryptedHistory(threadKey: String, isGroup: Boolean, beforeTimestampMs: Long, count: Long) = unsupported()
-            override fun sendReaction(threadKey: String, messageId: String, emoji: String) = s.sendReaction(threadKey, messageId, emoji)
-            override fun sendEncryptedReaction(threadKey: String, isGroup: Boolean, messageId: String, messageSenderId: String, emoji: String) =
+            override fun fetchEncryptedHistory(
+                threadKey: String,
+                isGroup: Boolean,
+                beforeTimestampMs: Long,
+                count: Long
+            ) = unsupported()
+
+            override fun sendReaction(threadKey: String, messageId: String, emoji: String) =
+                s.sendReaction(threadKey, messageId, emoji)
+
+            override fun sendEncryptedReaction(
+                threadKey: String,
+                isGroup: Boolean,
+                messageId: String,
+                messageSenderId: String,
+                emoji: String
+            ) =
                 unsupported()
-            override fun markRead(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, lastMessageId: String, senderId: String) =
+
+            override fun markRead(
+                threadKey: String,
+                isEncrypted: Boolean,
+                isGroup: Boolean,
+                lastMessageId: String,
+                senderId: String
+            ) =
                 s.markRead(threadKey, lastMessageId)
-            override fun setTyping(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, isTyping: Boolean) = s.setTyping(threadKey, isTyping)
+
+            override fun setTyping(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, isTyping: Boolean) =
+                s.setTyping(threadKey, isTyping)
+
             override fun sendMediaFile(
-                threadKey: String, isEncrypted: Boolean, isGroup: Boolean, path: String, mimeType: String, fileName: String,
-                caption: String, width: Long, height: Long
+                threadKey: String,
+                isEncrypted: Boolean,
+                isGroup: Boolean,
+                path: String,
+                mimeType: String,
+                fileName: String,
+                caption: String,
+                width: Long,
+                height: Long
             ): String = s.sendMediaFile(threadKey, path, fileName, caption)
+
             override fun sendVoice(
-                threadKey: String, isEncrypted: Boolean, isGroup: Boolean, path: String, mimeType: String, durationMs: Long, waveform: String
+                threadKey: String,
+                isEncrypted: Boolean,
+                isGroup: Boolean,
+                path: String,
+                mimeType: String,
+                durationMs: Long,
+                waveform: String
             ): String = s.sendVoice(threadKey, path, mimeType)
         }
     }

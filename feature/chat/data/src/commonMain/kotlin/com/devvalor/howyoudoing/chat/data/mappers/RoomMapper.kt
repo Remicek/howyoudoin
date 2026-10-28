@@ -32,21 +32,18 @@ fun RoomCache.toChat(myUserId: String): Chat {
     )
 }
 
-fun RoomCache.toMessages(myUserId: String): List<Message> {
-    val redacted = timeline
-        .filter { it.type == "m.room.redaction" }
-        .mapNotNullTo(HashSet()) { it.content.string("redacts") }
+/** The newest text of each edited message, by the edited message's ID. */
+private fun RoomCache.editsByTarget(redacted: Set<String>): Map<String, String> = timeline
+    .filter { it.relationType() == "m.replace" && it.eventId !in redacted }
+    .mapNotNull { edit ->
+        val targetId = edit.content.obj("m.relates_to")?.string("event_id") ?: return@mapNotNull null
+        val newBody = edit.content.obj("m.new_content")?.string("body") ?: return@mapNotNull null
+        targetId to newBody
+    }
+    .toMap()
 
-    val edits = timeline
-        .filter { it.relationType() == "m.replace" && it.eventId !in redacted }
-        .mapNotNull { edit ->
-            val targetId = edit.content.obj("m.relates_to")?.string("event_id") ?: return@mapNotNull null
-            val newBody = edit.content.obj("m.new_content")?.string("body") ?: return@mapNotNull null
-            targetId to newBody
-        }
-        .toMap()
-
-    val reactions = timeline
+private fun RoomCache.reactionsByMessage(myUserId: String, redacted: Set<String>): Map<String, List<Reaction>> =
+    timeline
         .filter { it.type == "m.reaction" && it.eventId !in redacted && it.relationType() == "m.annotation" }
         .groupBy { it.content.obj("m.relates_to")?.string("event_id").orEmpty() }
         .mapValues { (_, events) ->
@@ -60,6 +57,14 @@ fun RoomCache.toMessages(myUserId: String): List<Message> {
                     )
                 }
         }
+
+fun RoomCache.toMessages(myUserId: String): List<Message> {
+    val redacted = timeline
+        .filter { it.type == "m.room.redaction" }
+        .mapNotNullTo(HashSet()) { it.content.string("redacts") }
+
+    val edits = editsByTarget(redacted)
+    val reactions = reactionsByMessage(myUserId, redacted)
 
     val confirmed = timeline
         .filter { it.relationType() != "m.replace" && it.eventId !in redacted }
@@ -86,7 +91,9 @@ fun RoomCache.toMessages(myUserId: String): List<Message> {
     val confirmedIds = byId.keys
     val pendingMessages = pending
         .filterNot { it.eventId != null && it.eventId in confirmedIds }
-        .map { pending -> pending.toMessage(roomId, myUserId).copy(replyTo = pending.replyToId?.let { replyPreview(it, byId[it]) }) }
+        .map { pending ->
+            pending.toMessage(roomId, myUserId).copy(replyTo = pending.replyToId?.let { replyPreview(it, byId[it]) })
+        }
 
     return withRelations + pendingMessages
 }
@@ -178,7 +185,8 @@ private val ELEMENT_CALL_TYPES = setOf(
 private const val ELEMENT_CALL_NOTICE =
     "📞 Started a call in Element. HowYouDoin can't join Element calls yet; call back with the call button above."
 
-private val MEDIA_TYPES = setOf(MessageType.IMAGE, MessageType.VIDEO, MessageType.AUDIO, MessageType.FILE, MessageType.STICKER)
+private val MEDIA_TYPES =
+    setOf(MessageType.IMAGE, MessageType.VIDEO, MessageType.AUDIO, MessageType.FILE, MessageType.STICKER)
 
 private fun MatrixEventDto.replyToId(): String? =
     content.obj("m.relates_to")?.obj("m.in_reply_to")?.string("event_id")
@@ -262,12 +270,17 @@ private fun RoomCache.memberCount(): Int {
     return (joinedMemberCount.takeIf { it > 0 } ?: joinedMembers().size) - joinedBots
 }
 
-private fun RoomCache.displayName(myUserId: String): String {
-    stateEvent("m.room.name")?.content?.string("name")?.takeIf { it.isNotBlank() }?.let { return it }
-    stateEvent("m.room.canonical_alias")?.content?.string("alias")?.takeIf { it.isNotBlank() }?.let { return it }
+private fun RoomCache.displayName(myUserId: String): String =
+    stateEvent("m.room.name")?.content?.string("name")?.takeIf { it.isNotBlank() }
+        ?: stateEvent("m.room.canonical_alias")?.content?.string("alias")?.takeIf { it.isNotBlank() }
+        ?: membersName(myUserId)
+
+/** An unnamed chat is named after the people in it. */
+private fun RoomCache.membersName(myUserId: String): String {
     val bots = bridgeBots()
-    val others = heroes.ifEmpty { joinedMembers() }.filter { it != myUserId && it !in bots }.take(4)
-    val label = others.joinToString(", ") { memberName(it) }.ifBlank { return "Empty chat" }
+    val others = heroes.ifEmpty { joinedMembers() }.filter { it != myUserId && it !in bots }.take(NAMED_MEMBERS)
+    val label = others.joinToString(", ") { memberName(it) }
+    if (label.isBlank()) return "Empty chat"
     // Named after people who haven't joined (yet): otherwise a fresh invite looks like the chat with them
     val memberships = others.map { stateEvent(TYPE_MEMBER, it)?.content?.string("membership") }
     return when {
@@ -288,3 +301,6 @@ private fun RoomCache.network(): ChatNetwork {
         .firstNotNullOfOrNull(ChatNetwork::fromUserId)
         ?: ChatNetwork.MATRIX
 }
+
+/** How many people an unnamed chat is named after. */
+private const val NAMED_MEMBERS = 4

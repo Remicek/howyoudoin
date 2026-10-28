@@ -1,5 +1,10 @@
+// Calls into the Go library (hydbridge) fail with plain Exceptions carrying Go's error text, so they're caught as such
+@file:Suppress("TooGenericExceptionCaught")
+
 package com.devvalor.howyoudoing.app.ondevice
 
+import com.devvalor.howyoudoing.core.domain.media.Attachment
+import com.devvalor.howyoudoing.core.domain.media.MessageRef
 import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceHistoryError
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceInstagram
@@ -33,36 +38,66 @@ import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 
-/** The Go hydbridge client (bridge-mobile/), as each platform's generated bindings expose it. Calls throw on failure. */
+/**
+ * The Go hydbridge client (bridge-mobile/), as each platform's generated bindings expose it. Calls throw on failure.
+ */
+// gobind passes only plain values (strings, numbers, byte arrays), so calls take every field as its own parameter
+@Suppress("LongParameterList")
 interface NativeMessengerClient {
     fun connect()
     fun disconnect()
     fun sendText(threadKey: String, text: String): String
     fun sendEncryptedText(threadKey: String, isGroup: Boolean, text: String): String
+
     /** Sends text replying to a message (regular or encrypted chat). */
-    fun sendReply(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, text: String, replyToId: String, replySenderId: String): String =
+    fun sendReply(
+        threadKey: String,
+        isEncrypted: Boolean,
+        isGroup: Boolean,
+        text: String,
+        replyToId: String,
+        replySenderId: String
+    ): String =
         if (isEncrypted) sendEncryptedText(threadKey, isGroup, text) else sendText(threadKey, text)
+
     fun editMessage(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, messageId: String, text: String): Unit =
         throw UnsupportedOperationException("Editing isn't supported here")
+
     fun unsend(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, messageId: String): Unit =
         throw UnsupportedOperationException("Deleting isn't supported here")
+
     fun requestOlder(threadKey: String, beforeTimestampMs: Long, beforeMessageId: String)
     fun historyStatus(): String
     fun restoreHistory(pin: String)
     fun fetchEncryptedHistory(threadKey: String, isGroup: Boolean, beforeTimestampMs: Long, count: Long)
     fun sendReaction(threadKey: String, messageId: String, emoji: String)
-    fun sendEncryptedReaction(threadKey: String, isGroup: Boolean, messageId: String, messageSenderId: String, emoji: String)
+    fun sendEncryptedReaction(
+        threadKey: String,
+        isGroup: Boolean,
+        messageId: String,
+        messageSenderId: String,
+        emoji: String
+    )
+
     fun markRead(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, lastMessageId: String, senderId: String)
     fun setTyping(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, isTyping: Boolean)
+
     /** Looks these contacts up again for fresh profile pictures (comma-separated IDs). */
     fun fetchAvatars(contactIds: String) = Unit
     fun sendMediaFile(
         threadKey: String, isEncrypted: Boolean, isGroup: Boolean, path: String, mimeType: String, fileName: String,
         caption: String, width: Long, height: Long
     ): String = throw UnsupportedOperationException("Attachments aren't supported here yet")
+
     /** Sends a recording as a voice note; [waveform] is comma-separated loudness values, 0–255. */
     fun sendVoice(
-        threadKey: String, isEncrypted: Boolean, isGroup: Boolean, path: String, mimeType: String, durationMs: Long, waveform: String
+        threadKey: String,
+        isEncrypted: Boolean,
+        isGroup: Boolean,
+        path: String,
+        mimeType: String,
+        durationMs: Long,
+        waveform: String
     ): String = throw UnsupportedOperationException("Voice messages aren't supported here yet")
 }
 
@@ -89,7 +124,10 @@ interface OnDeviceDataDirectory {
     fun read(path: String): ByteArray?
 }
 
-/** Messenger (or Instagram, see [NativeOnDeviceInstagram]) running in-process through hydbridge, shared by Android and iOS. */
+/**
+ * Messenger (or Instagram, see [NativeOnDeviceInstagram]) running in-process through hydbridge, shared by Android and
+ * iOS.
+ */
 open class NativeOnDeviceMessenger(
     private val factory: NativeMessengerFactory,
     private val secrets: OnDeviceSecretStore,
@@ -132,7 +170,10 @@ open class NativeOnDeviceMessenger(
         if (connect(saved) is Result.Failure) scheduleRetry()
     }
 
-    /** A saved login that failed to connect (e.g. no network yet after a reboot) is tried again, waiting longer each time. */
+    /**
+     * A saved login that failed to connect (e.g. no network yet after a reboot) is tried again, waiting longer each
+     * time.
+     */
     private fun scheduleRetry() {
         if (retryJob?.isActive == true) return
         retryJob = scope.launch {
@@ -167,28 +208,76 @@ open class NativeOnDeviceMessenger(
         }
     }
 
-    override suspend fun sendText(threadKey: String, text: String, isEncrypted: Boolean, isGroup: Boolean): Result<String, DataError.Remote> =
-        native("Sending a message") { if (isEncrypted) sendEncryptedText(threadKey, isGroup, text) else sendText(threadKey, text) }
+    override suspend fun sendText(
+        threadKey: String,
+        text: String,
+        isEncrypted: Boolean,
+        isGroup: Boolean
+    ): Result<String, DataError.Remote> =
+        native("Sending a message") {
+            if (isEncrypted) sendEncryptedText(threadKey, isGroup, text) else sendText(
+                threadKey,
+                text
+            )
+        }
 
     override suspend fun sendReply(
-        threadKey: String, text: String, isEncrypted: Boolean, isGroup: Boolean, replyToId: String, replySenderId: String, quotedText: String
-    ): Result<String, DataError.Remote> = native("Sending a reply") { sendReply(threadKey, isEncrypted, isGroup, text, replyToId, replySenderId) }
+        threadKey: String,
+        text: String,
+        isEncrypted: Boolean,
+        isGroup: Boolean,
+        replyTo: MessageRef
+    ): Result<String, DataError.Remote> =
+        native("Sending a reply") { sendReply(threadKey, isEncrypted, isGroup, text, replyTo.id, replyTo.senderId) }
 
-    override suspend fun editMessage(threadKey: String, messageId: String, text: String, isEncrypted: Boolean, isGroup: Boolean): EmptyResult<DataError.Remote> =
+    override suspend fun editMessage(
+        threadKey: String,
+        messageId: String,
+        text: String,
+        isEncrypted: Boolean,
+        isGroup: Boolean
+    ): EmptyResult<DataError.Remote> =
         native("Editing a message") { editMessage(threadKey, isEncrypted, isGroup, messageId, text) }
 
-    override suspend fun unsend(threadKey: String, messageId: String, isEncrypted: Boolean, isGroup: Boolean): EmptyResult<DataError.Remote> =
+    override suspend fun unsend(
+        threadKey: String,
+        messageId: String,
+        isEncrypted: Boolean,
+        isGroup: Boolean
+    ): EmptyResult<DataError.Remote> =
         native("Deleting a message") { unsend(threadKey, isEncrypted, isGroup, messageId) }
 
     override suspend fun sendAttachment(
-        threadKey: String, bytes: ByteArray, fileName: String, mimeType: String, width: Int?, height: Int?, caption: String?,
-        isEncrypted: Boolean, isGroup: Boolean, voiceDurationMillis: Long?, waveform: List<Int>?
+        threadKey: String,
+        attachment: Attachment,
+        caption: String?,
+        isEncrypted: Boolean,
+        isGroup: Boolean
     ): Result<String, DataError.Remote> = native("Sending an attachment") {
-        val path = dataDir.writeTemp(bytes)
-        if (voiceDurationMillis != null) {
-            sendVoice(threadKey, isEncrypted, isGroup, path, mimeType, voiceDurationMillis, waveform.orEmpty().joinToString(","))
+        val path = dataDir.writeTemp(attachment.bytes)
+        val voice = attachment.voice
+        if (voice != null) {
+            sendVoice(
+                threadKey,
+                isEncrypted,
+                isGroup,
+                path,
+                attachment.mimeType,
+                voice.durationMillis,
+                voice.waveform.orEmpty().joinToString(",")
+            )
         } else {
-            sendMediaFile(threadKey, isEncrypted, isGroup, path, mimeType, fileName, caption.orEmpty(), (width ?: 0).toLong(), (height ?: 0).toLong())
+            sendMediaFile(
+                threadKey,
+                isEncrypted,
+                isGroup,
+                path,
+                attachment.mimeType,
+                attachment.fileName,
+                caption.orEmpty(),
+                (attachment.width ?: 0).toLong(),
+                (attachment.height ?: 0).toLong()
+            )
         }
     }
 
@@ -216,12 +305,16 @@ open class NativeOnDeviceMessenger(
             } catch (e: Exception) {
                 // hydbridge reports wrong_pin:<attempts>, pin_limit or no_backup
                 val code = e.message.orEmpty().let { message ->
-                    CODES.firstOrNull { message.contains(it) }?.let { found -> message.substring(message.indexOf(found)) } ?: message
+                    CODES.firstOrNull { message.contains(it) }
+                        ?.let { found -> message.substring(message.indexOf(found)) } ?: message
                 }
                 Result.Failure(
                     when {
                         code.startsWith("wrong_pin:") ->
-                            OnDeviceHistoryError.WrongPin(code.substringAfter(':').takeWhile(Char::isDigit).toIntOrNull() ?: 0)
+                            OnDeviceHistoryError.WrongPin(
+                                code.substringAfter(':').takeWhile(Char::isDigit).toIntOrNull() ?: 0
+                            )
+
                         code.startsWith("pin_limit") -> OnDeviceHistoryError.NoAttemptsLeft
                         code.startsWith("no_backup") -> OnDeviceHistoryError.NoBackup
                         else -> OnDeviceHistoryError.Other(code)
@@ -231,8 +324,19 @@ open class NativeOnDeviceMessenger(
         }
     }
 
-    override suspend fun fetchEncryptedHistory(threadKey: String, isGroup: Boolean, beforeTimestampMs: Long): EmptyResult<DataError.Remote> =
-        native("Fetching encrypted history") { fetchEncryptedHistory(threadKey, isGroup, beforeTimestampMs, HISTORY_PAGE_SIZE) }
+    override suspend fun fetchEncryptedHistory(
+        threadKey: String,
+        isGroup: Boolean,
+        beforeTimestampMs: Long
+    ): EmptyResult<DataError.Remote> =
+        native("Fetching encrypted history") {
+            fetchEncryptedHistory(
+                threadKey,
+                isGroup,
+                beforeTimestampMs,
+                HISTORY_PAGE_SIZE
+            )
+        }
 
     override suspend fun requestOlder(
         threadKey: String, beforeTimestampMs: Long, beforeMessageId: String, beforeMessageIsOutgoing: Boolean
@@ -240,15 +344,34 @@ open class NativeOnDeviceMessenger(
         native("Requesting older messages") { requestOlder(threadKey, beforeTimestampMs, beforeMessageId) }
 
     override suspend fun sendReaction(
-        threadKey: String, messageId: String, emoji: String, isEncrypted: Boolean, isGroup: Boolean, messageSenderId: String
+        threadKey: String,
+        message: MessageRef,
+        emoji: String,
+        isEncrypted: Boolean,
+        isGroup: Boolean
     ): EmptyResult<DataError.Remote> = native("Sending a reaction") {
-        if (isEncrypted) sendEncryptedReaction(threadKey, isGroup, messageId, messageSenderId, emoji) else sendReaction(threadKey, messageId, emoji)
+        if (isEncrypted) {
+            sendEncryptedReaction(threadKey, isGroup, message.id, message.senderId, emoji)
+        } else {
+            sendReaction(threadKey, message.id, emoji)
+        }
     }
 
-    override suspend fun markRead(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, lastMessageId: String, senderId: String): EmptyResult<DataError.Remote> =
+    override suspend fun markRead(
+        threadKey: String,
+        isEncrypted: Boolean,
+        isGroup: Boolean,
+        lastMessageId: String,
+        senderId: String
+    ): EmptyResult<DataError.Remote> =
         native("Marking read") { markRead(threadKey, isEncrypted, isGroup, lastMessageId, senderId) }
 
-    override suspend fun setTyping(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, isTyping: Boolean): EmptyResult<DataError.Remote> =
+    override suspend fun setTyping(
+        threadKey: String,
+        isEncrypted: Boolean,
+        isGroup: Boolean,
+        isTyping: Boolean
+    ): EmptyResult<DataError.Remote> =
         native("Sending typing") { setTyping(threadKey, isEncrypted, isGroup, isTyping) }
 
     override suspend fun unlink() {
@@ -264,7 +387,10 @@ open class NativeOnDeviceMessenger(
     }
 
     /** Runs a native call off the main thread; exceptions become failures. */
-    private suspend fun <T> native(description: String, block: NativeMessengerClient.() -> T): Result<T, DataError.Remote> {
+    private suspend fun <T> native(
+        description: String,
+        block: NativeMessengerClient.() -> T
+    ): Result<T, DataError.Remote> {
         val current = client ?: return Result.Failure(DataError.Remote.SERVICE_UNAVAILABLE)
         return withContext(Dispatchers.IO) {
             try {
@@ -280,8 +406,13 @@ open class NativeOnDeviceMessenger(
         val event = runCatching { Json.parseToJsonElement(json).jsonObject }.getOrNull() ?: return
         when (event["type"]?.jsonPrimitive?.contentOrNull) {
             "self" -> _state.value = OnDeviceMessengerState.Connected(event["name"]?.jsonPrimitive?.contentOrNull)
-            "state" -> when (event["state"]?.jsonPrimitive?.contentOrNull.also { log("state $it ${event["error"]?.jsonPrimitive?.contentOrNull.orEmpty()}") }) {
-                "error" -> _state.value = OnDeviceMessengerState.Failed(event["error"]?.jsonPrimitive?.contentOrNull ?: "Disconnected")
+            "state" -> when (
+                event["state"]?.jsonPrimitive?.contentOrNull
+                    .also { log("state $it ${event["error"]?.jsonPrimitive?.contentOrNull.orEmpty()}") }
+            ) {
+                "error" -> _state.value =
+                    OnDeviceMessengerState.Failed(event["error"]?.jsonPrimitive?.contentOrNull ?: "Disconnected")
+
                 "reconnecting" -> _state.value = OnDeviceMessengerState.Connecting
             }
         }

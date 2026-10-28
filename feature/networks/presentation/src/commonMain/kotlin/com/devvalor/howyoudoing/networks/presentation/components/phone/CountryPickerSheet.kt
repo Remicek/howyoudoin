@@ -52,7 +52,8 @@ fun CountryPickerSheet(
             listOf(selected) + Country.all.filter { it != selected }
         } else {
             Country.all.filter { country ->
-                country.displayName.lowercase().contains(q) || country.name.lowercase().contains(q) || country.dialCode.startsWith(q) || country.isoCode.lowercase() == q
+                country.displayName.lowercase().contains(q) || country.name.lowercase()
+                    .contains(q) || country.dialCode.startsWith(q) || country.isoCode.lowercase() == q
             }
         }
     }
@@ -106,7 +107,11 @@ private fun CountryRow(country: Country, isSelected: Boolean, onClick: () -> Uni
         )
         if (isSelected) {
             Spacer(Modifier.width(HowYouDoinSpacing.sm))
-            Icon(Icons.Rounded.Check, contentDescription = stringResource(Res.string.countrypicker_selected), tint = MaterialTheme.colorScheme.primary)
+            Icon(
+                Icons.Rounded.Check,
+                contentDescription = stringResource(Res.string.countrypicker_selected),
+                tint = MaterialTheme.colorScheme.primary
+            )
         }
     }
 }

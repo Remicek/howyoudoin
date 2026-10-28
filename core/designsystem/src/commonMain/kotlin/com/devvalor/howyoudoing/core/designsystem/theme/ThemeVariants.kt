@@ -12,10 +12,13 @@ import androidx.compose.ui.unit.dp
 enum class ThemeVariant {
     /** Calm indigo, the original look. */
     INDIGO,
+
     /** Fresh teal with soft, very round shapes. */
     LAGOON,
+
     /** Warm coral and cream. */
     SUNSET,
+
     /** Black and white with crisp corners; true black when dark, so network colours stand out. */
     GRAPHITE,
 }
@@ -41,7 +44,7 @@ private fun shapes(small: Int, medium: Int, large: Int) = Shapes(
 )
 
 /** The tones every variant sets; the rest come from Material's defaults. */
-private class Tones(
+private data class Tones(
     val primary: Long, val onPrimary: Long, val primaryContainer: Long, val onPrimaryContainer: Long,
     val secondary: Long, val onSecondary: Long, val secondaryContainer: Long, val onSecondaryContainer: Long,
     val background: Long, val onBackground: Long,
@@ -50,31 +53,59 @@ private class Tones(
 )
 
 private fun light(t: Tones) = lightColorScheme(
-    primary = Color(t.primary), onPrimary = Color(t.onPrimary),
-    primaryContainer = Color(t.primaryContainer), onPrimaryContainer = Color(t.onPrimaryContainer),
-    secondary = Color(t.secondary), onSecondary = Color(t.onSecondary),
-    secondaryContainer = Color(t.secondaryContainer), onSecondaryContainer = Color(t.onSecondaryContainer),
-    error = LightError, onError = LightOnError, errorContainer = LightErrorContainer, onErrorContainer = LightOnErrorContainer,
-    background = Color(t.background), onBackground = Color(t.onBackground),
-    surface = Color(t.background), onSurface = Color(t.onBackground),
-    surfaceVariant = Color(t.surfaceVariant), onSurfaceVariant = Color(t.onSurfaceVariant),
-    outline = Color(t.outline), outlineVariant = Color(t.outlineVariant),
-    surfaceContainerLowest = Color(t.lowest), surfaceContainerLow = Color(t.low), surfaceContainer = Color(t.container),
-    surfaceContainerHigh = Color(t.high), surfaceContainerHighest = Color(t.highest),
+    primary = Color(t.primary),
+    onPrimary = Color(t.onPrimary),
+    primaryContainer = Color(t.primaryContainer),
+    onPrimaryContainer = Color(t.onPrimaryContainer),
+    secondary = Color(t.secondary),
+    onSecondary = Color(t.onSecondary),
+    secondaryContainer = Color(t.secondaryContainer),
+    onSecondaryContainer = Color(t.onSecondaryContainer),
+    error = LightError,
+    onError = LightOnError,
+    errorContainer = LightErrorContainer,
+    onErrorContainer = LightOnErrorContainer,
+    background = Color(t.background),
+    onBackground = Color(t.onBackground),
+    surface = Color(t.background),
+    onSurface = Color(t.onBackground),
+    surfaceVariant = Color(t.surfaceVariant),
+    onSurfaceVariant = Color(t.onSurfaceVariant),
+    outline = Color(t.outline),
+    outlineVariant = Color(t.outlineVariant),
+    surfaceContainerLowest = Color(t.lowest),
+    surfaceContainerLow = Color(t.low),
+    surfaceContainer = Color(t.container),
+    surfaceContainerHigh = Color(t.high),
+    surfaceContainerHighest = Color(t.highest),
 )
 
 private fun dark(t: Tones) = darkColorScheme(
-    primary = Color(t.primary), onPrimary = Color(t.onPrimary),
-    primaryContainer = Color(t.primaryContainer), onPrimaryContainer = Color(t.onPrimaryContainer),
-    secondary = Color(t.secondary), onSecondary = Color(t.onSecondary),
-    secondaryContainer = Color(t.secondaryContainer), onSecondaryContainer = Color(t.onSecondaryContainer),
-    error = DarkError, onError = DarkOnError, errorContainer = DarkErrorContainer, onErrorContainer = DarkOnErrorContainer,
-    background = Color(t.background), onBackground = Color(t.onBackground),
-    surface = Color(t.background), onSurface = Color(t.onBackground),
-    surfaceVariant = Color(t.surfaceVariant), onSurfaceVariant = Color(t.onSurfaceVariant),
-    outline = Color(t.outline), outlineVariant = Color(t.outlineVariant),
-    surfaceContainerLowest = Color(t.lowest), surfaceContainerLow = Color(t.low), surfaceContainer = Color(t.container),
-    surfaceContainerHigh = Color(t.high), surfaceContainerHighest = Color(t.highest),
+    primary = Color(t.primary),
+    onPrimary = Color(t.onPrimary),
+    primaryContainer = Color(t.primaryContainer),
+    onPrimaryContainer = Color(t.onPrimaryContainer),
+    secondary = Color(t.secondary),
+    onSecondary = Color(t.onSecondary),
+    secondaryContainer = Color(t.secondaryContainer),
+    onSecondaryContainer = Color(t.onSecondaryContainer),
+    error = DarkError,
+    onError = DarkOnError,
+    errorContainer = DarkErrorContainer,
+    onErrorContainer = DarkOnErrorContainer,
+    background = Color(t.background),
+    onBackground = Color(t.onBackground),
+    surface = Color(t.background),
+    onSurface = Color(t.onBackground),
+    surfaceVariant = Color(t.surfaceVariant),
+    onSurfaceVariant = Color(t.onSurfaceVariant),
+    outline = Color(t.outline),
+    outlineVariant = Color(t.outlineVariant),
+    surfaceContainerLowest = Color(t.lowest),
+    surfaceContainerLow = Color(t.low),
+    surfaceContainer = Color(t.container),
+    surfaceContainerHigh = Color(t.high),
+    surfaceContainerHighest = Color(t.highest),
 )
 
 private val IndigoLight = light(

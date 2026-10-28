@@ -99,7 +99,12 @@ private class IosMessengerClient(
     )
 
     override fun requestOlder(threadKey: String, beforeTimestampMs: Long, beforeMessageId: String) {
-        call("requestOlder", "threadKey" to threadKey, "beforeTimestampMs" to beforeTimestampMs, "beforeMessageId" to beforeMessageId)
+        call(
+            "requestOlder",
+            "threadKey" to threadKey,
+            "beforeTimestampMs" to beforeTimestampMs,
+            "beforeMessageId" to beforeMessageId
+        )
     }
 
     override fun historyStatus(): String = call("historyStatus")
@@ -109,26 +114,61 @@ private class IosMessengerClient(
     }
 
     override fun fetchEncryptedHistory(threadKey: String, isGroup: Boolean, beforeTimestampMs: Long, count: Long) {
-        call("fetchEncryptedHistory", "threadKey" to threadKey, "isGroup" to isGroup, "beforeTimestampMs" to beforeTimestampMs, "count" to count)
+        call(
+            "fetchEncryptedHistory",
+            "threadKey" to threadKey,
+            "isGroup" to isGroup,
+            "beforeTimestampMs" to beforeTimestampMs,
+            "count" to count
+        )
     }
 
     override fun sendReaction(threadKey: String, messageId: String, emoji: String) {
         call("sendReaction", "threadKey" to threadKey, "messageId" to messageId, "emoji" to emoji)
     }
 
-    override fun sendEncryptedReaction(threadKey: String, isGroup: Boolean, messageId: String, messageSenderId: String, emoji: String) {
+    override fun sendEncryptedReaction(
+        threadKey: String,
+        isGroup: Boolean,
+        messageId: String,
+        messageSenderId: String,
+        emoji: String
+    ) {
         call(
             "sendEncryptedReaction",
-            "threadKey" to threadKey, "isGroup" to isGroup, "messageId" to messageId, "senderId" to messageSenderId, "emoji" to emoji
+            "threadKey" to threadKey,
+            "isGroup" to isGroup,
+            "messageId" to messageId,
+            "senderId" to messageSenderId,
+            "emoji" to emoji
         )
     }
 
-    override fun markRead(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, lastMessageId: String, senderId: String) {
-        call("markRead", "threadKey" to threadKey, "isEncrypted" to isEncrypted, "isGroup" to isGroup, "messageId" to lastMessageId, "senderId" to senderId)
+    override fun markRead(
+        threadKey: String,
+        isEncrypted: Boolean,
+        isGroup: Boolean,
+        lastMessageId: String,
+        senderId: String
+    ) {
+        call(
+            "markRead",
+            "threadKey" to threadKey,
+            "isEncrypted" to isEncrypted,
+            "isGroup" to isGroup,
+            "messageId" to lastMessageId,
+            "senderId" to senderId
+        )
     }
 
     override fun setTyping(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, isTyping: Boolean) {
-        call("setTyping", "threadKey" to threadKey, "isEncrypted" to isEncrypted, "isGroup" to isGroup, "isTyping" to isTyping)
+        call(
+            "setTyping",
+            "threadKey" to threadKey,
+            "isEncrypted" to isEncrypted,
+            "isGroup" to isGroup,
+            "isTyping" to isTyping
+        )
     }
 
     override fun fetchAvatars(contactIds: String) {
@@ -155,7 +195,8 @@ private class IosMessengerClient(
 }
 
 private fun appSupportDir(name: String): String {
-    val base = NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, true).first() as String
+    val base =
+        NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, true).first() as String
     return "$base/$name"
 }
 
@@ -187,7 +228,8 @@ class IosDataDirectory(name: String = "on_device_messenger") : OnDeviceDataDirec
 
     override fun writeTemp(bytes: ByteArray): String {
         val file = "$path/outgoing-${kotlin.random.Random.nextLong(0, Long.MAX_VALUE)}"
-        val data = bytes.usePinned { pinned -> NSData.create(bytes = pinned.addressOf(0), length = bytes.size.toULong()) }
+        val data =
+            bytes.usePinned { pinned -> NSData.create(bytes = pinned.addressOf(0), length = bytes.size.toULong()) }
         data.writeToFile(file, atomically = true)
         return file
     }
@@ -197,13 +239,25 @@ class IosDataDirectory(name: String = "on_device_messenger") : OnDeviceDataDirec
         if (!standardized.startsWith(this.path + "/")) return null
         val data = NSData.create(contentsOfFile = standardized) ?: return null
         val bytes = ByteArray(data.length.toInt())
-        if (bytes.isNotEmpty()) bytes.usePinned { pinned -> platform.posix.memcpy(pinned.addressOf(0), data.bytes, data.length) }
+        if (bytes.isNotEmpty()) bytes.usePinned { pinned ->
+            platform.posix.memcpy(
+                pinned.addressOf(0),
+                data.bytes,
+                data.length
+            )
+        }
         return bytes
     }
 
     private fun ensure(dir: String) {
-        NSFileManager.defaultManager.createDirectoryAtPath(dir, withIntermediateDirectories = true, attributes = null, error = null)
-        NSURL.fileURLWithPath(dir).setResourceValue(NSNumber(bool = true), forKey = NSURLIsExcludedFromBackupKey, error = null)
+        NSFileManager.defaultManager.createDirectoryAtPath(
+            dir,
+            withIntermediateDirectories = true,
+            attributes = null,
+            error = null
+        )
+        NSURL.fileURLWithPath(dir)
+            .setResourceValue(NSNumber(bool = true), forKey = NSURLIsExcludedFromBackupKey, error = null)
     }
 }
 
@@ -245,47 +299,79 @@ class IosWhatsAppFactory : NativeLinkedClientFactory {
             override fun connect() {
                 call("connect", "phone" to "")
             }
+
             // A phone number asks for a pairing code, none for QR codes
             override fun startLinking(phoneNumber: String) {
                 call("connect", "phone" to phoneNumber)
             }
+
             override fun cancelLinking() {
                 call("disconnect")
             }
+
             override fun disconnect() {
                 call("disconnect")
             }
+
             override fun logout() {
                 call("logout")
                 hyd_release(handle)
                 callback.dispose()
             }
+
             override fun sendText(chat: String, text: String) = call("sendText", "threadKey" to chat, "text" to text)
             override fun sendReaction(chat: String, messageId: String, senderId: String, emoji: String) {
-                call("sendReaction", "threadKey" to chat, "messageId" to messageId, "senderId" to senderId, "emoji" to emoji)
+                call(
+                    "sendReaction",
+                    "threadKey" to chat,
+                    "messageId" to messageId,
+                    "senderId" to senderId,
+                    "emoji" to emoji
+                )
             }
+
             override fun markRead(chat: String, messageId: String, senderId: String) {
                 call("markRead", "threadKey" to chat, "messageId" to messageId, "senderId" to senderId)
             }
+
             override fun setTyping(chat: String, isTyping: Boolean) {
                 call("setTyping", "threadKey" to chat, "isTyping" to isTyping)
             }
+
             override fun sendMediaFile(
-                chat: String, path: String, mimeType: String, fileName: String, caption: String, width: Long, height: Long
+                chat: String,
+                path: String,
+                mimeType: String,
+                fileName: String,
+                caption: String,
+                width: Long,
+                height: Long
             ) = call(
                 "sendMediaFile", "threadKey" to chat, "path" to path, "mimeType" to mimeType, "fileName" to fileName,
                 "text" to caption, "width" to width, "height" to height
             )
+
             override fun downloadMedia(chat: String, messageId: String, mediaRef: String) =
                 call("downloadMedia", "threadKey" to chat, "messageId" to messageId, "mediaRef" to mediaRef)
+
             override fun fetchAvatars(chats: String) {
                 call("fetchAvatars", "text" to chats)
             }
+
             // Older messages come from the user's own phone as an on-demand history sync
-            override fun requestOlder(chat: String, beforeMessageId: String, beforeIsOutgoing: Boolean, beforeTimestampMs: Long) {
+            override fun requestOlder(
+                chat: String,
+                beforeMessageId: String,
+                beforeIsOutgoing: Boolean,
+                beforeTimestampMs: Long
+            ) {
                 call(
-                    "requestHistory", "threadKey" to chat, "beforeMessageId" to beforeMessageId, "isOutgoing" to beforeIsOutgoing,
-                    "beforeTimestampMs" to beforeTimestampMs, "count" to 50L
+                    "requestHistory",
+                    "threadKey" to chat,
+                    "beforeMessageId" to beforeMessageId,
+                    "isOutgoing" to beforeIsOutgoing,
+                    "beforeTimestampMs" to beforeTimestampMs,
+                    "count" to OLDER_MESSAGES_PAGE
                 )
             }
         }
@@ -334,25 +420,52 @@ class IosInstagramFactory : NativeMessengerFactory {
             override fun connect() {
                 call("connect")
             }
+
             override fun disconnect() {
                 call("disconnect")
                 hyd_release(handle)
                 callback.dispose()
             }
-            override fun sendText(threadKey: String, text: String) = call("sendText", "threadKey" to threadKey, "text" to text)
+
+            override fun sendText(threadKey: String, text: String) =
+                call("sendText", "threadKey" to threadKey, "text" to text)
+
             override fun sendEncryptedText(threadKey: String, isGroup: Boolean, text: String): String = unsupported()
             override fun requestOlder(threadKey: String, beforeTimestampMs: Long, beforeMessageId: String) {
                 call("requestOlder", "threadKey" to threadKey, "beforeMessageId" to beforeMessageId)
             }
+
             override fun historyStatus(): String = unsupported()
             override fun restoreHistory(pin: String) = unsupported()
-            override fun fetchEncryptedHistory(threadKey: String, isGroup: Boolean, beforeTimestampMs: Long, count: Long) = unsupported()
+            override fun fetchEncryptedHistory(
+                threadKey: String,
+                isGroup: Boolean,
+                beforeTimestampMs: Long,
+                count: Long
+            ) = unsupported()
+
             override fun sendReaction(threadKey: String, messageId: String, emoji: String) = unsupported()
-            override fun sendEncryptedReaction(threadKey: String, isGroup: Boolean, messageId: String, messageSenderId: String, emoji: String) =
+            override fun sendEncryptedReaction(
+                threadKey: String,
+                isGroup: Boolean,
+                messageId: String,
+                messageSenderId: String,
+                emoji: String
+            ) =
                 unsupported()
-            override fun markRead(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, lastMessageId: String, senderId: String) = unsupported()
-            override fun setTyping(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, isTyping: Boolean) = unsupported()
+
+            override fun markRead(
+                threadKey: String,
+                isEncrypted: Boolean,
+                isGroup: Boolean,
+                lastMessageId: String,
+                senderId: String
+            ) = unsupported()
+
+            override fun setTyping(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, isTyping: Boolean) =
+                unsupported()
         }
     }
 }
 
+private const val OLDER_MESSAGES_PAGE = 50L

@@ -41,39 +41,70 @@ val chatDataModule = module {
     singleOf(::OpenChatTracker)
     singleOf(::DataStoreNotificationPreferences) bind NotificationPreferences::class
     // Created eagerly so they collect the on-device inboxes from the start
-    single(named(MESSENGER_STORE), createdAtStart = true) { OnDeviceMessengerStore(get<OnDeviceMessenger>(), get(), get()) }
+    single(named(MESSENGER_STORE), createdAtStart = true) {
+        OnDeviceMessengerStore(
+            get<OnDeviceMessenger>(),
+            get(),
+            get()
+        )
+    }
     single(named(WHATSAPP_STORE), createdAtStart = true) {
         OnDeviceMessengerStore(
-            get<OnDeviceWhatsApp>(), get(named(ON_DEVICE_WHATSAPP_CACHE)), get(), OnDeviceMessengerStore.WHATSAPP_CHAT_ID_PREFIX
+            get<OnDeviceWhatsApp>(),
+            get(named(ON_DEVICE_WHATSAPP_CACHE)),
+            get(),
+            OnDeviceMessengerStore.WHATSAPP_CHAT_ID_PREFIX
         )
     }
     single(named(INSTAGRAM_STORE), createdAtStart = true) {
         OnDeviceMessengerStore(
-            get<OnDeviceInstagram>(), get(named(ON_DEVICE_INSTAGRAM_CACHE)), get(), OnDeviceMessengerStore.INSTAGRAM_CHAT_ID_PREFIX
+            get<OnDeviceInstagram>(),
+            get(named(ON_DEVICE_INSTAGRAM_CACHE)),
+            get(),
+            OnDeviceMessengerStore.INSTAGRAM_CHAT_ID_PREFIX
         )
     }
     single(named(TELEGRAM_STORE), createdAtStart = true) {
         OnDeviceMessengerStore(
-            get<OnDeviceTelegram>(), get(named(ON_DEVICE_TELEGRAM_CACHE)), get(), OnDeviceMessengerStore.TELEGRAM_CHAT_ID_PREFIX
+            get<OnDeviceTelegram>(),
+            get(named(ON_DEVICE_TELEGRAM_CACHE)),
+            get(),
+            OnDeviceMessengerStore.TELEGRAM_CHAT_ID_PREFIX
         )
     }
     single(named(SIGNAL_STORE), createdAtStart = true) {
         OnDeviceMessengerStore(
-            get<OnDeviceSignal>(), get(named(ON_DEVICE_SIGNAL_CACHE)), get(), OnDeviceMessengerStore.SIGNAL_CHAT_ID_PREFIX
+            get<OnDeviceSignal>(),
+            get(named(ON_DEVICE_SIGNAL_CACHE)),
+            get(),
+            OnDeviceMessengerStore.SIGNAL_CHAT_ID_PREFIX
         )
     }
     single(named(SLACK_STORE), createdAtStart = true) {
-        OnDeviceMessengerStore(get<OnDeviceSlack>(), get(named(ON_DEVICE_SLACK_CACHE)), get(), OnDeviceMessengerStore.SLACK_CHAT_ID_PREFIX)
+        OnDeviceMessengerStore(
+            get<OnDeviceSlack>(),
+            get(named(ON_DEVICE_SLACK_CACHE)),
+            get(),
+            OnDeviceMessengerStore.SLACK_CHAT_ID_PREFIX
+        )
     }
     // The Matrix account connected as a network: a second sync engine on its own session
-    single(named(MATRIX_ACCOUNT_ENGINE)) { MatrixSyncEngine(
+    single(named(MATRIX_ACCOUNT_ENGINE)) {
+        MatrixSyncEngine(
             get(), get(named(MATRIX_ACCOUNT_SESSION)), get(), acceptDirectInvites = true,
             cryptoFactory = getOrNull(), mediaCache = getOrNull()
-        ) }
+        )
+    }
     single { MatrixAccountChats(MatrixChatRepository(get(named(MATRIX_ACCOUNT_ENGINE)))) }
     single<MatrixEncryption> { MatrixAccountEncryption(get(named(MATRIX_ACCOUNT_ENGINE))) }
     single<CallManager>(createdAtStart = true) {
-        MatrixCallManager(get<MatrixSyncEngine>(), get<MatrixSyncEngine>(named(MATRIX_ACCOUNT_ENGINE)), get(), get(), get())
+        MatrixCallManager(
+            get<MatrixSyncEngine>(),
+            get<MatrixSyncEngine>(named(MATRIX_ACCOUNT_ENGINE)),
+            get(),
+            get(),
+            get()
+        )
     }
     single {
         OnDeviceChatRepository(

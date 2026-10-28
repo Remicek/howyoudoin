@@ -21,12 +21,12 @@ import platform.Security.kSecRandomDefault
 /** PBKDF2-HMAC-SHA256 through CommonCrypto, matching Android's. */
 @OptIn(ExperimentalForeignApi::class)
 class IosPinHasher : PinHasher {
-    override fun newSalt(): ByteArray = ByteArray(16).also { salt ->
+    override fun newSalt(): ByteArray = ByteArray(SALT_BYTES).also { salt ->
         salt.usePinned { SecRandomCopyBytes(kSecRandomDefault, salt.size.convert(), it.addressOf(0)) }
     }
 
     override fun hash(pin: String, salt: ByteArray): ByteArray {
-        val derived = ByteArray(32)
+        val derived = ByteArray(KEY_BYTES)
         salt.usePinned { s ->
             derived.usePinned { d ->
                 // The password parameter is a C string, which Kotlin passes as UTF-8
@@ -59,3 +59,7 @@ object IosCrashReports : CrashReports {
         this.offers.value = offers
     }
 }
+
+// The same sizes as Android's, so a hash means the same on both
+private const val SALT_BYTES = 16
+private const val KEY_BYTES = 32

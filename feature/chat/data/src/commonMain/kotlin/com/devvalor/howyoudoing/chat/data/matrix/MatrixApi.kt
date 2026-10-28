@@ -1,9 +1,9 @@
 package com.devvalor.howyoudoing.chat.data.matrix
 
+import com.devvalor.howyoudoing.chat.data.matrix.dto.ContentUriDto
 import com.devvalor.howyoudoing.chat.data.matrix.dto.MessagesResponseDto
 import com.devvalor.howyoudoing.chat.data.matrix.dto.SendEventResponseDto
 import com.devvalor.howyoudoing.chat.data.matrix.dto.SyncResponseDto
-import com.devvalor.howyoudoing.chat.data.matrix.dto.ContentUriDto
 import com.devvalor.howyoudoing.chat.data.matrix.dto.TurnServerDto
 import com.devvalor.howyoudoing.core.data.networking.safeCall
 import com.devvalor.howyoudoing.core.domain.auth.AuthInfo
@@ -12,17 +12,18 @@ import com.devvalor.howyoudoing.core.domain.util.Result
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.HttpRequestBuilder
-import io.ktor.client.request.header
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.get
+import io.ktor.client.request.header
 import io.ktor.client.request.parameter
 import io.ktor.client.request.post
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
-import io.ktor.http.appendPathSegments
-import io.ktor.http.takeFrom
 import io.ktor.http.ContentType
+import io.ktor.http.appendPathSegments
 import io.ktor.http.contentType
+import io.ktor.http.isSuccess
+import io.ktor.http.takeFrom
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
@@ -171,7 +172,7 @@ class MatrixApi(
 
     suspend fun download(url: String, headers: Map<String, String>): ByteArray? = runCatching {
         val response = httpClient.get(url) { headers.forEach { (name, value) -> header(name, value) } }
-        if (response.status.value in 200..299) response.body<ByteArray>() else null
+        if (response.status.isSuccess()) response.body<ByteArray>() else null
     }.getOrNull()
 
     private fun HttpRequestBuilder.endpoint(session: AuthInfo, vararg path: String) {

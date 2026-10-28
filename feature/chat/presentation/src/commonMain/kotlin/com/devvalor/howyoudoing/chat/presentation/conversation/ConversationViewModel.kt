@@ -9,6 +9,7 @@ import androidx.navigation.toRoute
 import com.devvalor.howyoudoing.chat.domain.Attachment
 import com.devvalor.howyoudoing.chat.domain.CallLauncher
 import com.devvalor.howyoudoing.chat.domain.CallManager
+import com.devvalor.howyoudoing.chat.domain.Chat
 import com.devvalor.howyoudoing.chat.domain.ChatRepository
 import com.devvalor.howyoudoing.chat.domain.NotificationPreferences
 import com.devvalor.howyoudoing.chat.domain.OpenChatTracker
@@ -86,37 +87,76 @@ class ConversationViewModel(
                 _state.update { it.copy(draft = action.draft) }
                 updateTyping(action.draft.isNotBlank())
             }
+
             ConversationAction.OnSendClick -> send()
             is ConversationAction.OnCallClick -> callLauncher.call(chatId, action.video)
             ConversationAction.OnAcceptInviteClick -> answerInvite(accept = true)
             ConversationAction.OnDeclineInviteClick -> answerInvite(accept = false)
+            ConversationAction.OnLoadOlder -> loadOlder()
+            is ConversationAction.OnAttachmentPicked -> sendAttachment(action.attachment)
+            is ConversationAction.OnVoiceRecorded -> sendVoice(action.attachment)
+            is ConversationAction.OnAttachmentError -> viewModelScope.launch {
+                eventChannel.send(ConversationEvent.Error(UiText.DynamicString(action.message)))
+            }
+
+            is ConversationAction.OnMediaClick -> openMedia(action.messageId)
+            ConversationAction.OnCloseImage -> _state.update { it.copy(viewingImage = null) }
+            ConversationAction.OnToggleMute -> viewModelScope.launch {
+                notificationPreferences.setMuted(chatId, !state.value.isMuted)
+            }
+
+            ConversationAction.OnSearchClick,
+            is ConversationAction.OnSearchQueryChange,
+            ConversationAction.OnSearchOlder,
+            ConversationAction.OnSearchNewer,
+            ConversationAction.OnCloseSearch -> onSearchAction(action)
+
+            ConversationAction.OnBackClick -> Unit
+            else -> onMessageAction(action)
+        }
+    }
+
+    /** What's done to one message from its actions sheet. */
+    private fun onMessageAction(action: ConversationAction) {
+        when (action) {
             is ConversationAction.OnRetryClick -> {
                 _state.update { it.copy(actionsFor = null) }
                 viewModelScope.launch { chatRepository.retryMessage(chatId, action.messageId) }
             }
+
             is ConversationAction.OnDiscardClick -> {
                 _state.update { it.copy(actionsFor = null) }
                 viewModelScope.launch { chatRepository.discardFailedMessage(chatId, action.messageId) }
             }
-            ConversationAction.OnLoadOlder -> loadOlder()
+
             is ConversationAction.OnMessageLongPress -> _state.update { state ->
                 state.copy(actionsFor = state.messages.firstOrNull { it.id == action.messageId })
             }
+
             ConversationAction.OnDismissActions -> _state.update { it.copy(actionsFor = null) }
             is ConversationAction.OnReactionClick -> react(action.messageId, action.key)
             is ConversationAction.OnReplyClick -> _state.update { state ->
                 state.copy(replyingTo = state.messages.firstOrNull { it.id == action.messageId }, actionsFor = null)
             }
+
             ConversationAction.OnCancelReply -> _state.update { it.copy(replyingTo = null) }
             is ConversationAction.OnEditClick -> _state.update { state ->
                 val message = state.messages.firstOrNull { it.id == action.messageId }
-                if (message == null) state.copy(actionsFor = null)
-                else state.copy(editing = message, draft = message.text, replyingTo = null, actionsFor = null)
+                if (message == null) {
+                    state.copy(actionsFor = null)
+                } else {
+                    state.copy(editing = message, draft = message.text, replyingTo = null, actionsFor = null)
+                }
             }
+
             ConversationAction.OnCancelEdit -> _state.update { it.copy(editing = null, draft = "") }
             is ConversationAction.OnDeleteClick -> _state.update { state ->
-                state.copy(confirmingDelete = state.messages.firstOrNull { it.id == action.messageId }, actionsFor = null)
+                state.copy(
+                    confirmingDelete = state.messages.firstOrNull { it.id == action.messageId },
+                    actionsFor = null
+                )
             }
+
             ConversationAction.OnDismissDelete -> _state.update { it.copy(confirmingDelete = null) }
             ConversationAction.OnConfirmDelete -> deleteForEveryone()
             is ConversationAction.OnCopyClick -> {
@@ -124,25 +164,48 @@ class ConversationViewModel(
                 _state.update { it.copy(actionsFor = null) }
                 if (text != null) viewModelScope.launch { eventChannel.send(ConversationEvent.CopyToClipboard(text)) }
             }
-            is ConversationAction.OnAttachmentPicked -> sendAttachment(action.attachment)
-            is ConversationAction.OnVoiceRecorded -> sendVoice(action.attachment)
-            is ConversationAction.OnAttachmentError -> viewModelScope.launch {
-                eventChannel.send(ConversationEvent.Error(UiText.DynamicString(action.message)))
-            }
-            is ConversationAction.OnMediaClick -> openMedia(action.messageId)
-            ConversationAction.OnCloseImage -> _state.update { it.copy(viewingImage = null) }
-            ConversationAction.OnToggleMute -> viewModelScope.launch {
-                notificationPreferences.setMuted(chatId, !state.value.isMuted)
-            }
+
+            else -> Unit
+        }
+    }
+
+    private fun onSearchAction(action: ConversationAction) {
+        when (action) {
             ConversationAction.OnSearchClick -> _state.update { it.copy(searchQuery = "") }
-            is ConversationAction.OnSearchQueryChange -> _state.update { it.copy(searchQuery = action.query).withSearchMatches() }
+            is ConversationAction.OnSearchQueryChange -> _state.update {
+                it.copy(searchQuery = action.query).withSearchMatches()
+            }
+
             ConversationAction.OnSearchOlder -> _state.update {
                 it.copy(searchIndex = (it.searchIndex + 1).coerceAtMost((it.searchMatches.size - 1).coerceAtLeast(0)))
             }
-            ConversationAction.OnSearchNewer -> _state.update { it.copy(searchIndex = (it.searchIndex - 1).coerceAtLeast(0)) }
-            ConversationAction.OnCloseSearch -> _state.update { it.copy(searchQuery = null, searchMatches = emptyList(), searchIndex = 0) }
-            ConversationAction.OnBackClick -> Unit
+
+            ConversationAction.OnSearchNewer -> _state.update {
+                it.copy(searchIndex = (it.searchIndex - 1).coerceAtLeast(0))
+            }
+
+            ConversationAction.OnCloseSearch -> _state.update {
+                it.copy(searchQuery = null, searchMatches = emptyList(), searchIndex = 0)
+            }
+
+            else -> Unit
         }
+    }
+
+    /** The chat's details; kept as they were while the chat isn't loaded (yet). */
+    private fun ConversationState.withChat(chat: Chat?): ConversationState = if (chat == null) {
+        this
+    } else {
+        copy(
+            chatName = chat.name,
+            avatarUrl = chat.avatarUrl ?: avatarUrl,
+            network = chat.network,
+            isGroup = chat.isGroup,
+            isEncrypted = chat.isEncrypted,
+            isOnDevice = chat.isOnDevice,
+            canCall = callManager.canCall(chat),
+            isInvite = chat.isInvite
+        )
     }
 
     /** Recomputes the matches, staying on the current one when it still matches. */
@@ -180,15 +243,7 @@ class ConversationViewModel(
         }
             .onEach { (chat, messages, hasMore) ->
                 _state.update {
-                    it.copy(
-                        chatName = chat?.name ?: it.chatName,
-                        avatarUrl = chat?.avatarUrl ?: it.avatarUrl,
-                        network = chat?.network ?: it.network,
-                        isGroup = chat?.isGroup ?: it.isGroup,
-                        isEncrypted = chat?.isEncrypted ?: it.isEncrypted,
-                        isOnDevice = chat?.isOnDevice ?: it.isOnDevice,
-                        canCall = chat?.let(callManager::canCall) ?: it.canCall,
-                        isInvite = chat?.isInvite ?: it.isInvite,
+                    it.withChat(chat).copy(
                         typingText = chat?.let { c -> typingText(c.typingNames, c.isGroup) },
                         messages = messages.toMessageUis(showSenderNames = chat?.isGroup == true),
                         hasMoreHistory = hasMore

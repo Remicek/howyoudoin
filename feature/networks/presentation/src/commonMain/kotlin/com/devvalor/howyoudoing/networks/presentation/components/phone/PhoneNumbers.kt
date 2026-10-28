@@ -19,7 +19,7 @@ object PhoneNumbers {
         val national = nationalDigits(country, input)
         val e164 = toE164(country, input)
         val totalDigits = e164.length - 1
-        if (national.length < 4 || totalDigits !in 8..15) return false
+        if (national.length < MIN_NATIONAL_DIGITS || totalDigits !in PLAUSIBLE_TOTAL_DIGITS) return false
         return pattern.isNullOrBlank() || runCatching { Regex(pattern).matches(e164) }.getOrDefault(true)
     }
 
@@ -29,9 +29,13 @@ object PhoneNumbers {
         val digits = when {
             trimmed.startsWith("+") -> trimmed.filter(Char::isDigit)
             trimmed.startsWith("00") -> trimmed.filter(Char::isDigit).removePrefix("00")
-            else -> return null
+            else -> null
         }
-        val country = Country.forDialledDigits(digits) ?: return null
-        return country to digits.removePrefix(country.dialCode)
+        return digits?.let { dialled ->
+            Country.forDialledDigits(dialled)?.let { country -> country to dialled.removePrefix(country.dialCode) }
+        }
     }
 }
+
+private const val MIN_NATIONAL_DIGITS = 4
+private val PLAUSIBLE_TOTAL_DIGITS = 8..15

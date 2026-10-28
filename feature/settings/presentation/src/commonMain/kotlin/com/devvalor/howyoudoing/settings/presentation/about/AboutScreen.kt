@@ -36,7 +36,12 @@ import com.devvalor.howyoudoing.settings.presentation.components.SettingsSection
 import org.koin.compose.koinInject
 
 @Composable
-fun AboutRoot(onLicensesClick: () -> Unit, onTermsClick: () -> Unit, onBack: () -> Unit, appInfo: AppInfo = koinInject()) {
+fun AboutRoot(
+    onLicensesClick: () -> Unit,
+    onTermsClick: () -> Unit,
+    onBack: () -> Unit,
+    appInfo: AppInfo = koinInject()
+) {
     AboutScreen(appInfo = appInfo, onLicensesClick = onLicensesClick, onTermsClick = onTermsClick, onBack = onBack)
 }
 
@@ -45,7 +50,11 @@ fun AboutScreen(appInfo: AppInfo, onLicensesClick: () -> Unit, onTermsClick: () 
     val uriHandler = LocalUriHandler.current
     SettingsScaffold(title = stringResource(Res.string.about_title), onBack = onBack) {
         item {
-            SettingsRow(title = "HowYouDoin", subtitle = stringResource(Res.string.about_version, appInfo.versionName), icon = Icons.Rounded.Info)
+            SettingsRow(
+                title = "HowYouDoin",
+                subtitle = stringResource(Res.string.about_version, appInfo.versionName),
+                icon = Icons.Rounded.Info
+            )
         }
         item {
             SettingsRow(
@@ -53,7 +62,12 @@ fun AboutScreen(appInfo: AppInfo, onLicensesClick: () -> Unit, onTermsClick: () 
                 subtitle = stringResource(Res.string.about_source_sub),
                 icon = Icons.Rounded.Code,
                 onClick = { uriHandler.openUri(appInfo.sourceCodeUrl) },
-                trailing = { Icon(Icons.AutoMirrored.Rounded.OpenInNew, contentDescription = stringResource(Res.string.about_opens_browser)) },
+                trailing = {
+                    Icon(
+                        Icons.AutoMirrored.Rounded.OpenInNew,
+                        contentDescription = stringResource(Res.string.about_opens_browser)
+                    )
+                },
             )
         }
         item {

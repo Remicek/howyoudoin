@@ -80,7 +80,11 @@ actual val platformAppModule: Module = module {
         OnDeviceConnectionKeeper(
             context = androidContext(),
             clients = listOf(
-                get<OnDeviceMessenger>(), get<OnDeviceWhatsApp>(), get<OnDeviceInstagram>(), get<OnDeviceTelegram>(), get<OnDeviceSignal>(),
+                get<OnDeviceMessenger>(),
+                get<OnDeviceWhatsApp>(),
+                get<OnDeviceInstagram>(),
+                get<OnDeviceTelegram>(),
+                get<OnDeviceSignal>(),
                 get<OnDeviceSlack>()
             ),
             linkedAccounts = listOf(get<OnDeviceWhatsApp>(), get<OnDeviceTelegram>(), get<OnDeviceSignal>()),
@@ -131,15 +135,18 @@ actual val platformAppModule: Module = module {
             context = androidContext(),
             appSession = get(),
             matrixSession = get(named(MATRIX_ACCOUNT_SESSION)),
-            cookieLogins = mapOf(
-                ChatNetwork.MESSENGER to (get<OnDeviceMessenger>() to KeystoreSecretStore(androidContext())),
-                ChatNetwork.INSTAGRAM to (get<OnDeviceInstagram>() to KeystoreSecretStore(androidContext(), INSTAGRAM_DIR)),
-                ChatNetwork.SLACK to (get<OnDeviceSlack>() to KeystoreSecretStore(androidContext(), SLACK_DIR))
+            sources = AndroidLoginBackup.BackupSources(
+                cookieLogins = mapOf(
+                    ChatNetwork.MESSENGER to (get<OnDeviceMessenger>() to KeystoreSecretStore(androidContext())),
+                    ChatNetwork.INSTAGRAM to
+                        (get<OnDeviceInstagram>() to KeystoreSecretStore(androidContext(), INSTAGRAM_DIR)),
+                    ChatNetwork.SLACK to (get<OnDeviceSlack>() to KeystoreSecretStore(androidContext(), SLACK_DIR))
+                ),
+                telegram = get<OnDeviceTelegram>() as NativeOnDeviceTelegram,
+                telegramDir = File(androidContext().noBackupFilesDir, TELEGRAM_DIR),
+                relinkOnly = listOf(get<OnDeviceWhatsApp>(), get<OnDeviceSignal>()),
+                matrix = get<OnDeviceMatrix>()
             ),
-            telegram = get<OnDeviceTelegram>() as NativeOnDeviceTelegram,
-            telegramDir = File(androidContext().noBackupFilesDir, TELEGRAM_DIR),
-            relinkOnly = listOf(get<OnDeviceWhatsApp>(), get<OnDeviceSignal>()),
-            matrix = get<OnDeviceMatrix>(),
             scope = get()
         )
     }

@@ -3,8 +3,6 @@ package com.devvalor.howyoudoing.networks.presentation.components
 import android.annotation.SuppressLint
 import android.view.ViewGroup
 import android.webkit.CookieManager
-import org.json.JSONArray
-import org.json.JSONObject
 import android.webkit.WebResourceRequest
 import android.webkit.WebStorage
 import android.webkit.WebView
@@ -12,15 +10,18 @@ import android.webkit.WebViewClient
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import kotlin.coroutines.resume
+import kotlin.math.abs
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlin.coroutines.resume
+import org.json.JSONArray
+import org.json.JSONObject
 
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
@@ -43,7 +44,8 @@ actual fun CookieCaptureWebView(
             WebView(context).also { webViewHolder[0] = it }.apply {
                 // With AndroidView's default WRAP_CONTENT height, WebView resolves CSS viewport units (vh) to 0,
                 // and pages sized with them (Instagram's login and cookie dialog) collapse to nothing
-                layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+                layoutParams =
+                    ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
                 settings.javaScriptEnabled = true
                 settings.domStorageEnabled = true
                 // Bridges ask for a desktop user agent (the session is reused with it), so the site
@@ -101,7 +103,8 @@ actual fun CookieCaptureWebView(
         if (!isCleared) return@LaunchedEffect
         while (true) {
             val extracted = extractScript?.let { script -> webViewHolder[0]?.let { evaluate(it, script) } }
-            val cookies = parseCookieHeader(CookieManager.getInstance().getCookie(url)) + parseExtractedValues(extracted)
+            val cookies =
+                parseCookieHeader(CookieManager.getInstance().getCookie(url)) + parseExtractedValues(extracted)
             if (cookieNames.isNotEmpty() && cookieNames.all { it in cookies }) {
                 currentOnCookiesCaptured(cookies.filterKeys { it in cookieNames })
                 break
@@ -115,7 +118,8 @@ actual fun CookieCaptureWebView(
 private suspend fun evaluate(webView: WebView, script: String): String? = suspendCancellableCoroutine { continuation ->
     webView.evaluateJavascript(script) { result ->
         // The result comes JSON-encoded: a string result is a quoted JSON string
-        val decoded = result?.takeIf { it.startsWith("\"") }?.let { runCatching { JSONArray("[$it]").getString(0) }.getOrNull() }
+        val decoded =
+            result?.takeIf { it.startsWith("\"") }?.let { runCatching { JSONArray("[$it]").getString(0) }.getOrNull() }
         if (continuation.isActive) continuation.resume(decoded)
     }
 }
@@ -135,7 +139,7 @@ private fun zoomToForm(webView: WebView) {
         if (width <= 0.0 || viewportWidth <= 0.0) return@evaluateJavascript
         // Relative to the current zoom: in to fit a small form, out to fit a wide dialog
         val factor = (viewportWidth * FORM_WIDTH_SHARE / width).toFloat().coerceIn(1f / MAX_ZOOM_STEP, MAX_ZOOM_STEP)
-        if (factor > 1.05f || factor < 0.95f) webView.zoomBy(factor)
+        if (abs(factor - 1f) > ZOOM_TOLERANCE) webView.zoomBy(factor)
         webView.postDelayed({ webView.evaluateJavascript(CENTER_FORM_SCRIPT, null) }, FOCUS_DELAY_MILLIS)
     }
 }
@@ -151,3 +155,6 @@ private fun withWebViewChromeVersion(userAgent: String, webViewUserAgent: String
     val major = actual.substringAfter('/').substringBefore('.')
     return userAgent.replace(chrome, "Chrome/$major.0.0.0")
 }
+
+/** Zoom changes smaller than this aren't worth the jump. */
+private const val ZOOM_TOLERANCE = 0.05f

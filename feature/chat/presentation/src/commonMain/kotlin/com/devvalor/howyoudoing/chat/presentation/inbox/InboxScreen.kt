@@ -155,7 +155,10 @@ fun InboxScreen(
                 },
                 actions = {
                     IconButton(onClick = { onAction(InboxAction.OnNetworksClick) }) {
-                        Icon(Icons.Rounded.Hub, contentDescription = stringResource(Res.string.inbox_connected_networks))
+                        Icon(
+                            Icons.Rounded.Hub,
+                            contentDescription = stringResource(Res.string.inbox_connected_networks)
+                        )
                     }
                     Box {
                         IconButton(onClick = { isMenuOpen = true }) {
@@ -203,11 +206,13 @@ fun InboxScreen(
                 state.isLoading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator()
                 }
+
                 state.chats.isEmpty() -> EmptyInbox(
                     isFiltered = state.query.isNotBlank() || state.filter != InboxFilter.All,
                     onNetworksClick = { onAction(InboxAction.OnNetworksClick) },
                     onGuideClick = { onAction(InboxAction.OnGuideClick) },
                 )
+
                 else -> PullToRefreshBox(
                     isRefreshing = state.isRefreshing,
                     onRefresh = { onAction(InboxAction.OnRefresh) },
@@ -221,7 +226,10 @@ fun InboxScreen(
                         modifier = Modifier.fillMaxSize(),
                     ) {
                         items(state.chats, key = { it.id }) { chat ->
-                            ChatRow(chat = chat, resolver = resolver, onClick = { onAction(InboxAction.OnChatClick(chat.id)) })
+                            ChatRow(
+                                chat = chat,
+                                resolver = resolver,
+                                onClick = { onAction(InboxAction.OnChatClick(chat.id)) })
                         }
                     }
                 }
@@ -232,7 +240,11 @@ fun InboxScreen(
 
 /** One card per network that stopped working; tapping opens Networks to fix it. */
 @Composable
-private fun ConnectionProblems(problems: List<ConnectionProblem>, onClick: () -> Unit, onDismiss: (ChatNetwork) -> Unit) {
+private fun ConnectionProblems(
+    problems: List<ConnectionProblem>,
+    onClick: () -> Unit,
+    onDismiss: (ChatNetwork) -> Unit
+) {
     problems.forEach { problem ->
         Surface(
             onClick = onClick,
@@ -245,11 +257,19 @@ private fun ConnectionProblems(problems: List<ConnectionProblem>, onClick: () ->
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(start = HowYouDoinSpacing.md, top = HowYouDoinSpacing.sm, bottom = HowYouDoinSpacing.sm),
+                modifier = Modifier.padding(
+                    start = HowYouDoinSpacing.md,
+                    top = HowYouDoinSpacing.sm,
+                    bottom = HowYouDoinSpacing.sm
+                ),
             ) {
                 Icon(Icons.Rounded.ErrorOutline, contentDescription = null)
                 Column(Modifier.weight(1f).padding(horizontal = HowYouDoinSpacing.md)) {
-                    Text(problem.title.asString(), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                    Text(
+                        problem.title.asString(),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold
+                    )
                     Text(problem.text.asString(), style = MaterialTheme.typography.bodySmall, maxLines = 3)
                 }
                 // A logged-out network can be ignored; the others clear themselves once they reconnect
@@ -399,7 +419,11 @@ private fun ChatRow(chat: ChatUi, resolver: MediaResolver, onClick: () -> Unit) 
                 Text(
                     chat.timestamp.asString(),
                     style = MaterialTheme.typography.labelSmall,
-                    color = if (isUnread) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = if (isUnread) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    },
                 )
             }
             Spacer(Modifier.height(2.dp))
@@ -488,7 +512,7 @@ private fun StayAtTop(listState: LazyListState, topChatId: String?) {
     var previousTopId by remember { mutableStateOf<String?>(null) }
     LaunchedEffect(topChatId) {
         val wasAtTop = listState.layoutInfo.visibleItemsInfo.firstOrNull()?.key == previousTopId &&
-            listState.firstVisibleItemScrollOffset == 0
+                listState.firstVisibleItemScrollOffset == 0
         if (previousTopId != null && wasAtTop) listState.scrollToItem(0)
         previousTopId = topChatId
     }

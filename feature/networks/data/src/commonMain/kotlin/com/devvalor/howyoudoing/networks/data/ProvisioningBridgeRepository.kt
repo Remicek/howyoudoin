@@ -16,6 +16,7 @@ import com.devvalor.howyoudoing.networks.data.dto.LoginStepDto
 import com.devvalor.howyoudoing.networks.domain.EncryptedHistoryStatus
 import com.devvalor.howyoudoing.networks.domain.HistoryRestoreError
 import io.ktor.client.call.body
+import io.ktor.client.statement.HttpResponse
 import io.ktor.http.isSuccess
 import kotlinx.coroutines.CancellationException
 import com.devvalor.howyoudoing.networks.data.dto.WhoamiResponseDto
@@ -105,8 +106,15 @@ class ProvisioningBridgeRepository(
             }.asEmptyResult()
         }
 
-    override suspend fun getEncryptedHistoryStatus(network: ChatNetwork): Result<EncryptedHistoryStatus, DataError.Remote> {
-        if (network != ChatNetwork.MESSENGER) return Result.Success(EncryptedHistoryStatus(isRestored = false, isBackupAvailable = false))
+    override suspend fun getEncryptedHistoryStatus(
+        network: ChatNetwork
+    ): Result<EncryptedHistoryStatus, DataError.Remote> {
+        if (network != ChatNetwork.MESSENGER) return Result.Success(
+            EncryptedHistoryStatus(
+                isRestored = false,
+                isBackupAvailable = false
+            )
+        )
         return request(network) { session, baseUrl ->
             safeCall<HistoryStatusDto> {
                 httpClient.get { provisioning(session, baseUrl, "messenger", "history") }
@@ -114,33 +122,44 @@ class ProvisioningBridgeRepository(
         }
     }
 
-    override suspend fun restoreEncryptedHistory(network: ChatNetwork, pin: String): EmptyResult<HistoryRestoreError> {
+    override suspend fun restoreEncryptedHistory(
+        network: ChatNetwork,
+        pin: String
+    ): EmptyResult<HistoryRestoreError> {
         if (network != ChatNetwork.MESSENGER) return Result.Failure(HistoryRestoreError.NoBackup)
-        val session = sessionStorage.get() ?: return Result.Failure(HistoryRestoreError.Remote(DataError.Remote.UNAUTHORIZED))
-        val response = try {
-            httpClient.post {
-                provisioning(session, bridgeUrl(session, network), "messenger", "history", "restore")
-                setBody(mapOf("pin" to pin))
-            }
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Exception) {
-            return Result.Failure(HistoryRestoreError.Remote(DataError.Remote.UNKNOWN))
+        val session =
+            sessionStorage.get() ?: return Result.Failure(HistoryRestoreError.Remote(DataError.Remote.UNAUTHORIZED))
+        val response = postHistoryPin(session, network, pin)
+            ?: return Result.Failure(HistoryRestoreError.Remote(DataError.Remote.UNKNOWN))
+        return if (response.status.isSuccess()) Result.Success(Unit) else Result.Failure(historyError(response))
+    }
+
+    // Each HTTP engine has its own network exceptions; any of them is a failed request
+    @Suppress("TooGenericExceptionCaught")
+    private suspend fun postHistoryPin(session: AuthInfo, network: ChatNetwork, pin: String): HttpResponse? = try {
+        httpClient.post {
+            provisioning(session, bridgeUrl(session, network), "messenger", "history", "restore")
+            setBody(mapOf("pin" to pin))
         }
-        if (response.status.isSuccess()) return Result.Success(Unit)
-        // The bridge explains PIN problems in the Matrix-style error body
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        println("Provisioning: history restore failed: ${e.message}")
+        null
+    }
+
+    /** The bridge explains PIN problems in the Matrix-style error body. */
+    private suspend fun historyError(response: HttpResponse): HistoryRestoreError {
         val error = runCatching { response.body<HistoryErrorDto>() }.getOrNull()
-        return Result.Failure(
-            when (error?.errcode) {
-                "FI.MAU.META.HISTORY_WRONG_PIN" -> HistoryRestoreError.WrongPin(error.attemptsRemaining ?: 0)
-                "FI.MAU.META.HISTORY_PIN_LIMIT" -> HistoryRestoreError.NoAttemptsLeft
-                "FI.MAU.META.HISTORY_NO_BACKUP" -> HistoryRestoreError.NoBackup
-                "FI.MAU.META.TOKEN_INVALIDATED" -> HistoryRestoreError.SessionExpired
-                else -> HistoryRestoreError.Remote(
-                    responseToResult<Unit>(response).let { (it as? Result.Failure)?.error ?: DataError.Remote.UNKNOWN }
-                )
-            }
-        )
+        return when (error?.errcode) {
+            "FI.MAU.META.HISTORY_WRONG_PIN" -> HistoryRestoreError.WrongPin(error.attemptsRemaining ?: 0)
+            "FI.MAU.META.HISTORY_PIN_LIMIT" -> HistoryRestoreError.NoAttemptsLeft
+            "FI.MAU.META.HISTORY_NO_BACKUP" -> HistoryRestoreError.NoBackup
+            "FI.MAU.META.TOKEN_INVALIDATED" -> HistoryRestoreError.SessionExpired
+            else -> HistoryRestoreError.Remote(
+                responseToResult<Unit>(response).let { (it as? Result.Failure)?.error ?: DataError.Remote.UNKNOWN }
+            )
+        }
     }
 
     private suspend fun submitStep(

@@ -30,6 +30,8 @@ sealed interface UiText {
         override fun hashCode() = 31 * (31 * id.hashCode() + quantity) + args.contentHashCode()
     }
 
+    // Compose resources take format arguments only as varargs
+    @Suppress("SpreadOperator")
     @Composable
     fun asString(): String {
         return when (this) {
@@ -39,6 +41,7 @@ sealed interface UiText {
         }
     }
 
+    @Suppress("SpreadOperator") // as in asString
     suspend fun asStringAsync(): String {
         return when (this) {
             is DynamicString -> value

@@ -73,7 +73,11 @@ fun AppLockGate(
                         onDigit = { viewModel.onAction(AppLockAction.OnDigit(it)) },
                         onDelete = { viewModel.onAction(AppLockAction.OnDelete) },
                         onSubmit = { viewModel.onAction(AppLockAction.OnSubmit) },
-                        onBiometricClick = if (state.canUseBiometric) ({ viewModel.onAction(AppLockAction.OnBiometricClick) }) else null,
+                        onBiometricClick = if (state.canUseBiometric) {
+                            { viewModel.onAction(AppLockAction.OnBiometricClick) }
+                        } else {
+                            null
+                        },
                     )
                 }
             }

@@ -91,7 +91,10 @@ fun AppearanceRoot(onBack: () -> Unit, viewModel: AppearanceViewModel = koinView
     SettingsScaffold(title = stringResource(Res.string.settings_appearance), onBack = onBack) {
         ThemeVariant.entries.forEach { variant ->
             item {
-                ThemeOption(variant = variant, isSelected = variant == selected, onClick = { viewModel.select(variant) })
+                ThemeOption(
+                    variant = variant,
+                    isSelected = variant == selected,
+                    onClick = { viewModel.select(variant) })
             }
         }
     }
@@ -118,26 +121,59 @@ private fun ThemeOption(variant: ThemeVariant, isSelected: Boolean, onClick: () 
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
-                    Text(variant.label, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, color = colors.onBackground)
-                    Text(variant.description, style = MaterialTheme.typography.bodySmall, color = colors.onSurfaceVariant)
+                    Text(
+                        variant.label,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = colors.onBackground
+                    )
+                    Text(
+                        variant.description,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = colors.onSurfaceVariant
+                    )
                 }
-                if (isSelected) Icon(Icons.Rounded.CheckCircle, contentDescription = stringResource(Res.string.appearance_selected), tint = colors.primary)
+                if (isSelected) Icon(
+                    Icons.Rounded.CheckCircle,
+                    contentDescription = stringResource(Res.string.appearance_selected),
+                    tint = colors.primary
+                )
             }
             // Incoming and outgoing bubble, and a button, in the variant's colours and shapes
             Box(
                 Modifier.fillMaxWidth(0.7f)
                     .background(colors.surfaceContainerHigh, MaterialTheme.shapes.medium)
                     .padding(HowYouDoinSpacing.sm)
-            ) { Text(stringResource(Res.string.appearance_sample_in), style = MaterialTheme.typography.bodySmall, color = colors.onSurface) }
+            ) {
+                Text(
+                    stringResource(Res.string.appearance_sample_in),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = colors.onSurface
+                )
+            }
             Row(Modifier.fillMaxWidth()) {
                 Spacer(Modifier.weight(1f))
                 Box(
                     Modifier.background(colors.primary, MaterialTheme.shapes.medium).padding(HowYouDoinSpacing.sm)
-                ) { Text(stringResource(Res.string.appearance_sample_out), style = MaterialTheme.typography.bodySmall, color = colors.onPrimary) }
+                ) {
+                    Text(
+                        stringResource(Res.string.appearance_sample_out),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = colors.onPrimary
+                    )
+                }
             }
             Row(horizontalArrangement = Arrangement.spacedBy(HowYouDoinSpacing.xs)) {
-                listOf(colors.primary, colors.primaryContainer, colors.secondaryContainer, colors.surfaceContainer).forEach {
-                    Box(Modifier.size(18.dp).background(it, CircleShape).border(1.dp, colors.outlineVariant, CircleShape))
+                listOf(
+                    colors.primary,
+                    colors.primaryContainer,
+                    colors.secondaryContainer,
+                    colors.surfaceContainer
+                ).forEach {
+                    Box(
+                        Modifier.size(18.dp).background(it, CircleShape)
+                            .border(1.dp, colors.outlineVariant, CircleShape)
+                    )
                 }
             }
         }

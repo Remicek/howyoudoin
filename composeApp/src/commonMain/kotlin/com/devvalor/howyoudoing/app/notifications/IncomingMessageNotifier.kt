@@ -3,7 +3,9 @@ package com.devvalor.howyoudoing.app.notifications
 import howyoudoin.composeapp.generated.resources.Res
 import howyoudoin.composeapp.generated.resources.notification_new_message
 import org.jetbrains.compose.resources.getString
+import com.devvalor.howyoudoing.chat.domain.Chat
 import com.devvalor.howyoudoing.chat.domain.ChatRepository
+import com.devvalor.howyoudoing.chat.domain.Message
 import com.devvalor.howyoudoing.chat.domain.NotificationPreferences
 import com.devvalor.howyoudoing.chat.domain.OpenChatTracker
 import com.devvalor.howyoudoing.chat.presentation.model.toChatUi
@@ -48,7 +50,11 @@ class IncomingMessageNotifier(
     private val startedAt = now()
 
     init {
-        combine(chatRepository.observeChats(), notificationPreferences.observeMutedChats(), appLock.observeSettings()) { chats, muted, lock ->
+        combine(
+            chatRepository.observeChats(),
+            notificationPreferences.observeMutedChats(),
+            appLock.observeSettings()
+        ) { chats, muted, lock ->
             Triple(chats, muted, lock)
         }
             .onEach { (chats, muted, lock) ->
@@ -56,15 +62,10 @@ class IncomingMessageNotifier(
                 for (chat in chats) {
                     val message = chat.lastMessage ?: continue
                     val previous = lastSeenMessage.put(chat.id, message.id)
-                    if (warmingUp || previous == message.id || message.isOutgoing) continue
-                    if (now() - message.timestamp > MAX_AGE_MILLIS) continue
-                    if (chat.id in muted || openChatTracker.isWatching(chat.id)) continue
-                    if (lock.hidesContent()) {
-                        // With the app locked, a notification shouldn't reveal what the lock protects
-                        presenter.show(chat.id, "HowYouDoin", getString(Res.string.notification_new_message), message.timestamp)
-                    } else {
-                        presenter.show(chat.id, chat.name, chat.toChatUi().preview.asStringAsync(), message.timestamp)
-                    }
+                    val isNew = !warmingUp && previous != message.id && !message.isOutgoing &&
+                        now() - message.timestamp <= MAX_AGE_MILLIS
+                    val isWanted = chat.id !in muted && !openChatTracker.isWatching(chat.id)
+                    if (isNew && isWanted) notify(chat, message, lock)
                 }
             }
             .launchIn(scope)
@@ -72,13 +73,21 @@ class IncomingMessageNotifier(
         openChatTracker.openChatId.filterNotNull().onEach(presenter::cancel).launchIn(scope)
     }
 
-    private fun AppLockSettings.hidesContent() = isEnabled && hidesNotificationContent
+    private suspend fun notify(chat: Chat, message: Message, lock: AppLockSettings) {
+        if (lock.isEnabled && lock.hidesNotificationContent) {
+            // With the app locked, a notification shouldn't reveal what the lock protects
+            presenter.show(chat.id, "HowYouDoin", getString(Res.string.notification_new_message), message.timestamp)
+        } else {
+            presenter.show(chat.id, chat.name, chat.toChatUi().preview.asStringAsync(), message.timestamp)
+        }
+    }
 
     private fun now() = Clock.System.now().toEpochMilliseconds()
 
     private companion object {
         /** The inbox loads in bursts after starting; those aren't new messages. */
         const val WARM_UP_MILLIS = 15_000L
+
         /** Older messages showing up (history, reconnect catch-up) don't notify. */
         const val MAX_AGE_MILLIS = 5 * 60_000L
     }

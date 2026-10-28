@@ -60,7 +60,8 @@ private val textMuted = Color(0xFF667781)
 private fun Header(title: String) {
     Box(
         contentAlignment = Alignment.CenterStart,
-        modifier = Modifier.fillMaxWidth().background(MockColors.header).padding(start = 14.dp, top = 22.dp, bottom = 10.dp),
+        modifier = Modifier.fillMaxWidth().background(MockColors.header)
+            .padding(start = 14.dp, top = 22.dp, bottom = 10.dp),
     ) {
         Text(title, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
     }
@@ -68,7 +69,10 @@ private fun Header(title: String) {
 
 @Composable
 private fun SettingsRow(icon: ImageVector, label: String) {
-    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = 12.dp, vertical = 9.dp)) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.padding(horizontal = 12.dp, vertical = 9.dp)
+    ) {
         Icon(icon, contentDescription = null, tint = textMuted, modifier = Modifier.size(16.dp))
         Spacer(Modifier.width(12.dp))
         Text(label, color = textDark, fontSize = 11.sp)
@@ -92,12 +96,23 @@ fun MockSettingsScreen() = PhoneMockup {
     Highlighted(Modifier.padding(horizontal = 4.dp)) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth().background(MockColors.accent.copy(alpha = 0.12f), RoundedCornerShape(8.dp))
+            modifier = Modifier.fillMaxWidth()
+                .background(MockColors.accent.copy(alpha = 0.12f), RoundedCornerShape(8.dp))
                 .padding(horizontal = 8.dp, vertical = 9.dp),
         ) {
-            Icon(Icons.Rounded.Devices, contentDescription = null, tint = MockColors.header, modifier = Modifier.size(16.dp))
+            Icon(
+                Icons.Rounded.Devices,
+                contentDescription = null,
+                tint = MockColors.header,
+                modifier = Modifier.size(16.dp)
+            )
             Spacer(Modifier.width(12.dp))
-            Text(stringResource(Res.string.whatsappmockups_linked_devices), color = textDark, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+            Text(
+                stringResource(Res.string.whatsappmockups_linked_devices),
+                color = textDark,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.SemiBold
+            )
         }
     }
     SettingsRow(Icons.AutoMirrored.Rounded.Chat, stringResource(Res.string.wa_chats))
@@ -110,18 +125,37 @@ fun MockLinkedDevicesScreen() = PhoneMockup {
     Header(stringResource(Res.string.whatsappmockups_linked_devices))
     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth().padding(14.dp)) {
         Spacer(Modifier.height(10.dp))
-        Box(contentAlignment = Alignment.Center, modifier = Modifier.size(70.dp).background(MockColors.accent.copy(alpha = 0.15f), CircleShape)) {
-            Icon(Icons.Rounded.Laptop, contentDescription = null, tint = MockColors.header, modifier = Modifier.size(36.dp))
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier.size(70.dp).background(MockColors.accent.copy(alpha = 0.15f), CircleShape)
+        ) {
+            Icon(
+                Icons.Rounded.Laptop,
+                contentDescription = null,
+                tint = MockColors.header,
+                modifier = Modifier.size(36.dp)
+            )
         }
         Spacer(Modifier.height(12.dp))
-        Text(stringResource(Res.string.whatsappmockups_use_whatsapp_on_other_devices), color = textDark, fontSize = 11.sp, textAlign = TextAlign.Center)
+        Text(
+            stringResource(Res.string.whatsappmockups_use_whatsapp_on_other_devices),
+            color = textDark,
+            fontSize = 11.sp,
+            textAlign = TextAlign.Center
+        )
         Spacer(Modifier.height(16.dp))
         Highlighted {
             Box(
                 contentAlignment = Alignment.Center,
-                modifier = Modifier.width(140.dp).background(MockColors.header, RoundedCornerShape(20.dp)).padding(vertical = 8.dp),
+                modifier = Modifier.width(140.dp).background(MockColors.header, RoundedCornerShape(20.dp))
+                    .padding(vertical = 8.dp),
             ) {
-                Text(stringResource(Res.string.whatsappmockups_link_a_device), color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                Text(
+                    stringResource(Res.string.whatsappmockups_link_a_device),
+                    color = Color.White,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
             }
         }
         Spacer(Modifier.height(26.dp))
@@ -139,7 +173,12 @@ fun MockScannerScreen() = PhoneMockup {
         modifier = Modifier.fillMaxSize().background(MockColors.scanner).padding(14.dp),
     ) {
         Spacer(Modifier.height(18.dp))
-        Text(stringResource(Res.string.whatsappmockups_scan_qr_code), color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+        Text(
+            stringResource(Res.string.whatsappmockups_scan_qr_code),
+            color = Color.White,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.SemiBold
+        )
         Spacer(Modifier.height(18.dp))
         Box(Modifier.size(130.dp).border(2.dp, Color.White.copy(alpha = 0.8f), RoundedCornerShape(12.dp)))
         Spacer(Modifier.weight(1f))
@@ -162,7 +201,12 @@ fun MockCodeEntryScreen() = PhoneMockup {
     Header(stringResource(Res.string.wa_link_with_phone))
     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth().padding(12.dp)) {
         Spacer(Modifier.height(14.dp))
-        Text(stringResource(Res.string.whatsappmockups_enter_code_on_phone), color = textDark, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+        Text(
+            stringResource(Res.string.whatsappmockups_enter_code_on_phone),
+            color = textDark,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.SemiBold
+        )
         Spacer(Modifier.height(16.dp))
         Highlighted {
             Column(verticalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.padding(6.dp)) {
@@ -171,9 +215,16 @@ fun MockCodeEntryScreen() = PhoneMockup {
                         group.forEach { char ->
                             Box(
                                 contentAlignment = Alignment.Center,
-                                modifier = Modifier.size(26.dp, 30.dp).border(1.dp, textMuted, RoundedCornerShape(5.dp)),
+                                modifier = Modifier.size(26.dp, 30.dp)
+                                    .border(1.dp, textMuted, RoundedCornerShape(5.dp)),
                             ) {
-                                Text(char.toString(), color = textDark, fontSize = 13.sp, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold)
+                                Text(
+                                    char.toString(),
+                                    color = textDark,
+                                    fontSize = 13.sp,
+                                    fontFamily = FontFamily.Monospace,
+                                    fontWeight = FontWeight.Bold
+                                )
                             }
                         }
                     }
@@ -215,16 +266,33 @@ fun MockLinkIntro() {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Box(
             contentAlignment = Alignment.Center,
-            modifier = Modifier.size(84.dp).background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(24.dp)),
+            modifier = Modifier.size(84.dp)
+                .background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(24.dp)),
         ) {
-            Icon(Icons.AutoMirrored.Rounded.Chat, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(42.dp))
+            Icon(
+                Icons.AutoMirrored.Rounded.Chat,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(42.dp)
+            )
         }
-        Icon(Icons.Rounded.Link, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(horizontal = 14.dp).size(32.dp))
+        Icon(
+            Icons.Rounded.Link,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(horizontal = 14.dp).size(32.dp)
+        )
         Box(
             contentAlignment = Alignment.Center,
-            modifier = Modifier.size(84.dp).background(MockColors.accent.copy(alpha = 0.18f), RoundedCornerShape(24.dp)),
+            modifier = Modifier.size(84.dp)
+                .background(MockColors.accent.copy(alpha = 0.18f), RoundedCornerShape(24.dp)),
         ) {
-            Icon(Icons.Rounded.PhoneAndroid, contentDescription = null, tint = MockColors.header, modifier = Modifier.size(42.dp))
+            Icon(
+                Icons.Rounded.PhoneAndroid,
+                contentDescription = null,
+                tint = MockColors.header,
+                modifier = Modifier.size(42.dp)
+            )
         }
     }
 }

@@ -21,7 +21,10 @@ class RoomNameTest {
 
     private fun room(otherMembership: String) = RoomCache(
         roomId = "!r:example.org",
-        state = listOf(member(ME, "join", "Me"), member(OTHER, otherMembership, "Remik 1")).associateBy { it.stateCacheKey },
+        state = listOf(
+            member(ME, "join", "Me"),
+            member(OTHER, otherMembership, "Remik 1")
+        ).associateBy { it.stateCacheKey },
         heroes = listOf(OTHER)
     )
 

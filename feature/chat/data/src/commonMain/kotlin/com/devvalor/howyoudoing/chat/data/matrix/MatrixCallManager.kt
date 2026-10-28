@@ -18,6 +18,7 @@ import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
 import com.devvalor.howyoudoing.core.domain.util.DataError
 import com.devvalor.howyoudoing.core.domain.util.EmptyResult
 import com.devvalor.howyoudoing.core.domain.util.Result
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -79,8 +80,10 @@ class MatrixCallManager(
     ) {
         var session: CallMediaSession? = null
         var remotePartyId: String? = null
+
         /** Remote candidates that came before we had a peer connection. */
         val pendingRemoteCandidates = mutableListOf<IceCandidate>()
+
         /** Local candidates gathered but not sent yet (sent in batches). */
         val outgoingCandidates = mutableListOf<IceCandidate>()
         var candidateFlush: Job? = null
@@ -99,21 +102,28 @@ class MatrixCallManager(
         if (engine === accountEngine) MatrixAccountChats.PREFIX + roomId else roomId
 
     private fun engineFor(chatId: String): Pair<MatrixCallTransport, String> =
-        if (chatId.startsWith(MatrixAccountChats.PREFIX)) accountEngine to chatId.removePrefix(MatrixAccountChats.PREFIX)
-        else serverEngine to chatId
+        if (chatId.startsWith(MatrixAccountChats.PREFIX)) {
+            accountEngine to chatId.removePrefix(MatrixAccountChats.PREFIX)
+        } else {
+            serverEngine to chatId
+        }
 
     override fun canCall(chat: Chat): Boolean = isSupported && chat.network == ChatNetwork.MATRIX && !chat.isGroup
 
     // --- local actions ---
 
+    // The WebRTC engine and the network fail with platform-specific exceptions; any of them ends the call
+    @Suppress("TooGenericExceptionCaught")
     override suspend fun startCall(chatId: String, video: Boolean): EmptyResult<DataError.Remote> = lock.withLock {
         if (active != null) return@withLock Result.Failure(DataError.Remote.CONFLICT)
         val (engine, roomId) = engineFor(chatId)
         val callId = newId()
         val call = ActiveCall(callId, engine, roomId, isIncoming = false)
         active = call
-        _call.value = CallState(callId, chatId, peerName(chatId), isVideo = video, isIncoming = false, phase = CallPhase.CALLING,
-            isCameraOn = video, isSpeakerOn = video)
+        _call.value = CallState(
+            callId, chatId, peerName(chatId), isVideo = video, isIncoming = false, phase = CallPhase.CALLING,
+            isCameraOn = video, isSpeakerOn = video
+        )
         try {
             val session = media.createSession(iceServers(engine), video, listenerFor(call))
             call.session = session
@@ -140,12 +150,16 @@ class MatrixCallManager(
                 }
             }
             Result.Success(Unit)
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
+            println("MatrixCall: starting failed: ${e.message}")
             end(call, CallEndReason.FAILED)
             Result.Failure(DataError.Remote.UNKNOWN)
         }
     }
 
+    @Suppress("TooGenericExceptionCaught") // as in startCall
     override suspend fun answer(video: Boolean) = lock.withLock {
         val call = active ?: return@withLock
         val offer = call.offerSdp ?: return@withLock
@@ -168,7 +182,10 @@ class MatrixCallManager(
                 }
             })
             if (sent is Result.Failure) end(call, CallEndReason.FAILED)
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
+            println("MatrixCall: answering failed: ${e.message}")
             sendHangup(call, "ice_failed")
             end(call, CallEndReason.FAILED)
         }
@@ -213,94 +230,140 @@ class MatrixCallManager(
 
     // --- remote events ---
 
+    /** A call event with what every handler needs from it. */
+    private class Received(val engine: MatrixCallTransport, val event: MatrixCallEvent, val callId: String) {
+        val content get() = event.content
+        val senderParty: String? = content.string("party_id")
+
+        /** Sent by this account (from this device or another of ours). */
+        val isOwn get() = event.sender == engine.userId
+    }
+
     private suspend fun handle(engine: MatrixCallTransport, event: MatrixCallEvent) {
-        val content = event.content
-        val callId = content.string("call_id") ?: return
-        val senderParty = content.string("party_id")
-        val ownUserId = engine.userId
+        val callId = event.content.string("call_id") ?: return
+        val received = Received(engine, event, callId)
         // Our own echo
-        if (event.sender == ownUserId && senderParty == partyId) return
-        val call = active
+        if (received.isOwn && received.senderParty == partyId) return
+        val call = active?.takeIf { it.callId == callId }
         when (event.type) {
-            "m.call.invite" -> {
-                if (event.sender == ownUserId) return
-                val offer = content.obj("offer")?.string("sdp") ?: return
-                val lifetime = content.string("lifetime")?.toLongOrNull() ?: INVITE_LIFETIME_MILLIS
-                if (event.ageMillis >= lifetime) return
-                if (call != null) {
-                    if (call.callId != callId) {
-                        // One call at a time
-                        engine.sendCallEvent(event.roomId, "m.call.hangup", base(callId) { put("reason", "user_busy") })
-                    }
-                    return
-                }
-                val chatId = chatIdFor(engine, event.roomId)
-                val incoming = ActiveCall(callId, engine, event.roomId, isIncoming = true, offerSdp = offer)
-                incoming.remotePartyId = senderParty
-                active = incoming
-                _call.value = CallState(callId, chatId, peerName(chatId), isVideo = offer.hasVideo(), isIncoming = true,
-                    phase = CallPhase.RINGING)
-                incoming.timeout = scope.launch {
-                    delay(lifetime - event.ageMillis)
-                    lock.withLock { if (active === incoming && _call.value?.phase == CallPhase.RINGING) end(incoming, CallEndReason.MISSED) }
-                }
+            "m.call.invite" -> onInvite(received)
+            "m.call.answer" -> call?.let { onAnswer(it, received) }
+            "m.call.select_answer" -> call?.let { onSelectAnswer(it, received) }
+            "m.call.candidates" -> call?.let { onCandidates(it, received) }
+            "m.call.hangup", "m.call.reject" -> call?.let { onHangup(it, received) }
+        }
+    }
+
+    private suspend fun onInvite(received: Received) {
+        if (received.isOwn) return
+        val offer = received.content.obj("offer")?.string("sdp") ?: return
+        val lifetime = received.content.string("lifetime")?.toLongOrNull() ?: INVITE_LIFETIME_MILLIS
+        val current = active
+        when {
+            received.event.ageMillis >= lifetime -> Unit
+            // One call at a time
+            current != null -> if (current.callId != received.callId) {
+                received.engine.sendCallEvent(
+                    received.event.roomId,
+                    "m.call.hangup",
+                    base(received.callId) { put("reason", "user_busy") }
+                )
             }
-            "m.call.answer" -> {
-                if (call == null || call.callId != callId) return
-                if (call.isIncoming) {
-                    // Another of our devices answered
-                    if (event.sender == ownUserId && _call.value?.phase == CallPhase.RINGING) end(call, CallEndReason.ANSWERED_ELSEWHERE)
-                    return
-                }
-                if (call.remotePartyId != null) return
-                val answer = content.obj("answer")?.string("sdp") ?: return
-                call.remotePartyId = senderParty
-                call.timeout?.cancel()
-                _call.update { it?.copy(phase = CallPhase.CONNECTING) }
-                try {
-                    call.session?.setRemoteAnswer(answer)
-                    call.pendingRemoteCandidates.forEach { call.session?.addRemoteCandidate(it) }
-                    call.pendingRemoteCandidates.clear()
-                    if (senderParty != null) {
-                        engine.sendCallEvent(call.roomId, "m.call.select_answer", base(callId) { put("selected_party_id", senderParty) })
-                    }
-                } catch (e: Exception) {
-                    sendHangup(call, "ice_failed")
-                    end(call, CallEndReason.FAILED)
-                }
+
+            else -> ring(received, offer, lifetime)
+        }
+    }
+
+    private suspend fun ring(received: Received, offer: String, lifetime: Long) {
+        val (engine, event) = received.engine to received.event
+        val chatId = chatIdFor(engine, event.roomId)
+        val incoming = ActiveCall(received.callId, engine, event.roomId, isIncoming = true, offerSdp = offer)
+        incoming.remotePartyId = received.senderParty
+        active = incoming
+        _call.value = CallState(
+            received.callId, chatId, peerName(chatId), isVideo = offer.hasVideo(), isIncoming = true,
+            phase = CallPhase.RINGING
+        )
+        incoming.timeout = scope.launch {
+            delay(lifetime - event.ageMillis)
+            lock.withLock {
+                if (active === incoming && _call.value?.phase == CallPhase.RINGING) end(incoming, CallEndReason.MISSED)
             }
-            "m.call.select_answer" -> {
-                if (call == null || call.callId != callId || !call.isIncoming) return
-                val selected = content.string("selected_party_id")
-                if (selected != null && selected != partyId) end(call, CallEndReason.ANSWERED_ELSEWHERE)
+        }
+    }
+
+    private suspend fun onAnswer(call: ActiveCall, received: Received) {
+        val answer = received.content.obj("answer")?.string("sdp")
+        when {
+            // Another of our devices answered
+            call.isIncoming -> if (received.isOwn && _call.value?.phase == CallPhase.RINGING) {
+                end(call, CallEndReason.ANSWERED_ELSEWHERE)
             }
-            "m.call.candidates" -> {
-                if (call == null || call.callId != callId || event.sender == ownUserId) return
-                if (call.remotePartyId != null && senderParty != null && senderParty != call.remotePartyId) return
-                val candidates = (content["candidates"] as? JsonArray).orEmpty().mapNotNull { element ->
-                    val obj = element as? JsonObject ?: return@mapNotNull null
-                    val candidate = obj.string("candidate")?.takeIf { it.isNotEmpty() } ?: return@mapNotNull null
-                    IceCandidate(candidate, obj.string("sdpMid"), obj["sdpMLineIndex"]?.jsonPrimitive?.intOrNull)
-                }
-                val session = call.session
-                if (session == null) call.pendingRemoteCandidates += candidates else candidates.forEach(session::addRemoteCandidate)
+
+            call.remotePartyId == null && answer != null -> connectAnswer(call, received, answer)
+        }
+    }
+
+    @Suppress("TooGenericExceptionCaught") // as in startCall
+    private suspend fun connectAnswer(call: ActiveCall, received: Received, answer: String) {
+        val senderParty = received.senderParty
+        call.remotePartyId = senderParty
+        call.timeout?.cancel()
+        _call.update { it?.copy(phase = CallPhase.CONNECTING) }
+        try {
+            call.session?.setRemoteAnswer(answer)
+            call.pendingRemoteCandidates.forEach { call.session?.addRemoteCandidate(it) }
+            call.pendingRemoteCandidates.clear()
+            if (senderParty != null) {
+                received.engine.sendCallEvent(
+                    call.roomId,
+                    "m.call.select_answer",
+                    base(received.callId) { put("selected_party_id", senderParty) })
             }
-            "m.call.hangup", "m.call.reject" -> {
-                if (call == null || call.callId != callId) return
-                if (event.sender == ownUserId) {
-                    // Declined or ended on another of our devices
-                    if (call.isIncoming) end(call, CallEndReason.ANSWERED_ELSEWHERE)
-                    return
-                }
-                val phase = _call.value?.phase
-                val reason = when {
-                    content.string("reason") == "user_busy" -> CallEndReason.BUSY
-                    event.type == "m.call.reject" || (phase == CallPhase.CALLING) -> CallEndReason.DECLINED
-                    phase == CallPhase.RINGING -> CallEndReason.MISSED
-                    else -> CallEndReason.REMOTE_HUNG_UP
-                }
-                end(call, reason)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            println("MatrixCall: connecting the answer failed: ${e.message}")
+            sendHangup(call, "ice_failed")
+            end(call, CallEndReason.FAILED)
+        }
+    }
+
+    private fun onSelectAnswer(call: ActiveCall, received: Received) {
+        val selected = received.content.string("selected_party_id")
+        if (call.isIncoming && selected != null && selected != partyId) end(call, CallEndReason.ANSWERED_ELSEWHERE)
+    }
+
+    private fun onCandidates(call: ActiveCall, received: Received) {
+        val senderParty = received.senderParty
+        val fromOtherParty = call.remotePartyId != null && senderParty != null && senderParty != call.remotePartyId
+        if (received.isOwn || fromOtherParty) return
+        val candidates = (received.content["candidates"] as? JsonArray).orEmpty().mapNotNull { element ->
+            val obj = element as? JsonObject ?: return@mapNotNull null
+            val candidate = obj.string("candidate")?.takeIf { it.isNotEmpty() } ?: return@mapNotNull null
+            IceCandidate(candidate, obj.string("sdpMid"), obj["sdpMLineIndex"]?.jsonPrimitive?.intOrNull)
+        }
+        val session = call.session
+        if (session == null) {
+            call.pendingRemoteCandidates += candidates
+        } else {
+            candidates.forEach(session::addRemoteCandidate)
+        }
+    }
+
+    private fun onHangup(call: ActiveCall, received: Received) {
+        if (received.isOwn) {
+            // Declined or ended on another of our devices
+            if (call.isIncoming) end(call, CallEndReason.ANSWERED_ELSEWHERE)
+        } else {
+            val phase = _call.value?.phase
+            val reason = when {
+                received.content.string("reason") == "user_busy" -> CallEndReason.BUSY
+                received.event.type == "m.call.reject" || (phase == CallPhase.CALLING) -> CallEndReason.DECLINED
+                phase == CallPhase.RINGING -> CallEndReason.MISSED
+                else -> CallEndReason.REMOTE_HUNG_UP
             }
+            end(call, reason)
         }
     }
 
@@ -326,7 +389,12 @@ class MatrixCallManager(
             scope.launch {
                 lock.withLock {
                     if (active === call) {
-                        _call.update { it?.copy(phase = CallPhase.CONNECTED, connectedAtMillis = it.connectedAtMillis ?: now()) }
+                        _call.update {
+                            it?.copy(
+                                phase = CallPhase.CONNECTED,
+                                connectedAtMillis = it.connectedAtMillis ?: now()
+                            )
+                        }
                     }
                 }
             }
@@ -377,7 +445,9 @@ class MatrixCallManager(
         _call.update { it?.copy(phase = CallPhase.ENDED, endReason = reason) }
         scope.launch {
             delay(ENDED_LINGER_MILLIS)
-            _call.update { current -> if (current?.callId == call.callId && current.phase == CallPhase.ENDED) null else current }
+            _call.update { current ->
+                if (current?.callId == call.callId && current.phase == CallPhase.ENDED) null else current
+            }
         }
     }
 
@@ -399,7 +469,7 @@ class MatrixCallManager(
 
     private fun String.hasVideo() = contains("m=video")
 
-    private fun newId() = "hyd" + Random.nextLong(1, Long.MAX_VALUE).toString(36) + now().toString(36)
+    private fun newId() = "hyd" + Random.nextLong(1, Long.MAX_VALUE).toString(ID_RADIX) + now().toString(ID_RADIX)
 
     private fun now() = Clock.System.now().toEpochMilliseconds()
 
@@ -411,3 +481,6 @@ class MatrixCallManager(
         const val NAME_TIMEOUT_MILLIS = 2_000L
     }
 }
+
+/** Call ids are written in base 36 to keep them short. */
+private const val ID_RADIX = 36

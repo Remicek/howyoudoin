@@ -57,7 +57,10 @@ fun TermsRoot(onBack: () -> Unit) {
         }
         sections.forEach { section ->
             item {
-                TermsSectionText(section, Modifier.padding(horizontal = HowYouDoinSpacing.md, vertical = HowYouDoinSpacing.sm))
+                TermsSectionText(
+                    section,
+                    Modifier.padding(horizontal = HowYouDoinSpacing.md, vertical = HowYouDoinSpacing.sm)
+                )
             }
         }
     }
@@ -73,6 +76,10 @@ private fun TermsSectionText(section: TermsSection, modifier: Modifier) {
             modifier = Modifier.semantics { heading() },
         )
         Spacer(Modifier.height(HowYouDoinSpacing.xs))
-        Text(stringResource(section.body), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(
+            stringResource(section.body),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }

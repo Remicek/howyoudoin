@@ -40,20 +40,32 @@ class AndroidLoginBackup(
     context: Context,
     private val appSession: SessionStorage,
     private val matrixSession: SessionStorage,
-    /** Networks restored from saved cookies, with where their cookies are kept. */
-    private val cookieLogins: Map<ChatNetwork, Pair<OnDeviceMessenger, OnDeviceSecretStore>>,
-    private val telegram: NativeOnDeviceLinkedAccount,
-    private val telegramDir: File,
-    /** Networks that can't be restored but are worth mentioning (WhatsApp, Signal). */
-    private val relinkOnly: List<OnDeviceMessenger>,
-    private val matrix: OnDeviceMessenger,
+    sources: BackupSources,
     private val scope: CoroutineScope
 ) : LoginBackup {
+
+    /** The accounts whose logins are backed up, and where they keep them. */
+    data class BackupSources(
+        /** Networks restored from saved cookies, with where their cookies are kept. */
+        val cookieLogins: Map<ChatNetwork, Pair<OnDeviceMessenger, OnDeviceSecretStore>>,
+        val telegram: NativeOnDeviceLinkedAccount,
+        val telegramDir: File,
+        /** Networks that can't be restored but are worth mentioning (WhatsApp, Signal). */
+        val relinkOnly: List<OnDeviceMessenger>,
+        val matrix: OnDeviceMessenger
+    )
+
+    private val cookieLogins = sources.cookieLogins
+    private val telegram = sources.telegram
+    private val telegramDir = sources.telegramDir
+    private val relinkOnly = sources.relinkOnly
+    private val matrix = sources.matrix
 
     private val context = context.applicationContext
     private val prefs = this.context.getSharedPreferences("login_backup", Context.MODE_PRIVATE)
     private val file = File(this.context.filesDir, "login-backup/logins.json")
     private val decidedMarker = File(this.context.noBackupFilesDir, "login-backup-decided")
+
     // On unless the user turned it off
     private val enabled = MutableStateFlow(prefs.getBoolean(KEY_ENABLED, true))
     private val decided = MutableStateFlow(decidedMarker.exists())
@@ -68,7 +80,14 @@ class AndroidLoginBackup(
             if (!decided.value && restoreOffer() == null) markDecided()
         }
         val states = allClients.map { it.state }
-        combine(listOf(enabled, decided, appSession.observeAuthInfo(), matrixSession.observeAuthInfo()) + states) { it.toList() }
+        combine(
+            listOf(
+                enabled,
+                decided,
+                appSession.observeAuthInfo(),
+                matrixSession.observeAuthInfo()
+            ) + states
+        ) { it.toList() }
             .filter { decided.value }
             .debounce(WRITE_DELAY_MILLIS)
             .onEach { withContext(Dispatchers.IO) { if (enabled.value) write() else file.delete() } }
@@ -84,7 +103,10 @@ class AndroidLoginBackup(
             client.state.map { it is OnDeviceMessengerState.Connected }
         }) { values ->
             // Not while a restore is still being offered: that would be two questions at once
-            shouldOfferBackup(alreadyOffered = values[0], restoreDecided = values[1], connectedNetworks = values.drop(2).count { it })
+            shouldOfferBackup(
+                alreadyOffered = values[0],
+                restoreDecided = values[1],
+                connectedNetworks = values.drop(2).count { it })
         }.distinctUntilChanged()
 
     override suspend fun answerBackupOffer(enable: Boolean) {
@@ -93,18 +115,23 @@ class AndroidLoginBackup(
         setEnabled(enable)
     }
 
-    override suspend fun lastBackupMillis(): Long? = withContext(Dispatchers.IO) { LoginBackupAgent.lastBackupMillis(context) }
+    override suspend fun lastBackupMillis(): Long? =
+        withContext(Dispatchers.IO) { LoginBackupAgent.lastBackupMillis(context) }
 
     override fun openSystemBackupSettings() {
         // Google's own backup screen where it exists, else the system's backup / privacy settings
         val candidates = listOf(
-            Intent().setClassName("com.google.android.gms", "com.google.android.gms.backup.component.BackupSettingsActivity"),
+            Intent().setClassName(
+                "com.google.android.gms",
+                "com.google.android.gms.backup.component.BackupSettingsActivity"
+            ),
             Intent("android.settings.BACKUP_AND_RESET_SETTINGS"),
             Intent(Settings.ACTION_PRIVACY_SETTINGS),
             Intent(Settings.ACTION_SETTINGS)
         )
         for (intent in candidates) {
-            val started = runCatching { context.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }.isSuccess
+            val started =
+                runCatching { context.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }.isSuccess
             if (started) return
         }
     }
@@ -153,7 +180,8 @@ class AndroidLoginBackup(
                 hasTelegram = File(telegramDir, TELEGRAM_SESSION).isFile,
                 hasMatrixAccount = matrixSession.get() != null,
                 hasAppSession = appSession.get() != null,
-                linked = relinkOnly.filter { it.state.value != OnDeviceMessengerState.NotLinked }.map { it.network }.toSet()
+                linked = relinkOnly.filter { it.state.value != OnDeviceMessengerState.NotLinked }.map { it.network }
+                    .toSet()
             )
         )
     }

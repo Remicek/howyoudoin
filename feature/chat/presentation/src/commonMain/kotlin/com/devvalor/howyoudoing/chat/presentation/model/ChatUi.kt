@@ -120,7 +120,11 @@ fun List<Message>.toMessageUis(showSenderNames: Boolean): List<MessageUi> =
 
 private fun Message.previewText(isGroup: Boolean): UiText = when {
     isOutgoing -> UiText.Resource(Res.string.preview_you, arrayOf(displayBody()))
-    isGroup && senderName.isNotBlank() -> UiText.Resource(Res.string.preview_sender, arrayOf(senderName.substringBefore(" "), displayBody()))
+    isGroup && senderName.isNotBlank() -> UiText.Resource(
+        Res.string.preview_sender,
+        arrayOf(senderName.substringBefore(" "), displayBody())
+    )
+
     else -> displayBody()
 }
 
@@ -130,7 +134,11 @@ private fun Message.displayBody(): UiText = when (type) {
     MessageType.IMAGE -> UiText.Resource(Res.string.type_photo)
     MessageType.VIDEO -> UiText.Resource(Res.string.type_video)
     MessageType.AUDIO -> UiText.Resource(Res.string.type_voice)
-    MessageType.FILE -> if (body.isBlank()) UiText.Resource(Res.string.type_file) else UiText.Resource(Res.string.type_file_named, arrayOf(body))
+    MessageType.FILE -> if (body.isBlank()) UiText.Resource(Res.string.type_file) else UiText.Resource(
+        Res.string.type_file_named,
+        arrayOf(body)
+    )
+
     MessageType.STICKER -> UiText.Resource(Res.string.type_sticker)
     MessageType.ENCRYPTED -> UiText.Resource(Res.string.type_encrypted)
     MessageType.UNSUPPORTED -> UiText.Resource(Res.string.type_unsupported)

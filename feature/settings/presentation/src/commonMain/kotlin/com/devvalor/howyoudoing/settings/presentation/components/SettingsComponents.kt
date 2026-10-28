@@ -48,7 +48,10 @@ fun SettingsScaffold(
                 title = { Text(title, fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = stringResource(Res.string.common_back))
+                        Icon(
+                            Icons.AutoMirrored.Rounded.ArrowBack,
+                            contentDescription = stringResource(Res.string.common_back)
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
@@ -71,7 +74,10 @@ fun SettingsSectionHeader(text: String) {
         style = MaterialTheme.typography.labelLarge,
         color = MaterialTheme.colorScheme.primary,
         modifier = Modifier.padding(
-            start = HowYouDoinSpacing.md, end = HowYouDoinSpacing.md, top = HowYouDoinSpacing.lg, bottom = HowYouDoinSpacing.xs
+            start = HowYouDoinSpacing.md,
+            end = HowYouDoinSpacing.md,
+            top = HowYouDoinSpacing.lg,
+            bottom = HowYouDoinSpacing.xs
         ),
     )
 }
@@ -98,7 +104,11 @@ fun SettingsRow(
         Column(modifier = Modifier.weight(1f).padding(vertical = HowYouDoinSpacing.xs)) {
             Text(title, style = MaterialTheme.typography.bodyLarge)
             if (subtitle != null) {
-                Text(subtitle, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(
+                    subtitle,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
         if (trailing != null) {
@@ -131,7 +141,11 @@ fun SettingsSwitchRow(
         Column(modifier = Modifier.weight(1f).padding(vertical = HowYouDoinSpacing.xs)) {
             Text(title, style = MaterialTheme.typography.bodyLarge)
             if (subtitle != null) {
-                Text(subtitle, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(
+                    subtitle,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
         Spacer(Modifier.width(HowYouDoinSpacing.sm))

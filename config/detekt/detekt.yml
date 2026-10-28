@@ -15,8 +15,21 @@ complexity:
     ignoreAnnotated: ["Composable"]
   LongMethod:
     ignoreAnnotated: ["Composable"]
+  CyclomaticComplexMethod:
+    # A when over the kinds of an event or error is one decision, not one per branch
+    ignoreSimpleWhenEntries: true
+  TooManyFunctions:
+    # Implementations of an interface count against the interface, not again in each class
+    ignoreOverridden: true
+    ignorePrivate: true
+    # Repositories, the native messenger and the sync engines offer one function per chat operation
+    thresholdInInterfaces: 25
+    thresholdInClasses: 20
 
 style:
+  ReturnCount:
+    # Early returns at the top of a function (if (x == null) return) keep the rest flat
+    excludeGuardClauses: true
   MagicNumber:
     # Sizes, colors and durations in UI code read better inline
     ignorePropertyDeclaration: true

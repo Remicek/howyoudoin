@@ -6,5 +6,6 @@ import kotlinx.coroutines.flow.Flow
 
 class MatrixAccountEncryption(private val engine: MatrixSyncEngine) : MatrixEncryption {
     override val status: Flow<MatrixEncryptionStatus> get() = engine.encryption
-    override suspend fun verifyWithRecoveryKey(recoveryKey: String): Result<Int> = engine.verifyWithRecoveryKey(recoveryKey)
+    override suspend fun verifyWithRecoveryKey(recoveryKey: String): Result<Int> =
+        engine.verifyWithRecoveryKey(recoveryKey)
 }

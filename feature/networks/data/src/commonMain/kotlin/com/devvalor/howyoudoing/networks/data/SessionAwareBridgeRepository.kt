@@ -78,7 +78,9 @@ class SessionAwareBridgeRepository(
     override suspend fun logout(network: ChatNetwork, loginId: String): EmptyResult<DataError.Remote> =
         current().logout(network, loginId)
 
-    override suspend fun getEncryptedHistoryStatus(network: ChatNetwork): Result<EncryptedHistoryStatus, DataError.Remote> =
+    override suspend fun getEncryptedHistoryStatus(
+        network: ChatNetwork
+    ): Result<EncryptedHistoryStatus, DataError.Remote> =
         current().getEncryptedHistoryStatus(network)
 
     override suspend fun restoreEncryptedHistory(network: ChatNetwork, pin: String): EmptyResult<HistoryRestoreError> =

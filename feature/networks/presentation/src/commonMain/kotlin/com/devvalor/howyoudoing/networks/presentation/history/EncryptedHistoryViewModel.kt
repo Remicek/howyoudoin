@@ -41,18 +41,28 @@ class EncryptedHistoryViewModel(
     fun onAction(action: EncryptedHistoryAction) {
         when (action) {
             is EncryptedHistoryAction.OnEncryptedNetworksChange -> onEncryptedNetworksChange(action.networks)
-            EncryptedHistoryAction.OnEnterPinClick -> _state.update { it.copy(isDialogOpen = true, pin = "", error = null) }
+            EncryptedHistoryAction.OnEnterPinClick -> _state.update {
+                it.copy(
+                    isDialogOpen = true,
+                    pin = "",
+                    error = null
+                )
+            }
+
             EncryptedHistoryAction.OnNotNowClick -> {
                 isDismissed = true
                 _state.update { it.copy(isOffered = false) }
             }
+
             is EncryptedHistoryAction.OnPinChange -> _state.update {
                 it.copy(pin = action.pin.filter(Char::isDigit).take(EncryptedHistoryState.PIN_LENGTH), error = null)
             }
+
             EncryptedHistoryAction.OnRestoreClick -> restore()
             EncryptedHistoryAction.OnDismissDialog -> _state.update {
                 if (it.isSubmitting) it else it.copy(isDialogOpen = false, pin = "", error = null)
             }
+
             EncryptedHistoryAction.OnDismissRestoring -> _state.update { it.copy(isRestoring = false) }
         }
     }
@@ -82,7 +92,8 @@ class EncryptedHistoryViewModel(
                     _state.update { it.copy(isOffered = onDevice.data.canRestore && !isDismissed, isOnDevice = true) }
                     return@launch
                 }
-                if (server is Result.Success && onDeviceMessenger.state.value == OnDeviceMessengerState.NotLinked) return@launch
+                val notLinked = onDeviceMessenger.state.value == OnDeviceMessengerState.NotLinked
+                if (server is Result.Success && notLinked) return@launch
                 if (attempt < CHECK_ATTEMPTS - 1) delay(RETRY_DELAY_MILLIS)
             }
         }
@@ -105,6 +116,7 @@ class EncryptedHistoryViewModel(
                 is Result.Success -> _state.update {
                     it.copy(isSubmitting = false, isDialogOpen = false, pin = "", isOffered = false, isRestoring = true)
                 }
+
                 is Result.Failure -> _state.update { it.withError(result.error) }
             }
         }
@@ -116,14 +128,17 @@ class EncryptedHistoryViewModel(
             is HistoryRestoreError.WrongPin -> cleared.copy(
                 error = UiText.Plural(Res.plurals.history_wrong_pin, error.attemptsRemaining)
             )
+
             HistoryRestoreError.NoAttemptsLeft -> cleared.copy(
                 error = UiText.Resource(Res.string.history_locked),
                 isOffered = false
             )
+
             HistoryRestoreError.NoBackup -> cleared.copy(isDialogOpen = false, isOffered = false)
             HistoryRestoreError.SessionExpired -> cleared.copy(
                 error = UiText.Resource(Res.string.history_session_expired)
             )
+
             is HistoryRestoreError.Remote -> cleared.copy(error = UiText.Resource(Res.string.history_failed))
         }
     }

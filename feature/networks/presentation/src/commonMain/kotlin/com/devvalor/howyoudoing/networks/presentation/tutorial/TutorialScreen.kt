@@ -114,7 +114,10 @@ fun TutorialScreen(
             TopAppBar(
                 navigationIcon = {
                     IconButton(onClick = { onAction(TutorialAction.OnBackClick) }) {
-                        Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = stringResource(Res.string.tutorial_back))
+                        Icon(
+                            Icons.AutoMirrored.Rounded.ArrowBack,
+                            contentDescription = stringResource(Res.string.tutorial_back)
+                        )
                     }
                 },
                 title = {
@@ -126,7 +129,9 @@ fun TutorialScreen(
                 },
                 actions = {
                     if (!state.isLastPage) {
-                        TextButton(onClick = { onAction(TutorialAction.OnSkipClick) }) { Text(stringResource(Res.string.tutorial_skip)) }
+                        TextButton(onClick = { onAction(TutorialAction.OnSkipClick) }) {
+                            Text(stringResource(Res.string.tutorial_skip))
+                        }
                     }
                 },
             )
@@ -172,7 +177,12 @@ private fun InfoPage(page: TutorialPage.Info) {
             AssistChip(onClick = {}, label = { Text(stringResource(badge)) }, enabled = false)
             Spacer(Modifier.height(HowYouDoinSpacing.xs))
         }
-        Text(stringResource(page.title), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+        Text(
+            stringResource(page.title),
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center
+        )
         Spacer(Modifier.height(HowYouDoinSpacing.sm))
         Text(
             stringResource(page.body),
@@ -213,7 +223,11 @@ private fun ChoicePage(page: TutorialPage.Choice, state: TutorialState, onAction
                     Spacer(Modifier.width(HowYouDoinSpacing.md))
                     Column(Modifier.weight(1f)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(stringResource(option.title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                            Text(
+                                stringResource(option.title),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.SemiBold
+                            )
                             if (option.isRecommended) {
                                 Spacer(Modifier.width(HowYouDoinSpacing.sm))
                                 Text(
@@ -226,7 +240,11 @@ private fun ChoicePage(page: TutorialPage.Choice, state: TutorialState, onAction
                                 )
                             }
                         }
-                        Text(stringResource(option.description), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(
+                            stringResource(option.description),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                     Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = null)
                 }
@@ -238,7 +256,9 @@ private fun ChoicePage(page: TutorialPage.Choice, state: TutorialState, onAction
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth().clickable { onAction(TutorialAction.OnDontShowAgainToggle) },
         ) {
-            Checkbox(checked = state.dontShowAgain, onCheckedChange = { onAction(TutorialAction.OnDontShowAgainToggle) })
+            Checkbox(
+                checked = state.dontShowAgain,
+                onCheckedChange = { onAction(TutorialAction.OnDontShowAgainToggle) })
             Text(stringResource(Res.string.tutorial_don_t_show_this_guide), style = MaterialTheme.typography.bodyMedium)
         }
     }
@@ -255,7 +275,9 @@ private fun BottomControls(state: TutorialState, onAction: (TutorialAction) -> U
     ) {
         Box(Modifier.weight(1f)) {
             if (state.currentPage > 0) {
-                TextButton(onClick = { onAction(TutorialAction.OnPreviousClick) }) { Text(stringResource(Res.string.tutorial_back)) }
+                TextButton(onClick = { onAction(TutorialAction.OnPreviousClick) }) {
+                    Text(stringResource(Res.string.tutorial_back))
+                }
             }
         }
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -263,7 +285,9 @@ private fun BottomControls(state: TutorialState, onAction: (TutorialAction) -> U
         }
         Box(Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
             if (!state.isLastPage) {
-                Button(onClick = { onAction(TutorialAction.OnNextClick) }) { Text(stringResource(Res.string.tutorial_next)) }
+                Button(onClick = { onAction(TutorialAction.OnNextClick) }) {
+                    Text(stringResource(Res.string.tutorial_next))
+                }
             }
         }
     }

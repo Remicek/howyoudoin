@@ -3,34 +3,36 @@ package com.devvalor.howyoudoing.networks.presentation.components
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.UIKitView
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
+import kotlin.math.abs
+import kotlin.math.ceil
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.delay
-import kotlin.math.ceil
 import platform.CoreGraphics.CGRectMake
+import platform.Foundation.NSDate
 import platform.Foundation.NSHTTPCookie
+import platform.Foundation.NSString
 import platform.Foundation.NSURL
 import platform.Foundation.NSURLRequest
-import platform.Foundation.NSString
+import platform.Foundation.dateWithTimeIntervalSince1970
 import platform.WebKit.WKNavigation
 import platform.WebKit.WKNavigationDelegateProtocol
 import platform.WebKit.WKWebView
 import platform.WebKit.WKWebViewConfiguration
 import platform.WebKit.WKWebsiteDataStore
-import platform.Foundation.NSDate
-import platform.Foundation.dateWithTimeIntervalSince1970
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import platform.darwin.DISPATCH_TIME_NOW
+import platform.darwin.NSEC_PER_MSEC
 import platform.darwin.NSObject
 import platform.darwin.dispatch_after
 import platform.darwin.dispatch_get_main_queue
 import platform.darwin.dispatch_time
-import platform.darwin.DISPATCH_TIME_NOW
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 @OptIn(ExperimentalForeignApi::class)
 @Composable
@@ -99,7 +101,9 @@ private suspend fun WKWebView.cookiesFor(baseDomain: String): Map<String, String
         configuration.websiteDataStore.httpCookieStore.getAllCookies { cookies ->
             val values = cookies.orEmpty()
                 .filterIsInstance<NSHTTPCookie>()
-                .filter { cookie -> cookie.domain.removePrefix(".").let { it.endsWith(baseDomain) || baseDomain.endsWith(it) } }
+                .filter { cookie ->
+                    cookie.domain.removePrefix(".").let { it.endsWith(baseDomain) || baseDomain.endsWith(it) }
+                }
                 .associate { it.name to it.value }
             continuation.resume(values)
         }
@@ -131,15 +135,16 @@ private fun zoomToForm(webView: WKWebView) {
         if (width <= 0.0 || viewportWidth <= 0.0) return@evaluateJavaScript
         val factor = (viewportWidth * FORM_WIDTH_SHARE / width).coerceIn(1.0 / MAX_ZOOM_STEP, MAX_ZOOM_STEP.toDouble())
         val scrollView = webView.scrollView
-        val scale = if (factor > 1.05 || factor < 0.95) {
+        val scale = if (abs(factor - 1.0) > ZOOM_TOLERANCE) {
             (scrollView.zoomScale * factor).coerceIn(scrollView.minimumZoomScale, scrollView.maximumZoomScale)
         } else scrollView.zoomScale
         // iOS zooms in further on a focused field whose text shows under 16pt, pushing the form off screen:
-        // size the form's fields' text so it shows at 16pt at the new zoom. Relayout resets the zoom, so this goes first.
+        // size the form's fields' text so it shows at 16pt at the new zoom. Relayout resets the zoom, so this goes
+        // first.
         val fontSize = ceil(IOS_FOCUS_ZOOM_FONT_SIZE / scale).toInt()
         webView.evaluateJavaScript(
             "window.__hydFocus && window.__hydFocus.querySelectorAll('input, select, textarea')" +
-                ".forEach(function(e) { e.style.setProperty('font-size', '${fontSize}px', 'important'); });",
+                    ".forEach(function(e) { e.style.setProperty('font-size', '${fontSize}px', 'important'); });",
             completionHandler = null,
         )
         afterDelay {
@@ -152,8 +157,13 @@ private fun zoomToForm(webView: WKWebView) {
 private const val IOS_FOCUS_ZOOM_FONT_SIZE = 16.5
 
 private fun String.numberAfter(key: String): Double? =
-    substringAfter(key, missingDelimiterValue = "").takeWhile { it.isDigit() || it == '.' || it == '-' }.toDoubleOrNull()
+    substringAfter(key, missingDelimiterValue = "").takeWhile { it.isDigit() || it == '.' || it == '-' }
+        .toDoubleOrNull()
 
 private fun afterDelay(block: () -> Unit) {
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, FOCUS_DELAY_MILLIS * 1_000_000), dispatch_get_main_queue(), block)
+    val delay = FOCUS_DELAY_MILLIS * NSEC_PER_MSEC.toLong()
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, delay), dispatch_get_main_queue(), block)
 }
+
+/** Zoom changes smaller than this aren't worth the jump. */
+private const val ZOOM_TOLERANCE = 0.05

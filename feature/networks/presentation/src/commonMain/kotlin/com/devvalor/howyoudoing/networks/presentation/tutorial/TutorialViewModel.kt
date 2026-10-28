@@ -29,9 +29,21 @@ class TutorialViewModel(
 
     fun onAction(action: TutorialAction) {
         when (action) {
-            is TutorialAction.OnPageChange -> _state.update { it.copy(currentPage = action.page.coerceIn(0, it.pages.lastIndex)) }
-            TutorialAction.OnNextClick -> _state.update { it.copy(currentPage = (it.currentPage + 1).coerceAtMost(it.pages.lastIndex)) }
-            TutorialAction.OnPreviousClick -> _state.update { it.copy(currentPage = (it.currentPage - 1).coerceAtLeast(0)) }
+            is TutorialAction.OnPageChange -> _state.update {
+                it.copy(
+                    currentPage = action.page.coerceIn(
+                        0,
+                        it.pages.lastIndex
+                    )
+                )
+            }
+
+            TutorialAction.OnNextClick -> _state.update {
+                it.copy(currentPage = (it.currentPage + 1).coerceAtMost(it.pages.lastIndex))
+            }
+            TutorialAction.OnPreviousClick -> _state.update {
+                it.copy(currentPage = (it.currentPage - 1).coerceAtLeast(0))
+            }
             TutorialAction.OnDontShowAgainToggle -> _state.update { it.copy(dontShowAgain = !it.dontShowAgain) }
             TutorialAction.OnSkipClick -> finish(flowId = null)
             is TutorialAction.OnOptionClick -> finish(flowId = action.flowId)

@@ -71,7 +71,11 @@ class MatrixChatRepository(
     override suspend fun sendMessage(chatId: String, body: String, replyToId: String?): EmptyResult<DataError.Remote> =
         engine.sendText(chatId, body, replyToId)
 
-    override suspend fun sendAttachment(chatId: String, attachment: Attachment, caption: String?): EmptyResult<DataError.Remote> =
+    override suspend fun sendAttachment(
+        chatId: String,
+        attachment: Attachment,
+        caption: String?
+    ): EmptyResult<DataError.Remote> =
         engine.sendAttachment(chatId, attachment, caption)
 
     override suspend fun toggleReaction(chatId: String, messageId: String, key: String): EmptyResult<DataError.Remote> {
@@ -103,7 +107,8 @@ class MatrixChatRepository(
     override suspend fun retryMessage(chatId: String, messageId: String): EmptyResult<DataError.Remote> =
         engine.retryFailed(chatId, messageId)
 
-    override suspend fun discardFailedMessage(chatId: String, messageId: String) = engine.discardFailed(chatId, messageId)
+    override suspend fun discardFailedMessage(chatId: String, messageId: String) =
+        engine.discardFailed(chatId, messageId)
 
     override suspend fun acceptInvite(chatId: String): EmptyResult<DataError.Remote> = engine.acceptInvite(chatId)
 

@@ -53,14 +53,21 @@ class MatrixCallManagerTest {
         override val callEvents: SharedFlow<MatrixCallEvent> = events
         val sent = mutableListOf<Sent>()
         override fun ensureStarted() = Unit
-        override suspend fun sendCallEvent(roomId: String, type: String, content: JsonObject): EmptyResult<DataError.Remote> {
+        override suspend fun sendCallEvent(
+            roomId: String,
+            type: String,
+            content: JsonObject
+        ): EmptyResult<DataError.Remote> {
             sent += Sent(roomId, type, content)
             return Result.Success(Unit)
         }
-        override suspend fun turnServer(): TurnServerDto = TurnServerDto(uris = listOf("turn:turn.example.org"), username = "u", password = "p")
+
+        override suspend fun turnServer(): TurnServerDto =
+            TurnServerDto(uris = listOf("turn:turn.example.org"), username = "u", password = "p")
     }
 
-    private class FakeSession(val video: Boolean, val iceServers: List<IceServer>, val listener: CallMediaListener) : CallMediaSession {
+    private class FakeSession(val video: Boolean, val iceServers: List<IceServer>, val listener: CallMediaListener) :
+        CallMediaSession {
         var offeredTo: String? = null
         var remoteAnswer: String? = null
         val remoteCandidates = mutableListOf<IceCandidate>()
@@ -70,12 +77,15 @@ class MatrixCallManagerTest {
             offeredTo = offerSdp
             return "answer-sdp"
         }
+
         override suspend fun setRemoteAnswer(answerSdp: String) {
             remoteAnswer = answerSdp
         }
+
         override fun addRemoteCandidate(candidate: IceCandidate) {
             remoteCandidates += candidate
         }
+
         override fun setMuted(muted: Boolean) = Unit
         override fun setCameraEnabled(enabled: Boolean) = Unit
         override fun switchCamera() = Unit
@@ -97,16 +107,41 @@ class MatrixCallManagerTest {
         override fun observeChats(): Flow<List<Chat>> = emptyFlow()
         override suspend fun refresh() = Unit
         override fun observeChat(chatId: String): Flow<Chat?> = flowOf(
-            Chat(id = chatId, name = "Anna", network = ChatNetwork.MATRIX, lastMessage = null, unreadCount = 0, isGroup = false)
+            Chat(
+                id = chatId,
+                name = "Anna",
+                network = ChatNetwork.MATRIX,
+                lastMessage = null,
+                unreadCount = 0,
+                isGroup = false
+            )
         )
+
         override fun observeMessages(chatId: String): Flow<List<Message>> = emptyFlow()
         override suspend fun loadOlderMessages(chatId: String): EmptyResult<DataError.Remote> = Result.Success(Unit)
         override fun hasMoreHistory(chatId: String): Flow<Boolean> = emptyFlow()
-        override suspend fun sendMessage(chatId: String, body: String, replyToId: String?): EmptyResult<DataError.Remote> = Result.Success(Unit)
-        override suspend fun sendAttachment(chatId: String, attachment: Attachment, caption: String?): EmptyResult<DataError.Remote> =
+        override suspend fun sendMessage(
+            chatId: String,
+            body: String,
+            replyToId: String?
+        ): EmptyResult<DataError.Remote> = Result.Success(Unit)
+
+        override suspend fun sendAttachment(
+            chatId: String,
+            attachment: Attachment,
+            caption: String?
+        ): EmptyResult<DataError.Remote> =
             Result.Success(Unit)
-        override suspend fun toggleReaction(chatId: String, messageId: String, key: String): EmptyResult<DataError.Remote> = Result.Success(Unit)
-        override suspend fun setTyping(chatId: String, isTyping: Boolean): EmptyResult<DataError.Remote> = Result.Success(Unit)
+
+        override suspend fun toggleReaction(
+            chatId: String,
+            messageId: String,
+            key: String
+        ): EmptyResult<DataError.Remote> = Result.Success(Unit)
+
+        override suspend fun setTyping(chatId: String, isTyping: Boolean): EmptyResult<DataError.Remote> =
+            Result.Success(Unit)
+
         override suspend fun markAsRead(chatId: String): EmptyResult<DataError.Remote> = Result.Success(Unit)
         override suspend fun resolveMedia(mxcUrl: String, thumbnail: Boolean): MediaRequest? = null
         override suspend fun downloadMedia(mxcUrl: String): ByteArray? = null
@@ -116,9 +151,16 @@ class MatrixCallManagerTest {
     private val account = FakeTransport("@me:matrix.org")
     private val media = FakeMedia()
 
-    private fun TestScope.manager() = MatrixCallManager(server, account, media, FakeChats(), backgroundScope).also { runCurrent() }
+    private fun TestScope.manager() =
+        MatrixCallManager(server, account, media, FakeChats(), backgroundScope).also { runCurrent() }
 
-    private fun event(type: String, callId: String, sender: String = "@anna:example.org", party: String = "anna-phone", extra: JsonObjectBuilderBlock = {}) =
+    private fun event(
+        type: String,
+        callId: String,
+        sender: String = "@anna:example.org",
+        party: String = "anna-phone",
+        extra: JsonObjectBuilderBlock = {}
+    ) =
         MatrixCallEvent("!room:example.org", type, sender, buildJsonObject {
             put("call_id", callId)
             put("party_id", party)
@@ -152,7 +194,14 @@ class MatrixCallManagerTest {
 
         // Candidates before answering wait for the peer connection
         receive(server, event("m.call.candidates", "c1") {
-            putJsonArray("candidates") { addJsonObject { put("candidate", "candidate:1"); put("sdpMid", "0"); put("sdpMLineIndex", 0) } }
+            putJsonArray("candidates") {
+                addJsonObject {
+                    put("candidate", "candidate:1"); put(
+                    "sdpMid",
+                    "0"
+                ); put("sdpMLineIndex", 0)
+                }
+            }
         })
         calls.answer(video = false)
         val session = media.sessions.single()
@@ -182,7 +231,16 @@ class MatrixCallManagerTest {
         val callId = invite.content.string("call_id")!!
         assertEquals(CallPhase.CALLING, calls.call.value?.phase)
 
-        receive(account, event("m.call.answer", callId) { putJsonObject("answer") { put("type", "answer"); put("sdp", "their-answer") } })
+        receive(
+            account,
+            event("m.call.answer", callId) {
+                putJsonObject("answer") {
+                    put("type", "answer"); put(
+                    "sdp",
+                    "their-answer"
+                )
+                }
+            })
         assertEquals("their-answer", media.sessions.single().remoteAnswer)
         val select = account.sent.single { it.type == "m.call.select_answer" }
         assertEquals("anna-phone", select.content.string("selected_party_id"))

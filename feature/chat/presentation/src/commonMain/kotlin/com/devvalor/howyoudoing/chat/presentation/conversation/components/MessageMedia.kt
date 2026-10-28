@@ -90,7 +90,8 @@ fun AuthenticatedImage(
                 model = remember(resolved, attempt) {
                     ImageRequest.Builder(context)
                         .data(resolved.url)
-                        .httpHeaders(NetworkHeaders.Builder().apply { resolved.headers.forEach { (k, v) -> set(k, v) } }.build())
+                        .httpHeaders(NetworkHeaders.Builder().apply { resolved.headers.forEach { (k, v) -> set(k, v) } }
+                            .build())
                         .build()
                 },
                 contentDescription = contentDescription,
@@ -99,7 +100,11 @@ fun AuthenticatedImage(
                 modifier = Modifier.matchParentSize(),
             )
         } else if (failed) {
-            Icon(Icons.Rounded.BrokenImage, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+            Icon(
+                Icons.Rounded.BrokenImage,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }
@@ -115,7 +120,8 @@ fun AvatarImage(url: String, resolver: MediaResolver, modifier: Modifier = Modif
         model = remember(resolved) {
             ImageRequest.Builder(context)
                 .data(resolved.url)
-                .httpHeaders(NetworkHeaders.Builder().apply { resolved.headers.forEach { (k, v) -> set(k, v) } }.build())
+                .httpHeaders(NetworkHeaders.Builder().apply { resolved.headers.forEach { (k, v) -> set(k, v) } }
+                    .build())
                 .build()
         },
         contentDescription = null,
@@ -146,6 +152,7 @@ fun MessageMedia(
             placeholderColor = Color.Transparent,
             modifier = Modifier.size(STICKER_SIZE).clickable(onClick = onClick),
         )
+
         MessageType.IMAGE -> {
             val width = media.width
             val height = media.height
@@ -165,11 +172,13 @@ fun MessageMedia(
                     .clickable(onClick = onClick),
             )
         }
+
         MessageType.AUDIO -> {
             val playback = LocalVoicePlayback.current
             if (playback != null && messageId != null) VoiceNote(messageId, media, playback, contentColor)
             else FileCard(type, media, onClick, contentColor)
         }
+
         else -> FileCard(type, media, onClick, contentColor)
     }
 }
@@ -209,7 +218,11 @@ private fun FileCard(type: MessageType, media: MediaInfo, onClick: () -> Unit, c
                 overflow = TextOverflow.Ellipsis,
             )
             Text(
-                listOfNotNull(media.sizeBytes?.let(::formatSize), media.durationMillis?.let(::formatDuration), stringResource(Res.string.media_tap_to_open))
+                listOfNotNull(
+                    media.sizeBytes?.let(::formatSize),
+                    media.durationMillis?.let(::formatClock),
+                    stringResource(Res.string.media_tap_to_open)
+                )
                     .joinToString(" · "),
                 color = contentColor.copy(alpha = 0.7f),
                 style = MaterialTheme.typography.labelSmall,
@@ -219,17 +232,19 @@ private fun FileCard(type: MessageType, media: MediaInfo, onClick: () -> Unit, c
 }
 
 private fun formatSize(bytes: Long): String = when {
-    bytes >= 1_048_576 -> "${(bytes * 10 / 1_048_576) / 10.0} MB"
-    bytes >= 1024 -> "${bytes / 1024} KB"
+    bytes >= MEGABYTE -> "${(bytes * TENTHS / MEGABYTE) / TENTHS.toDouble()} MB"
+    bytes >= KILOBYTE -> "${bytes / KILOBYTE} KB"
     else -> "$bytes B"
 }
 
-private fun formatDuration(millis: Long): String {
-    val seconds = millis / 1000
-    return "${seconds / 60}:${(seconds % 60).toString().padStart(2, '0')}"
-}
 
 private val STICKER_SIZE = 160.dp
 
 private const val IMAGE_RETRIES = 2
 private const val IMAGE_RETRY_DELAY_MILLIS = 1_500L
+
+private const val KILOBYTE = 1024L
+private const val MEGABYTE = KILOBYTE * KILOBYTE
+
+/** Megabytes show one decimal. */
+private const val TENTHS = 10

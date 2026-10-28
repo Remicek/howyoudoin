@@ -31,6 +31,7 @@ import howyoudoin.feature.networks.presentation.generated.resources.matrix_instr
 import howyoudoin.feature.networks.presentation.generated.resources.field_homeserver
 import howyoudoin.feature.networks.presentation.generated.resources.field_matrix_user
 import howyoudoin.feature.networks.presentation.generated.resources.Res
+import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.getString
 import howyoudoin.feature.networks.presentation.generated.resources.connectnetwork_connect_from_your_phone_without
 import howyoudoin.feature.networks.presentation.generated.resources.connectnetwork_link_this_app_as_a
@@ -49,17 +50,11 @@ import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
 import com.devvalor.howyoudoing.core.domain.util.DataError
 import com.devvalor.howyoudoing.core.domain.util.Result
 import com.devvalor.howyoudoing.core.presentation.util.toUiText
-import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceInstagram
-import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceMessenger
+import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceAccounts
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceMessengerState
-import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceWhatsApp
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceLinkedAccount
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceLoginPrompt
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDevicePairing
-import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceSignal
-import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceSlack
-import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceMatrix
-import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceTelegram
 import com.devvalor.howyoudoing.core.presentation.util.UiText
 import com.devvalor.howyoudoing.networks.domain.DisplayType
 import com.devvalor.howyoudoing.networks.domain.LoginInputField
@@ -89,16 +84,11 @@ class ConnectNetworkViewModel(
     private val bridgeRepository: BridgeRepository,
     private val deviceRegion: DeviceRegionProvider,
     developerOptions: DeveloperOptions,
-    private val onDeviceMessenger: OnDeviceMessenger,
-    private val onDeviceWhatsApp: OnDeviceWhatsApp,
-    private val onDeviceInstagram: OnDeviceInstagram,
-    private val onDeviceTelegram: OnDeviceTelegram,
-    private val onDeviceSignal: OnDeviceSignal,
-    private val onDeviceSlack: OnDeviceSlack,
-    private val onDeviceMatrix: OnDeviceMatrix
+    private val onDevice: OnDeviceAccounts
 ) : ViewModel() {
 
     private var pairingJob: Job? = null
+
     /** The account being linked (WhatsApp, Telegram or Signal), while it is. */
     private var linkingAccount: OnDeviceLinkedAccount? = null
 
@@ -134,16 +124,19 @@ class ConnectNetworkViewModel(
                 stepJob?.cancel()
                 _state.update { it.copy(phase = ConnectPhase.ConfigureBridge, error = null) }
             }
+
             is ConnectNetworkAction.OnFlowClick -> {
                 // A new attempt: an error from the last one doesn't apply to it
                 _state.update { it.copy(error = null) }
                 rejectedCookies = null
                 onFlowClick(action.flowId)
             }
+
             is ConnectNetworkAction.OnInputChange -> onInputChange(action.fieldId, action.value)
             is ConnectNetworkAction.OnCountrySelect -> {
                 _state.update { it.copy(phoneCountries = it.phoneCountries + (action.fieldId to action.isoCode)) }
             }
+
             ConnectNetworkAction.OnSubmitInputClick -> submitInput()
             ConnectNetworkAction.OnSkipInputClick -> skipInput()
             is ConnectNetworkAction.OnCookiesCaptured -> submitCookies(action.cookies)
@@ -161,13 +154,21 @@ class ConnectNetworkViewModel(
                     else -> onDeviceCookiesStep()
                 }
             }
-            ON_DEVICE_WHATSAPP_QR_FLOW_ID -> linkAccountOnDevice(onDeviceWhatsApp, phoneNumber = null)
-            ON_DEVICE_WHATSAPP_CODE_FLOW_ID -> showStepWhenReady { onDevicePhoneStep(ON_DEVICE_WHATSAPP_CODE_FLOW_ID, "") }
+
+            ON_DEVICE_WHATSAPP_QR_FLOW_ID -> linkAccountOnDevice(onDevice.whatsApp, phoneNumber = null)
+            ON_DEVICE_WHATSAPP_CODE_FLOW_ID -> showStepWhenReady {
+                onDevicePhoneStep(
+                    ON_DEVICE_WHATSAPP_CODE_FLOW_ID,
+                    ""
+                )
+            }
+
             ON_DEVICE_TELEGRAM_FLOW_ID -> showStepWhenReady {
                 onDevicePhoneStep(ON_DEVICE_TELEGRAM_FLOW_ID, getString(Res.string.telegram_phone_instructions))
             }
-            ON_DEVICE_TELEGRAM_QR_FLOW_ID -> linkAccountOnDevice(onDeviceTelegram, phoneNumber = null)
-            ON_DEVICE_SIGNAL_FLOW_ID -> linkAccountOnDevice(onDeviceSignal, phoneNumber = null)
+
+            ON_DEVICE_TELEGRAM_QR_FLOW_ID -> linkAccountOnDevice(onDevice.telegram, phoneNumber = null)
+            ON_DEVICE_SIGNAL_FLOW_ID -> linkAccountOnDevice(onDevice.signal, phoneNumber = null)
             ON_DEVICE_MATRIX_FLOW_ID -> showStepWhenReady { matrixLoginStep() }
             else -> runStep { bridgeRepository.startLogin(network, flowId) }
         }
@@ -203,9 +204,11 @@ class ConnectNetworkViewModel(
                 // The on-device option doesn't need the server bridge, so offer it even when that's down; the
                 // server's error only matters when there's nothing else (in phone-only mode there's no server at all)
                 is Result.Failure -> {
-                    val onDevice = onDeviceFlows()
+                    val onDeviceOptions = onDeviceFlows()
                     _state.update {
-                        it.copy(phase = ConnectPhase.ChooseFlow(onDevice), error = result.error.toUiText().takeIf { onDevice.isEmpty() })
+                        it.copy(
+                            phase = ConnectPhase.ChooseFlow(onDeviceOptions),
+                            error = result.error.toUiText().takeIf { onDeviceOptions.isEmpty() })
                     }
                 }
             }
@@ -224,16 +227,15 @@ class ConnectNetworkViewModel(
     private fun submitInput() {
         val step = (state.value.phase as? ConnectPhase.Step)?.step as? BridgeLoginStep.UserInput ?: return
         if (!state.value.canSubmitInput) return
-        when (step.loginId) {
-            ON_DEVICE_WHATSAPP_CODE_FLOW_ID ->
-                return linkAccountOnDevice(onDeviceWhatsApp, step.fields.firstOrNull()?.let { state.value.submittedValue(it) })
-            ON_DEVICE_TELEGRAM_FLOW_ID ->
-                return linkAccountOnDevice(onDeviceTelegram, step.fields.firstOrNull()?.let { state.value.submittedValue(it) })
-            ON_DEVICE_PROMPT_FLOW_ID -> return submitPromptAnswer(step)
-            ON_DEVICE_MATRIX_FLOW_ID -> return signInToMatrix(step.fields.associate { it.id to state.value.submittedValue(it) })
-        }
         val values = step.fields.associate { it.id to state.value.submittedValue(it) }
-        runStep { bridgeRepository.submitUserInput(network, step, values) }
+        val firstValue = step.fields.firstOrNull()?.let { values[it.id] }
+        when (step.loginId) {
+            ON_DEVICE_WHATSAPP_CODE_FLOW_ID -> linkAccountOnDevice(onDevice.whatsApp, firstValue)
+            ON_DEVICE_TELEGRAM_FLOW_ID -> linkAccountOnDevice(onDevice.telegram, firstValue)
+            ON_DEVICE_PROMPT_FLOW_ID -> submitPromptAnswer(step)
+            ON_DEVICE_MATRIX_FLOW_ID -> signInToMatrix(values)
+            else -> runStep { bridgeRepository.submitUserInput(network, step, values) }
+        }
     }
 
     private fun skipInput() {
@@ -273,6 +275,7 @@ class ConnectNetworkViewModel(
                     _state.update { it.copy(isSubmitting = false, error = current.error.toUiText()) }
                     return
                 }
+
                 is Result.Success -> current.data
             }
             showStep(step)
@@ -315,7 +318,11 @@ class ConnectNetworkViewModel(
             val name = logins.firstOrNull { it.id == loginId }?.name ?: logins.singleOrNull()?.name
             if (name != null && name != loginId) {
                 _state.update { state ->
-                    if (state.phase is ConnectPhase.Connected) state.copy(phase = ConnectPhase.Connected(name)) else state
+                    if (state.phase is ConnectPhase.Connected) {
+                        state.copy(phase = ConnectPhase.Connected(name))
+                    } else {
+                        state
+                    }
                 }
             }
         }
@@ -330,87 +337,48 @@ class ConnectNetworkViewModel(
                     phase = ConnectPhase.Connected(accountName = null),
                     isSubmitting = false
                 )
+
                 is BridgeLoginStep.UserInput -> state.copy(
                     phase = ConnectPhase.Step(step),
-                    inputValues = step.fields.mapNotNull { field -> field.defaultValue?.let { field.id to it } }.toMap(),
+                    inputValues = step.fields.mapNotNull { field -> field.defaultValue?.let { field.id to it } }
+                        .toMap(),
                     phoneCountries = step.fields
                         .filter { it.type == InputFieldType.PHONE_NUMBER }
                         .associate { it.id to defaultCountry().isoCode },
                     isSubmitting = false
                 )
+
                 else -> state.copy(phase = ConnectPhase.Step(step), isSubmitting = false)
             }
         }
     }
 
-    private suspend fun onDeviceFlows(): List<BridgeLoginFlow> = when {
-        network == ChatNetwork.MESSENGER && onDeviceMessenger.isSupported -> listOf(
+    /** The ways to connect [network] from the phone itself; Matrix needs no native client. */
+    private suspend fun onDeviceFlows(): List<BridgeLoginFlow> {
+        val client = onDevice.all.firstOrNull { it.network == network }
+        val available = network == ChatNetwork.MATRIX || client?.isSupported == true
+        if (!available) return emptyList()
+        return ON_DEVICE_OPTIONS[network].orEmpty().map { option ->
             BridgeLoginFlow(
-                id = ON_DEVICE_FLOW_ID,
-                name = getString(Res.string.flow_device),
-                description = getString(Res.string.connectnetwork_connect_from_your_phone_without)
+                id = option.flowId,
+                name = getString(option.name),
+                description = getString(option.description)
             )
-        )
-        network == ChatNetwork.INSTAGRAM && onDeviceInstagram.isSupported -> listOf(
-            BridgeLoginFlow(
-                id = ON_DEVICE_FLOW_ID,
-                name = getString(Res.string.flow_device),
-                description = getString(Res.string.connectnetwork_log_in_on_instagram_com)
-            )
-        )
-        network == ChatNetwork.TELEGRAM && onDeviceTelegram.isSupported -> listOf(
-            BridgeLoginFlow(
-                id = ON_DEVICE_TELEGRAM_FLOW_ID,
-                name = getString(Res.string.flow_device_phone),
-                description = getString(Res.string.connectnetwork_log_in_with_a_code)
-            ),
-            BridgeLoginFlow(
-                id = ON_DEVICE_TELEGRAM_QR_FLOW_ID,
-                name = getString(Res.string.flow_device_qr),
-                description = getString(Res.string.connectnetwork_scan_a_code_with_telegram)
-            )
-        )
-        network == ChatNetwork.SIGNAL && onDeviceSignal.isSupported -> listOf(
-            BridgeLoginFlow(
-                id = ON_DEVICE_SIGNAL_FLOW_ID,
-                name = getString(Res.string.flow_device),
-                description = getString(Res.string.connectnetwork_link_this_app_as_a)
-            )
-        )
-        network == ChatNetwork.WHATSAPP && onDeviceWhatsApp.isSupported -> listOf(
-            BridgeLoginFlow(
-                id = ON_DEVICE_WHATSAPP_QR_FLOW_ID,
-                name = getString(Res.string.flow_device_qr),
-                description = getString(Res.string.connectnetwork_link_this_app_as_a_2)
-            ),
-            BridgeLoginFlow(
-                id = ON_DEVICE_WHATSAPP_CODE_FLOW_ID,
-                name = getString(Res.string.flow_device_code),
-                description = getString(Res.string.connectnetwork_same_but_type_a_code)
-            )
-        )
-        network == ChatNetwork.MATRIX -> listOf(
-            BridgeLoginFlow(
-                id = ON_DEVICE_MATRIX_FLOW_ID,
-                name = getString(Res.string.flow_matrix),
-                description = getString(Res.string.connectnetwork_sign_in_with_your_matrix)
-            )
-        )
-        network == ChatNetwork.SLACK && onDeviceSlack.isSupported -> listOf(
-            BridgeLoginFlow(
-                id = ON_DEVICE_FLOW_ID,
-                name = getString(Res.string.flow_device),
-                description = getString(Res.string.connectnetwork_sign_in_to_your_workspace)
-            )
-        )
-        else -> emptyList()
+        }
     }
 
     private suspend fun onDevicePhoneStep(flowId: String, instructions: String) = BridgeLoginStep.UserInput(
         loginId = flowId,
         stepId = "on-device-phone",
         instructions = instructions,
-        fields = listOf(LoginInputField(id = "phone", name = getString(Res.string.field_phone), description = "", type = InputFieldType.PHONE_NUMBER))
+        fields = listOf(
+            LoginInputField(
+                id = "phone",
+                name = getString(Res.string.field_phone),
+                description = "",
+                type = InputFieldType.PHONE_NUMBER
+            )
+        )
     )
 
     /**
@@ -420,7 +388,10 @@ class ConnectNetworkViewModel(
     private fun linkAccountOnDevice(account: OnDeviceLinkedAccount, phoneNumber: String?) =
         linkAccountOnDevice(account) { account.startLinking(phoneNumber) }
 
-    private fun linkAccountOnDevice(account: OnDeviceLinkedAccount, start: suspend () -> Result<Unit, DataError.Remote>) {
+    private fun linkAccountOnDevice(
+        account: OnDeviceLinkedAccount,
+        start: suspend () -> Result<Unit, DataError.Remote>
+    ) {
         stepJob?.cancel()
         pairingJob?.cancel()
         linkingAccount = account
@@ -429,7 +400,12 @@ class ConnectNetworkViewModel(
             val result = start()
             if (result is Result.Failure) {
                 val message = (account.state.value as? OnDeviceMessengerState.Failed)?.message
-                _state.update { it.copy(isSubmitting = false, error = message?.let(UiText::DynamicString) ?: result.error.toUiText()) }
+                _state.update {
+                    it.copy(
+                        isSubmitting = false,
+                        error = message?.let(UiText::DynamicString) ?: result.error.toUiText()
+                    )
+                }
                 return@launch
             }
             pairingJob = viewModelScope.launch {
@@ -442,13 +418,20 @@ class ConnectNetworkViewModel(
                 account.state.collect { linkState ->
                     when (linkState) {
                         is OnDeviceMessengerState.Connected -> {
-                            _state.update { it.copy(phase = ConnectPhase.Connected(linkState.accountName), isSubmitting = false) }
+                            _state.update {
+                                it.copy(
+                                    phase = ConnectPhase.Connected(linkState.accountName),
+                                    isSubmitting = false
+                                )
+                            }
                             linkingAccount = null
                             pairingJob?.cancel()
                         }
+
                         is OnDeviceMessengerState.Failed -> _state.update {
                             it.copy(isSubmitting = false, error = UiText.DynamicString(linkState.message))
                         }
+
                         else -> Unit
                     }
                 }
@@ -470,26 +453,41 @@ class ConnectNetworkViewModel(
                     "fragment" -> getString(Res.string.tg_code_fragment)
                     else -> getString(Res.string.tg_code_other)
                 }
+
                 prompt.isRetry -> getString(Res.string.tg_password_retry)
-                else -> prompt.detail?.let { getString(Res.string.tg_password_hint, it) } ?: getString(Res.string.tg_password)
+                else -> prompt.detail?.let { getString(Res.string.tg_password_hint, it) }
+                    ?: getString(Res.string.tg_password)
             }
             return BridgeLoginStep.UserInput(
                 loginId = ON_DEVICE_PROMPT_FLOW_ID,
                 stepId = if (isCode) "on-device-code" else "on-device-password",
                 instructions = instructions,
                 fields = listOf(
-                    if (isCode) LoginInputField(id = "code", name = getString(Res.string.field_login_code), description = "", type = InputFieldType.TWO_FACTOR_CODE)
-                    else LoginInputField(id = "password", name = getString(Res.string.field_password), description = "", type = InputFieldType.PASSWORD)
+                    if (isCode) LoginInputField(
+                        id = "code",
+                        name = getString(Res.string.field_login_code),
+                        description = "",
+                        type = InputFieldType.TWO_FACTOR_CODE
+                    )
+                    else LoginInputField(
+                        id = "password",
+                        name = getString(Res.string.field_password),
+                        description = "",
+                        type = InputFieldType.PASSWORD
+                    )
                 )
             )
         }
         val instructions = when {
             account.network == ChatNetwork.SIGNAL ->
-getString(Res.string.pair_signal)
+                getString(Res.string.pair_signal)
+
             account.network == ChatNetwork.TELEGRAM ->
-getString(Res.string.pair_telegram)
+                getString(Res.string.pair_telegram)
+
             pairing.pairingCode != null ->
-getString(Res.string.pair_whatsapp_code)
+                getString(Res.string.pair_whatsapp_code)
+
             else -> getString(Res.string.pair_whatsapp_qr)
         }
         return BridgeLoginStep.DisplayAndWait(
@@ -510,7 +508,10 @@ getString(Res.string.pair_whatsapp_code)
             if (account.submitLinkingInput(value) is Result.Failure) {
                 val message = (account.state.value as? OnDeviceMessengerState.Failed)?.message
                 _state.update {
-                    it.copy(isSubmitting = false, error = message?.let(UiText::DynamicString) ?: UiText.Resource(Res.string.login_failed_retry))
+                    it.copy(
+                        isSubmitting = false,
+                        error = message?.let(UiText::DynamicString) ?: UiText.Resource(Res.string.login_failed_retry)
+                    )
                 }
             } else {
                 // The next prompt (or being connected) was announced before the call returned; a repeated wrong
@@ -538,7 +539,13 @@ getString(Res.string.pair_whatsapp_code)
         url = "https://www.messenger.com/",
         // messenger.com only offers its login form to desktop browsers; this matches what hydbridge sends
         userAgent = DESKTOP_USER_AGENT,
-        cookies = listOf("xs", "c_user", "datr").map { RequiredCookie(fieldId = it, cookieName = it, isRequired = true) }
+        cookies = listOf("xs", "c_user", "datr").map {
+            RequiredCookie(
+                fieldId = it,
+                cookieName = it,
+                isRequired = true
+            )
+        }
     )
 
     /** Instagram's web session cookies; the optional ones make the session look like a normal browser. */
@@ -549,7 +556,7 @@ getString(Res.string.pair_whatsapp_code)
         url = "https://www.instagram.com/accounts/login/",
         userAgent = null,
         cookies = listOf("sessionid", "csrftoken", "ds_user_id").map { RequiredCookie(it, it, isRequired = true) } +
-            listOf("mid", "ig_did", "rur").map { RequiredCookie(it, it, isRequired = false) }
+                listOf("mid", "ig_did", "rur").map { RequiredCookie(it, it, isRequired = false) }
     )
 
     /**
@@ -572,9 +579,25 @@ getString(Res.string.pair_whatsapp_code)
         stepId = "matrix-login",
         instructions = getString(Res.string.matrix_instructions),
         fields = listOf(
-            LoginInputField(id = "homeserver", name = getString(Res.string.field_homeserver), description = "", type = InputFieldType.DOMAIN, defaultValue = "matrix.org"),
-            LoginInputField(id = "username", name = getString(Res.string.field_matrix_user), description = "", type = InputFieldType.USERNAME),
-            LoginInputField(id = "password", name = getString(Res.string.field_password), description = "", type = InputFieldType.PASSWORD)
+            LoginInputField(
+                id = "homeserver",
+                name = getString(Res.string.field_homeserver),
+                description = "",
+                type = InputFieldType.DOMAIN,
+                defaultValue = "matrix.org"
+            ),
+            LoginInputField(
+                id = "username",
+                name = getString(Res.string.field_matrix_user),
+                description = "",
+                type = InputFieldType.USERNAME
+            ),
+            LoginInputField(
+                id = "password",
+                name = getString(Res.string.field_password),
+                description = "",
+                type = InputFieldType.PASSWORD
+            )
         )
     )
 
@@ -582,22 +605,25 @@ getString(Res.string.pair_whatsapp_code)
         stepJob?.cancel()
         stepJob = viewModelScope.launch {
             _state.update { it.copy(isSubmitting = true, error = null) }
-            when (val result = onDeviceMatrix.link(values)) {
+            when (val result = onDevice.matrix.link(values)) {
                 is Result.Success -> {
-                    val name = (onDeviceMatrix.state.value as? OnDeviceMessengerState.Connected)?.accountName
+                    val name = (onDevice.matrix.state.value as? OnDeviceMessengerState.Connected)?.accountName
                     _state.update { it.copy(phase = ConnectPhase.Connected(name), isSubmitting = false) }
                 }
+
                 is Result.Failure -> _state.update { it.copy(isSubmitting = false, error = result.error.toUiText()) }
             }
         }
     }
 
     private fun linkOnDevice(step: BridgeLoginStep.Cookies, cookiesByName: Map<String, String>) {
-        val cookies = step.cookies.mapNotNull { cookie -> cookiesByName[cookie.cookieName]?.let { cookie.cookieName to it } }.toMap()
+        val cookies =
+            step.cookies.mapNotNull { cookie -> cookiesByName[cookie.cookieName]?.let { cookie.cookieName to it } }
+                .toMap()
         val client = when (network) {
-            ChatNetwork.INSTAGRAM -> onDeviceInstagram
-            ChatNetwork.SLACK -> onDeviceSlack
-            else -> onDeviceMessenger
+            ChatNetwork.INSTAGRAM -> onDevice.instagram
+            ChatNetwork.SLACK -> onDevice.slack
+            else -> onDevice.messenger
         }
         stepJob?.cancel()
         stepJob = viewModelScope.launch {
@@ -607,6 +633,7 @@ getString(Res.string.pair_whatsapp_code)
                     val name = (client.state.value as? OnDeviceMessengerState.Connected)?.accountName
                     _state.update { it.copy(phase = ConnectPhase.Connected(name), isSubmitting = false) }
                 }
+
                 is Result.Failure -> {
                     rejectedCookies = cookiesByName
                     _state.update { it.copy(isSubmitting = false, error = result.error.toUiText()) }
@@ -623,8 +650,72 @@ getString(Res.string.pair_whatsapp_code)
         const val ON_DEVICE_TELEGRAM_QR_FLOW_ID = "howyoudoin-on-device-telegram-qr"
         const val ON_DEVICE_SIGNAL_FLOW_ID = "howyoudoin-on-device-signal"
         const val ON_DEVICE_MATRIX_FLOW_ID = "howyoudoin-matrix-account"
+
         /** Answers to what a linking client asks for (Telegram's login code and password). */
         const val ON_DEVICE_PROMPT_FLOW_ID = "howyoudoin-on-device-prompt"
+
+        /** The ways to connect each network from the phone itself. */
+        private val ON_DEVICE_OPTIONS: Map<ChatNetwork, List<OnDeviceOption>> = mapOf(
+            ChatNetwork.MESSENGER to listOf(
+                OnDeviceOption(
+                    ON_DEVICE_FLOW_ID,
+                    Res.string.flow_device,
+                    Res.string.connectnetwork_connect_from_your_phone_without
+                )
+            ),
+            ChatNetwork.INSTAGRAM to listOf(
+                OnDeviceOption(
+                    ON_DEVICE_FLOW_ID,
+                    Res.string.flow_device,
+                    Res.string.connectnetwork_log_in_on_instagram_com
+                )
+            ),
+            ChatNetwork.TELEGRAM to listOf(
+                OnDeviceOption(
+                    ON_DEVICE_TELEGRAM_FLOW_ID,
+                    Res.string.flow_device_phone,
+                    Res.string.connectnetwork_log_in_with_a_code
+                ),
+                OnDeviceOption(
+                    ON_DEVICE_TELEGRAM_QR_FLOW_ID,
+                    Res.string.flow_device_qr,
+                    Res.string.connectnetwork_scan_a_code_with_telegram
+                )
+            ),
+            ChatNetwork.SIGNAL to listOf(
+                OnDeviceOption(
+                    ON_DEVICE_SIGNAL_FLOW_ID,
+                    Res.string.flow_device,
+                    Res.string.connectnetwork_link_this_app_as_a
+                )
+            ),
+            ChatNetwork.WHATSAPP to listOf(
+                OnDeviceOption(
+                    ON_DEVICE_WHATSAPP_QR_FLOW_ID,
+                    Res.string.flow_device_qr,
+                    Res.string.connectnetwork_link_this_app_as_a_2
+                ),
+                OnDeviceOption(
+                    ON_DEVICE_WHATSAPP_CODE_FLOW_ID,
+                    Res.string.flow_device_code,
+                    Res.string.connectnetwork_same_but_type_a_code
+                )
+            ),
+            ChatNetwork.MATRIX to listOf(
+                OnDeviceOption(
+                    ON_DEVICE_MATRIX_FLOW_ID,
+                    Res.string.flow_matrix,
+                    Res.string.connectnetwork_sign_in_with_your_matrix
+                )
+            ),
+            ChatNetwork.SLACK to listOf(
+                OnDeviceOption(
+                    ON_DEVICE_FLOW_ID,
+                    Res.string.flow_device,
+                    Res.string.connectnetwork_sign_in_to_your_workspace
+                )
+            )
+        )
     }
 }
 
@@ -651,3 +742,5 @@ private const val SLACK_TOKEN_SCRIPT = """
   } catch (e) { return '{}'; }
 })()
 """
+
+private class OnDeviceOption(val flowId: String, val name: StringResource, val description: StringResource)

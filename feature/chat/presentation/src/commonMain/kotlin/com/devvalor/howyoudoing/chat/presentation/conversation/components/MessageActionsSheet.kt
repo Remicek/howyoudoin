@@ -64,8 +64,16 @@ fun MessageActionsSheet(
         // A message that didn't send: only sending it again or deleting it make sense
         if (message.status == MessageStatus.FAILED) {
             Column(Modifier.navigationBarsPadding().padding(bottom = HowYouDoinSpacing.md)) {
-                if (message.canRetry && onRetry != null) ActionRow(Icons.Rounded.Refresh, stringResource(Res.string.actions_send_again), onRetry)
-                if (message.text.isNotBlank() && message.media == null) ActionRow(Icons.Rounded.ContentCopy, stringResource(Res.string.actions_copy), onCopy)
+                if (message.canRetry && onRetry != null) ActionRow(
+                    Icons.Rounded.Refresh,
+                    stringResource(Res.string.actions_send_again),
+                    onRetry
+                )
+                if (message.text.isNotBlank() && message.media == null) ActionRow(
+                    Icons.Rounded.ContentCopy,
+                    stringResource(Res.string.actions_copy),
+                    onCopy
+                )
                 onDiscard?.let { ActionRow(Icons.Rounded.Delete, stringResource(Res.string.actions_delete), it) }
             }
             return@ModalBottomSheet
@@ -73,7 +81,8 @@ fun MessageActionsSheet(
         Column(Modifier.navigationBarsPadding().padding(bottom = HowYouDoinSpacing.md)) {
             Row(
                 horizontalArrangement = Arrangement.SpaceEvenly,
-                modifier = Modifier.fillMaxWidth().padding(horizontal = HowYouDoinSpacing.md, vertical = HowYouDoinSpacing.sm),
+                modifier = Modifier.fillMaxWidth()
+                    .padding(horizontal = HowYouDoinSpacing.md, vertical = HowYouDoinSpacing.sm),
             ) {
                 QuickReactions.forEach { emoji ->
                     val isOwn = message.reactions.any { it.key == emoji && it.isOwn }
@@ -81,7 +90,14 @@ fun MessageActionsSheet(
                         contentAlignment = Alignment.Center,
                         modifier = Modifier
                             .size(48.dp)
-                            .background(if (isOwn) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh, CircleShape)
+                            .background(
+                                if (isOwn) {
+                                    MaterialTheme.colorScheme.primaryContainer
+                                } else {
+                                    MaterialTheme.colorScheme.surfaceContainerHigh
+                                },
+                                CircleShape
+                            )
                             .clickable { onReaction(emoji) },
                     ) {
                         Text(emoji, fontSize = 24.sp)
@@ -102,7 +118,8 @@ fun MessageActionsSheet(
 private fun ActionRow(icon: ImageVector, label: String, onClick: () -> Unit) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(horizontal = HowYouDoinSpacing.lg, vertical = 14.dp),
+        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick)
+            .padding(horizontal = HowYouDoinSpacing.lg, vertical = 14.dp),
     ) {
         Icon(icon, contentDescription = null)
         Spacer(Modifier.width(HowYouDoinSpacing.md))

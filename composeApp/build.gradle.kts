@@ -50,8 +50,16 @@ android {
         // End-to-end tests (src/androidInstrumentedTest); each test starts from a freshly cleared app
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         testInstrumentationRunnerArguments["clearPackageData"] = "true"
-        buildConfigField("long", "TELEGRAM_API_ID", "${localProperties.getProperty("telegram.apiId")?.trim()?.toLongOrNull() ?: 0}L")
-        buildConfigField("String", "TELEGRAM_API_HASH", "\"${localProperties.getProperty("telegram.apiHash")?.trim().orEmpty()}\"")
+        buildConfigField(
+            "long",
+            "TELEGRAM_API_ID",
+            "${localProperties.getProperty("telegram.apiId")?.trim()?.toLongOrNull() ?: 0}L"
+        )
+        buildConfigField(
+            "String",
+            "TELEGRAM_API_HASH",
+            "\"${localProperties.getProperty("telegram.apiHash")?.trim().orEmpty()}\""
+        )
     }
 }
 
@@ -124,7 +132,8 @@ dependencies {
 //   ./gradlew :composeApp:exportLibraryDefinitions
 aboutLibraries {
     export {
-        outputFile = rootProject.file("feature/settings/presentation/src/commonMain/composeResources/files/aboutlibraries.json")
+        outputFile =
+            rootProject.file("feature/settings/presentation/src/commonMain/composeResources/files/aboutlibraries.json")
         prettyPrint = true
     }
 }

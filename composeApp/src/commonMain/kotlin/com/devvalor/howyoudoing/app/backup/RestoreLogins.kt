@@ -78,7 +78,12 @@ class RestoreLoginsViewModel(private val backup: LoginBackup) : ViewModel() {
         viewModelScope.launch {
             val offer = backup.restoreOffer()
             _state.update {
-                it.copy(isChecking = false, offer = offer, selected = offer?.restorable?.toSet().orEmpty(), isDone = offer == null)
+                it.copy(
+                    isChecking = false,
+                    offer = offer,
+                    selected = offer?.restorable?.toSet().orEmpty(),
+                    isDone = offer == null
+                )
             }
         }
     }
@@ -121,9 +126,14 @@ fun RestoreLoginsScreen(
     val offer = state.offer ?: return
     Surface(color = MaterialTheme.colorScheme.background, modifier = Modifier.fillMaxSize()) {
         Column(
-            Modifier.fillMaxSize().safeDrawingPadding().verticalScroll(rememberScrollState()).padding(HowYouDoinSpacing.lg)
+            Modifier.fillMaxSize().safeDrawingPadding().verticalScroll(rememberScrollState())
+                .padding(HowYouDoinSpacing.lg)
         ) {
-            Text(stringResource(Res.string.restorelogins_welcome_back), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+            Text(
+                stringResource(Res.string.restorelogins_welcome_back),
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold
+            )
             Spacer(Modifier.height(HowYouDoinSpacing.sm))
             Text(
                 stringResource(Res.string.restorelogins_your_phone_s_backup_has),
@@ -138,7 +148,10 @@ fun RestoreLoginsScreen(
                     color = MaterialTheme.colorScheme.error
                 )
                 Spacer(Modifier.height(HowYouDoinSpacing.lg))
-                Button(onClick = onClose, modifier = Modifier.fillMaxWidth()) { Text(stringResource(Res.string.restorelogins_continue)) }
+                Button(
+                    onClick = onClose,
+                    modifier = Modifier.fillMaxWidth()
+                ) { Text(stringResource(Res.string.restorelogins_continue)) }
                 return@Column
             }
 
@@ -147,12 +160,19 @@ fun RestoreLoginsScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .toggleable(value = network in state.selected, role = Role.Checkbox, onValueChange = { onToggle(network) })
+                        .toggleable(
+                            value = network in state.selected,
+                            role = Role.Checkbox,
+                            onValueChange = { onToggle(network) })
                         .padding(vertical = HowYouDoinSpacing.xs)
                 ) {
                     NetworkBadge(network, size = 40.dp, borderColor = Color.Transparent)
                     Spacer(Modifier.width(HowYouDoinSpacing.md))
-                    Text(network.displayName, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+                    Text(
+                        network.displayName,
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.weight(1f)
+                    )
                     Checkbox(checked = network in state.selected, onCheckedChange = null)
                 }
             }

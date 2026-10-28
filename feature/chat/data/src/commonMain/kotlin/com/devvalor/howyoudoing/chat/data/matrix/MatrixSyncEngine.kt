@@ -62,7 +62,7 @@ import kotlin.time.ExperimentalTime
  * joined rooms as an in-memory cache. Bridged WhatsApp / Messenger chats are just Matrix
  * rooms here; the mappers work out which network a room belongs to.
  *
- * TODO: persist the cache + next_batch token so cold starts don't need a full initial sync.
+ * The cache and next_batch token aren't persisted, so a cold start does a full initial sync.
  * Encrypted rooms are decrypted with [MatrixCrypto] where the platform has it (Android): every sync goes through
  * it first (room keys arrive as to-device events), then encrypted timeline events are swapped for their decrypted
  * form; events whose keys come later are retried after each sync.
@@ -82,7 +82,8 @@ class MatrixSyncEngine(
 ) : MatrixCallTransport {
 
     private val json = Json { ignoreUnknownKeys = true }
-    @Volatile private var crypto: MatrixCrypto? = null
+    @Volatile
+    private var crypto: MatrixCrypto? = null
     private val _encryption = MutableStateFlow(MatrixEncryptionStatus.UNAVAILABLE)
     val encryption: StateFlow<MatrixEncryptionStatus> = _encryption.asStateFlow()
 
@@ -185,6 +186,7 @@ class MatrixSyncEngine(
                     backoffMillis = INITIAL_BACKOFF_MILLIS
                     _syncState.value = SyncState.SYNCED
                 }
+
                 is Result.Failure -> {
                     if (result.error == DataError.Remote.UNAUTHORIZED) {
                         // Token revoked or expired, MainViewModel routes back to login.
@@ -208,7 +210,8 @@ class MatrixSyncEngine(
         _rooms.update { current ->
             // An initial sync is the full picture: start from scratch, keeping only messages still being sent
             val updated = if (isInitial) {
-                current.filterKeys { it in rooms.join }.mapValues { (roomId, room) -> RoomCache(roomId, pending = room.pending) }
+                current.filterKeys { it in rooms.join }
+                    .mapValues { (roomId, room) -> RoomCache(roomId, pending = room.pending) }
                     .toMutableMap()
             } else {
                 current.toMutableMap()
@@ -240,7 +243,11 @@ class MatrixSyncEngine(
     }
 
     /** Sends a VoIP event (m.call.invite, m.call.answer, …) to a room. */
-    override suspend fun sendCallEvent(roomId: String, type: String, content: JsonObject): EmptyResult<DataError.Remote> {
+    override suspend fun sendCallEvent(
+        roomId: String,
+        type: String,
+        content: JsonObject
+    ): EmptyResult<DataError.Remote> {
         val session = _session.value ?: return Result.Failure(DataError.Remote.UNAUTHORIZED)
         return sendRoomEvent(session, roomId, type, newTransactionId(), content).asEmptyResult()
     }
@@ -312,6 +319,7 @@ class MatrixSyncEngine(
         val opened = try {
             session?.let { cryptoFactory?.open(it) }
         } catch (e: MatrixKeysLostException) {
+            println("MatrixCrypto: keys lost, sign-in needed (${e.message})")
             _encryption.value = MatrixEncryptionStatus.NEEDS_SIGN_IN
             null
         } ?: return
@@ -320,14 +328,17 @@ class MatrixSyncEngine(
     }
 
     private suspend fun encryptionStatus(crypto: MatrixCrypto) = withContext(Dispatchers.IO) {
-        if (runCatching { crypto.isVerified() }.getOrDefault(false)) MatrixEncryptionStatus.VERIFIED else MatrixEncryptionStatus.UNVERIFIED
+        val verified = runCatching { crypto.isVerified() }.getOrDefault(false)
+        if (verified) MatrixEncryptionStatus.VERIFIED else MatrixEncryptionStatus.UNVERIFIED
     }
 
     /** Runs [block] with the crypto on a background thread; null when there's no crypto or it failed. */
     private suspend fun <T> withCrypto(subject: Any, block: (MatrixCrypto) -> T): T? {
         val crypto = crypto ?: return null
         return withContext(Dispatchers.IO) {
-            runCatching { block(crypto) }.onFailure { println("MatrixCrypto: ${it.message} (${subject::class.simpleName})") }.getOrNull()
+            runCatching { block(crypto) }
+                .onFailure { println("MatrixCrypto: ${it.message} (${subject::class.simpleName})") }
+                .getOrNull()
         }
     }
 
@@ -339,22 +350,30 @@ class MatrixSyncEngine(
         }))
     }
 
-    private fun decryptEvents(crypto: MatrixCrypto, roomId: String, events: List<MatrixEventDto>): List<MatrixEventDto> =
+    private fun decryptEvents(
+        crypto: MatrixCrypto,
+        roomId: String,
+        events: List<MatrixEventDto>
+    ): List<MatrixEventDto> =
         events.map { event -> if (event.type == ENCRYPTED) decryptEvent(crypto, roomId, event) ?: event else event }
 
     private fun decryptEvent(crypto: MatrixCrypto, roomId: String, event: MatrixEventDto): MatrixEventDto? {
         val result = crypto.decrypt(roomId, json.encodeToString(MatrixEventDto.serializer(), event))
-        if (result !is DecryptResult.Decrypted) return null
-        val decrypted = json.parseToJsonElement(result.json).jsonObject
-        val type = decrypted["type"]?.jsonPrimitive?.contentOrNull ?: return null
-        val content = decrypted["content"] as? JsonObject ?: return null
+        val decrypted = (result as? DecryptResult.Decrypted)?.let { json.parseToJsonElement(it.json).jsonObject }
+        val type = decrypted?.get("type")?.jsonPrimitive?.contentOrNull
+        val content = decrypted?.get("content") as? JsonObject
+        if (type == null || content == null) return null
         rememberEncryptedFiles(content)
         return event.copy(type = type, content = content)
     }
 
     private fun rememberEncryptedFiles(content: JsonObject) {
-        val files = listOfNotNull(content["file"] as? JsonObject, (content["info"] as? JsonObject)?.get("thumbnail_file") as? JsonObject)
-        val byUrl = files.mapNotNull { file -> file["url"]?.jsonPrimitive?.contentOrNull?.let { it to file.toString() } }
+        val files = listOfNotNull(
+            content["file"] as? JsonObject,
+            (content["info"] as? JsonObject)?.get("thumbnail_file") as? JsonObject
+        )
+        val byUrl =
+            files.mapNotNull { file -> file["url"]?.jsonPrimitive?.contentOrNull?.let { it to file.toString() } }
         if (byUrl.isNotEmpty()) encryptedFiles.update { it + byUrl }
     }
 
@@ -383,16 +402,23 @@ class MatrixSyncEngine(
         content: JsonObject
     ): Result<SendEventResponseDto, DataError.Remote> {
         val isEncrypted = _rooms.value[roomId]?.stateEvent(ENCRYPTION_STATE) != null
-        if (!isEncrypted) return api.sendEvent(session, roomId, type, transactionId, content)
-        // Never send in plain text to an encrypted room
-        val crypto = crypto ?: return Result.Failure(DataError.Remote.FORBIDDEN)
-        val encrypted = withContext(Dispatchers.IO) {
-            runCatching { crypto.encrypt(roomId, type, content.toString()) }
+        val roomCrypto = crypto
+        return when {
+            !isEncrypted -> api.sendEvent(session, roomId, type, transactionId, content)
+            // Never send in plain text to an encrypted room
+            roomCrypto == null -> Result.Failure(DataError.Remote.FORBIDDEN)
+            else -> encrypt(roomCrypto, roomId, type, content)
+                ?.let { api.sendEvent(session, roomId, ENCRYPTED, transactionId, it) }
+                ?: Result.Failure(DataError.Remote.UNKNOWN)
+        }
+    }
+
+    private suspend fun encrypt(crypto: MatrixCrypto, roomId: String, type: String, content: JsonObject) =
+        withContext(Dispatchers.IO) {
+            runCatching { json.parseToJsonElement(crypto.encrypt(roomId, type, content.toString())).jsonObject }
                 .onFailure { println("MatrixCrypto: encrypt failed: ${it.message}") }
                 .getOrNull()
-        } ?: return Result.Failure(DataError.Remote.UNKNOWN)
-        return api.sendEvent(session, roomId, ENCRYPTED, transactionId, json.parseToJsonElement(encrypted).jsonObject)
-    }
+        }
 
     /** Verifies this device with the account's recovery key; returns how many room keys came from the key backup. */
     suspend fun verifyWithRecoveryKey(recoveryKey: String): kotlin.Result<Int> {
@@ -413,7 +439,15 @@ class MatrixSyncEngine(
         }
         return api.messages(session, roomId, from)
             .onSuccess { response ->
-                val decrypted = withCrypto(response) { crypto -> response.copy(chunk = decryptEvents(crypto, roomId, response.chunk)) }
+                val decrypted = withCrypto(response) { crypto ->
+                    response.copy(
+                        chunk = decryptEvents(
+                            crypto,
+                            roomId,
+                            response.chunk
+                        )
+                    )
+                }
                 updateRoom(roomId) { it.prependHistory(decrypted ?: response) }
             }
             .asEmptyResult()
@@ -425,7 +459,10 @@ class MatrixSyncEngine(
             put("body", body)
             replyToId?.let { inReplyTo(it) }
         }
-        return sendWithLocalEcho(roomId, PendingMessage(newTransactionId(), body, now(), replyToId = replyToId)) { session, txn ->
+        return sendWithLocalEcho(
+            roomId,
+            PendingMessage(newTransactionId(), body, now(), replyToId = replyToId)
+        ) { session, txn ->
             sendRoomEvent(session, roomId, "m.room.message", txn, content)
         }
     }
@@ -444,8 +481,17 @@ class MatrixSyncEngine(
     }
 
     /** Uploads the file to the media repository, then sends it as m.image / m.video / m.audio / m.file. */
-    suspend fun sendAttachment(roomId: String, attachment: Attachment, caption: String?): EmptyResult<DataError.Remote> {
-        val placeholder = PendingMessage(newTransactionId(), caption ?: attachment.fileName, now(), attachmentMimeType = attachment.mimeType)
+    suspend fun sendAttachment(
+        roomId: String,
+        attachment: Attachment,
+        caption: String?
+    ): EmptyResult<DataError.Remote> {
+        val placeholder = PendingMessage(
+            newTransactionId(),
+            caption ?: attachment.fileName,
+            now(),
+            attachmentMimeType = attachment.mimeType
+        )
         val isEncrypted = _rooms.value[roomId]?.stateEvent(ENCRYPTION_STATE) != null
         return sendWithLocalEcho(roomId, placeholder) { session, txn ->
             // In an encrypted room only the ciphertext is uploaded; the key travels in the (encrypted) event
@@ -460,38 +506,53 @@ class MatrixSyncEngine(
             }
             when (upload) {
                 is Result.Failure -> upload
-                is Result.Success -> sendRoomEvent(session, roomId, "m.room.message", txn, buildJsonObject {
-                    put("msgtype", msgTypeFor(attachment.mimeType))
-                    // Caption goes in body with the file name separately (spec v1.10 media captions)
-                    put("body", caption ?: attachment.fileName)
-                    if (caption != null) put("filename", attachment.fileName)
-                    if (encrypted != null) {
-                        val mxcUrl = upload.data.contentUri
-                        val file = JsonObject(json.parseToJsonElement(encrypted.fileJson).jsonObject + ("url" to JsonPrimitive(mxcUrl)))
-                        put("file", file)
-                        // Our own copy shows without downloading it again
-                        encryptedFiles.update { it + (mxcUrl to file.toString()) }
-                        withContext(Dispatchers.IO) { mediaCache?.write(mxcUrl, attachment.bytes) }
-                    } else {
-                        put("url", upload.data.contentUri)
-                    }
-                    putJsonObject("info") {
-                        put("mimetype", attachment.mimeType)
-                        put("size", attachment.bytes.size)
-                        attachment.width?.let { put("w", it) }
-                        attachment.height?.let { put("h", it) }
-                        attachment.voiceDurationMillis?.let { put("duration", it) }
-                    }
-                    // A voice message (MSC3245): bridges send it as the network's voice note
-                    attachment.voiceDurationMillis?.let { duration ->
-                        putJsonObject("org.matrix.msc3245.voice") {}
-                        putJsonObject("org.matrix.msc1767.audio") {
-                            put("duration", duration)
-                            // MSC1767 waveforms run 0–1024
-                            attachment.waveform?.let { samples -> putJsonArray("waveform") { samples.forEach { add(it * 4) } } }
-                        }
-                    }
-                })
+                is Result.Success -> sendRoomEvent(
+                    session,
+                    roomId,
+                    "m.room.message",
+                    txn,
+                    attachmentContent(attachment, caption, upload.data.contentUri, encrypted)
+                )
+            }
+        }
+    }
+
+    private suspend fun attachmentContent(
+        attachment: Attachment,
+        caption: String?,
+        mxcUrl: String,
+        encrypted: EncryptedAttachment?
+    ): JsonObject = buildJsonObject {
+        put("msgtype", msgTypeFor(attachment.mimeType))
+        // Caption goes in body with the file name separately (spec v1.10 media captions)
+        put("body", caption ?: attachment.fileName)
+        if (caption != null) put("filename", attachment.fileName)
+        if (encrypted != null) {
+            val keys = json.parseToJsonElement(encrypted.fileJson).jsonObject
+            val file = JsonObject(keys + ("url" to JsonPrimitive(mxcUrl)))
+            put("file", file)
+            // Our own copy shows without downloading it again
+            encryptedFiles.update { it + (mxcUrl to file.toString()) }
+            withContext(Dispatchers.IO) { mediaCache?.write(mxcUrl, attachment.bytes) }
+        } else {
+            put("url", mxcUrl)
+        }
+        putJsonObject("info") {
+            put("mimetype", attachment.mimeType)
+            put("size", attachment.bytes.size)
+            attachment.width?.let { put("w", it) }
+            attachment.height?.let { put("h", it) }
+            attachment.voice?.let { put("duration", it.durationMillis) }
+        }
+        // A voice message (MSC3245): bridges send it as the network's voice note
+        attachment.voice?.let { voice ->
+            putJsonObject("org.matrix.msc3245.voice") {}
+            putJsonObject("org.matrix.msc1767.audio") {
+                put("duration", voice.durationMillis)
+                // MSC1767 waveforms run 0–1024
+                voice.waveform?.let { samples ->
+                    putJsonArray("waveform") { samples.forEach { add(it * MSC1767_WAVEFORM_SCALE) } }
+                }
             }
         }
     }
@@ -520,7 +581,12 @@ class MatrixSyncEngine(
     }
 
     /** Adds an `m.annotation` reaction, or redacts the user's existing one with the same key. */
-    suspend fun toggleReaction(roomId: String, messageId: String, key: String, ownReactionId: String?): EmptyResult<DataError.Remote> {
+    suspend fun toggleReaction(
+        roomId: String,
+        messageId: String,
+        key: String,
+        ownReactionId: String?
+    ): EmptyResult<DataError.Remote> {
         val session = _session.value ?: return Result.Failure(DataError.Remote.UNAUTHORIZED)
         return if (ownReactionId != null) {
             api.redact(session, roomId, ownReactionId, newTransactionId()).asEmptyResult()
@@ -554,8 +620,14 @@ class MatrixSyncEngine(
     /** Authenticated media download (spec v1.11): `mxc://server/id` → HTTP URL + bearer header. */
     fun mediaRequest(mxcUrl: String, thumbnail: Boolean): MediaRequest? {
         val session = _session.value ?: return null
-        val (server, mediaId) = mxcUrl.removePrefix("mxc://").split("/", limit = 2).takeIf { it.size == 2 } ?: return null
-        val path = if (thumbnail) "thumbnail/$server/$mediaId?width=800&height=800&method=scale" else "download/$server/$mediaId"
+        val (server, mediaId) = mxcUrl.removePrefix("mxc://").split("/", limit = 2).takeIf { it.size == 2 }
+            ?: return null
+        val path =
+            if (thumbnail) {
+                "thumbnail/$server/$mediaId?width=800&height=800&method=scale"
+            } else {
+                "download/$server/$mediaId"
+            }
         return MediaRequest(
             url = "${session.homeserverUrl}/_matrix/client/v1/media/$path",
             headers = mapOf("Authorization" to "Bearer ${session.accessToken}")
@@ -579,7 +651,10 @@ class MatrixSyncEngine(
         return api.download(request.url, request.headers)
     }
 
-    /** Downloads an encrypted room's file (always in full: the server can't make thumbnails of ciphertext) and decrypts it. */
+    /**
+     * Downloads an encrypted room's file (always in full: the server can't make thumbnails of ciphertext) and decrypts
+     * it.
+     */
     private suspend fun decryptedMedia(mxcUrl: String): ByteArray? {
         val fileJson = encryptedFiles.value[mxcUrl] ?: return null
         val request = mediaRequest(mxcUrl, thumbnail = false) ?: return null
@@ -595,7 +670,12 @@ class MatrixSyncEngine(
         val session = _session.value ?: return Result.Failure(DataError.Remote.UNAUTHORIZED)
         updateRoom(roomId) { it.copy(pending = it.pending + pending) }
         return send(session, pending.transactionId)
-            .onSuccess { response -> updatePending(roomId, pending.transactionId) { it.copy(eventId = response.eventId) } }
+            .onSuccess { response ->
+                updatePending(
+                    roomId,
+                    pending.transactionId
+                ) { it.copy(eventId = response.eventId) }
+            }
             .onFailure { updatePending(roomId, pending.transactionId) { it.copy(isFailed = true) } }
             .asEmptyResult()
     }
@@ -669,3 +749,6 @@ data class MatrixInvite(
     val timestamp: Long,
     val isDirect: Boolean
 )
+
+/** The app's waveforms run 0–255, MSC1767's 0–1024. */
+private const val MSC1767_WAVEFORM_SCALE = 4

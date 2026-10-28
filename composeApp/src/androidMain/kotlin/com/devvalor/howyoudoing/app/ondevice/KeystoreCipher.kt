@@ -35,7 +35,7 @@ internal class KeystoreCipher(private val alias: String) {
                 KeyGenParameterSpec.Builder(alias, KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT)
                     .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
                     .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
-                    .setKeySize(256)
+                    .setKeySize(AES_KEY_BITS)
                     .build()
             )
         }.generateKey()
@@ -48,3 +48,5 @@ internal class KeystoreCipher(private val alias: String) {
         const val TAG_BITS = 128
     }
 }
+
+private const val AES_KEY_BITS = 256

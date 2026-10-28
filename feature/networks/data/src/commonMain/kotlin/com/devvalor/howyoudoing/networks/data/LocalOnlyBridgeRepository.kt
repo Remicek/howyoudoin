@@ -19,17 +19,31 @@ class LocalOnlyBridgeRepository : BridgeRepository {
     override suspend fun setBridgeUrl(network: ChatNetwork, url: String) = Unit
     override suspend fun getStatus(network: ChatNetwork): Result<BridgeStatus, DataError.Remote> =
         Result.Success(BridgeStatus(network, flows = emptyList(), logins = emptyList()))
-    override suspend fun startLogin(network: ChatNetwork, flowId: String): Result<BridgeLoginStep, DataError.Remote> = noServer()
-    override suspend fun waitForStep(network: ChatNetwork, step: BridgeLoginStep.DisplayAndWait): Result<BridgeLoginStep, DataError.Remote> = noServer()
+
+    override suspend fun startLogin(network: ChatNetwork, flowId: String): Result<BridgeLoginStep, DataError.Remote> =
+        noServer()
+
+    override suspend fun waitForStep(
+        network: ChatNetwork,
+        step: BridgeLoginStep.DisplayAndWait
+    ): Result<BridgeLoginStep, DataError.Remote> = noServer()
+
     override suspend fun submitUserInput(
         network: ChatNetwork, step: BridgeLoginStep.UserInput, values: Map<String, String>
     ): Result<BridgeLoginStep, DataError.Remote> = noServer()
+
     override suspend fun submitCookies(
         network: ChatNetwork, step: BridgeLoginStep.Cookies, values: Map<String, String>
     ): Result<BridgeLoginStep, DataError.Remote> = noServer()
-    override suspend fun logout(network: ChatNetwork, loginId: String): EmptyResult<DataError.Remote> = Result.Success(Unit)
-    override suspend fun getEncryptedHistoryStatus(network: ChatNetwork): Result<EncryptedHistoryStatus, DataError.Remote> =
+
+    override suspend fun logout(network: ChatNetwork, loginId: String): EmptyResult<DataError.Remote> =
+        Result.Success(Unit)
+
+    override suspend fun getEncryptedHistoryStatus(
+        network: ChatNetwork
+    ): Result<EncryptedHistoryStatus, DataError.Remote> =
         Result.Success(EncryptedHistoryStatus(isRestored = false, isBackupAvailable = false))
+
     override suspend fun restoreEncryptedHistory(network: ChatNetwork, pin: String): EmptyResult<HistoryRestoreError> =
         Result.Failure(HistoryRestoreError.NoBackup)
 

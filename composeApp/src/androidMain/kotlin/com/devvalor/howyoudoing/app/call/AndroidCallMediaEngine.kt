@@ -44,7 +44,9 @@ class AndroidCallMediaEngine(context: Context) : CallMediaEngine {
     val eglBase: EglBase by lazy { EglBase.create() }
 
     private val factory: PeerConnectionFactory by lazy {
-        PeerConnectionFactory.initialize(PeerConnectionFactory.InitializationOptions.builder(this.context).createInitializationOptions())
+        PeerConnectionFactory.initialize(
+            PeerConnectionFactory.InitializationOptions.builder(this.context).createInitializationOptions()
+        )
         val audio = JavaAudioDeviceModule.builder(this.context)
             .setUseHardwareAcousticEchoCanceler(true)
             .setUseHardwareNoiseSuppressor(true)
@@ -57,13 +59,22 @@ class AndroidCallMediaEngine(context: Context) : CallMediaEngine {
     }
 
     private val _current = MutableStateFlow<Session?>(null)
+
     /** The running call's media, for the call screen. */
     val current: StateFlow<Session?> = _current.asStateFlow()
 
-    override fun createSession(iceServers: List<IceServer>, video: Boolean, listener: CallMediaListener): CallMediaSession =
+    override fun createSession(
+        iceServers: List<IceServer>,
+        video: Boolean,
+        listener: CallMediaListener
+    ): CallMediaSession =
         Session(iceServers, video, listener).also { _current.value = it }
 
-    inner class Session(iceServers: List<IceServer>, private val video: Boolean, private val listener: CallMediaListener) :
+    inner class Session(
+        iceServers: List<IceServer>,
+        private val video: Boolean,
+        private val listener: CallMediaListener
+    ) :
         CallMediaSession {
 
         private val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
@@ -95,7 +106,7 @@ class AndroidCallMediaEngine(context: Context) : CallMediaEngine {
                 continualGatheringPolicy = PeerConnection.ContinualGatheringPolicy.GATHER_CONTINUALLY
             },
             Observer()
-        ) ?: throw IllegalStateException("Couldn't create the connection")
+        ) ?: error("Couldn't create the connection")
 
         init {
             audioManager.mode = AudioManager.MODE_IN_COMMUNICATION
@@ -105,7 +116,9 @@ class AndroidCallMediaEngine(context: Context) : CallMediaEngine {
 
         private fun startCamera() {
             val enumerator = Camera2Enumerator(context)
-            val name = enumerator.deviceNames.firstOrNull(enumerator::isFrontFacing) ?: enumerator.deviceNames.firstOrNull() ?: return
+            val name =
+                enumerator.deviceNames.firstOrNull(enumerator::isFrontFacing) ?: enumerator.deviceNames.firstOrNull()
+                ?: return
             val cameraCapturer = enumerator.createCapturer(name, null) ?: return
             val helper = SurfaceTextureHelper.create("hyd-camera", eglBase.eglBaseContext)
             val source = factory.createVideoSource(false)
@@ -143,7 +156,13 @@ class AndroidCallMediaEngine(context: Context) : CallMediaEngine {
         }
 
         override fun addRemoteCandidate(candidate: IceCandidate) {
-            peer.addIceCandidate(org.webrtc.IceCandidate(candidate.sdpMid.orEmpty(), candidate.sdpMLineIndex ?: 0, candidate.candidate))
+            peer.addIceCandidate(
+                org.webrtc.IceCandidate(
+                    candidate.sdpMid.orEmpty(),
+                    candidate.sdpMLineIndex ?: 0,
+                    candidate.candidate
+                )
+            )
         }
 
         override fun setMuted(muted: Boolean) {
@@ -166,7 +185,11 @@ class AndroidCallMediaEngine(context: Context) : CallMediaEngine {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 val wanted = if (on) AudioDeviceInfo.TYPE_BUILTIN_SPEAKER else AudioDeviceInfo.TYPE_BUILTIN_EARPIECE
                 val device = audioManager.availableCommunicationDevices.firstOrNull { it.type == wanted }
-                if (device != null) audioManager.setCommunicationDevice(device) else audioManager.clearCommunicationDevice()
+                if (device != null) {
+                    audioManager.setCommunicationDevice(device)
+                } else {
+                    audioManager.clearCommunicationDevice()
+                }
             } else {
                 @Suppress("DEPRECATION")
                 audioManager.isSpeakerphoneOn = on
@@ -194,10 +217,13 @@ class AndroidCallMediaEngine(context: Context) : CallMediaEngine {
 
             override fun onIceConnectionChange(state: PeerConnection.IceConnectionState) {
                 when (state) {
-                    PeerConnection.IceConnectionState.CONNECTED, PeerConnection.IceConnectionState.COMPLETED -> if (!connected) {
+                    PeerConnection.IceConnectionState.CONNECTED,
+                    PeerConnection.IceConnectionState.COMPLETED,
+                    -> if (!connected) {
                         connected = true
                         listener.onConnected()
                     }
+
                     PeerConnection.IceConnectionState.FAILED -> listener.onFailed()
                     else -> Unit
                 }
@@ -222,14 +248,17 @@ class AndroidCallMediaEngine(context: Context) : CallMediaEngine {
         }
     }
 
-    private suspend fun sdp(create: (SdpObserver) -> Unit): SessionDescription = suspendCancellableCoroutine { continuation ->
-        create(object : SdpObserver {
-            override fun onCreateSuccess(description: SessionDescription) = continuation.resume(description)
-            override fun onCreateFailure(error: String?) = continuation.resumeWithException(IllegalStateException(error))
-            override fun onSetSuccess() = Unit
-            override fun onSetFailure(error: String?) = Unit
-        })
-    }
+    private suspend fun sdp(create: (SdpObserver) -> Unit): SessionDescription =
+        suspendCancellableCoroutine { continuation ->
+            create(object : SdpObserver {
+                override fun onCreateSuccess(description: SessionDescription) = continuation.resume(description)
+                override fun onCreateFailure(error: String?) =
+                    continuation.resumeWithException(IllegalStateException(error))
+
+                override fun onSetSuccess() = Unit
+                override fun onSetFailure(error: String?) = Unit
+            })
+        }
 
     private suspend fun set(apply: (SdpObserver) -> Unit): Unit = suspendCancellableCoroutine { continuation ->
         apply(object : SdpObserver {

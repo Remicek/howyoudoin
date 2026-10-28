@@ -94,7 +94,9 @@ fun CrashReportsRoot(
 
 @Composable
 fun CrashReportsScreen(state: CrashReportsState, onAction: (CrashReportsAction) -> Unit) {
-    SettingsScaffold(title = stringResource(Res.string.settings_crash_reports), onBack = { onAction(CrashReportsAction.OnBackClick) }) {
+    SettingsScaffold(
+        title = stringResource(Res.string.settings_crash_reports),
+        onBack = { onAction(CrashReportsAction.OnBackClick) }) {
         item {
             Text(
                 stringResource(Res.string.crash_intro),
@@ -135,7 +137,8 @@ fun CrashReportsScreen(state: CrashReportsState, onAction: (CrashReportsAction) 
                                 report.text,
                                 style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
                                 maxLines = 40,
-                                modifier = Modifier.padding(top = HowYouDoinSpacing.sm).horizontalScroll(rememberScrollState()),
+                                modifier = Modifier.padding(top = HowYouDoinSpacing.sm)
+                                    .horizontalScroll(rememberScrollState()),
                             )
                         }
                     }
@@ -146,8 +149,12 @@ fun CrashReportsScreen(state: CrashReportsState, onAction: (CrashReportsAction) 
                     horizontalArrangement = Arrangement.spacedBy(HowYouDoinSpacing.sm),
                     modifier = Modifier.padding(HowYouDoinSpacing.md),
                 ) {
-                    FilledTonalButton(onClick = { onAction(CrashReportsAction.OnShareClick) }) { Text(stringResource(Res.string.crash_share)) }
-                    OutlinedButton(onClick = { onAction(CrashReportsAction.OnDeleteClick) }) { Text(stringResource(Res.string.common_delete)) }
+                    FilledTonalButton(onClick = { onAction(CrashReportsAction.OnShareClick) }) {
+                        Text(stringResource(Res.string.crash_share))
+                    }
+                    OutlinedButton(onClick = { onAction(CrashReportsAction.OnDeleteClick) }) {
+                        Text(stringResource(Res.string.common_delete))
+                    }
                 }
             }
         }

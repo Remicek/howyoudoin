@@ -1,17 +1,5 @@
 package com.devvalor.howyoudoing.chat.presentation.conversation.components
 
-import howyoudoin.feature.chat.presentation.generated.resources.voice_mic_denied
-import howyoudoin.feature.chat.presentation.generated.resources.voice_mic_failed
-import howyoudoin.feature.chat.presentation.generated.resources.voice_load_failed
-import howyoudoin.feature.chat.presentation.generated.resources.voice_play_failed
-import howyoudoin.feature.chat.presentation.generated.resources.voice_too_short
-import howyoudoin.feature.chat.presentation.generated.resources.voice_file_name
-import howyoudoin.feature.chat.presentation.generated.resources.Res
-import org.jetbrains.compose.resources.stringResource
-import howyoudoin.feature.chat.presentation.generated.resources.voicemessages_discard_voice_message
-import howyoudoin.feature.chat.presentation.generated.resources.voicemessages_pause_voice_message
-import howyoudoin.feature.chat.presentation.generated.resources.voicemessages_play_voice_message
-import howyoudoin.feature.chat.presentation.generated.resources.voicemessages_recording
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -42,21 +30,36 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
-import com.devvalor.howyoudoing.chat.domain.Attachment
-import com.devvalor.howyoudoing.chat.presentation.platform.VoiceFormat
-import com.devvalor.howyoudoing.chat.presentation.platform.rememberMicrophonePermission
-import com.devvalor.howyoudoing.chat.presentation.platform.rememberVoicePlayer
-import com.devvalor.howyoudoing.chat.presentation.platform.rememberVoiceRecorder
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlin.time.TimeSource
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.unit.dp
+import com.devvalor.howyoudoing.chat.domain.Attachment
+import com.devvalor.howyoudoing.core.domain.media.VoiceNote
 import com.devvalor.howyoudoing.chat.domain.MediaInfo
+import com.devvalor.howyoudoing.chat.presentation.platform.VoiceFormat
+import com.devvalor.howyoudoing.chat.presentation.platform.rememberMicrophonePermission
+import com.devvalor.howyoudoing.chat.presentation.platform.rememberVoicePlayer
+import com.devvalor.howyoudoing.chat.presentation.platform.rememberVoiceRecorder
 import com.devvalor.howyoudoing.core.designsystem.theme.HowYouDoinSpacing
+import howyoudoin.feature.chat.presentation.generated.resources.Res
+import howyoudoin.feature.chat.presentation.generated.resources.voice_file_name
+import howyoudoin.feature.chat.presentation.generated.resources.voice_load_failed
+import howyoudoin.feature.chat.presentation.generated.resources.voice_mic_denied
+import howyoudoin.feature.chat.presentation.generated.resources.voice_mic_failed
+import howyoudoin.feature.chat.presentation.generated.resources.voice_play_failed
+import howyoudoin.feature.chat.presentation.generated.resources.voice_too_short
+import howyoudoin.feature.chat.presentation.generated.resources.voicemessages_discard_voice_message
+import howyoudoin.feature.chat.presentation.generated.resources.voicemessages_pause_voice_message
+import howyoudoin.feature.chat.presentation.generated.resources.voicemessages_play_voice_message
+import howyoudoin.feature.chat.presentation.generated.resources.voicemessages_recording
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.TimeSource
+import kotlinx.coroutines.delay
+import com.devvalor.howyoudoing.chat.presentation.platform.VoicePlayer
+import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringResource
 
 /** A voice message being recorded in the composer. */
 data class VoiceRecordingUi(val elapsedMillis: Long, val level: Int)
@@ -85,13 +88,32 @@ fun VoiceNote(messageId: String, media: MediaInfo, playback: VoicePlayback, cont
     ) {
         IconButton(onClick = { playback.toggle(messageId, media) }) {
             when {
-                isLoading -> CircularProgressIndicator(modifier = Modifier.size(22.dp), strokeWidth = 2.dp, color = contentColor)
-                isPlaying -> Icon(Icons.Rounded.Pause, contentDescription = stringResource(Res.string.voicemessages_pause_voice_message), tint = contentColor)
-                else -> Icon(Icons.Rounded.PlayArrow, contentDescription = stringResource(Res.string.voicemessages_play_voice_message), tint = contentColor)
+                isLoading -> CircularProgressIndicator(
+                    modifier = Modifier.size(22.dp),
+                    strokeWidth = 2.dp,
+                    color = contentColor
+                )
+
+                isPlaying -> Icon(
+                    Icons.Rounded.Pause,
+                    contentDescription = stringResource(Res.string.voicemessages_pause_voice_message),
+                    tint = contentColor
+                )
+
+                else -> Icon(
+                    Icons.Rounded.PlayArrow,
+                    contentDescription = stringResource(Res.string.voicemessages_play_voice_message),
+                    tint = contentColor
+                )
             }
         }
         LinearProgressIndicator(
-            progress = { if (isPlaying && total > 0) (playback.positionMillis.toFloat() / total).coerceIn(0f, 1f) else 0f },
+            progress = {
+                if (isPlaying && total > 0) (playback.positionMillis.toFloat() / total).coerceIn(
+                    0f,
+                    1f
+                ) else 0f
+            },
             color = contentColor,
             trackColor = contentColor.copy(alpha = 0.25f),
             strokeCap = StrokeCap.Round,
@@ -111,7 +133,11 @@ fun VoiceNote(messageId: String, media: MediaInfo, playback: VoicePlayback, cont
 fun RecordingBar(recording: VoiceRecordingUi, onCancel: () -> Unit, modifier: Modifier = Modifier) {
     Row(verticalAlignment = Alignment.CenterVertically, modifier = modifier.fillMaxWidth().height(52.dp)) {
         IconButton(onClick = onCancel) {
-            Icon(Icons.Rounded.Delete, contentDescription = stringResource(Res.string.voicemessages_discard_voice_message), tint = MaterialTheme.colorScheme.error)
+            Icon(
+                Icons.Rounded.Delete,
+                contentDescription = stringResource(Res.string.voicemessages_discard_voice_message),
+                tint = MaterialTheme.colorScheme.error
+            )
         }
         Box(Modifier.size(28.dp), contentAlignment = Alignment.Center) {
             val dot = 10.dp + (14 * recording.level / 255).dp
@@ -129,9 +155,8 @@ fun RecordingBar(recording: VoiceRecordingUi, onCancel: () -> Unit, modifier: Mo
     }
 }
 
-fun formatClock(millis: Long): String {
-    val seconds = millis / 1000
-    return "${seconds / 60}:${(seconds % 60).toString().padStart(2, '0')}"
+fun formatClock(millis: Long): String = millis.milliseconds.toComponents { minutes, seconds, _ ->
+    "$minutes:${seconds.toString().padStart(2, '0')}"
 }
 
 /** The composer's recording controls and the bubbles' playback, see [rememberVoiceMessages]. */
@@ -172,10 +197,7 @@ fun rememberVoiceMessages(
     var isRecording by remember { mutableStateOf(false) }
     var recordedMillis by remember { mutableStateOf(0L) }
     var level by remember { mutableStateOf(0) }
-    var playingId by remember { mutableStateOf<String?>(null) }
-    var loadingId by remember { mutableStateOf<String?>(null) }
-    var position by remember { mutableStateOf(0L) }
-    var duration by remember { mutableStateOf(0L) }
+    val playback = remember(player) { player?.let(::Playback) }
 
     LaunchedEffect(isRecording) {
         if (!isRecording || recorder == null) return@LaunchedEffect
@@ -186,22 +208,14 @@ fun rememberVoiceMessages(
             level = recorder.level()
         }
     }
-    LaunchedEffect(playingId) {
-        if (playingId == null || player == null) return@LaunchedEffect
-        while (true) {
-            position = player.positionMillis()
-            duration = player.durationMillis()
-            delay(200)
-        }
-    }
+    LaunchedEffect(playback?.playingId) { playback?.followProgress() }
 
     val askForMicrophone = rememberMicrophonePermission { granted ->
         when {
             !granted -> currentOnError(micDenied)
             recorder == null || format == null -> Unit
             else -> {
-                player?.stop()
-                playingId = null
+                playback?.stop()
                 if (recorder.start(format)) {
                     recordedMillis = 0
                     level = 0
@@ -211,37 +225,6 @@ fun rememberVoiceMessages(
                 }
             }
         }
-    }
-
-    val playback = player?.let {
-        VoicePlayback(
-            playingId = playingId,
-            loadingId = loadingId,
-            positionMillis = position,
-            durationMillis = duration,
-            toggle = toggle@{ messageId, media ->
-                if (playingId == messageId) {
-                    player.stop()
-                    playingId = null
-                    return@toggle
-                }
-                player.stop()
-                playingId = null
-                loadingId = messageId
-                scope.launch {
-                    val bytes = currentLoadMedia(media.url)
-                    loadingId = null
-                    when {
-                        bytes == null -> currentOnError(loadFailed)
-                        player.play(bytes, media.mimeType) { if (playingId == messageId) playingId = null } -> {
-                            position = 0
-                            playingId = messageId
-                        }
-                        else -> currentOnError(playFailed)
-                    }
-                }
-            },
-        )
     }
 
     return VoiceMessagesUi(
@@ -263,12 +246,77 @@ fun rememberVoiceMessages(
                         bytes = result.bytes,
                         fileName = "$voiceFileName.${result.format.extension}",
                         mimeType = result.format.mimeType,
-                        voiceDurationMillis = result.durationMillis,
-                        waveform = result.waveform,
+                        voice = VoiceNote(result.durationMillis, result.waveform),
                     )
                 )
             }
         },
-        playback = playback,
+        playback = playback?.let {
+            VoicePlayback(
+                playingId = it.playingId,
+                loadingId = it.loadingId,
+                positionMillis = it.position,
+                durationMillis = it.duration,
+                toggle = { messageId, media ->
+                    if (it.playingId == messageId) {
+                        it.stop()
+                    } else {
+                        scope.launch {
+                            when (it.play(messageId, media, currentLoadMedia)) {
+                                Playback.Outcome.PLAYING -> Unit
+                                Playback.Outcome.NOT_LOADED -> currentOnError(loadFailed)
+                                Playback.Outcome.NOT_PLAYABLE -> currentOnError(playFailed)
+                            }
+                        }
+                    }
+                },
+            )
+        },
     )
+}
+
+/** Plays one audio message at a time, and tracks how far it got. */
+private class Playback(private val player: VoicePlayer) {
+    enum class Outcome { PLAYING, NOT_LOADED, NOT_PLAYABLE }
+
+    var playingId by mutableStateOf<String?>(null)
+        private set
+    var loadingId by mutableStateOf<String?>(null)
+        private set
+    var position by mutableStateOf(0L)
+        private set
+    var duration by mutableStateOf(0L)
+        private set
+
+    fun stop() {
+        player.stop()
+        playingId = null
+    }
+
+    suspend fun play(messageId: String, media: MediaInfo, load: suspend (url: String) -> ByteArray?): Outcome {
+        stop()
+        loadingId = messageId
+        val bytes = load(media.url)
+        loadingId = null
+        return when {
+            bytes == null -> Outcome.NOT_LOADED
+            player.play(bytes, media.mimeType) { if (playingId == messageId) playingId = null } -> {
+                position = 0
+                playingId = messageId
+                Outcome.PLAYING
+            }
+
+            else -> Outcome.NOT_PLAYABLE
+        }
+    }
+
+    /** Updates the position while something plays. */
+    suspend fun followProgress() {
+        if (playingId == null) return
+        while (true) {
+            position = player.positionMillis()
+            duration = player.durationMillis()
+            delay(200.milliseconds)
+        }
+    }
 }

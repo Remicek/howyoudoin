@@ -20,7 +20,8 @@ class LoginBackupAgent : BackupAgent() {
     }
 
     // Auto Backup only (fullBackupOnly): the key-value calls aren't used
-    override fun onBackup(oldState: ParcelFileDescriptor?, data: BackupDataOutput?, newState: ParcelFileDescriptor?) = Unit
+    override fun onBackup(oldState: ParcelFileDescriptor?, data: BackupDataOutput?, newState: ParcelFileDescriptor?) =
+        Unit
 
     override fun onRestore(data: BackupDataInput?, appVersionCode: Int, newState: ParcelFileDescriptor?) = Unit
 

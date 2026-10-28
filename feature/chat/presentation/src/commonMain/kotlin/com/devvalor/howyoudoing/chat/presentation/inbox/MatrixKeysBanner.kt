@@ -141,7 +141,8 @@ class MatrixKeysViewModel(private val encryption: MatrixEncryption) : ViewModel(
 
     fun onKeyChange(key: String) = _state.update { it.copy(recoveryKey = key, error = null) }
 
-    fun dismissDialog() = _state.update { if (it.isSubmitting) it else it.copy(isDialogOpen = false, recoveryKey = "", error = null) }
+    fun dismissDialog() =
+        _state.update { if (it.isSubmitting) it else it.copy(isDialogOpen = false, recoveryKey = "", error = null) }
 
     fun dismissResult() = _state.update { it.copy(restoredKeys = null) }
 
@@ -152,7 +153,14 @@ class MatrixKeysViewModel(private val encryption: MatrixEncryption) : ViewModel(
             _state.update { it.copy(isSubmitting = true, error = null) }
             encryption.verifyWithRecoveryKey(key)
                 .onSuccess { restored ->
-                    _state.update { it.copy(isSubmitting = false, isDialogOpen = false, recoveryKey = "", restoredKeys = restored) }
+                    _state.update {
+                        it.copy(
+                            isSubmitting = false,
+                            isDialogOpen = false,
+                            recoveryKey = "",
+                            restoredKeys = restored
+                        )
+                    }
                 }
                 .onFailure { error ->
                     _state.update { it.copy(isSubmitting = false, error = friendlyError(error.message)) }
@@ -162,7 +170,8 @@ class MatrixKeysViewModel(private val encryption: MatrixEncryption) : ViewModel(
 
     private fun friendlyError(message: String?): UiText = when {
         message == null -> UiText.Resource(Res.string.keys_error_retry)
-        "wrong recovery key" in message || "invalid" in message.lowercase() -> UiText.Resource(Res.string.keys_error_wrong)
+        "wrong recovery key" in message || "invalid" in message.lowercase() ->
+            UiText.Resource(Res.string.keys_error_wrong)
         "no recovery key" in message -> UiText.Resource(Res.string.keys_error_none)
         else -> UiText.Resource(Res.string.keys_error_other, arrayOf(message))
     }
@@ -182,12 +191,14 @@ fun MatrixKeysBannerRoot(onNetworksClick: () -> Unit, viewModel: MatrixKeysViewM
             },
             primary = stringResource(Res.string.keys_ok) to viewModel::dismissResult,
         )
+
         state.needsSignIn -> KeysCard(
             title = stringResource(Res.string.matrixkeys_sign_in_to_matrix_again),
             body = stringResource(Res.string.matrixkeys_your_matrix_login_came_back),
             primary = stringResource(Res.string.keys_open_networks) to onNetworksClick,
             secondary = stringResource(Res.string.keys_not_now) to viewModel::notNow,
         )
+
         state.isOffered -> KeysCard(
             title = stringResource(Res.string.matrixkeys_unlock_older_encrypted_matrix_messages),
             body = stringResource(Res.string.matrixkeys_messages_sent_before_howyoudoin_was),
@@ -265,7 +276,11 @@ private fun RecoveryKeyDialog(
                 )
                 state.error?.let {
                     Spacer(Modifier.padding(top = HowYouDoinSpacing.sm))
-                    Text(it.asString(), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+                    Text(
+                        it.asString(),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error
+                    )
                 }
             }
         },
@@ -278,7 +293,12 @@ private fun RecoveryKeyDialog(
                 }
             }
         },
-        dismissButton = { TextButton(onClick = onDismiss, enabled = !state.isSubmitting) { Text(stringResource(Res.string.conversation_cancel)) } },
+        dismissButton = {
+            TextButton(
+                onClick = onDismiss,
+                enabled = !state.isSubmitting
+            ) { Text(stringResource(Res.string.conversation_cancel)) }
+        },
     )
 }
 
@@ -289,14 +309,23 @@ private fun RecoveryKeyGuide(onContinue: () -> Unit, onClose: () -> Unit) {
         Surface(color = MaterialTheme.colorScheme.background, modifier = Modifier.fillMaxSize()) {
             Column(Modifier.fillMaxSize().safeDrawingPadding()) {
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                    IconButton(onClick = onClose) { Icon(Icons.Rounded.Close, contentDescription = stringResource(Res.string.imageviewer_close)) }
+                    IconButton(onClick = onClose) {
+                        Icon(
+                            Icons.Rounded.Close,
+                            contentDescription = stringResource(Res.string.imageviewer_close)
+                        )
+                    }
                     Spacer(Modifier.weight(1f))
                     TextButton(onClick = onContinue) { Text(stringResource(Res.string.matrixkeys_skip)) }
                 }
                 Column(
                     Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = HowYouDoinSpacing.lg)
                 ) {
-                    Text(stringResource(Res.string.matrixkeys_find_your_recovery_key), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+                    Text(
+                        stringResource(Res.string.matrixkeys_find_your_recovery_key),
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold
+                    )
                     Spacer(Modifier.height(HowYouDoinSpacing.sm))
                     Text(
                         stringResource(Res.string.matrixkeys_you_got_it_when_you),

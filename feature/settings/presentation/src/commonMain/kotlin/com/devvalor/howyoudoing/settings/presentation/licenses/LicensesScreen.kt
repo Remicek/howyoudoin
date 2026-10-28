@@ -74,25 +74,36 @@ class LicensesViewModel : ViewModel() {
 
     init {
         viewModelScope.launch {
-            val app = runCatching { parseAboutLibraries(Res.readBytes("files/aboutlibraries.json").decodeToString()) }.getOrDefault(emptyList())
-            val native = runCatching { parseNative(Res.readBytes("files/native-licenses.json").decodeToString()) }.getOrDefault(emptyList())
+            val app = runCatching {
+                parseAboutLibraries(
+                    Res.readBytes("files/aboutlibraries.json").decodeToString()
+                )
+            }.getOrDefault(emptyList())
+            val native =
+                runCatching { parseNative(Res.readBytes("files/native-licenses.json").decodeToString()) }.getOrDefault(
+                    emptyList()
+                )
             _state.value = LicensesState(isLoading = false, networkLibraries = native, appLibraries = app)
         }
     }
 
-    private fun JsonObject.str(key: String) = this[key]?.let { runCatching { it.jsonPrimitive.contentOrNull }.getOrNull() }
+    private fun JsonObject.str(key: String) =
+        this[key]?.let { runCatching { it.jsonPrimitive.contentOrNull }.getOrNull() }
 
     private fun parseAboutLibraries(text: String): List<LibraryLicense> {
         val root = Json.parseToJsonElement(text).jsonObject
         val licenses = root["licenses"]?.jsonObject.orEmpty()
         return root["libraries"]?.jsonArray.orEmpty().mapNotNull { element ->
             val lib = element as? JsonObject ?: return@mapNotNull null
-            val licenseIds = (lib["licenses"] as? JsonArray)?.mapNotNull { runCatching { it.jsonPrimitive.content }.getOrNull() }.orEmpty()
+            val licenseIds =
+                (lib["licenses"] as? JsonArray)?.mapNotNull { runCatching { it.jsonPrimitive.content }.getOrNull() }
+                    .orEmpty()
             val licenseObjects = licenseIds.mapNotNull { licenses[it] as? JsonObject }
             LibraryLicense(
                 name = lib.str("name") ?: lib.str("uniqueId") ?: return@mapNotNull null,
                 version = lib.str("artifactVersion").orEmpty(),
-                license = licenseObjects.mapNotNull { it.str("name") }.ifEmpty { licenseIds }.joinToString(", ").ifEmpty { "See website" },
+                license = licenseObjects.mapNotNull { it.str("name") }.ifEmpty { licenseIds }.joinToString(", ")
+                    .ifEmpty { "See website" },
                 url = lib.str("website") ?: licenseObjects.firstNotNullOfOrNull { it.str("url") },
             )
         }.sortedBy { it.name.lowercase() }
@@ -165,7 +176,13 @@ private fun LibraryRow(lib: LibraryLicense, onClick: () -> Unit) {
             Text(lib.name, style = MaterialTheme.typography.bodyLarge, maxLines = 2, overflow = TextOverflow.Ellipsis)
             val details = listOfNotNull(lib.version.takeIf { it.isNotBlank() }, lib.usedFor).joinToString(" · ")
             if (details.isNotEmpty()) {
-                Text(details, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(
+                    details,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
             }
         }
         Spacer(Modifier.width(HowYouDoinSpacing.sm))
@@ -175,7 +192,8 @@ private fun LibraryRow(lib: LibraryLicense, onClick: () -> Unit) {
                 style = MaterialTheme.typography.labelSmall,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.widthIn(max = 140.dp).padding(horizontal = HowYouDoinSpacing.sm, vertical = HowYouDoinSpacing.xxs),
+                modifier = Modifier.widthIn(max = 140.dp)
+                    .padding(horizontal = HowYouDoinSpacing.sm, vertical = HowYouDoinSpacing.xxs),
             )
         }
     }

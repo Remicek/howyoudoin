@@ -89,7 +89,9 @@ fun AppLockSettingsScreen(
     onAction: (AppLockSettingsAction) -> Unit,
 ) {
     val settings = state.settings
-    SettingsScaffold(title = stringResource(Res.string.settings_app_lock), onBack = { onAction(AppLockSettingsAction.OnBackClick) }) {
+    SettingsScaffold(
+        title = stringResource(Res.string.settings_app_lock),
+        onBack = { onAction(AppLockSettingsAction.OnBackClick) }) {
         item {
             Text(
                 stringResource(Res.string.lock_intro),
@@ -111,7 +113,13 @@ fun AppLockSettingsScreen(
             item {
                 SettingsSwitchRow(
                     title = stringResource(Res.string.lock_fingerprint),
-                    subtitle = if (state.isBiometricAvailable) stringResource(Res.string.lock_fingerprint_on) else stringResource(Res.string.lock_fingerprint_missing),
+                    subtitle = stringResource(
+                        if (state.isBiometricAvailable) {
+                            Res.string.lock_fingerprint_on
+                        } else {
+                            Res.string.lock_fingerprint_missing
+                        }
+                    ),
                     icon = Icons.Rounded.Fingerprint,
                     checked = settings.isBiometricEnabled && state.isBiometricAvailable,
                     enabled = state.isBiometricAvailable,
@@ -185,7 +193,13 @@ fun AppLockSettingsScreen(
                     }
                 }
             },
-            confirmButton = { TextButton(onClick = { onAction(AppLockSettingsAction.OnDismissDialog) }) { Text(stringResource(Res.string.common_close)) } },
+            confirmButton = {
+                TextButton(onClick = { onAction(AppLockSettingsAction.OnDismissDialog) }) {
+                    Text(
+                        stringResource(Res.string.common_close)
+                    )
+                }
+            },
         )
     }
 
@@ -204,13 +218,16 @@ fun AppLockSettingsScreen(
                                 is PinStep.Confirm -> stringResource(Res.string.lock_confirm)
                             },
                             pinLength = state.pinLength,
-                            message = state.pinMessage?.asString() ?: if (step == PinStep.New) stringResource(Res.string.lock_digits_hint) else null,
+                            message = state.pinMessage?.asString()
+                                ?: if (step == PinStep.New) stringResource(Res.string.lock_digits_hint) else null,
                             isError = state.pinError,
                             onDigit = { onAction(AppLockSettingsAction.OnDigit(it)) },
                             onDelete = { onAction(AppLockSettingsAction.OnDelete) },
                             onSubmit = { onAction(AppLockSettingsAction.OnSubmit) },
                         )
-                        TextButton(onClick = { onAction(AppLockSettingsAction.OnCancelPin) }) { Text(stringResource(Res.string.common_cancel)) }
+                        TextButton(onClick = { onAction(AppLockSettingsAction.OnCancelPin) }) {
+                            Text(stringResource(Res.string.common_cancel))
+                        }
                     }
                 }
             }

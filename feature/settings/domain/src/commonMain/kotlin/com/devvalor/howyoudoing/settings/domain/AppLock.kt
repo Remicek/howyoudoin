@@ -1,5 +1,7 @@
 package com.devvalor.howyoudoing.settings.domain
 
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.minutes
 import kotlinx.coroutines.flow.Flow
 
 /** How the app is locked when it's opened or comes back from the background. */
@@ -13,11 +15,11 @@ data class AppLockSettings(
     val hidesNotificationContent: Boolean = true
 )
 
-enum class LockTimeout(val seconds: Long) {
-    IMMEDIATELY(0),
-    ONE_MINUTE(60),
-    FIVE_MINUTES(300),
-    FIFTEEN_MINUTES(900)
+enum class LockTimeout(val duration: Duration) {
+    IMMEDIATELY(Duration.ZERO),
+    ONE_MINUTE(1.minutes),
+    FIVE_MINUTES(5.minutes),
+    FIFTEEN_MINUTES(15.minutes)
 }
 
 sealed interface PinCheck {

@@ -83,11 +83,18 @@ fun EncryptedHistoryBanner(
             },
             primary = stringResource(Res.string.history_ok) to { onAction(EncryptedHistoryAction.OnDismissRestoring) },
         )
+
         state.isOffered -> BannerCard(
-            title = stringResource(if (state.isOnDevice) Res.string.history_restore_device else Res.string.history_restore),
+            title = stringResource(
+                if (state.isOnDevice) Res.string.history_restore_device else Res.string.history_restore
+            ),
             body = stringResource(Res.string.encryptedhistory_your_end_to_end_encrypted),
-            primary = stringResource(Res.string.history_enter_pin) to { onAction(EncryptedHistoryAction.OnEnterPinClick) },
-            secondary = stringResource(Res.string.history_not_now) to { onAction(EncryptedHistoryAction.OnNotNowClick) },
+            primary = stringResource(Res.string.history_enter_pin) to {
+                onAction(EncryptedHistoryAction.OnEnterPinClick)
+            },
+            secondary = stringResource(Res.string.history_not_now) to {
+                onAction(EncryptedHistoryAction.OnNotNowClick)
+            },
         )
     }
     if (state.isDialogOpen) PinDialog(state, onAction)
@@ -148,7 +155,11 @@ private fun PinDialog(state: EncryptedHistoryState, onAction: (EncryptedHistoryA
                 Text(
                     state.error?.asString() ?: stringResource(Res.string.history_pin_warning),
                     style = MaterialTheme.typography.bodySmall,
-                    color = if (state.error != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = if (state.error != null) {
+                        MaterialTheme.colorScheme.error
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    },
                 )
             }
         },

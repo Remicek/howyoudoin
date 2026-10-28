@@ -88,8 +88,8 @@ private fun InputFieldDto.toDomain() = LoginInputField(
 )
 
 /**
- * Only plain cookies can be read from a web view.
- * TODO: support local_storage / request header / special sources some bridges use.
+ * Only plain cookies can be read from a web view; the local_storage, request header and special sources some
+ * bridges use aren't supported.
  */
 private fun CookieFieldDto.toRequiredCookie(): RequiredCookie? {
     val cookieName = sources?.firstOrNull { it.type == "cookie" }?.name

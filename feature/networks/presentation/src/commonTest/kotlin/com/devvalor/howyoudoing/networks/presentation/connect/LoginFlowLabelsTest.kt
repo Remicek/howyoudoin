@@ -15,7 +15,13 @@ class LoginFlowLabelsTest {
 
     @Test
     fun messengerFlowsAreRelabelledAndRecommendedFirst() {
-        val bridgeOrder = listOf("facebook", "messenger", "messenger-lite", "messenger-lite-android", "howyoudoin-on-device").map(::flow)
+        val bridgeOrder = listOf(
+            "facebook",
+            "messenger",
+            "messenger-lite",
+            "messenger-lite-android",
+            "howyoudoin-on-device"
+        ).map(::flow)
         val labels = LoginFlowLabels.present(ChatNetwork.MESSENGER, bridgeOrder)
         assertEquals(
             listOf("howyoudoin-on-device", "messenger", "facebook", "messenger-lite", "messenger-lite-android"),

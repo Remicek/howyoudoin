@@ -30,6 +30,7 @@ import org.koin.compose.viewmodel.koinViewModel
 enum class BackupOfferStep {
     /** "Back up your logins?" */
     ASK,
+
     /** How to turn on Google backup (shown when the phone hasn't backed the app up yet). */
     TURN_ON_GOOGLE_BACKUP
 }
@@ -81,9 +82,14 @@ fun BackupOfferRoot(viewModel: BackupOfferViewModel = koinViewModel()) {
                     stringResource(Res.string.backupoffer_if_you_reinstall_howyoudoin_on)
                 )
             },
-            confirmButton = { TextButton(onClick = viewModel::backUp) { Text(stringResource(Res.string.backupoffer_back_up)) } },
-            dismissButton = { TextButton(onClick = viewModel::skip) { Text(stringResource(Res.string.backupoffer_skip)) } },
+            confirmButton = {
+                TextButton(onClick = viewModel::backUp) { Text(stringResource(Res.string.backupoffer_back_up)) }
+            },
+            dismissButton = {
+                TextButton(onClick = viewModel::skip) { Text(stringResource(Res.string.backupoffer_skip)) }
+            },
         )
+
         BackupOfferStep.TURN_ON_GOOGLE_BACKUP -> AlertDialog(
             onDismissRequest = viewModel::done,
             title = { Text(stringResource(Res.string.backupoffer_turn_on_google_backup)) },
@@ -92,9 +98,16 @@ fun BackupOfferRoot(viewModel: BackupOfferViewModel = koinViewModel()) {
                     stringResource(Res.string.backupoffer_your_logins_are_only_saved)
                 )
             },
-            confirmButton = { TextButton(onClick = viewModel::openBackupSettings) { Text(stringResource(Res.string.backupoffer_open_backup_settings)) } },
-            dismissButton = { TextButton(onClick = viewModel::done) { Text(stringResource(Res.string.backupoffer_done)) } },
+            confirmButton = {
+                TextButton(onClick = viewModel::openBackupSettings) {
+                    Text(stringResource(Res.string.backupoffer_open_backup_settings))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = viewModel::done) { Text(stringResource(Res.string.backupoffer_done)) }
+            },
         )
+
         null -> Unit
     }
 }

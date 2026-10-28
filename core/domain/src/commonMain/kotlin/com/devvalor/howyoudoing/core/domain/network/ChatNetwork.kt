@@ -29,10 +29,30 @@ enum class ChatNetwork(
     ),
 
     // No server bridge set up for these (isSupported); Telegram, Signal and Instagram connect on the device
-    TELEGRAM(displayName = "Telegram", isSupported = false, bridgeProtocolIds = setOf("telegram"), ghostUserPrefixes = setOf("telegram_")),
-    SIGNAL(displayName = "Signal", isSupported = false, bridgeProtocolIds = setOf("signal"), ghostUserPrefixes = setOf("signal_")),
-    INSTAGRAM(displayName = "Instagram", isSupported = false, bridgeProtocolIds = setOf("instagram"), ghostUserPrefixes = setOf("instagram_")),
-    SLACK(displayName = "Slack", isSupported = false, bridgeProtocolIds = setOf("slack"), ghostUserPrefixes = setOf("slack_")),
+    TELEGRAM(
+        displayName = "Telegram",
+        isSupported = false,
+        bridgeProtocolIds = setOf("telegram"),
+        ghostUserPrefixes = setOf("telegram_")
+    ),
+    SIGNAL(
+        displayName = "Signal",
+        isSupported = false,
+        bridgeProtocolIds = setOf("signal"),
+        ghostUserPrefixes = setOf("signal_")
+    ),
+    INSTAGRAM(
+        displayName = "Instagram",
+        isSupported = false,
+        bridgeProtocolIds = setOf("instagram"),
+        ghostUserPrefixes = setOf("instagram_")
+    ),
+    SLACK(
+        displayName = "Slack",
+        isSupported = false,
+        bridgeProtocolIds = setOf("slack"),
+        ghostUserPrefixes = setOf("slack_")
+    ),
 
     /** Native Matrix rooms, no bridge involved. */
     MATRIX(displayName = "Matrix", isSupported = false);

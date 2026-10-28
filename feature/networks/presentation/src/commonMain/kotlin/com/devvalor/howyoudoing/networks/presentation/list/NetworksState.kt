@@ -26,7 +26,7 @@ data class NetworksState(
         network in TUTORIAL_NETWORKS && network !in dismissedTutorials
 
     companion object {
-        /** Networks that have a tutorial. TODO: Messenger, once its login steps are settled. */
+        /** Networks that have a tutorial (not Messenger yet: its login steps still change). */
         val TUTORIAL_NETWORKS = setOf(ChatNetwork.WHATSAPP)
     }
 }

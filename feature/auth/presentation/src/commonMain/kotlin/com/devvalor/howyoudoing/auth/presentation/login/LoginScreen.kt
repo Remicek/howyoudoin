@@ -193,7 +193,13 @@ fun LoginScreen(
                     IconButton(onClick = { onAction(LoginAction.OnTogglePasswordVisibility) }) {
                         Icon(
                             if (state.isPasswordVisible) Icons.Rounded.VisibilityOff else Icons.Rounded.Visibility,
-                            contentDescription = if (state.isPasswordVisible) stringResource(Res.string.login_hide_password) else stringResource(Res.string.login_show_password),
+                            contentDescription = stringResource(
+                                if (state.isPasswordVisible) {
+                                    Res.string.login_hide_password
+                                } else {
+                                    Res.string.login_show_password
+                                }
+                            ),
                         )
                     }
                 },

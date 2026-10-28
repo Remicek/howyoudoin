@@ -1,5 +1,7 @@
 package com.devvalor.howyoudoing.core.domain.ondevice
 
+import com.devvalor.howyoudoing.core.domain.media.Attachment
+import com.devvalor.howyoudoing.core.domain.media.MessageRef
 import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
 import com.devvalor.howyoudoing.core.domain.util.DataError
 import com.devvalor.howyoudoing.core.domain.util.EmptyResult
@@ -36,50 +38,59 @@ interface OnDeviceMessenger {
      * Sends text to a thread; returns the ID the echoed message will carry (offline threading ID for regular
      * chats, message ID for encrypted ones).
      */
-    suspend fun sendText(threadKey: String, text: String, isEncrypted: Boolean = false, isGroup: Boolean = false): Result<String, DataError.Remote>
+    suspend fun sendText(
+        threadKey: String,
+        text: String,
+        isEncrypted: Boolean = false,
+        isGroup: Boolean = false
+    ): Result<String, DataError.Remote>
 
-    /**
-     * Sends text replying to a message: its [replyToId], who sent it and its text (some networks show that in the
-     * quote). Networks without replies send plain text.
-     */
+    /** Sends text replying to [replyTo] (some networks show its text in the quote); others send plain text. */
     suspend fun sendReply(
         threadKey: String,
         text: String,
         isEncrypted: Boolean,
         isGroup: Boolean,
-        replyToId: String,
-        replySenderId: String,
-        quotedText: String
+        replyTo: MessageRef
     ): Result<String, DataError.Remote> = sendText(threadKey, text, isEncrypted, isGroup)
 
     /** Changes the text of one of our messages. */
-    suspend fun editMessage(threadKey: String, messageId: String, text: String, isEncrypted: Boolean, isGroup: Boolean): EmptyResult<DataError.Remote> =
+    suspend fun editMessage(
+        threadKey: String,
+        messageId: String,
+        text: String,
+        isEncrypted: Boolean,
+        isGroup: Boolean
+    ): EmptyResult<DataError.Remote> =
         Result.Failure(DataError.Remote.BAD_REQUEST)
 
     /** Deletes one of our messages for everyone. */
-    suspend fun unsend(threadKey: String, messageId: String, isEncrypted: Boolean, isGroup: Boolean): EmptyResult<DataError.Remote> =
+    suspend fun unsend(
+        threadKey: String,
+        messageId: String,
+        isEncrypted: Boolean,
+        isGroup: Boolean
+    ): EmptyResult<DataError.Remote> =
         Result.Failure(DataError.Remote.BAD_REQUEST)
 
     /**
-     * Sends a photo, video, audio or file; returns the ID the echoed message carries. With [voiceDurationMillis] it's a
-     * recorded voice message, sent as the network's voice note ([waveform]: loudness 0–255 over the recording).
+     * Sends a photo, video, audio or file; returns the ID the echoed message carries. An attachment with a
+     * [Attachment.voice] is a recorded voice message, sent as the network's voice note.
      */
     suspend fun sendAttachment(
         threadKey: String,
-        bytes: ByteArray,
-        fileName: String,
-        mimeType: String,
-        width: Int?,
-        height: Int?,
+        attachment: Attachment,
         caption: String?,
         isEncrypted: Boolean,
-        isGroup: Boolean,
-        voiceDurationMillis: Long? = null,
-        waveform: List<Int>? = null
+        isGroup: Boolean
     ): Result<String, DataError.Remote> = Result.Failure(DataError.Remote.BAD_REQUEST)
 
     /** Downloads media that wasn't fetched with its message, from the reference the message event carried. */
-    suspend fun downloadMedia(threadKey: String, messageId: String, mediaRef: String): Result<ByteArray, DataError.Remote> =
+    suspend fun downloadMedia(
+        threadKey: String,
+        messageId: String,
+        mediaRef: String
+    ): Result<ByteArray, DataError.Remote> =
         Result.Failure(DataError.Remote.BAD_REQUEST)
 
     /** Asks for the pictures of these chats; they arrive as avatar events. Networks that send them anyway ignore it. */
@@ -95,7 +106,11 @@ interface OnDeviceMessenger {
     suspend fun restoreHistory(pin: String): EmptyResult<OnDeviceHistoryError>
 
     /** Loads decrypted history of an encrypted chat older than [beforeTimestampMs] (0 = newest). */
-    suspend fun fetchEncryptedHistory(threadKey: String, isGroup: Boolean, beforeTimestampMs: Long): EmptyResult<DataError.Remote>
+    suspend fun fetchEncryptedHistory(
+        threadKey: String,
+        isGroup: Boolean,
+        beforeTimestampMs: Long
+    ): EmptyResult<DataError.Remote>
 
     /** Asks for messages older than the given one; they arrive as message events plus a range event. */
     suspend fun requestOlder(
@@ -106,22 +121,32 @@ interface OnDeviceMessenger {
     ): EmptyResult<DataError.Remote>
 
     /**
-     * Reacts to a message; an empty [emoji] removes the reaction. Encrypted chats also need whether it's a group
+     * Reacts to [message]; an empty [emoji] removes the reaction. Encrypted chats also need whether it's a group
      * and who sent the message.
      */
     suspend fun sendReaction(
         threadKey: String,
-        messageId: String,
+        message: MessageRef,
         emoji: String,
         isEncrypted: Boolean = false,
-        isGroup: Boolean = false,
-        messageSenderId: String = ""
+        isGroup: Boolean = false
     ): EmptyResult<DataError.Remote>
 
     /** Marks a chat read; encrypted chats need the newest message's ID and sender. */
-    suspend fun markRead(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, lastMessageId: String, senderId: String): EmptyResult<DataError.Remote>
+    suspend fun markRead(
+        threadKey: String,
+        isEncrypted: Boolean,
+        isGroup: Boolean,
+        lastMessageId: String,
+        senderId: String
+    ): EmptyResult<DataError.Remote>
 
-    suspend fun setTyping(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, isTyping: Boolean): EmptyResult<DataError.Remote>
+    suspend fun setTyping(
+        threadKey: String,
+        isEncrypted: Boolean,
+        isGroup: Boolean,
+        isTyping: Boolean
+    ): EmptyResult<DataError.Remote>
 
     suspend fun unlink()
 }
@@ -152,27 +177,60 @@ object UnsupportedOnDeviceMessenger : OnDeviceMessenger {
     override val events: Flow<String> = kotlinx.coroutines.flow.emptyFlow()
     override suspend fun link(cookies: Map<String, String>): EmptyResult<DataError.Remote> =
         Result.Failure(DataError.Remote.UNKNOWN)
+
     override suspend fun connectIfLinked() = Unit
-    override suspend fun sendText(threadKey: String, text: String, isEncrypted: Boolean, isGroup: Boolean): Result<String, DataError.Remote> =
+    override suspend fun sendText(
+        threadKey: String,
+        text: String,
+        isEncrypted: Boolean,
+        isGroup: Boolean
+    ): Result<String, DataError.Remote> =
         Result.Failure(DataError.Remote.UNKNOWN)
+
     override suspend fun historyStatus(): Result<OnDeviceHistoryStatus, DataError.Remote> =
         Result.Success(OnDeviceHistoryStatus(isRestored = false, isBackupAvailable = false))
+
     override suspend fun restoreHistory(pin: String): EmptyResult<OnDeviceHistoryError> =
         Result.Failure(OnDeviceHistoryError.NoBackup)
-    override suspend fun fetchEncryptedHistory(threadKey: String, isGroup: Boolean, beforeTimestampMs: Long): EmptyResult<DataError.Remote> =
+
+    override suspend fun fetchEncryptedHistory(
+        threadKey: String,
+        isGroup: Boolean,
+        beforeTimestampMs: Long
+    ): EmptyResult<DataError.Remote> =
         Result.Failure(DataError.Remote.UNKNOWN)
+
     override suspend fun requestOlder(
         threadKey: String, beforeTimestampMs: Long, beforeMessageId: String, beforeMessageIsOutgoing: Boolean
     ): EmptyResult<DataError.Remote> =
         Result.Failure(DataError.Remote.UNKNOWN)
+
     override suspend fun sendReaction(
-        threadKey: String, messageId: String, emoji: String, isEncrypted: Boolean, isGroup: Boolean, messageSenderId: String
+        threadKey: String,
+        message: MessageRef,
+        emoji: String,
+        isEncrypted: Boolean,
+        isGroup: Boolean
     ): EmptyResult<DataError.Remote> =
         Result.Failure(DataError.Remote.UNKNOWN)
-    override suspend fun markRead(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, lastMessageId: String, senderId: String): EmptyResult<DataError.Remote> =
+
+    override suspend fun markRead(
+        threadKey: String,
+        isEncrypted: Boolean,
+        isGroup: Boolean,
+        lastMessageId: String,
+        senderId: String
+    ): EmptyResult<DataError.Remote> =
         Result.Failure(DataError.Remote.UNKNOWN)
-    override suspend fun setTyping(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, isTyping: Boolean): EmptyResult<DataError.Remote> =
+
+    override suspend fun setTyping(
+        threadKey: String,
+        isEncrypted: Boolean,
+        isGroup: Boolean,
+        isTyping: Boolean
+    ): EmptyResult<DataError.Remote> =
         Result.Failure(DataError.Remote.UNKNOWN)
+
     override suspend fun unlink() = Unit
 }
 
@@ -191,7 +249,8 @@ interface OnDeviceLinkedAccount : OnDeviceMessenger {
     suspend fun startLinking(phoneNumber: String?): EmptyResult<DataError.Remote>
 
     /** Answers the current [OnDevicePairing.prompt]. */
-    suspend fun submitLinkingInput(value: String): EmptyResult<DataError.Remote> = Result.Failure(DataError.Remote.BAD_REQUEST)
+    suspend fun submitLinkingInput(value: String): EmptyResult<DataError.Remote> =
+        Result.Failure(DataError.Remote.BAD_REQUEST)
 
     suspend fun cancelLinking()
 }
@@ -235,21 +294,27 @@ interface OnDeviceSignal : OnDeviceLinkedAccount {
 object UnsupportedOnDeviceWhatsApp : OnDeviceWhatsApp, OnDeviceMessenger by UnsupportedOnDeviceMessenger {
     override val network: ChatNetwork get() = ChatNetwork.WHATSAPP
     override val pairing: StateFlow<OnDevicePairing?> = kotlinx.coroutines.flow.MutableStateFlow(null)
-    override suspend fun startLinking(phoneNumber: String?): EmptyResult<DataError.Remote> = Result.Failure(DataError.Remote.UNKNOWN)
+    override suspend fun startLinking(phoneNumber: String?): EmptyResult<DataError.Remote> =
+        Result.Failure(DataError.Remote.UNKNOWN)
+
     override suspend fun cancelLinking() = Unit
 }
 
 object UnsupportedOnDeviceTelegram : OnDeviceTelegram, OnDeviceMessenger by UnsupportedOnDeviceMessenger {
     override val network: ChatNetwork get() = ChatNetwork.TELEGRAM
     override val pairing: StateFlow<OnDevicePairing?> = kotlinx.coroutines.flow.MutableStateFlow(null)
-    override suspend fun startLinking(phoneNumber: String?): EmptyResult<DataError.Remote> = Result.Failure(DataError.Remote.UNKNOWN)
+    override suspend fun startLinking(phoneNumber: String?): EmptyResult<DataError.Remote> =
+        Result.Failure(DataError.Remote.UNKNOWN)
+
     override suspend fun cancelLinking() = Unit
 }
 
 object UnsupportedOnDeviceSignal : OnDeviceSignal, OnDeviceMessenger by UnsupportedOnDeviceMessenger {
     override val network: ChatNetwork get() = ChatNetwork.SIGNAL
     override val pairing: StateFlow<OnDevicePairing?> = kotlinx.coroutines.flow.MutableStateFlow(null)
-    override suspend fun startLinking(phoneNumber: String?): EmptyResult<DataError.Remote> = Result.Failure(DataError.Remote.UNKNOWN)
+    override suspend fun startLinking(phoneNumber: String?): EmptyResult<DataError.Remote> =
+        Result.Failure(DataError.Remote.UNKNOWN)
+
     override suspend fun cancelLinking() = Unit
 }
 
