@@ -28,10 +28,8 @@ Requirements: JDK 17+, the Android SDK and NDK, Go (see `bridge-mobile/go.mod`) 
 Signal: Rust (via rustup) with the `aarch64-linux-android` target, `cargo-ndk`, `cmake` and `protoc`.
 
 1. Check out the network clients next to this repository, in `../howyoudoin-bridges/`:
-   - `mautrix-meta` from <https://github.com/mautrix/meta> at tag `v0.2610.0`, then apply
-     `bridge-mobile/patches/mautrix-meta.patch` (`git apply`)
-   - `mautrix-telegram` from <https://github.com/mautrix/telegram>
-   - `mautrix-signal` from <https://github.com/mautrix/signal> with its submodule (`git submodule update --init`)
+   `bridge-mobile/scripts/fetch-bridges.sh`. It fetches mautrix-meta, -telegram, -signal (with libsignal) and -slack
+   at the versions the app uses and applies `bridge-mobile/patches/mautrix-meta.patch`.
 2. Build the network clients library: `bridge-mobile/scripts/build-android.sh`. It writes
    `composeApp/libs/hydbridge.aar` and refreshes the in-app license list.
 3. Optional, for Telegram: create an app at <https://my.telegram.org> and add to `local.properties`:
@@ -51,6 +49,9 @@ After changing Gradle dependencies, refresh the license list with `./gradlew :co
   a chat, every screen Settings and About lead to, the themes, the warning before connecting a network, and the welcome
   screen in each language. They clear the app's data, so run them on an emulator only:
   `ANDROID_SERIAL=emulator-5554 ./gradlew :composeApp:connectedDebugAndroidTest`.
+- GitHub Actions (`.github/workflows/android.yml`) builds the debug APK and runs the unit tests on every push and pull
+  request; the APK is attached to each run. Add the `TELEGRAM_API_ID` and `TELEGRAM_API_HASH` repository secrets to
+  include Telegram.
 
 ## Translations
 

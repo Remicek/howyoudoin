@@ -2,7 +2,7 @@
 # Builds the on-device Messenger bridge (hydbridge) as an Android library for the app:
 #   bridge-mobile/scripts/build-android.sh
 # Needs Go, gomobile/gobind (go install golang.org/x/mobile/cmd/gomobile@latest, same for gobind), the Android
-# NDK, and the patched mautrix-meta checkout in ../howyoudoin-bridges (howyoudoin-api/scripts/setup-mautrix-meta.sh).
+# NDK, and the patched mautrix-meta checkout in ../howyoudoin-bridges (bridge-mobile/scripts/fetch-bridges.sh).
 # Telegram and Signal need mautrix-telegram and mautrix-signal (with its libsignal submodule) checked out there too;
 # Signal's Rust library is built for Android with Rust + cargo-ndk (rustup target add aarch64-linux-android,
 # cargo install cargo-ndk; also cmake and protoc).
