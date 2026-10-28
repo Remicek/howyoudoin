@@ -618,6 +618,8 @@ class ConnectNetworkViewModel(
         extractScript = SLACK_TOKEN_SCRIPT
     )
 
+    private fun OnDeviceMessenger.linkErrorText(): UiText? = linkError?.let(UiText::DynamicString)
+
     private fun googleMessages(): OnDeviceLinkedAccount? =
         onDevice.forNetwork(ChatNetwork.GOOGLE_MESSAGES) as? OnDeviceLinkedAccount
 
@@ -723,7 +725,9 @@ class ConnectNetworkViewModel(
                     _state.update { it.copy(phase = ConnectPhase.Connected(name), isSubmitting = false) }
                 }
 
-                is Result.Failure -> _state.update { it.copy(isSubmitting = false, error = result.error.toUiText()) }
+                is Result.Failure -> _state.update {
+                    it.copy(isSubmitting = false, error = client.linkErrorText() ?: result.error.toUiText())
+                }
             }
         }
     }
@@ -744,7 +748,9 @@ class ConnectNetworkViewModel(
 
                 is Result.Failure -> {
                     rejectedCookies = cookiesByName
-                    _state.update { it.copy(isSubmitting = false, error = result.error.toUiText()) }
+                    _state.update {
+                        it.copy(isSubmitting = false, error = client.linkErrorText() ?: result.error.toUiText())
+                    }
                 }
             }
         }

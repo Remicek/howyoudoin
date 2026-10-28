@@ -152,9 +152,13 @@ open class NativeOnDeviceMessenger(
         scope.launch { connectIfLinked() }
     }
 
+    private var lastLinkError: String? = null
+    override val linkError: String? get() = lastLinkError
+
     override suspend fun link(cookies: Map<String, String>): EmptyResult<DataError.Remote> {
         val json = JsonObject(cookies.mapValues { JsonPrimitive(it.value) }).toString()
         val result = connect(json)
+        lastLinkError = (_state.value as? OnDeviceMessengerState.Failed)?.message?.takeIf { result is Result.Failure }
         if (result is Result.Success) {
             secrets.write(json)
         } else if (secrets.read() == null) {

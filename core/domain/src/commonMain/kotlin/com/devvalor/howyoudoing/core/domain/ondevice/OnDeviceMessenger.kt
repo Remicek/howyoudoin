@@ -37,6 +37,9 @@ interface OnDeviceMessenger {
      */
     fun directChatKey(contactId: String): String? = null
 
+    /** Why the last [link] failed, in the network client's words (e.g. "Wrong Bluesky handle or app password"). */
+    val linkError: String? get() = null
+
     /** Connects with saved cookies, if any. */
     suspend fun connectIfLinked()
 
