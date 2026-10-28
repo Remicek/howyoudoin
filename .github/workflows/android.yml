@@ -1,8 +1,5 @@
-# Builds the Android app and runs the unit tests on every push and pull request. The debug APK is attached to each
-# run under Artifacts.
-#
-# The network clients library (composeApp/libs/hydbridge.aar) isn't in git: it's built from the mautrix bridges with
-# Go, Rust and the NDK, which takes a while, so it's cached and only rebuilt when something in bridge-mobile/ changes.
+# On every push and pull request: unit tests, the debug APK (attached to the run under Artifacts), and the end-to-end
+# UI tests on an Android emulator.
 #
 # Optional repository secrets: TELEGRAM_API_ID and TELEGRAM_API_HASH (from my.telegram.org). Without them the app
 # builds without Telegram.
@@ -19,55 +16,23 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  bridge:
+    uses: ./.github/workflows/bridge.yml
+
   build:
+    needs: bridge
     runs-on: ubuntu-latest
-    timeout-minutes: 90
-    env:
-      NDK_VERSION: 29.0.14206865
-      GOMOBILE_VERSION: v0.0.0-20261011034528-197770444867
-      CARGO_NDK_VERSION: 4.1.2
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
-
-      - name: Restore the network clients library
-        id: bridge-cache
-        uses: actions/cache@v4
+      - uses: actions/download-artifact@v4
         with:
-          path: composeApp/libs/hydbridge.aar
-          key: hydbridge-android-${{ hashFiles('bridge-mobile/**') }}
-
-      - name: Set up the NDK
-        if: steps.bridge-cache.outputs.cache-hit != 'true'
-        run: |
-          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install "ndk;$NDK_VERSION" > /dev/null
-          echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/$NDK_VERSION" >> "$GITHUB_ENV"
-
-      - uses: actions/setup-go@v5
-        if: steps.bridge-cache.outputs.cache-hit != 'true'
-        with:
-          go-version: "1.27.x"
-          cache-dependency-path: bridge-mobile/go.sum
-
-      - name: Set up gomobile, Rust and protoc
-        if: steps.bridge-cache.outputs.cache-hit != 'true'
-        run: |
-          go install "golang.org/x/mobile/cmd/gomobile@$GOMOBILE_VERSION" "golang.org/x/mobile/cmd/gobind@$GOMOBILE_VERSION"
-          # libsignal's rust-toolchain file pins Rust
-          rustup toolchain install 1.98.1 --profile minimal --target aarch64-linux-android
-          cargo install cargo-ndk --locked --version "$CARGO_NDK_VERSION"
-          sudo apt-get install -y --no-install-recommends protobuf-compiler > /dev/null
-
-      - name: Build the network clients library
-        if: steps.bridge-cache.outputs.cache-hit != 'true'
-        run: |
-          bridge-mobile/scripts/fetch-bridges.sh
-          bridge-mobile/scripts/build-android.sh
-
+          name: hydbridge
+          path: composeApp/libs
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "21"
-
       - uses: gradle/actions/setup-gradle@v4
 
       - name: Telegram credentials
@@ -84,9 +49,9 @@ jobs:
         run: ./gradlew :composeApp:assembleDebug
 
       - uses: actions/upload-artifact@v4
-        if: always()
+        if: failure()
         with:
-          name: test-reports
+          name: unit-test-reports
           path: "**/build/reports/tests/"
           if-no-files-found: ignore
 
@@ -94,3 +59,50 @@ jobs:
         with:
           name: howyoudoin-debug-apk
           path: composeApp/build/outputs/apk/debug/*.apk
+
+  ui-tests:
+    needs: bridge
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: hydbridge
+          path: composeApp/libs
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: gradle/actions/setup-gradle@v4
+
+      # Built before the emulator starts, so it doesn't sit idle while Gradle compiles
+      - name: Build the app and the tests
+        run: ./gradlew :composeApp:assembleDebug :composeApp:assembleDebugAndroidTest
+
+      - name: Allow the emulator to use KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      # API 34 or newer: the tests pick the app's language per app (Android 13+)
+      - name: End-to-end tests
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          disable-animations: true
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          script: ./gradlew :composeApp:connectedDebugAndroidTest
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ui-test-reports
+          path: |
+            composeApp/build/reports/androidTests/
+            composeApp/build/outputs/androidTest-results/
+          if-no-files-found: ignore

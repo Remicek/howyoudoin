@@ -1,0 +1,119 @@
+# One-button release: Actions → Release → Run workflow. Raises the version (patch by default) in
+# gradle/libs.versions.toml, runs the unit tests, builds the signed APK and App Bundle, commits the new version, tags
+# it (v1.2.3) and publishes a GitHub release with the APK and the bundle attached.
+#
+# Needs repository secrets for signing: RELEASE_KEYSTORE_BASE64 (base64 of the .jks file), RELEASE_STORE_PASSWORD,
+# RELEASE_KEY_ALIAS and RELEASE_KEY_PASSWORD. Optional: TELEGRAM_API_ID and TELEGRAM_API_HASH.
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: Version to raise (none releases the current version again under its own tag)
+        type: choice
+        options: [patch, minor, major, none]
+        default: patch
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  bridge:
+    uses: ./.github/workflows/bridge.yml
+
+  release:
+    needs: bridge
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: hydbridge
+          path: composeApp/libs
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: New version
+        id: version
+        env:
+          BUMP: ${{ inputs.bump }}
+        run: |
+          toml=gradle/libs.versions.toml
+          name=$(sed -n 's/^projectVersionName = "\(.*\)"/\1/p' "$toml")
+          code=$(sed -n 's/^projectVersionCode = "\(.*\)"/\1/p' "$toml")
+          IFS=. read -r major minor patch <<< "$name"
+          minor=${minor:-0} patch=${patch:-0}
+          case "$BUMP" in
+            major) name="$((major + 1)).0.0" ;;
+            minor) name="$major.$((minor + 1)).0" ;;
+            patch) name="$major.$minor.$((patch + 1))" ;;
+          esac
+          if [ "$BUMP" != none ]; then
+            code=$((code + 1))
+            sed -i "s/^projectVersionName = .*/projectVersionName = \"$name\"/; s/^projectVersionCode = .*/projectVersionCode = \"$code\"/" "$toml"
+          fi
+          if git ls-remote --exit-code --tags origin "refs/tags/v$name" > /dev/null; then
+            echo "::error::v$name is already released; pick a bump"
+            exit 1
+          fi
+          echo "name=$name" >> "$GITHUB_OUTPUT"
+          echo "Releasing $name (version code $code)"
+
+      - name: Signing key and credentials
+        env:
+          KEYSTORE: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
+          STORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
+          TELEGRAM_API_ID: ${{ secrets.TELEGRAM_API_ID }}
+          TELEGRAM_API_HASH: ${{ secrets.TELEGRAM_API_HASH }}
+        run: |
+          if [ -z "$KEYSTORE" ] || [ -z "$STORE_PASSWORD" ] || [ -z "$KEY_ALIAS" ] || [ -z "$KEY_PASSWORD" ]; then
+            echo "::error::Signing secrets missing: RELEASE_KEYSTORE_BASE64, RELEASE_STORE_PASSWORD, RELEASE_KEY_ALIAS, RELEASE_KEY_PASSWORD"
+            exit 1
+          fi
+          echo "$KEYSTORE" | base64 --decode > "$RUNNER_TEMP/release.jks"
+          {
+            echo "release.storeFile=$RUNNER_TEMP/release.jks"
+            echo "release.storePassword=$STORE_PASSWORD"
+            echo "release.keyAlias=$KEY_ALIAS"
+            echo "release.keyPassword=$KEY_PASSWORD"
+            if [ -n "$TELEGRAM_API_ID" ]; then
+              echo "telegram.apiId=$TELEGRAM_API_ID"
+              echo "telegram.apiHash=$TELEGRAM_API_HASH"
+            fi
+          } > local.properties
+
+      - name: Unit tests
+        run: ./gradlew testDebugUnitTest
+
+      - name: Build the signed APK and App Bundle
+        run: |
+          ./gradlew :composeApp:assembleRelease :composeApp:bundleRelease
+          mkdir -p dist
+          cp composeApp/build/outputs/apk/release/*.apk "dist/howyoudoin-${{ steps.version.outputs.name }}.apk"
+          cp composeApp/build/outputs/bundle/release/*.aab "dist/howyoudoin-${{ steps.version.outputs.name }}.aab"
+
+      - name: Commit, tag and publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.name }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if ! git diff --quiet gradle/libs.versions.toml; then
+            git commit -m "Version $VERSION" gradle/libs.versions.toml
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+          fi
+          git tag "v$VERSION"
+          git push origin "v$VERSION"
+          gh release create "v$VERSION" dist/* --title "HowYouDoin $VERSION" --generate-notes

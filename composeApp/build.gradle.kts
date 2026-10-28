@@ -40,6 +40,12 @@ android {
             }
         }
     }
+    // The network clients library is built for arm64 phones only; the CI's copy also has x86_64 for the emulator
+    buildTypes {
+        getByName("release") {
+            ndk { abiFilters += "arm64-v8a" }
+        }
+    }
     defaultConfig {
         // End-to-end tests (src/androidInstrumentedTest); each test starts from a freshly cleared app
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
