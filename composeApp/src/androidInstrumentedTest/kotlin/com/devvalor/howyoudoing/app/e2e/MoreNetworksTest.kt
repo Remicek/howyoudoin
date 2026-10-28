@@ -46,7 +46,7 @@ class MoreNetworksTest {
     @Test
     fun demoInboxHasAChatFromEachNewNetwork() {
         startDemo()
-        listOf("Game Night 🎮", "City Pharmacy", "Jamie Lee", "Priya Shah", "Mr. Novak").forEach { chat ->
+        listOf("Game Night 🎮", "City Pharmacy", "Jamie Lee", "Priya Shah", "Sam Rivera", "Mr. Novak").forEach { chat ->
             app.onAllNodes(hasScrollToNodeAction()).onFirst().performScrollToNode(hasText(chat))
             app.waitForText(chat)
         }
@@ -99,6 +99,7 @@ class MoreNetworksTest {
         openNetworks()
         listOf(
             "LinkedIn" to "Enter your LinkedIn email",
+            "X" to "Enter your X email",
             "Google Voice" to "Enter your Google email",
         ).forEach { (network, instructions) ->
             connect(network)
@@ -149,7 +150,7 @@ class MoreNetworksTest {
     }
 
     private companion object {
-        val NEW_NETWORKS = listOf("Google Messages", "Bluesky", "LinkedIn", "Discord", "Google Voice")
+        val NEW_NETWORKS = listOf("Google Messages", "Bluesky", "LinkedIn", "Discord", "X", "Google Voice")
         const val UNTESTED = "Untested"
         const val DISCORD_WARNING = "Discord bans accounts for this"
         const val NETWORK_TIMEOUT_MILLIS = 30_000L

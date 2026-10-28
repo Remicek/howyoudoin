@@ -21,13 +21,19 @@ data class OnDeviceAccounts(
 }
 
 /**
- * The networks added after the first few (Google Messages, Bluesky, LinkedIn, Discord, Google Voice), by network:
+ * The networks added after the first few (Google Messages, Bluesky, LinkedIn, Discord, X, Google Voice), by network:
  * they share one client class each, so they're looked up rather than each having a field of its own.
  */
 data class OnDeviceNetworks(val clients: Map<ChatNetwork, OnDeviceMessenger> = emptyMap()) {
     companion object {
         /** Networks logged in from their web page or with a password, through one shared native client. */
-        val WEB_LOGIN = listOf(ChatNetwork.BLUESKY, ChatNetwork.LINKEDIN, ChatNetwork.DISCORD, ChatNetwork.GOOGLE_VOICE)
+        val WEB_LOGIN = listOf(
+            ChatNetwork.BLUESKY,
+            ChatNetwork.LINKEDIN,
+            ChatNetwork.DISCORD,
+            ChatNetwork.TWITTER,
+            ChatNetwork.GOOGLE_VOICE
+        )
 
         /** Networks paired with the user's phone (a QR code or an emoji tapped there). */
         val PAIRED = listOf(ChatNetwork.GOOGLE_MESSAGES)

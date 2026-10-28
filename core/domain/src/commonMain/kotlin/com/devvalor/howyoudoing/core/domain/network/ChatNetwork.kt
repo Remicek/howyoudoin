@@ -87,6 +87,14 @@ enum class ChatNetwork(
         ghostUserPrefixes = setOf("discord_"),
         isUntested = true
     ),
+    /** X's direct messages (X Chat), shown as "X". */
+    TWITTER(
+        displayName = "X",
+        isSupported = false,
+        bridgeProtocolIds = setOf("twitter"),
+        ghostUserPrefixes = setOf("twitter_"),
+        isUntested = true
+    ),
     GOOGLE_VOICE(
         displayName = "Google Voice",
         isSupported = false,

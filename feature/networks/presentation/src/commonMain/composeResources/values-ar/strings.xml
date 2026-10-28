@@ -216,4 +216,7 @@
     <string name="pair_gmessages_qr">على هاتف Android افتح رسائل Google ← صورة ملفك الشخصي ← إقران الأجهزة ← ماسح رموز QR، وامسح هذا الرمز. يحتاج الماسح إلى الرمز على شاشة أخرى.</string>
     <string name="pair_gmessages_emoji">ستطلب منك رسائل Google على هاتفك اختيار رمز تعبيري: انقر على هذا.</string>
     <string name="cookies_steps_google">1. أدخل بريد Google ثم كلمة المرور.\n2. إذا طلب Google، أكّد هويتك على هاتفك.\nسيكمل HowYouDoin تلقائيًا بعد تسجيل الدخول. باعد بين إصبعين للتكبير إذا بدت الصفحة صغيرة.</string>
+    <string name="connectnetwork_x">سجّل الدخول في x.com، ثم أدخل رمز مرور X Chat؛ تتصل الرسائل من هذا الهاتف.</string>
+    <string name="x_passcode_instructions">أدخل رمز مرور X Chat، وهو رمز PIN الذي عيّنته للدردشة في X. يفتح رسائلك المشفّرة على هذا الهاتف. يسمح X بمحاولات خاطئة قليلة فقط قبل أن يقفل الدردشة.</string>
+    <string name="field_x_passcode">رمز مرور X Chat</string>
 </resources>

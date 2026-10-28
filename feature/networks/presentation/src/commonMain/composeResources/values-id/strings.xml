@@ -206,4 +206,7 @@
     <string name="pair_gmessages_qr">Di ponsel Android buka Google Messages → foto profil Anda → Penyambungan perangkat → Pemindai kode QR, lalu pindai kode ini. Pemindai memerlukan kode di layar lain.</string>
     <string name="pair_gmessages_emoji">Google Messages di ponsel Anda meminta Anda memilih emoji: ketuk yang ini.</string>
     <string name="cookies_steps_google">1. Masukkan email Google Anda, lalu sandi.\n2. Jika Google meminta, konfirmasi di ponsel bahwa itu Anda.\nHowYouDoin melanjutkan sendiri setelah Anda masuk. Cubit untuk memperbesar jika halaman terlihat kecil.</string>
+    <string name="connectnetwork_x">Masuk di x.com, lalu masukkan kode sandi X Chat; pesan terhubung dari ponsel ini.</string>
+    <string name="x_passcode_instructions">Masukkan kode sandi X Chat, yaitu PIN yang Anda atur untuk Chat di X. Kode ini membuka pesan terenkripsi Anda di ponsel ini. X hanya mengizinkan beberapa kali salah sebelum mengunci Chat.</string>
+    <string name="field_x_passcode">Kode sandi X Chat</string>
 </resources>

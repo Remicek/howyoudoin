@@ -206,4 +206,7 @@
     <string name="pair_gmessages_qr">Android スマートフォンで Google メッセージ → プロフィール写真 → デバイスのペア設定 → QR コードスキャナ を開き、このコードをスキャンします。スキャナには別の画面のコードが必要です。</string>
     <string name="pair_gmessages_emoji">スマートフォンの Google メッセージで絵文字を選ぶよう求められたら、これをタップしてください。</string>
     <string name="cookies_steps_google">1. Google のメールアドレス、次にパスワードを入力します。\n2. Google に求められたら、スマートフォンで本人確認をします。\nログインすると HowYouDoin が自動で続行します。ページが小さい場合はピンチで拡大してください。</string>
+    <string name="connectnetwork_x">x.com にログインし、X Chat のパスコードを入力します。メッセージはこのスマートフォンから接続されます。</string>
+    <string name="x_passcode_instructions">X Chat のパスコード（X のチャット用に設定した PIN）を入力してください。このスマートフォンで暗号化メッセージを開くのに使います。数回間違えると X はチャットをロックします。</string>
+    <string name="field_x_passcode">X Chat のパスコード</string>
 </resources>

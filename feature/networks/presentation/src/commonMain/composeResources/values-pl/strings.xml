@@ -212,4 +212,7 @@
     <string name="pair_gmessages_qr">Na telefonie z Androidem otwórz Wiadomości Google → swoje zdjęcie profilowe → Parowanie urządzeń → Skaner kodów QR i zeskanuj ten kod. Skaner potrzebuje kodu na innym ekranie.</string>
     <string name="pair_gmessages_emoji">Wiadomości Google na telefonie poproszą o wybór emoji: kliknij to.</string>
     <string name="cookies_steps_google">1. Wpisz e-mail konta Google, a potem hasło.\n2. Jeśli Google poprosi, potwierdź logowanie na telefonie.\nHowYouDoin przejdzie dalej sam, gdy się zalogujesz. Rozsuń palce, żeby powiększyć stronę.</string>
+    <string name="connectnetwork_x">Zaloguj się na x.com, a potem wpisz kod dostępu do X Chat; wiadomości łączą się z tego telefonu.</string>
+    <string name="x_passcode_instructions">Wpisz kod dostępu do X Chat, czyli PIN ustawiony dla czatu w X. Odblokowuje on Twoje zaszyfrowane wiadomości na tym telefonie. X pozwala na kilka błędnych prób, a potem blokuje czat.</string>
+    <string name="field_x_passcode">Kod dostępu do X Chat</string>
 </resources>

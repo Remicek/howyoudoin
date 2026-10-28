@@ -212,4 +212,7 @@
     <string name="pair_gmessages_qr">На Android-телефоне откройте Google Сообщения → фото профиля → Связь с устройствами → Сканер QR-кодов и отсканируйте этот код. Сканеру нужен код на другом экране.</string>
     <string name="pair_gmessages_emoji">Google Сообщения на телефоне попросят выбрать эмодзи: нажмите этот.</string>
     <string name="cookies_steps_google">1. Введите e-mail Google, затем пароль.\n2. Если Google попросит, подтвердите вход на телефоне.\nHowYouDoin продолжит сам, когда вы войдёте. Сведите пальцы для увеличения, если страница мелкая.</string>
+    <string name="connectnetwork_x">Войдите на x.com и введите код доступа X Chat; сообщения подключаются с этого телефона.</string>
+    <string name="x_passcode_instructions">Введите код доступа X Chat — PIN, который вы задали для чата в X. Он открывает ваши зашифрованные сообщения на этом телефоне. X даёт лишь несколько неверных попыток, затем блокирует чат.</string>
+    <string name="field_x_passcode">Код доступа X Chat</string>
 </resources>

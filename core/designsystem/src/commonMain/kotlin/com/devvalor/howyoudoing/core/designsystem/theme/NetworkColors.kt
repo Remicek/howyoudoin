@@ -17,6 +17,7 @@ val ChatNetwork.brandColor: Color
         // Not in Simple Icons: LinkedIn's published blue, and Google's green for Voice
         ChatNetwork.LINKEDIN -> Color(0xFF0A66C2)
         ChatNetwork.DISCORD -> Color(0xFF5865F2)
+        ChatNetwork.TWITTER -> Color(0xFF000000)
         ChatNetwork.GOOGLE_VOICE -> Color(0xFF1E8E3E)
         ChatNetwork.MATRIX -> Color(0xFF000000)
     }
@@ -34,6 +35,7 @@ val ChatNetwork.monogram: String
         ChatNetwork.BLUESKY -> "B"
         ChatNetwork.LINKEDIN -> "in"
         ChatNetwork.DISCORD -> "D"
+        ChatNetwork.TWITTER -> "X"
         ChatNetwork.GOOGLE_VOICE -> "V"
         ChatNetwork.MATRIX -> "[m]"
     }

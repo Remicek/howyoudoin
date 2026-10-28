@@ -208,4 +208,7 @@
     <string name="pair_gmessages_qr">Android telefonunuzda Google Mesajlar → profil fotoğrafınız → Cihaz eşleme → QR kodu tarayıcı'yı açın ve bu kodu tarayın. Tarayıcının kodu başka bir ekranda görmesi gerekir.</string>
     <string name="pair_gmessages_emoji">Telefonunuzdaki Google Mesajlar bir emoji seçmenizi ister: bunu seçin.</string>
     <string name="cookies_steps_google">1. Google e-postanızı, ardından şifrenizi girin.\n2. Google isterse telefonunuzda siz olduğunuzu onaylayın.\nGiriş yaptığınızda HowYouDoin kendiliğinden devam eder. Sayfa küçük görünüyorsa iki parmakla yakınlaştırın.</string>
+    <string name="connectnetwork_x">x.com'da oturum açın, ardından X Chat parolanızı girin; mesajlar bu telefondan bağlanır.</string>
+    <string name="x_passcode_instructions">X'te Chat için belirlediğiniz PIN olan X Chat parolanızı girin. Şifreli mesajlarınızı bu telefonda açar. X, Chat'i kilitlemeden önce yalnızca birkaç yanlış denemeye izin verir.</string>
+    <string name="field_x_passcode">X Chat parolası</string>
 </resources>

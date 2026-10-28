@@ -1,5 +1,8 @@
 package com.devvalor.howyoudoing.networks.presentation.connect
 
+import howyoudoin.feature.networks.presentation.generated.resources.field_x_passcode
+import howyoudoin.feature.networks.presentation.generated.resources.x_passcode_instructions
+import howyoudoin.feature.networks.presentation.generated.resources.connectnetwork_x
 import howyoudoin.feature.networks.presentation.generated.resources.connectnetwork_gvoice
 import howyoudoin.feature.networks.presentation.generated.resources.connectnetwork_discord
 import howyoudoin.feature.networks.presentation.generated.resources.connectnetwork_linkedin
@@ -171,6 +174,7 @@ class ConnectNetworkViewModel(
                     ChatNetwork.BLUESKY -> blueskyLoginStep()
                     ChatNetwork.LINKEDIN -> linkedInStep()
                     ChatNetwork.DISCORD -> discordStep()
+                    ChatNetwork.TWITTER -> xStep()
                     ChatNetwork.GOOGLE_VOICE -> googleVoiceStep()
                     else -> onDeviceCookiesStep()
                 }
@@ -258,6 +262,9 @@ class ConnectNetworkViewModel(
             ON_DEVICE_PROMPT_FLOW_ID -> submitPromptAnswer(step)
             ON_DEVICE_MATRIX_FLOW_ID -> signInWith(onDevice.matrix, values)
             ON_DEVICE_CREDENTIALS_FLOW_ID -> onDevice.forNetwork(network)?.let { signInWith(it, values) }
+            ON_DEVICE_X_PASSCODE_FLOW_ID -> onDevice.forNetwork(network)?.let { client ->
+                signInWith(client, pendingXCookies + ("passcode" to values["passcode"].orEmpty()))
+            }
             else -> runStep { bridgeRepository.submitUserInput(network, step, values) }
         }
     }
@@ -269,12 +276,22 @@ class ConnectNetworkViewModel(
     }
 
     /** Cookies that were just rejected: the web view finds them again, and they'd only fail again. */
+    /** x.com's cookies, kept while the X Chat passcode is asked for. */
+    private var pendingXCookies: Map<String, String> = emptyMap()
+
     private var rejectedCookies: Map<String, String>? = null
 
     private fun submitCookies(cookiesByName: Map<String, String>) {
         val step = (state.value.phase as? ConnectPhase.Step)?.step as? BridgeLoginStep.Cookies ?: return
         if (state.value.isSubmitting || cookiesByName == rejectedCookies) return
         if (step.loginId == ON_DEVICE_FLOW_ID) return linkOnDevice(step, cookiesByName)
+        if (step.loginId == ON_DEVICE_X_FLOW_ID) {
+            // X Chat's messages are encrypted: the passcode that unlocks them comes next
+            pendingXCookies = step.cookies
+                .mapNotNull { cookie -> cookiesByName[cookie.cookieName]?.let { cookie.cookieName to it } }
+                .toMap()
+            return showStepWhenReady { xPasscodeStep() }
+        }
         if (step.loginId == ON_DEVICE_GMESSAGES_GOOGLE_FLOW_ID) {
             val account = googleMessages() ?: return
             val cookies = step.cookies
@@ -676,6 +693,31 @@ class ConnectNetworkViewModel(
             listOf("OSID", "__Secure-1PSIDTS", "COMPASS").map { RequiredCookie(it, it, isRequired = false) }
     )
 
+    /** x.com's session (auth_token and ct0, as mautrix-twitter uses them); the X Chat passcode is asked next. */
+    private suspend fun xStep() = BridgeLoginStep.Cookies(
+        loginId = ON_DEVICE_X_FLOW_ID,
+        stepId = "on-device-x",
+        instructions = "",
+        url = "https://x.com/i/flow/login",
+        userAgent = DESKTOP_USER_AGENT,
+        cookies = listOf("auth_token", "ct0").map { RequiredCookie(it, it, isRequired = true) } +
+            RequiredCookie("twid", "twid", isRequired = false)
+    )
+
+    private suspend fun xPasscodeStep() = BridgeLoginStep.UserInput(
+        loginId = ON_DEVICE_X_PASSCODE_FLOW_ID,
+        stepId = "on-device-x-passcode",
+        instructions = getString(Res.string.x_passcode_instructions),
+        fields = listOf(
+            LoginInputField(
+                id = "passcode",
+                name = getString(Res.string.field_x_passcode),
+                description = "",
+                type = InputFieldType.PASSWORD
+            )
+        )
+    )
+
     /** Pairing Google Messages through the Google account: messages.google.com's cookies, then an emoji. */
     private suspend fun googleMessagesStep() = BridgeLoginStep.Cookies(
         loginId = ON_DEVICE_GMESSAGES_GOOGLE_FLOW_ID,
@@ -767,6 +809,9 @@ class ConnectNetworkViewModel(
         const val ON_DEVICE_GMESSAGES_QR_FLOW_ID = "howyoudoin-on-device-gmessages-qr"
         const val ON_DEVICE_GMESSAGES_GOOGLE_FLOW_ID = "howyoudoin-on-device-gmessages-google"
 
+        const val ON_DEVICE_X_FLOW_ID = "howyoudoin-on-device-x"
+        const val ON_DEVICE_X_PASSCODE_FLOW_ID = "howyoudoin-on-device-x-passcode"
+
         /** Signing in with typed values on a network other than Matrix (Bluesky). */
         const val ON_DEVICE_CREDENTIALS_FLOW_ID = "howyoudoin-on-device-credentials"
 
@@ -857,6 +902,9 @@ class ConnectNetworkViewModel(
             ),
             ChatNetwork.DISCORD to listOf(
                 OnDeviceOption(ON_DEVICE_FLOW_ID, Res.string.flow_device, Res.string.connectnetwork_discord)
+            ),
+            ChatNetwork.TWITTER to listOf(
+                OnDeviceOption(ON_DEVICE_FLOW_ID, Res.string.flow_device, Res.string.connectnetwork_x)
             ),
             ChatNetwork.GOOGLE_VOICE to listOf(
                 OnDeviceOption(ON_DEVICE_FLOW_ID, Res.string.flow_device, Res.string.connectnetwork_gvoice)

@@ -210,4 +210,7 @@
     <string name="pair_gmessages_qr">En tu Android abre Mensajes de Google → tu foto de perfil → Vinculación de dispositivos → Escáner de códigos QR y escanea este código. El escáner necesita el código en otra pantalla.</string>
     <string name="pair_gmessages_emoji">Mensajes de Google en tu teléfono te pedirá elegir un emoji: toca este.</string>
     <string name="cookies_steps_google">1. Escribe tu correo de Google y luego tu contraseña.\n2. Si Google lo pide, confirma que eres tú en tu teléfono.\nHowYouDoin continuará solo cuando entres. Pellizca para ampliar si la página se ve pequeña.</string>
+    <string name="connectnetwork_x">Inicia sesión en x.com y escribe tu código de acceso de X Chat; los mensajes se conectan desde este teléfono.</string>
+    <string name="x_passcode_instructions">Escribe tu código de acceso de X Chat, el PIN que configuraste para Chat en X. Desbloquea tus mensajes cifrados en este teléfono. X solo permite unos pocos intentos fallidos antes de bloquear Chat.</string>
+    <string name="field_x_passcode">Código de acceso de X Chat</string>
 </resources>

@@ -208,4 +208,7 @@
     <string name="pair_gmessages_qr">On your Android phone open Google Messages → your profile picture → Device pairing → QR code scanner, and scan this code. The scanner needs this code on another screen.</string>
     <string name="pair_gmessages_emoji">Google Messages on your phone asks you to pick an emoji: tap this one.</string>
     <string name="cookies_steps_google">1. Enter your Google email, then your password.\n2. If Google asks, confirm it's you on your phone.\nHowYouDoin continues by itself once you're in. Pinch to zoom if the page looks small.</string>
+    <string name="connectnetwork_x">Log in on x.com, then enter your X Chat passcode; messages connect from this phone.</string>
+    <string name="x_passcode_instructions">Enter your X Chat passcode, the PIN you set for Chat on X. It unlocks your encrypted messages on this phone. X allows only a few wrong tries before it locks Chat.</string>
+    <string name="field_x_passcode">X Chat passcode</string>
 </resources>

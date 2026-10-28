@@ -28,6 +28,7 @@ val ChatNetwork.logo: ImageVector?
         ChatNetwork.GOOGLE_MESSAGES -> GoogleMessagesLogo
         ChatNetwork.BLUESKY -> BlueskyLogo
         ChatNetwork.DISCORD -> DiscordLogo
+        ChatNetwork.TWITTER -> XLogo
         ChatNetwork.LINKEDIN, ChatNetwork.GOOGLE_VOICE -> null
     }
 
@@ -207,5 +208,13 @@ private val DiscordLogo: ImageVector by lazy {
         " 2.4189 -2.1569 2.4189zm7.9748 0c-1.1825 0 -2.1569 -1.0857 -2.1569 -2.419 0 -1.3332 .9554" +
         " -2.4189 2.1569 -2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332 -.946 2.4189 -2.1568" +
         " 2.4189Z"
+    )
+}
+
+private val XLogo: ImageVector by lazy {
+    simpleIcon(
+        "x",
+        "M14.234 10.162 22.977 0h-2.072l-7.591 8.824L7.251 0H.258l9.168 13.343L.258 24H2.33l8.016 -9.318L16.749" +
+        " 24h6.993zm-2.837 3.299 -.929 -1.329L3.076 1.56h3.182l5.965 8.532 .929 1.329 7.754 11.09h-3.182z"
     )
 }

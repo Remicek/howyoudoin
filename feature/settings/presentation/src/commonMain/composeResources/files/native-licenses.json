@@ -974,6 +974,13 @@
    "usedFor": null
   },
   {
+   "name": "github.com/andybalholm/cascadia",
+   "version": "v1.3.4",
+   "license": "BSD-2-Clause",
+   "url": "https://github.com/andybalholm/cascadia",
+   "usedFor": null
+  },
+  {
    "name": "github.com/apache/thrift",
    "version": "v0.24.0",
    "license": "Apache-2.0",
@@ -1006,6 +1013,13 @@
    "version": "v0.0.0-20250815183548-d4eede7bbf3c",
    "license": "BSD-3-Clause",
    "url": "https://github.com/beeper/poly1305",
+   "usedFor": null
+  },
+  {
+   "name": "github.com/bwesterb/go-ristretto",
+   "version": "v1.2.4",
+   "license": "MIT",
+   "url": "https://github.com/bwesterb/go-ristretto",
    "usedFor": null
   },
   {
@@ -1069,6 +1083,13 @@
    "version": "v3.1.0",
    "license": "MIT",
    "url": "https://github.com/elliotchance/orderedmap/v3",
+   "usedFor": null
+  },
+  {
+   "name": "github.com/fxamacker/cbor/v2",
+   "version": "v2.9.4",
+   "license": "MIT",
+   "url": "https://github.com/fxamacker/cbor/v2",
    "usedFor": null
   },
   {
@@ -1205,10 +1226,24 @@
    "usedFor": null
   },
   {
+   "name": "github.com/openziti/secretstream",
+   "version": "v0.1.53",
+   "license": "MIT",
+   "url": "https://github.com/openziti/secretstream",
+   "usedFor": null
+  },
+  {
    "name": "github.com/petermattis/goid",
    "version": "v0.0.0-20260918085751-abfca077860b",
    "license": "Apache-2.0",
    "url": "https://github.com/petermattis/goid",
+   "usedFor": null
+  },
+  {
+   "name": "github.com/PuerkitoBio/goquery",
+   "version": "v1.13.0",
+   "license": "BSD-3-Clause",
+   "url": "https://github.com/PuerkitoBio/goquery",
    "usedFor": null
   },
   {
@@ -1324,6 +1359,13 @@
    "usedFor": null
   },
   {
+   "name": "github.com/x448/float16",
+   "version": "v0.8.4",
+   "license": "MIT",
+   "url": "https://github.com/x448/float16",
+   "usedFor": null
+  },
+  {
    "name": "github.com/yuin/goldmark",
    "version": "v1.8.6",
    "license": "MIT",
@@ -1370,6 +1412,13 @@
    "version": "commit 26a8655",
    "license": "AGPL-3.0",
    "url": "https://go.mau.fi/mautrix-slack",
+   "usedFor": null
+  },
+  {
+   "name": "go.mau.fi/mautrix-twitter",
+   "version": "commit bf81ec5",
+   "license": "AGPL-3.0",
+   "url": "https://go.mau.fi/mautrix-twitter",
    "usedFor": null
   },
   {

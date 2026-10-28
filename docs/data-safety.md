@@ -9,7 +9,7 @@ What to enter in Play Console → App content → Data safety, and why. Keep it 
   Coil, DataStore, a QR code library, Stream's build of the open-source WebRTC library, AboutLibraries. No Google
   Play services, Firebase, analytics, advertising, attribution or crash-reporting SDK.
 - **Network library (Go/Rust):** the mautrix clients (whatsmeow, messagix, gotd for Telegram, libsignal, Slack,
-  libgm for Google Messages, libgv for Google Voice, linkedingo, Beeper's discordgo) and HowYouDoin's own Bluesky
+  libgm for Google Messages, libgv for Google Voice, linkedingo, Beeper's discordgo, twittermeow for X) and HowYouDoin's own Bluesky
   chat client.
   They talk only to the networks the user connects. OpenTelemetry appears only as its no-op tracing API (no
   exporter); `segmentio/asm` is a byte-handling library, not Segment analytics.

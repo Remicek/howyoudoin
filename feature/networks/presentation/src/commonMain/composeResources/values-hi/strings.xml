@@ -208,4 +208,7 @@
     <string name="pair_gmessages_qr">अपने Android फ़ोन पर Google Messages → अपनी प्रोफ़ाइल फ़ोटो → डिवाइस पेयरिंग → QR कोड स्कैनर खोलें और यह कोड स्कैन करें। स्कैनर को कोड किसी दूसरी स्क्रीन पर चाहिए।</string>
     <string name="pair_gmessages_emoji">आपके फ़ोन पर Google Messages एक इमोजी चुनने को कहेगा: यह वाला टैप करें।</string>
     <string name="cookies_steps_google">1. अपना Google ईमेल, फिर पासवर्ड डालें।\n2. अगर Google पूछे, तो अपने फ़ोन पर पुष्टि करें कि यह आप हैं।\nसाइन इन होते ही HowYouDoin अपने आप आगे बढ़ेगा। पेज छोटा दिखे तो पिंच करके ज़ूम करें।</string>
+    <string name="connectnetwork_x">x.com पर लॉग इन करें, फिर अपना X Chat पासकोड डालें; संदेश इस फ़ोन से जुड़ते हैं।</string>
+    <string name="x_passcode_instructions">अपना X Chat पासकोड डालें, यानी X पर Chat के लिए रखा गया PIN। यह इस फ़ोन पर आपके एन्क्रिप्टेड संदेश खोलता है। X कुछ ही गलत कोशिशों के बाद Chat लॉक कर देता है।</string>
+    <string name="field_x_passcode">X Chat पासकोड</string>
 </resources>

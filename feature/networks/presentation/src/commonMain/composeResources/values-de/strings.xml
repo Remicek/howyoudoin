@@ -208,4 +208,7 @@
     <string name="pair_gmessages_qr">Öffne auf deinem Android-Handy Google Messages → dein Profilbild → Geräte koppeln → QR-Code-Scanner und scanne diesen Code. Der Scanner braucht den Code auf einem anderen Bildschirm.</string>
     <string name="pair_gmessages_emoji">Google Messages auf deinem Handy fragt nach einem Emoji: tippe auf dieses.</string>
     <string name="cookies_steps_google">1. Gib deine Google-E-Mail-Adresse und dann dein Passwort ein.\n2. Bestätige auf dem Handy, falls Google danach fragt.\nHowYouDoin macht von selbst weiter, sobald du angemeldet bist. Zum Vergrößern mit zwei Fingern ziehen.</string>
+    <string name="connectnetwork_x">Melde dich auf x.com an und gib dann deinen X-Chat-Passcode ein; Nachrichten verbinden sich von diesem Handy.</string>
+    <string name="x_passcode_instructions">Gib deinen X-Chat-Passcode ein, die PIN, die du für Chat auf X festgelegt hast. Sie entsperrt deine verschlüsselten Nachrichten auf diesem Handy. X erlaubt nur wenige Fehlversuche, dann sperrt es Chat.</string>
+    <string name="field_x_passcode">X-Chat-Passcode</string>
 </resources>
