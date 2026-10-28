@@ -41,7 +41,7 @@ jobs:
         run: |
           bridge-mobile/scripts/fetch-bridges.sh
           cd bridge-mobile
-          go run golang.org/x/vuln/cmd/govulncheck@v1.1.4 -tags goolm ./...
+          go run golang.org/x/vuln/cmd/govulncheck@v1.9.0 -tags goolm ./...
 
   gradle-wrapper:
     runs-on: ubuntu-latest
