@@ -5,6 +5,8 @@ import howyoudoin.feature.settings.presentation.generated.resources.about_good_t
 import howyoudoin.feature.settings.presentation.generated.resources.about_licenses_sub
 import howyoudoin.feature.settings.presentation.generated.resources.about_opens_browser
 import howyoudoin.feature.settings.presentation.generated.resources.about_privacy
+import howyoudoin.feature.settings.presentation.generated.resources.about_privacy_policy
+import howyoudoin.feature.settings.presentation.generated.resources.about_privacy_policy_sub
 import howyoudoin.feature.settings.presentation.generated.resources.about_source
 import howyoudoin.feature.settings.presentation.generated.resources.about_source_sub
 import howyoudoin.feature.settings.presentation.generated.resources.about_terms_sub
@@ -21,6 +23,7 @@ import androidx.compose.material.icons.automirrored.rounded.OpenInNew
 import androidx.compose.material.icons.rounded.Code
 import androidx.compose.material.icons.rounded.Gavel
 import androidx.compose.material.icons.rounded.Info
+import androidx.compose.material.icons.rounded.Shield
 import androidx.compose.material.icons.rounded.Policy
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -62,6 +65,20 @@ fun AboutScreen(appInfo: AppInfo, onLicensesClick: () -> Unit, onTermsClick: () 
                 subtitle = stringResource(Res.string.about_source_sub),
                 icon = Icons.Rounded.Code,
                 onClick = { uriHandler.openUri(appInfo.sourceCodeUrl) },
+                trailing = {
+                    Icon(
+                        Icons.AutoMirrored.Rounded.OpenInNew,
+                        contentDescription = stringResource(Res.string.about_opens_browser)
+                    )
+                },
+            )
+        }
+        item {
+            SettingsRow(
+                title = stringResource(Res.string.about_privacy_policy),
+                subtitle = stringResource(Res.string.about_privacy_policy_sub),
+                icon = Icons.Rounded.Shield,
+                onClick = { uriHandler.openUri(appInfo.privacyPolicyUrl) },
                 trailing = {
                     Icon(
                         Icons.AutoMirrored.Rounded.OpenInNew,

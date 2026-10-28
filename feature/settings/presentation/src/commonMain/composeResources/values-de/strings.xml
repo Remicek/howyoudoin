@@ -31,6 +31,8 @@
     <string name="about_version">Version %1$s</string>
     <string name="about_source">Quellcode</string>
     <string name="about_source_sub">Freie Software unter der GNU AGPL v3. Du darfst sie untersuchen, ändern und weitergeben.</string>
+    <string name="about_privacy_policy">Datenschutzerklärung</string>
+    <string name="about_privacy_policy_sub">Was auf deinem Handy bleibt und wohin deine Daten gehen</string>
     <string name="about_opens_browser">Öffnet sich im Browser</string>
     <string name="about_licenses_sub">Die Bibliotheken, mit denen HowYouDoin gebaut ist</string>
     <string name="about_terms_sub">Ohne Gewähr; Nutzung auf eigenes Risiko</string>

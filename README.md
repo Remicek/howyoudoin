@@ -1,3 +1,5 @@
+<img src="docs/logo/howyoudoin-logo.svg" alt="" width="96" align="right">
+
 # HowYouDoin
 
 All your chats in one inbox: WhatsApp, Messenger, Instagram, Telegram and Signal, connected straight from your

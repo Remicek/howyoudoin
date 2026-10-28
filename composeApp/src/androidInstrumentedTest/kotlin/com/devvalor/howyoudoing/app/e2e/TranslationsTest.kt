@@ -1,8 +1,8 @@
 package com.devvalor.howyoudoing.app.e2e
 
 import android.os.Build
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.onNodeWithText
-import androidx.compose.ui.test.performScrollTo
 import org.junit.Assume.assumeTrue
 import org.junit.Before
 import org.junit.Rule
@@ -27,7 +27,7 @@ class TranslationsTest(locale: String, private val tagline: String, private val 
     @Test
     fun welcomeScreenIsTranslated() {
         app.waitForText(tagline)
-        app.onNodeWithText(demoButton).performScrollTo()
+        app.onNodeWithText(demoButton).assertIsDisplayed()
     }
 
     companion object {

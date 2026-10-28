@@ -31,6 +31,8 @@
     <string name="about_version">Versi %1$s</string>
     <string name="about_source">Kode sumber</string>
     <string name="about_source_sub">Perangkat lunak bebas dengan lisensi GNU AGPL v3. Anda boleh mempelajari, mengubah, dan membagikannya.</string>
+    <string name="about_privacy_policy">Kebijakan privasi</string>
+    <string name="about_privacy_policy_sub">Apa yang tetap di ponsel Anda dan ke mana data Anda dikirim</string>
     <string name="about_opens_browser">Terbuka di browser</string>
     <string name="about_licenses_sub">Library yang dipakai untuk membuat HowYouDoin</string>
     <string name="about_terms_sub">Tanpa jaminan; risiko penggunaan Anda tanggung sendiri</string>

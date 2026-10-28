@@ -31,6 +31,8 @@
     <string name="about_version">الإصدار %1$s</string>
     <string name="about_source">الشيفرة المصدرية</string>
     <string name="about_source_sub">برنامج حر بموجب رخصة GNU AGPL v3. يمكنك دراسته وتعديله ومشاركته.</string>
+    <string name="about_privacy_policy">سياسة الخصوصية</string>
+    <string name="about_privacy_policy_sub">ما يبقى على هاتفك وأين تذهب بياناتك</string>
     <string name="about_opens_browser">يُفتح في المتصفح</string>
     <string name="about_licenses_sub">المكتبات التي بُني بها HowYouDoin</string>
     <string name="about_terms_sub">بلا ضمان؛ الاستخدام على مسؤوليتك</string>

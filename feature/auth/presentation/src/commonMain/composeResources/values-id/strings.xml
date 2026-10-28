@@ -2,13 +2,6 @@
 <resources>
     <string name="login_tagline">Semua chat Anda dalam satu kotak masuk</string>
     <string name="login_get_started">Mulai di ponsel ini</string>
-    <string name="login_server_intro">Atau masuk ke homeserver Matrix Anda sendiri dengan bridge.</string>
-    <string name="login_homeserver">Homeserver</string>
-    <string name="login_username">Nama pengguna</string>
-    <string name="login_password">Kata sandi</string>
-    <string name="login_hide_password">Sembunyikan kata sandi</string>
-    <string name="login_show_password">Tampilkan kata sandi</string>
-    <string name="login_sign_in_server">Masuk ke server</string>
     <string name="login_demo">Coba mode demo</string>
     <string name="privacy_on_phone_title">Chat Anda tetap di ponsel Anda</string>
     <string name="privacy_on_phone_text">Pesan, kontak, dan info masuk hanya disimpan di ponsel ini.</string>

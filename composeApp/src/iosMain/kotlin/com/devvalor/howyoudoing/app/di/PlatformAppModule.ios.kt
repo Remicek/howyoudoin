@@ -29,6 +29,7 @@ import com.devvalor.howyoudoing.app.notifications.IncomingMessageNotifier
 import com.devvalor.howyoudoing.app.notifications.MessageNotificationPresenter
 import com.devvalor.howyoudoing.app.notifications.NoOpNotificationPresenter
 import org.koin.core.module.Module
+import com.devvalor.howyoudoing.app.PRIVACY_POLICY_URL
 import com.devvalor.howyoudoing.app.SOURCE_CODE_URL
 import com.devvalor.howyoudoing.app.settings.IosBiometricAuthenticator
 import com.devvalor.howyoudoing.app.settings.IosCrashReports
@@ -49,7 +50,7 @@ actual val platformAppModule: Module = module {
     single<CrashReports> { IosCrashReports }
     single {
         val version = NSBundle.mainBundle.infoDictionary?.get("CFBundleShortVersionString") as? String
-        AppInfo(versionName = version ?: "?", sourceCodeUrl = SOURCE_CODE_URL)
+        AppInfo(versionName = version ?: "?", sourceCodeUrl = SOURCE_CODE_URL, privacyPolicyUrl = PRIVACY_POLICY_URL)
     }
     single<MessageNotificationPresenter> { NoOpNotificationPresenter }
     single(createdAtStart = true) { IncomingMessageNotifier(get(), get(), get(), get(), get(), get()) }

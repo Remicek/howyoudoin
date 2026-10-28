@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Status bar icon: the winking bubble in one colour (Android tints it) -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="120"
+    android:viewportHeight="120">
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:fillType="evenOdd"
+        android:pathData="M26,24h68a14,14 0,0 1,14 14v34a14,14 0,0 1,-14 14H58L38,102V86H26a14,14 0,0 1,-14 -14V38a14,14 0,0 1,14 -14zM36,49Q45,40.5 54,49A2.75,2.75 0,0 1,50 53Q45,47.5 40,53A2.75,2.75 0,0 1,36 49zM71.5,50a5.5,5.5 0,1 0,11 0a5.5,5.5 0,1 0,-11 0zM39.8,66Q60,82.5 80.2,66A2.75,2.75 0,0 0,75.8 62Q60,75.5 44.2,62A2.75,2.75 0,0 0,39.8 66z" />
+</vector>

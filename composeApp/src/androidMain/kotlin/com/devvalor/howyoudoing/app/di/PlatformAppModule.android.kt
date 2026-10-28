@@ -39,6 +39,7 @@ import com.devvalor.howyoudoing.app.notifications.IncomingMessageNotifier
 import com.devvalor.howyoudoing.app.notifications.MessageNotificationPresenter
 import com.devvalor.howyoudoing.app.notifications.AndroidNotificationPresenter
 import org.koin.core.module.Module
+import com.devvalor.howyoudoing.app.PRIVACY_POLICY_URL
 import com.devvalor.howyoudoing.app.SOURCE_CODE_URL
 import com.devvalor.howyoudoing.app.settings.AndroidBiometricAuthenticator
 import com.devvalor.howyoudoing.app.settings.AndroidCrashReports
@@ -72,7 +73,7 @@ actual val platformAppModule: Module = module {
         val version = runCatching {
             androidContext().packageManager.getPackageInfo(androidContext().packageName, 0).versionName
         }.getOrNull()
-        AppInfo(versionName = version ?: "?", sourceCodeUrl = SOURCE_CODE_URL)
+        AppInfo(versionName = version ?: "?", sourceCodeUrl = SOURCE_CODE_URL, privacyPolicyUrl = PRIVACY_POLICY_URL)
     }
     single<MessageNotificationPresenter> { AndroidNotificationPresenter(androidContext()) }
     single(createdAtStart = true) { IncomingMessageNotifier(get(), get(), get(), get(), get(), get()) }

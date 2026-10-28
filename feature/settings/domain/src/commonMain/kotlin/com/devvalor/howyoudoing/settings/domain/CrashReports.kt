@@ -28,4 +28,6 @@ data class AppInfo(
     val versionName: String,
     /** Where the app's source code is published (the AGPL requires offering it). */
     val sourceCodeUrl: String,
+    /** The full privacy policy, which Google Play requires to be reachable from inside the app. */
+    val privacyPolicyUrl: String,
 )

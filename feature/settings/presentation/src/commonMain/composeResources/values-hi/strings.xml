@@ -31,6 +31,8 @@
     <string name="about_version">वर्शन %1$s</string>
     <string name="about_source">सोर्स कोड</string>
     <string name="about_source_sub">GNU AGPL v3 के तहत मुफ़्त सॉफ़्टवेयर। आप इसे पढ़, बदल और शेयर कर सकते हैं।</string>
+    <string name="about_privacy_policy">निजता नीति</string>
+    <string name="about_privacy_policy_sub">आपके फ़ोन पर क्या रहता है और आपका डेटा कहाँ जाता है</string>
     <string name="about_opens_browser">ब्राउज़र में खुलता है</string>
     <string name="about_licenses_sub">वे लाइब्रेरी जिनसे HowYouDoin बना है</string>
     <string name="about_terms_sub">कोई वारंटी नहीं; इस्तेमाल आपके अपने जोखिम पर</string>

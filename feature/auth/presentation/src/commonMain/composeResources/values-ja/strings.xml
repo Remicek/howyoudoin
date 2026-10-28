@@ -2,13 +2,6 @@
 <resources>
     <string name="login_tagline">すべてのチャットをひとつの受信箱に</string>
     <string name="login_get_started">このスマホで始める</string>
-    <string name="login_server_intro">または、ブリッジ付きの自分の Matrix ホームサーバーにサインインします。</string>
-    <string name="login_homeserver">ホームサーバー</string>
-    <string name="login_username">ユーザー名</string>
-    <string name="login_password">パスワード</string>
-    <string name="login_hide_password">パスワードを隠す</string>
-    <string name="login_show_password">パスワードを表示</string>
-    <string name="login_sign_in_server">サーバーにサインイン</string>
     <string name="login_demo">デモモードを試す</string>
     <string name="privacy_on_phone_title">チャットはスマホの中だけに</string>
     <string name="privacy_on_phone_text">メッセージ、連絡先、ログイン情報はこのスマホにのみ保存されます。</string>

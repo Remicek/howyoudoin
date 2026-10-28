@@ -2,13 +2,6 @@
 <resources>
     <string name="login_tagline">Todos tus chats en una sola bandeja</string>
     <string name="login_get_started">Empezar en este teléfono</string>
-    <string name="login_server_intro">O inicia sesión en tu propio servidor Matrix con puentes.</string>
-    <string name="login_homeserver">Servidor</string>
-    <string name="login_username">Usuario</string>
-    <string name="login_password">Contraseña</string>
-    <string name="login_hide_password">Ocultar contraseña</string>
-    <string name="login_show_password">Mostrar contraseña</string>
-    <string name="login_sign_in_server">Iniciar sesión en el servidor</string>
     <string name="login_demo">Probar el modo demo</string>
     <string name="privacy_on_phone_title">Tus chats se quedan en tu teléfono</string>
     <string name="privacy_on_phone_text">Los mensajes, contactos e inicios de sesión se guardan solo en este teléfono.</string>

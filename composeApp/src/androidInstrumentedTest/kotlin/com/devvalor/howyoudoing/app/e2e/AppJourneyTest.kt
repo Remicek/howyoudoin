@@ -15,7 +15,6 @@ import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import org.junit.Rule
@@ -45,7 +44,7 @@ class AppJourneyTest {
         app.onNodeWithText("Your chats stay on your phone").assertIsDisplayed()
         app.onNodeWithText("No HowYouDoin servers").assertIsDisplayed()
         app.onNodeWithText("We have no servers and no accounts", substring = true).assertIsDisplayed()
-        app.onNodeWithText("Try demo mode").performScrollTo().assertIsDisplayed()
+        app.onNodeWithText("Try demo mode").assertIsDisplayed()
     }
 
     @Test
@@ -146,7 +145,7 @@ class AppJourneyTest {
 
     private fun startDemo() {
         app.waitForText("Try demo mode")
-        app.onNodeWithText("Try demo mode").performScrollTo().performClick()
+        app.onNodeWithText("Try demo mode").performClick()
         // Asked once after signing in
         app.waitForText("Lock HowYouDoin?")
         app.onNodeWithText("Not now").performClick()

@@ -31,6 +31,8 @@
     <string name="about_version">バージョン %1$s</string>
     <string name="about_source">ソースコード</string>
     <string name="about_source_sub">GNU AGPL v3 のフリーソフトウェアです。自由に調べ、改変し、共有できます。</string>
+    <string name="about_privacy_policy">プライバシーポリシー</string>
+    <string name="about_privacy_policy_sub">スマホに残るデータと、データの送信先</string>
     <string name="about_opens_browser">ブラウザで開きます</string>
     <string name="about_licenses_sub">HowYouDoin に使われているライブラリ</string>
     <string name="about_terms_sub">無保証。ご利用は自己責任でお願いします</string>

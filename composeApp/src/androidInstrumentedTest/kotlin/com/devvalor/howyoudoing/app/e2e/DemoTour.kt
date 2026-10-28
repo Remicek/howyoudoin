@@ -9,9 +9,9 @@ import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -77,7 +77,7 @@ class DemoTour {
     private fun welcomeAndInbox() {
         app.waitForText("All your chats in one inbox")
         pause(LONG)
-        app.onNodeWithText("Try demo mode").performScrollTo()
+        app.onNodeWithText("Try demo mode").assertIsDisplayed()
         pause(LONG)
         app.onNodeWithText("Try demo mode").performClick()
         app.waitForText("Lock HowYouDoin?")

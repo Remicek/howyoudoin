@@ -31,6 +31,8 @@
     <string name="about_version">Sürüm %1$s</string>
     <string name="about_source">Kaynak kodu</string>
     <string name="about_source_sub">GNU AGPL v3 lisanslı özgür yazılım. İnceleyebilir, değiştirebilir ve paylaşabilirsiniz.</string>
+    <string name="about_privacy_policy">Gizlilik politikası</string>
+    <string name="about_privacy_policy_sub">Telefonunuzda kalanlar ve verilerinizin gittiği yerler</string>
     <string name="about_opens_browser">Tarayıcıda açılır</string>
     <string name="about_licenses_sub">HowYouDoin'in kullandığı kitaplıklar</string>
     <string name="about_terms_sub">Garanti yok; kullanım riski size aittir</string>
