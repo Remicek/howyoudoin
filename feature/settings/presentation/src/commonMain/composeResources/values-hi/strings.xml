@@ -6,7 +6,7 @@
     <string name="settings_guide">कनेक्ट करना कैसे काम करता है</string>
     <string name="settings_guide_sub">हर नेटवर्क के लिए कौन-सा लॉगिन इस्तेमाल करें</string>
     <string name="settings_appearance">रूप-रंग</string>
-    <string name="settings_appearance_sub">रंग और आकार</string>
+    <string name="settings_appearance_sub">रंग, आकार और डार्क मोड</string>
     <string name="settings_section_privacy">निजता</string>
     <string name="settings_app_lock">ऐप लॉक</string>
     <string name="settings_app_lock_on">चालू: चैट दिखाने से पहले PIN या फ़िंगरप्रिंट</string>
@@ -84,11 +84,11 @@
     <string name="common_not_now">अभी नहीं</string>
     <string name="lock_enter_pin">अपना PIN डालें</string>
     <string name="common_back">वापस</string>
-    <string name="appearance_indigo">इंडिगो</string>
+    <string name="appearance_indigo">इलेक्ट्रिक</string>
     <string name="appearance_lagoon">लैगून</string>
     <string name="appearance_sunset">सूर्यास्त</string>
     <string name="appearance_graphite">ग्रेफ़ाइट</string>
-    <string name="appearance_indigo_sub">शांत इंडिगो, मूल रूप</string>
+    <string name="appearance_indigo_sub">इलेक्ट्रिक नीला और बैंगनी, HowYouDoin का रूप</string>
     <string name="appearance_lagoon_sub">ताज़ा टील रंग, मुलायम गोल कोनों के साथ</string>
     <string name="appearance_sunset_sub">गर्म कोरल और क्रीम</string>
     <string name="appearance_graphite_sub">काला-सफ़ेद, तीखे कोने; डार्क मोड में पूरा काला</string>
@@ -134,4 +134,9 @@
         <item quantity="one">%1$d दिन पहले</item>
         <item quantity="other">%1$d दिन पहले</item>
     </plurals>
+    <string name="appearance_dark_mode">डार्क मोड</string>
+    <string name="appearance_dark_system">फ़ोन की सेटिंग</string>
+    <string name="appearance_dark_off">बंद</string>
+    <string name="appearance_dark_on">चालू</string>
+    <string name="appearance_themes">थीम</string>
 </resources>

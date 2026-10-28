@@ -6,7 +6,7 @@
     <string name="settings_guide">Cómo funciona la conexión</string>
     <string name="settings_guide_sub">Qué inicio de sesión usar en cada red</string>
     <string name="settings_appearance">Apariencia</string>
-    <string name="settings_appearance_sub">Colores y formas</string>
+    <string name="settings_appearance_sub">Colores, formas y modo oscuro</string>
     <string name="settings_section_privacy">Privacidad</string>
     <string name="settings_app_lock">Bloqueo de la app</string>
     <string name="settings_app_lock_on">Activado: PIN o huella antes de mostrar tus chats</string>
@@ -84,11 +84,11 @@
     <string name="common_not_now">Ahora no</string>
     <string name="lock_enter_pin">Introduce tu PIN</string>
     <string name="common_back">Atrás</string>
-    <string name="appearance_indigo">Índigo</string>
+    <string name="appearance_indigo">Eléctrico</string>
     <string name="appearance_lagoon">Laguna</string>
     <string name="appearance_sunset">Atardecer</string>
     <string name="appearance_graphite">Grafito</string>
-    <string name="appearance_indigo_sub">Índigo tranquilo, el aspecto original</string>
+    <string name="appearance_indigo_sub">Azul eléctrico y violeta, el estilo de HowYouDoin</string>
     <string name="appearance_lagoon_sub">Verde azulado fresco con esquinas suaves y redondeadas</string>
     <string name="appearance_sunset_sub">Coral cálido y crema</string>
     <string name="appearance_graphite_sub">Blanco y negro, esquinas definidas; negro puro en modo oscuro</string>
@@ -136,4 +136,9 @@
         <item quantity="many">hace %1$d días</item>
         <item quantity="other">hace %1$d días</item>
     </plurals>
+    <string name="appearance_dark_mode">Modo oscuro</string>
+    <string name="appearance_dark_system">Como el teléfono</string>
+    <string name="appearance_dark_off">Desactivado</string>
+    <string name="appearance_dark_on">Activado</string>
+    <string name="appearance_themes">Tema</string>
 </resources>

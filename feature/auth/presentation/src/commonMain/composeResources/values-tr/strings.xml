@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="login_tagline">Tüm sohbetleriniz tek bir gelen kutusunda</string>
+    <string name="login_tagline">Tüm sohbetleriniz. Tek bir yerde.</string>
     <string name="login_get_started">Bu telefonda başla</string>
     <string name="login_demo">Demo modunu dene</string>
     <string name="privacy_on_phone_title">Sohbetleriniz telefonunuzda kalır</string>

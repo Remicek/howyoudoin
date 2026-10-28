@@ -7,7 +7,9 @@ import android.os.Build
 import android.os.Bundle
 import com.devvalor.howyoudoing.app.notifications.ConnectionProblemNotifier
 import androidx.activity.compose.setContent
+import androidx.activity.SystemBarStyle
 import androidx.activity.enableEdgeToEdge
+import android.graphics.Color
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
@@ -41,7 +43,7 @@ class MainActivity : FragmentActivity() {
         askForNotifications()
         hideFromRecentsWhileLocked()
         setContent {
-            App()
+            App(onDarkThemeChange = ::matchSystemBars)
         }
     }
 
@@ -75,6 +77,16 @@ class MainActivity : FragmentActivity() {
     override fun onStop() {
         openChatTracker.isAppVisible.value = false
         super.onStop()
+    }
+
+    /** Light or dark status and navigation bar icons to match the app, which can be dark while the phone isn't. */
+    private fun matchSystemBars(isDark: Boolean) {
+        val style = if (isDark) {
+            SystemBarStyle.dark(Color.TRANSPARENT)
+        } else {
+            SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT)
+        }
+        enableEdgeToEdge(statusBarStyle = style, navigationBarStyle = style)
     }
 
     private fun handleNotificationTap(intent: Intent?) {

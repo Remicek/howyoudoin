@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="login_tagline">Alle Chats in einem Posteingang</string>
+    <string name="login_tagline">Alle deine Chats. Ein Ort.</string>
     <string name="login_get_started">Auf diesem Handy loslegen</string>
     <string name="login_demo">Demo-Modus testen</string>
     <string name="privacy_on_phone_title">Deine Chats bleiben auf deinem Handy</string>

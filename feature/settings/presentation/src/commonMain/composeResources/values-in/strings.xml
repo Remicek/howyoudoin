@@ -6,7 +6,7 @@
     <string name="settings_guide">Cara menghubungkan</string>
     <string name="settings_guide_sub">Cara masuk yang dipakai untuk tiap jaringan</string>
     <string name="settings_appearance">Tampilan</string>
-    <string name="settings_appearance_sub">Warna dan bentuk</string>
+    <string name="settings_appearance_sub">Warna, bentuk, dan mode gelap</string>
     <string name="settings_section_privacy">Privasi</string>
     <string name="settings_app_lock">Kunci aplikasi</string>
     <string name="settings_app_lock_on">Aktif: PIN atau sidik jari sebelum menampilkan chat</string>
@@ -84,11 +84,11 @@
     <string name="common_not_now">Nanti saja</string>
     <string name="lock_enter_pin">Masukkan PIN Anda</string>
     <string name="common_back">Kembali</string>
-    <string name="appearance_indigo">Indigo</string>
+    <string name="appearance_indigo">Elektrik</string>
     <string name="appearance_lagoon">Laguna</string>
     <string name="appearance_sunset">Senja</string>
     <string name="appearance_graphite">Grafit</string>
-    <string name="appearance_indigo_sub">Indigo yang tenang, tampilan asli</string>
+    <string name="appearance_indigo_sub">Biru elektrik dan ungu, tampilan HowYouDoin</string>
     <string name="appearance_lagoon_sub">Hijau toska segar dengan sudut lembut dan bulat</string>
     <string name="appearance_sunset_sub">Koral hangat dan krem</string>
     <string name="appearance_graphite_sub">Hitam putih, sudut tegas; hitam pekat di mode gelap</string>
@@ -132,4 +132,9 @@
     <plurals name="settings_days_ago">
         <item quantity="other">%1$d hari lalu</item>
     </plurals>
+    <string name="appearance_dark_mode">Mode gelap</string>
+    <string name="appearance_dark_system">Ikuti ponsel</string>
+    <string name="appearance_dark_off">Mati</string>
+    <string name="appearance_dark_on">Nyala</string>
+    <string name="appearance_themes">Tema</string>
 </resources>

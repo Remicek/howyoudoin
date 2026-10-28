@@ -6,7 +6,7 @@
     <string name="settings_guide">Comment fonctionne la connexion</string>
     <string name="settings_guide_sub">Quelle connexion utiliser pour chaque réseau</string>
     <string name="settings_appearance">Apparence</string>
-    <string name="settings_appearance_sub">Couleurs et formes</string>
+    <string name="settings_appearance_sub">Couleurs, formes et mode sombre</string>
     <string name="settings_section_privacy">Confidentialité</string>
     <string name="settings_app_lock">Verrouillage de l'appli</string>
     <string name="settings_app_lock_on">Activé : code PIN ou empreinte avant d'afficher vos discussions</string>
@@ -84,11 +84,11 @@
     <string name="common_not_now">Plus tard</string>
     <string name="lock_enter_pin">Saisissez votre code PIN</string>
     <string name="common_back">Retour</string>
-    <string name="appearance_indigo">Indigo</string>
+    <string name="appearance_indigo">Électrique</string>
     <string name="appearance_lagoon">Lagon</string>
     <string name="appearance_sunset">Coucher de soleil</string>
     <string name="appearance_graphite">Graphite</string>
-    <string name="appearance_indigo_sub">Indigo apaisant, l'apparence d'origine</string>
+    <string name="appearance_indigo_sub">Bleu électrique et violet, le style HowYouDoin</string>
     <string name="appearance_lagoon_sub">Bleu-vert frais aux coins doux et arrondis</string>
     <string name="appearance_sunset_sub">Corail chaud et crème</string>
     <string name="appearance_graphite_sub">Noir et blanc, coins nets ; vrai noir en mode sombre</string>
@@ -136,4 +136,9 @@
         <item quantity="many">il y a %1$d jours</item>
         <item quantity="other">il y a %1$d jours</item>
     </plurals>
+    <string name="appearance_dark_mode">Mode sombre</string>
+    <string name="appearance_dark_system">Comme le téléphone</string>
+    <string name="appearance_dark_off">Désactivé</string>
+    <string name="appearance_dark_on">Activé</string>
+    <string name="appearance_themes">Thème</string>
 </resources>

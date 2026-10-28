@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="login_tagline">Semua chat Anda dalam satu kotak masuk</string>
+    <string name="login_tagline">Semua chat Anda. Satu tempat.</string>
     <string name="login_get_started">Mulai di ponsel ini</string>
     <string name="login_demo">Coba mode demo</string>
     <string name="privacy_on_phone_title">Chat Anda tetap di ponsel Anda</string>

@@ -6,7 +6,7 @@
     <string name="settings_guide">Как работает подключение</string>
     <string name="settings_guide_sub">Какой способ входа выбрать для каждой сети</string>
     <string name="settings_appearance">Оформление</string>
-    <string name="settings_appearance_sub">Цвета и формы</string>
+    <string name="settings_appearance_sub">Цвета, формы и тёмная тема</string>
     <string name="settings_section_privacy">Конфиденциальность</string>
     <string name="settings_app_lock">Блокировка приложения</string>
     <string name="settings_app_lock_on">Вкл.: PIN-код или отпечаток перед показом чатов</string>
@@ -84,11 +84,11 @@
     <string name="common_not_now">Не сейчас</string>
     <string name="lock_enter_pin">Введите PIN-код</string>
     <string name="common_back">Назад</string>
-    <string name="appearance_indigo">Индиго</string>
+    <string name="appearance_indigo">Электрик</string>
     <string name="appearance_lagoon">Лагуна</string>
     <string name="appearance_sunset">Закат</string>
     <string name="appearance_graphite">Графит</string>
-    <string name="appearance_indigo_sub">Спокойный индиго, исходный вид</string>
+    <string name="appearance_indigo_sub">Синий электрик и фиолетовый, фирменный вид HowYouDoin</string>
     <string name="appearance_lagoon_sub">Свежий бирюзовый с мягкими скруглёнными углами</string>
     <string name="appearance_sunset_sub">Тёплый коралловый и кремовый</string>
     <string name="appearance_graphite_sub">Чёрно-белый, чёткие углы; настоящий чёрный в тёмном режиме</string>
@@ -138,4 +138,9 @@
         <item quantity="many">%1$d дней назад</item>
         <item quantity="other">%1$d дня назад</item>
     </plurals>
+    <string name="appearance_dark_mode">Тёмная тема</string>
+    <string name="appearance_dark_system">Как в телефоне</string>
+    <string name="appearance_dark_off">Выкл.</string>
+    <string name="appearance_dark_on">Вкл.</string>
+    <string name="appearance_themes">Оформление</string>
 </resources>

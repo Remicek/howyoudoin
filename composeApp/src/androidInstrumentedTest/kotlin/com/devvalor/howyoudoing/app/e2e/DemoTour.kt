@@ -78,7 +78,7 @@ class DemoTour {
 
     /** The welcome screen (what the app is, and that it has no servers), then every network in one inbox. */
     private fun welcomeAndInbox() {
-        app.waitForText("All your chats in one inbox")
+        app.waitForText("All your chats. One place.")
         pause(LONG)
         app.onNodeWithText("Try demo mode").assertIsDisplayed()
         pause(LONG)

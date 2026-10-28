@@ -6,7 +6,7 @@
     <string name="settings_guide">接続のしくみ</string>
     <string name="settings_guide_sub">ネットワークごとに使うログイン方法</string>
     <string name="settings_appearance">外観</string>
-    <string name="settings_appearance_sub">色と形</string>
+    <string name="settings_appearance_sub">色、形、ダークモード</string>
     <string name="settings_section_privacy">プライバシー</string>
     <string name="settings_app_lock">アプリロック</string>
     <string name="settings_app_lock_on">オン：チャット表示前に PIN または指紋</string>
@@ -84,11 +84,11 @@
     <string name="common_not_now">後で</string>
     <string name="lock_enter_pin">PIN を入力</string>
     <string name="common_back">戻る</string>
-    <string name="appearance_indigo">インディゴ</string>
+    <string name="appearance_indigo">エレクトリック</string>
     <string name="appearance_lagoon">ラグーン</string>
     <string name="appearance_sunset">サンセット</string>
     <string name="appearance_graphite">グラファイト</string>
-    <string name="appearance_indigo_sub">落ち着いたインディゴ。元のデザイン</string>
+    <string name="appearance_indigo_sub">エレクトリックブルーとバイオレット。HowYouDoin のデザイン</string>
     <string name="appearance_lagoon_sub">さわやかなティールと丸みのある柔らかな角</string>
     <string name="appearance_sunset_sub">あたたかなコーラルとクリーム</string>
     <string name="appearance_graphite_sub">モノクロでシャープな角。ダークモードでは真っ黒</string>
@@ -132,4 +132,9 @@
     <plurals name="settings_days_ago">
         <item quantity="other">%1$d 日前</item>
     </plurals>
+    <string name="appearance_dark_mode">ダークモード</string>
+    <string name="appearance_dark_system">端末の設定</string>
+    <string name="appearance_dark_off">オフ</string>
+    <string name="appearance_dark_on">オン</string>
+    <string name="appearance_themes">テーマ</string>
 </resources>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="login_tagline">كل محادثاتك في صندوق واحد</string>
+    <string name="login_tagline">كل محادثاتك. في مكان واحد.</string>
     <string name="login_get_started">ابدأ على هذا الهاتف</string>
     <string name="login_demo">جرّب الوضع التجريبي</string>
     <string name="privacy_on_phone_title">محادثاتك تبقى على هاتفك</string>

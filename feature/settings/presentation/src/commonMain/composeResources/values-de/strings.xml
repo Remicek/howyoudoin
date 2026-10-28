@@ -6,7 +6,7 @@
     <string name="settings_guide">So funktioniert das Verbinden</string>
     <string name="settings_guide_sub">Welche Anmeldung für welches Netzwerk</string>
     <string name="settings_appearance">Darstellung</string>
-    <string name="settings_appearance_sub">Farben und Formen</string>
+    <string name="settings_appearance_sub">Farben, Formen und Dunkelmodus</string>
     <string name="settings_section_privacy">Datenschutz</string>
     <string name="settings_app_lock">App-Sperre</string>
     <string name="settings_app_lock_on">Ein: PIN oder Fingerabdruck vor dem Anzeigen deiner Chats</string>
@@ -84,11 +84,11 @@
     <string name="common_not_now">Nicht jetzt</string>
     <string name="lock_enter_pin">PIN eingeben</string>
     <string name="common_back">Zurück</string>
-    <string name="appearance_indigo">Indigo</string>
+    <string name="appearance_indigo">Elektrisch</string>
     <string name="appearance_lagoon">Lagune</string>
     <string name="appearance_sunset">Sonnenuntergang</string>
     <string name="appearance_graphite">Graphit</string>
-    <string name="appearance_indigo_sub">Ruhiges Indigo, der ursprüngliche Look</string>
+    <string name="appearance_indigo_sub">Elektrisches Blau und Violett, der HowYouDoin-Look</string>
     <string name="appearance_lagoon_sub">Frisches Petrol mit weichen, runden Ecken</string>
     <string name="appearance_sunset_sub">Warmes Koralle und Creme</string>
     <string name="appearance_graphite_sub">Schwarz-Weiß, klare Ecken; echtes Schwarz im dunklen Modus</string>
@@ -134,4 +134,9 @@
         <item quantity="one">vor %1$d Tag</item>
         <item quantity="other">vor %1$d Tagen</item>
     </plurals>
+    <string name="appearance_dark_mode">Dunkelmodus</string>
+    <string name="appearance_dark_system">Wie das Telefon</string>
+    <string name="appearance_dark_off">Aus</string>
+    <string name="appearance_dark_on">An</string>
+    <string name="appearance_themes">Design</string>
 </resources>

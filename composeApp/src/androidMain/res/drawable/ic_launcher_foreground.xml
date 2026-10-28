@@ -14,7 +14,17 @@
             android:fillColor="#FFFFFF"
             android:pathData="M26,24h68a14,14 0,0 1,14 14v34a14,14 0,0 1,-14 14H58L38,102V86H26a14,14 0,0 1,-14 -14V38a14,14 0,0 1,14 -14z" />
         <path
-            android:fillColor="#3A1E12"
+            android:fillColor="#101936"
             android:pathData="M36,49Q45,40.5 54,49A2.75,2.75 0,0 1,50 53Q45,47.5 40,53A2.75,2.75 0,0 1,36 49zM71.5,50a5.5,5.5 0,1 0,11 0a5.5,5.5 0,1 0,-11 0zM39.8,66Q60,82.5 80.2,66A2.75,2.75 0,0 0,75.8 62Q60,75.5 44.2,62A2.75,2.75 0,0 0,39.8 66z" />
+        <!-- Small bright accents: the networks coming together -->
+        <path
+            android:fillColor="#20C86B"
+            android:pathData="M69.5,97a4.5,4.5 0,1 0,9 0a4.5,4.5 0,1 0,-9 0z" />
+        <path
+            android:fillColor="#FFC23D"
+            android:pathData="M81.5,97a4.5,4.5 0,1 0,9 0a4.5,4.5 0,1 0,-9 0z" />
+        <path
+            android:fillColor="#FF5C93"
+            android:pathData="M93.5,97a4.5,4.5 0,1 0,9 0a4.5,4.5 0,1 0,-9 0z" />
     </group>
 </vector>

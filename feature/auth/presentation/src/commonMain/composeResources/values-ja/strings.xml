@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="login_tagline">すべてのチャットをひとつの受信箱に</string>
+    <string name="login_tagline">すべてのチャットを、ひとつの場所に。</string>
     <string name="login_get_started">このスマホで始める</string>
     <string name="login_demo">デモモードを試す</string>
     <string name="privacy_on_phone_title">チャットはスマホの中だけに</string>

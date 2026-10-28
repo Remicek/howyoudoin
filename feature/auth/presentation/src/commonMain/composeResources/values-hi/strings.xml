@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="login_tagline">आपकी सारी चैट एक ही इनबॉक्स में</string>
+    <string name="login_tagline">आपकी सारी चैट। एक ही जगह।</string>
     <string name="login_get_started">इस फ़ोन पर शुरू करें</string>
     <string name="login_demo">डेमो मोड आज़माएँ</string>
     <string name="privacy_on_phone_title">आपकी चैट आपके फ़ोन पर ही रहती हैं</string>

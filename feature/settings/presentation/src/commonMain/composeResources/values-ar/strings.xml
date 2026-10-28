@@ -6,7 +6,7 @@
     <string name="settings_guide">كيف يعمل التوصيل</string>
     <string name="settings_guide_sub">طريقة تسجيل الدخول المناسبة لكل شبكة</string>
     <string name="settings_appearance">المظهر</string>
-    <string name="settings_appearance_sub">الألوان والأشكال</string>
+    <string name="settings_appearance_sub">الألوان والأشكال والوضع الداكن</string>
     <string name="settings_section_privacy">الخصوصية</string>
     <string name="settings_app_lock">قفل التطبيق</string>
     <string name="settings_app_lock_on">مفعّل: رمز PIN أو بصمة قبل عرض محادثاتك</string>
@@ -84,11 +84,11 @@
     <string name="common_not_now">ليس الآن</string>
     <string name="lock_enter_pin">أدخل رمز PIN</string>
     <string name="common_back">رجوع</string>
-    <string name="appearance_indigo">نيلي</string>
+    <string name="appearance_indigo">كهربائي</string>
     <string name="appearance_lagoon">بحيرة</string>
     <string name="appearance_sunset">غروب</string>
     <string name="appearance_graphite">غرافيت</string>
-    <string name="appearance_indigo_sub">نيلي هادئ، المظهر الأصلي</string>
+    <string name="appearance_indigo_sub">أزرق كهربائي وبنفسجي، مظهر HowYouDoin</string>
     <string name="appearance_lagoon_sub">أزرق مخضر منعش بزوايا ناعمة ومستديرة</string>
     <string name="appearance_sunset_sub">مرجاني دافئ وكريمي</string>
     <string name="appearance_graphite_sub">أبيض وأسود بزوايا حادة؛ أسود خالص في الوضع الداكن</string>
@@ -142,4 +142,9 @@
         <item quantity="many">منذ %1$d يومًا</item>
         <item quantity="other">منذ %1$d يوم</item>
     </plurals>
+    <string name="appearance_dark_mode">الوضع الداكن</string>
+    <string name="appearance_dark_system">حسب الهاتف</string>
+    <string name="appearance_dark_off">إيقاف</string>
+    <string name="appearance_dark_on">تشغيل</string>
+    <string name="appearance_themes">السمة</string>
 </resources>

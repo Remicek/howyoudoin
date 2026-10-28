@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.devvalor.howyoudoing.settings.domain.AppTheme
+import com.devvalor.howyoudoing.settings.domain.DarkMode
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
@@ -36,5 +37,14 @@ class DataStoreAppearanceRepositoryTest {
     fun an_unknown_saved_theme_falls_back_to_indigo() = runTest {
         dataStore.edit { it[stringPreferencesKey("appearance_theme")] = "REMOVED_THEME" }
         assertEquals(AppTheme.INDIGO, repository.observeTheme().first())
+    }
+
+    @Test
+    fun dark_mode_follows_the_phone_until_switched() = runTest {
+        assertEquals(DarkMode.SYSTEM, repository.observeDarkMode().first())
+        repository.setDarkMode(DarkMode.ON)
+        assertEquals(DarkMode.ON, repository.observeDarkMode().first())
+        repository.setDarkMode(DarkMode.OFF)
+        assertEquals(DarkMode.OFF, repository.observeDarkMode().first())
     }
 }

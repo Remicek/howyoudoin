@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="login_tagline">Toutes vos discussions dans une seule boîte</string>
+    <string name="login_tagline">Toutes vos discussions. Un seul endroit.</string>
     <string name="login_get_started">Commencer sur ce téléphone</string>
     <string name="login_demo">Essayer le mode démo</string>
     <string name="privacy_on_phone_title">Vos discussions restent sur votre téléphone</string>

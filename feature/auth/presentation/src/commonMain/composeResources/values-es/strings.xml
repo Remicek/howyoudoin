@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="login_tagline">Todos tus chats en una sola bandeja</string>
+    <string name="login_tagline">Todos tus chats. Un solo lugar.</string>
     <string name="login_get_started">Empezar en este teléfono</string>
     <string name="login_demo">Probar el modo demo</string>
     <string name="privacy_on_phone_title">Tus chats se quedan en tu teléfono</string>

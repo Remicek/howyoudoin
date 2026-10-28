@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="login_tagline">All your chats in one inbox</string>
+    <string name="login_tagline">All your chats. One place.</string>
     <string name="login_get_started">Get started on this phone</string>
     <string name="login_demo">Try demo mode</string>
     <string name="privacy_on_phone_title">Your chats stay on your phone</string>

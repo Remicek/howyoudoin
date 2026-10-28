@@ -1,6 +1,5 @@
 package com.devvalor.howyoudoing.app
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import com.devvalor.howyoudoing.app.notifications.NotificationRouter
@@ -16,20 +15,21 @@ import com.devvalor.howyoudoing.settings.presentation.lock.AppLockGate
 import com.devvalor.howyoudoing.settings.presentation.lock.AppLockOfferRoot
 import com.devvalor.howyoudoing.settings.presentation.navigation.SettingsRoutes
 import com.devvalor.howyoudoing.settings.presentation.appearance.AppearanceViewModel
+import com.devvalor.howyoudoing.settings.presentation.appearance.isDark
 import org.koin.compose.viewmodel.koinViewModel
 import com.devvalor.howyoudoing.app.backup.BackupOfferRoot
 import com.devvalor.howyoudoing.app.backup.RestoreLoginsScreen
 import com.devvalor.howyoudoing.app.backup.RestoreLoginsViewModel
 import com.devvalor.howyoudoing.networks.presentation.navigation.NetworksRoutes
 
+/** [onDarkThemeChange] tells the platform whether the app is drawn dark, for the colour of the status bar icons. */
 @Composable
 fun App(
-    isDarkTheme: Boolean = isSystemInDarkTheme(),
+    onDarkThemeChange: (Boolean) -> Unit = {},
     viewModel: MainViewModel = koinViewModel(),
     restoreViewModel: RestoreLoginsViewModel = koinViewModel(),
     appearanceViewModel: AppearanceViewModel = koinViewModel()
 ) {
-    val themeVariant by appearanceViewModel.variant.collectAsStateWithLifecycle()
     val restore by restoreViewModel.state.collectAsStateWithLifecycle()
     val navController = rememberNavController()
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -61,9 +61,7 @@ fun App(
         }
     }
 
-    // Nothing is drawn until the saved look is read, so it doesn't flash the default one first
-    val variant = themeVariant ?: return
-    HowYouDoinTheme(darkTheme = isDarkTheme, variant = variant) {
+    SavedTheme(appearanceViewModel, onDarkThemeChange) {
         // Logins found in the phone's backup are offered before anything else (a reinstall or a new phone)
         if (restore.isVisible) {
             RestoreLoginsScreen(
@@ -92,4 +90,18 @@ fun App(
             }
         }
     }
+}
+
+/** The look picked in Settings → Appearance. Nothing is drawn until it's read, so the default doesn't flash first. */
+@Composable
+private fun SavedTheme(
+    appearance: AppearanceViewModel,
+    onDarkThemeChange: (Boolean) -> Unit,
+    content: @Composable () -> Unit,
+) {
+    val variant by appearance.variant.collectAsStateWithLifecycle()
+    val darkMode by appearance.darkMode.collectAsStateWithLifecycle()
+    val isDark = darkMode?.isDark() ?: return
+    LaunchedEffect(isDark) { onDarkThemeChange(isDark) }
+    HowYouDoinTheme(darkTheme = isDark, variant = variant ?: return, content = content)
 }

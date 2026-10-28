@@ -6,7 +6,7 @@
     <string name="settings_guide">Jak działa łączenie</string>
     <string name="settings_guide_sub">Którego logowania użyć dla każdej sieci</string>
     <string name="settings_appearance">Wygląd</string>
-    <string name="settings_appearance_sub">Kolory i kształty</string>
+    <string name="settings_appearance_sub">Kolory, kształty i tryb ciemny</string>
     <string name="settings_section_privacy">Prywatność</string>
     <string name="settings_app_lock">Blokada aplikacji</string>
     <string name="settings_app_lock_on">Włączona: PIN lub odcisk palca przed pokazaniem czatów</string>
@@ -84,11 +84,11 @@
     <string name="common_not_now">Nie teraz</string>
     <string name="lock_enter_pin">Wpisz PIN</string>
     <string name="common_back">Wstecz</string>
-    <string name="appearance_indigo">Indygo</string>
+    <string name="appearance_indigo">Elektryczny</string>
     <string name="appearance_lagoon">Laguna</string>
     <string name="appearance_sunset">Zachód słońca</string>
     <string name="appearance_graphite">Grafit</string>
-    <string name="appearance_indigo_sub">Spokojne indygo, oryginalny wygląd</string>
+    <string name="appearance_indigo_sub">Elektryczny błękit i fiolet, wygląd HowYouDoin</string>
     <string name="appearance_lagoon_sub">Świeży morski błękit z miękkimi, zaokrąglonymi rogami</string>
     <string name="appearance_sunset_sub">Ciepły koral i krem</string>
     <string name="appearance_graphite_sub">Czerń i biel, ostre rogi; prawdziwa czerń w trybie ciemnym</string>
@@ -138,4 +138,9 @@
         <item quantity="many">%1$d dni temu</item>
         <item quantity="other">%1$d dnia temu</item>
     </plurals>
+    <string name="appearance_dark_mode">Tryb ciemny</string>
+    <string name="appearance_dark_system">Jak w telefonie</string>
+    <string name="appearance_dark_off">Wyłączony</string>
+    <string name="appearance_dark_on">Włączony</string>
+    <string name="appearance_themes">Motyw</string>
 </resources>

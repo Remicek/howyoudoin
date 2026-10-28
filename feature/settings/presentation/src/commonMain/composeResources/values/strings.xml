@@ -6,7 +6,7 @@
     <string name="settings_guide">How connecting works</string>
     <string name="settings_guide_sub">Which login to use for each network</string>
     <string name="settings_appearance">Appearance</string>
-    <string name="settings_appearance_sub">Colours and shapes</string>
+    <string name="settings_appearance_sub">Colours, shapes and dark mode</string>
     <string name="settings_section_privacy">Privacy</string>
     <string name="settings_app_lock">App lock</string>
     <string name="settings_app_lock_on">On: PIN or fingerprint before showing your chats</string>
@@ -92,11 +92,11 @@
     <string name="common_not_now">Not now</string>
     <string name="lock_enter_pin">Enter your PIN</string>
     <string name="common_back">Back</string>
-    <string name="appearance_indigo">Indigo</string>
+    <string name="appearance_indigo">Electric</string>
     <string name="appearance_lagoon">Lagoon</string>
     <string name="appearance_sunset">Sunset</string>
     <string name="appearance_graphite">Graphite</string>
-    <string name="appearance_indigo_sub">Calm indigo, the original look</string>
+    <string name="appearance_indigo_sub">Electric blue and violet, the HowYouDoin look</string>
     <string name="appearance_lagoon_sub">Fresh teal with soft, round corners</string>
     <string name="appearance_sunset_sub">Warm coral and cream</string>
     <string name="appearance_graphite_sub">Black and white, crisp corners; true black in dark mode</string>
@@ -134,4 +134,9 @@
     <string name="guide_intro">Your chats connect straight from this phone; no server stores them. HowYouDoin keeps the connections open in the background, which is what the "Connected on this device" notification means.</string>
     <string name="guide_unofficial">HowYouDoin is unofficial: these networks don't make or support it. WhatsApp, Messenger, Instagram and Signal don't officially allow other apps, so they could limit an account that uses one.</string>
     <string name="guide_connect">Connect a network</string>
+    <string name="appearance_dark_mode">Dark mode</string>
+    <string name="appearance_dark_system">Phone setting</string>
+    <string name="appearance_dark_off">Off</string>
+    <string name="appearance_dark_on">On</string>
+    <string name="appearance_themes">Theme</string>
 </resources>

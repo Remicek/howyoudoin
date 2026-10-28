@@ -10,6 +10,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.isSelected
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -40,7 +41,7 @@ class AppJourneyTest {
 
     @Test
     fun welcomeScreenExplainsThatTheAppHasNoServers() {
-        app.waitForText("All your chats in one inbox")
+        app.waitForText("All your chats. One place.")
         app.onNodeWithText("Your chats stay on your phone").assertIsDisplayed()
         app.onNodeWithText("No HowYouDoin servers").assertIsDisplayed()
         app.onNodeWithText("We have no servers and no accounts", substring = true).assertIsDisplayed()
@@ -73,7 +74,7 @@ class AppJourneyTest {
         val destinations = listOf(
             "Networks" to "Connect your chat accounts",
             "How connecting works" to "Messenger and Instagram",
-            "Appearance" to "Calm indigo, the original look",
+            "Appearance" to "Electric blue and violet, the HowYouDoin look",
             "App lock" to "Turn on app lock",
             "Crash reports" to "Offer to share after a crash",
             "Open-source licenses" to "HowYouDoin itself is free software",
@@ -100,16 +101,18 @@ class AppJourneyTest {
     }
 
     @Test
-    fun chosenThemeIsKeptAfterRestart() {
+    fun chosenThemeAndDarkModeAreKeptAfterRestart() {
         startDemo()
         openSettings()
         app.scrollToAndClick("Appearance")
         app.waitForText("Graphite")
+        app.onNodeWithText("On").performClick()
         app.scrollToAndClick("Graphite")
         app.waitForNode(hasContentDescription("Selected"))
 
         app.activityRule.scenario.recreate()
         app.waitForText("Graphite")
+        app.onNode(hasText("On") and isSelected()).assertExists()
         // Graphite is the last option; its tick is the one shown
         app.onAllNodes(hasScrollToNodeAction()).onFirst().performScrollToNode(hasText("Graphite"))
         app.waitForNode(hasContentDescription("Selected"))

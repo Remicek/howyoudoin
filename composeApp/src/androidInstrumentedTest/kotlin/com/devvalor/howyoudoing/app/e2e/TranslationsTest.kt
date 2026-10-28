@@ -34,18 +34,18 @@ class TranslationsTest(locale: String, private val tagline: String, private val 
         @JvmStatic
         @Parameterized.Parameters(name = "{0}")
         fun locales() = listOf(
-            arrayOf("en-US", "All your chats in one inbox", "Try demo mode"),
-            arrayOf("pl-PL", "Wszystkie czaty w jednej skrzynce", "Wypróbuj tryb demo"),
-            arrayOf("es-ES", "Todos tus chats en una sola bandeja", "Probar el modo demo"),
-            arrayOf("pt-BR", "Todas as suas conversas em uma só caixa de entrada", "Experimentar o modo demo"),
-            arrayOf("ru-RU", "Все чаты в одном месте", "Попробовать демо-режим"),
-            arrayOf("de-DE", "Alle Chats in einem Posteingang", "Demo-Modus testen"),
-            arrayOf("fr-FR", "Toutes vos discussions dans une seule boîte", "Essayer le mode démo"),
-            arrayOf("in-ID", "Semua chat Anda dalam satu kotak masuk", "Coba mode demo"),
-            arrayOf("tr-TR", "Tüm sohbetleriniz tek bir gelen kutusunda", "Demo modunu dene"),
-            arrayOf("ja-JP", "すべてのチャットをひとつの受信箱に", "デモモードを試す"),
-            arrayOf("hi-IN", "आपकी सारी चैट एक ही इनबॉक्स में", "डेमो मोड आज़माएँ"),
-            arrayOf("ar-EG", "كل محادثاتك في صندوق واحد", "جرّب الوضع التجريبي"),
+            arrayOf("en-US", "All your chats. One place.", "Try demo mode"),
+            arrayOf("pl-PL", "Wszystkie czaty. Jedno miejsce.", "Wypróbuj tryb demo"),
+            arrayOf("es-ES", "Todos tus chats. Un solo lugar.", "Probar el modo demo"),
+            arrayOf("pt-BR", "Todas as suas conversas. Um só lugar.", "Experimentar o modo demo"),
+            arrayOf("ru-RU", "Все ваши чаты. В одном месте.", "Попробовать демо-режим"),
+            arrayOf("de-DE", "Alle deine Chats. Ein Ort.", "Demo-Modus testen"),
+            arrayOf("fr-FR", "Toutes vos discussions. Un seul endroit.", "Essayer le mode démo"),
+            arrayOf("in-ID", "Semua chat Anda. Satu tempat.", "Coba mode demo"),
+            arrayOf("tr-TR", "Tüm sohbetleriniz. Tek bir yerde.", "Demo modunu dene"),
+            arrayOf("ja-JP", "すべてのチャットを、ひとつの場所に。", "デモモードを試す"),
+            arrayOf("hi-IN", "आपकी सारी चैट। एक ही जगह।", "डेमो मोड आज़माएँ"),
+            arrayOf("ar-EG", "كل محادثاتك. في مكان واحد.", "جرّب الوضع التجريبي"),
         )
     }
 }

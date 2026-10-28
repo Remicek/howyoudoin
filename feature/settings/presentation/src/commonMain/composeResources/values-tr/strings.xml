@@ -6,7 +6,7 @@
     <string name="settings_guide">Bağlantı nasıl çalışır</string>
     <string name="settings_guide_sub">Her ağ için hangi girişin kullanılacağı</string>
     <string name="settings_appearance">Görünüm</string>
-    <string name="settings_appearance_sub">Renkler ve şekiller</string>
+    <string name="settings_appearance_sub">Renkler, şekiller ve karanlık mod</string>
     <string name="settings_section_privacy">Gizlilik</string>
     <string name="settings_app_lock">Uygulama kilidi</string>
     <string name="settings_app_lock_on">Açık: sohbetler gösterilmeden önce PIN veya parmak izi</string>
@@ -84,11 +84,11 @@
     <string name="common_not_now">Şimdi değil</string>
     <string name="lock_enter_pin">PIN'inizi girin</string>
     <string name="common_back">Geri</string>
-    <string name="appearance_indigo">Çivit</string>
+    <string name="appearance_indigo">Elektrik</string>
     <string name="appearance_lagoon">Lagün</string>
     <string name="appearance_sunset">Gün batımı</string>
     <string name="appearance_graphite">Grafit</string>
-    <string name="appearance_indigo_sub">Sakin çivit mavisi, orijinal görünüm</string>
+    <string name="appearance_indigo_sub">Elektrik mavisi ve mor, HowYouDoin görünümü</string>
     <string name="appearance_lagoon_sub">Yumuşak, yuvarlak köşeli ferah turkuaz</string>
     <string name="appearance_sunset_sub">Sıcak mercan ve krem</string>
     <string name="appearance_graphite_sub">Siyah beyaz, keskin köşeler; koyu modda gerçek siyah</string>
@@ -134,4 +134,9 @@
         <item quantity="one">%1$d gün önce</item>
         <item quantity="other">%1$d gün önce</item>
     </plurals>
+    <string name="appearance_dark_mode">Karanlık mod</string>
+    <string name="appearance_dark_system">Telefona göre</string>
+    <string name="appearance_dark_off">Kapalı</string>
+    <string name="appearance_dark_on">Açık</string>
+    <string name="appearance_themes">Tema</string>
 </resources>

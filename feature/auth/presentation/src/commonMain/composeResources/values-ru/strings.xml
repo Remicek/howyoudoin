@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="login_tagline">Все чаты в одном месте</string>
+    <string name="login_tagline">Все ваши чаты. В одном месте.</string>
     <string name="login_get_started">Начать на этом телефоне</string>
     <string name="login_demo">Попробовать демо-режим</string>
     <string name="privacy_on_phone_title">Ваши чаты остаются на телефоне</string>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="login_tagline">Wszystkie czaty w jednej skrzynce</string>
+    <string name="login_tagline">Wszystkie czaty. Jedno miejsce.</string>
     <string name="login_get_started">Zacznij na tym telefonie</string>
     <string name="login_demo">Wypróbuj tryb demo</string>
     <string name="privacy_on_phone_title">Twoje czaty zostają na telefonie</string>

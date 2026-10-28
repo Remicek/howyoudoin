@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Midnight navy when the phone is dark, so the splash screen isn't a white flash -->
+    <style name="Theme.HowYouDoin" parent="@android:style/Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/window_background</item>
+    </style>
+
+    <color name="window_background">#101936</color>
+</resources>

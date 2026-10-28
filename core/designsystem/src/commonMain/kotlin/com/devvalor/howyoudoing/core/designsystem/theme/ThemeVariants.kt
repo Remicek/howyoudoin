@@ -10,7 +10,7 @@ import androidx.compose.ui.unit.dp
 
 /** The looks the user can pick in Settings → Appearance: colours for light and dark, and how round corners are. */
 enum class ThemeVariant {
-    /** Calm indigo, the original look. */
+    /** The brand look: electric blue and violet, midnight navy when dark. (Stored as INDIGO, its old name.) */
     INDIGO,
 
     /** Fresh teal with soft, very round shapes. */
@@ -108,18 +108,19 @@ private fun dark(t: Tones) = darkColorScheme(
     surfaceContainerHighest = Color(t.highest),
 )
 
+// The logo's #276BFF, a shade deeper so text and white on it stay readable (WCAG AA)
 private val IndigoLight = light(
     Tones(
-        0xFF5B5BD6, 0xFFFFFFFF, 0xFFE4E3FF, 0xFF14135E, 0xFF5D5C72, 0xFFFFFFFF, 0xFFE3E0F9, 0xFF1A1A2C,
-        0xFFFCFBFF, 0xFF1B1B21, 0xFFE4E1EC, 0xFF5F5D6B, 0xFF787680, 0xFFDCD9E4,
-        0xFFFFFFFF, 0xFFF5F3FB, 0xFFEFEDF6, 0xFFE9E7F0, 0xFFE4E1EA,
+        0xFF1D5CE8, 0xFFFFFFFF, 0xFFE6EAFF, 0xFF101936, 0xFF7138F5, 0xFFFFFFFF, 0xFFF0EDFF, 0xFF2A0E7A,
+        0xFFFCFCFF, 0xFF101936, 0xFFE3E6F3, 0xFF4F5670, 0xFF7A8199, 0xFFD6DAE8,
+        0xFFFFFFFF, 0xFFF6F6FD, 0xFFF0F1FA, 0xFFEAEBF5, 0xFFE4E6F0,
     )
 )
 private val IndigoDark = dark(
     Tones(
-        0xFF9B9BF5, 0xFF1F1F7A, 0xFF3B3BA8, 0xFFE4E3FF, 0xFFC7C4DD, 0xFF2F2F42, 0xFF454559, 0xFFE3E0F9,
-        0xFF121218, 0xFFE4E1E9, 0xFF47464F, 0xFFC8C5D0, 0xFF928F9A, 0xFF47464F,
-        0xFF0D0D12, 0xFF1B1B21, 0xFF1F1F25, 0xFF29292F, 0xFF34343A,
+        0xFF93B1FF, 0xFF00296F, 0xFF2B3D8F, 0xFFDCE4FF, 0xFFC9B6FF, 0xFF3A0E91, 0xFF4A2D9E, 0xFFEADDFF,
+        0xFF101936, 0xFFE3E7F5, 0xFF2A3354, 0xFFC2C8DC, 0xFF8C93AB, 0xFF2F3858,
+        0xFF0B1129, 0xFF151E3D, 0xFF1A2344, 0xFF232D50, 0xFF2D375B,
     )
 )
 

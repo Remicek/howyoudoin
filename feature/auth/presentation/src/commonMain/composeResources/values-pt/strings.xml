@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="login_tagline">Todas as suas conversas em uma só caixa de entrada</string>
+    <string name="login_tagline">Todas as suas conversas. Um só lugar.</string>
     <string name="login_get_started">Começar neste celular</string>
     <string name="login_demo">Experimentar o modo demo</string>
     <string name="privacy_on_phone_title">Suas conversas ficam no seu celular</string>
