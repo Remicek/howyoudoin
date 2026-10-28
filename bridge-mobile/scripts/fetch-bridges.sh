@@ -13,6 +13,7 @@ PINNED=(
     "mautrix-telegram https://github.com/mautrix/telegram 531adba3b6f17c599a651c5e5eaba4d292857cc3"
     "mautrix-signal https://github.com/mautrix/signal 46aff24f80816f10dae5ceff210b3dacb588a094"
     "mautrix-slack https://github.com/mautrix/slack 26a8655786662abd60fceec1d57f825fd9e4602e"
+    "mautrix-linkedin https://github.com/mautrix/linkedin f1aac6b7e0b297671940f6acf41eec836f81c441"
 )
 
 mkdir -p "$BRIDGES"
