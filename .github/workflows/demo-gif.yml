@@ -61,6 +61,8 @@ jobs:
 
       - name: Make the GIF
         run: |
+          sudo apt-get update -q > /dev/null
+          sudo apt-get install -y --no-install-recommends ffmpeg > /dev/null
           mkdir -p demo
           mv tour.mp4 demo/
           ffmpeg -loglevel error -i demo/tour.mp4 \
