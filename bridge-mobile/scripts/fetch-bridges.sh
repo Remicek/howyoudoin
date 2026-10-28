@@ -15,6 +15,7 @@ PINNED=(
     "mautrix-slack https://github.com/mautrix/slack 26a8655786662abd60fceec1d57f825fd9e4602e"
     "mautrix-linkedin https://github.com/mautrix/linkedin f1aac6b7e0b297671940f6acf41eec836f81c441"
     "mautrix-gvoice https://github.com/mautrix/gvoice 4f5ca4619d79a03e074009c1cdd5bb31c4c6dd69"
+    "mautrix-gmessages https://github.com/mautrix/gmessages 138a57dcecca697feb492dd2d94fa4a30034c000"
 )
 
 mkdir -p "$BRIDGES"

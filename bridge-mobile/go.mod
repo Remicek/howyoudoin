@@ -8,6 +8,7 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.52
 	github.com/rs/zerolog v1.35.1
 	github.com/slack-go/slack v0.24.0
+	go.mau.fi/mautrix-gmessages v0.0.0
 	go.mau.fi/mautrix-gvoice v0.0.0
 	go.mau.fi/mautrix-linkedin v0.0.0
 	go.mau.fi/mautrix-meta v0.0.0
@@ -111,3 +112,5 @@ replace go.mau.fi/mautrix-linkedin => ../../howyoudoin-bridges/mautrix-linkedin
 replace github.com/bwmarrin/discordgo => github.com/beeper/discordgo v0.0.0-20260808090638-8051e14a4471
 
 replace go.mau.fi/mautrix-gvoice => ../../howyoudoin-bridges/mautrix-gvoice
+
+replace go.mau.fi/mautrix-gmessages => ../../howyoudoin-bridges/mautrix-gmessages
