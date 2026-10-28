@@ -188,4 +188,24 @@
     <string name="wa_notifications">Notifications</string>
     <string name="wa_link_with_phone">Link with phone number</string>
     <string name="networks_calls_info">Voice and video calls work through Matrix for now: connect a Matrix account to call other Matrix users.</string>
+    <string name="networks_untested">Untested: not tried with a real account yet</string>
+    <string name="networks_discord_title">Discord bans accounts for this</string>
+    <string name="networks_discord_body">Discord's rules forbid using a personal account from another app, and Discord has banned accounts for it, sometimes without warning. Neither the developer nor Discord's support will bring a banned account back, with its friends and servers.\n\nConnect Discord only with an account you can afford to lose.</string>
+    <string name="flow_google_account">Google account</string>
+    <string name="connectnetwork_gmessages_qr">Scan a code with Google Messages on your Android phone (Device pairing). The code has to be on another screen.</string>
+    <string name="connectnetwork_gmessages_google">Sign in with the Google account Google Messages uses, then tap the matching emoji on your phone.</string>
+    <string name="connectnetwork_bluesky">Sign in with your handle and an app password; chats connect from this phone.</string>
+    <string name="connectnetwork_linkedin">Log in on linkedin.com; messages connect from this phone.</string>
+    <string name="connectnetwork_discord">Log in on discord.com; direct messages connect from this phone. Discord may ban accounts that do this.</string>
+    <string name="connectnetwork_gvoice">Sign in with Google on voice.google.com; texts connect from this phone.</string>
+    <string name="bluesky_instructions">Use an app password, not your account password: in Bluesky open Settings → Privacy and security → App passwords, add one and turn on "Allow access to your direct messages".</string>
+    <string name="field_bluesky_handle">Handle or email</string>
+    <string name="field_app_password">App password</string>
+    <string name="cookies_linkedin">Log in to LinkedIn. HowYouDoin then connects your messages from this phone.</string>
+    <string name="cookies_discord">Log in to Discord. HowYouDoin then connects your direct messages from this phone.</string>
+    <string name="cookies_gvoice">Sign in with the Google account that has your Google Voice number. HowYouDoin then connects your texts from this phone.</string>
+    <string name="cookies_gmessages">Sign in with the Google account Google Messages uses on your phone. An emoji then appears here; tap the same one in Google Messages.</string>
+    <string name="pair_gmessages_qr">On your Android phone open Google Messages → your profile picture → Device pairing → QR code scanner, and scan this code. The scanner needs this code on another screen.</string>
+    <string name="pair_gmessages_emoji">Google Messages on your phone asks you to pick an emoji: tap this one.</string>
+    <string name="cookies_steps_google">1. Enter your Google email, then your password.\n2. If Google asks, confirm it's you on your phone.\nHowYouDoin continues by itself once you're in. Pinch to zoom if the page looks small.</string>
 </resources>

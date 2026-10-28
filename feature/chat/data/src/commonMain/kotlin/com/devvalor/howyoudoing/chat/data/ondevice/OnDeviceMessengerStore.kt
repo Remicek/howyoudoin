@@ -723,6 +723,9 @@ class OnDeviceMessengerStore(
         const val TELEGRAM_CHAT_ID_PREFIX = "tgdevice:"
         const val SIGNAL_CHAT_ID_PREFIX = "sgdevice:"
         const val SLACK_CHAT_ID_PREFIX = "skdevice:"
+
+        /** Chat ID prefix of the networks added later, from the network's name ("bluesky", "googlevoice"). */
+        fun chatIdPrefix(network: ChatNetwork) = network.name.lowercase().replace("_", "") + "device:"
         private const val CACHE_WRITE_DELAY_MILLIS = 2_000L
         private val cacheJson = Json { ignoreUnknownKeys = true }
         private val MEDIA_TYPES =

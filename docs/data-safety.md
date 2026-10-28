@@ -8,12 +8,15 @@ What to enter in Play Console → App content → Data safety, and why. Keep it 
 - **Android libraries in the release build:** AndroidX, Jetpack Compose, Kotlin libraries, Ktor/OkHttp, Koin,
   Coil, DataStore, a QR code library, Stream's build of the open-source WebRTC library, AboutLibraries. No Google
   Play services, Firebase, analytics, advertising, attribution or crash-reporting SDK.
-- **Network library (Go/Rust):** the mautrix clients (whatsmeow, messagix, gotd for Telegram, libsignal, Slack).
+- **Network library (Go/Rust):** the mautrix clients (whatsmeow, messagix, gotd for Telegram, libsignal, Slack,
+  libgm for Google Messages, libgv for Google Voice, linkedingo, Beeper's discordgo) and HowYouDoin's own Bluesky
+  chat client.
   They talk only to the networks the user connects. OpenTelemetry appears only as its no-op tracing API (no
   exporter); `segmentio/asm` is a byte-handling library, not Segment analytics.
 - **Release manifest:** no services or receivers from other companies; AndroidX's own startup and profile
   installer components stay on the device.
-- **Hosts the app contacts:** the connected networks (and their login pages and media servers) and, in server mode,
+- **Hosts the app contacts:** the connected networks (and their login pages and media servers; Google Messages
+  goes through Google's relay to the user's phone) and, in server mode,
   the user's own Matrix homeserver. Nothing of the developer's.
 
 Re-check before each release: `./gradlew :composeApp:dependencies --configuration releaseRuntimeClasspath` and the

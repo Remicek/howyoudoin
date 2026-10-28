@@ -186,4 +186,24 @@
         <item quantity="other">%1$d 件のアカウントを接続中</item>
     </plurals>
     <string name="networks_calls_info">音声通話とビデオ通話は今のところ Matrix 経由でのみ使えます。Matrix アカウントを接続すると、ほかの Matrix ユーザーに発信できます。</string>
+    <string name="networks_untested">未検証：まだ実際のアカウントで試していません</string>
+    <string name="networks_discord_title">Discord はこれでアカウントを停止します</string>
+    <string name="networks_discord_body">Discord の規約では、個人アカウントを別のアプリから使うことが禁止されており、Discord は警告なしにアカウントを停止したことがあります。停止されたアカウントを友だちやサーバーごと取り戻すことは、開発者にも Discord のサポートにもできません。\n\n失っても困らないアカウントでのみ Discord を接続してください。</string>
+    <string name="flow_google_account">Google アカウント</string>
+    <string name="connectnetwork_gmessages_qr">Android スマートフォンの Google メッセージでコードをスキャンします（デバイスのペア設定）。コードは別の画面に表示する必要があります。</string>
+    <string name="connectnetwork_gmessages_google">Google メッセージが使う Google アカウントでログインし、スマートフォンで同じ絵文字をタップします。</string>
+    <string name="connectnetwork_bluesky">ハンドルとアプリパスワードでログインします。チャットはこのスマートフォンから接続されます。</string>
+    <string name="connectnetwork_linkedin">linkedin.com にログインします。メッセージはこのスマートフォンから接続されます。</string>
+    <string name="connectnetwork_discord">discord.com にログインします。ダイレクトメッセージはこのスマートフォンから接続されます。Discord によりアカウントが停止される場合があります。</string>
+    <string name="connectnetwork_gvoice">voice.google.com に Google でログインします。SMS はこのスマートフォンから接続されます。</string>
+    <string name="bluesky_instructions">アカウントのパスワードではなくアプリパスワードを使ってください。Bluesky で 設定 → プライバシーとセキュリティ → アプリパスワード を開き、追加して「ダイレクトメッセージへのアクセスを許可」をオンにします。</string>
+    <string name="field_bluesky_handle">ハンドルまたはメール</string>
+    <string name="field_app_password">アプリパスワード</string>
+    <string name="cookies_linkedin">LinkedIn にログインしてください。HowYouDoin がこのスマートフォンからメッセージを接続します。</string>
+    <string name="cookies_discord">Discord にログインしてください。HowYouDoin がこのスマートフォンからダイレクトメッセージを接続します。</string>
+    <string name="cookies_gvoice">Google Voice の番号がある Google アカウントでログインしてください。HowYouDoin がこのスマートフォンから SMS を接続します。</string>
+    <string name="cookies_gmessages">スマートフォンの Google メッセージが使う Google アカウントでログインしてください。ここに絵文字が表示されたら、Google メッセージで同じものをタップします。</string>
+    <string name="pair_gmessages_qr">Android スマートフォンで Google メッセージ → プロフィール写真 → デバイスのペア設定 → QR コードスキャナ を開き、このコードをスキャンします。スキャナには別の画面のコードが必要です。</string>
+    <string name="pair_gmessages_emoji">スマートフォンの Google メッセージで絵文字を選ぶよう求められたら、これをタップしてください。</string>
+    <string name="cookies_steps_google">1. Google のメールアドレス、次にパスワードを入力します。\n2. Google に求められたら、スマートフォンで本人確認をします。\nログインすると HowYouDoin が自動で続行します。ページが小さい場合はピンチで拡大してください。</string>
 </resources>

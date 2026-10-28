@@ -1,5 +1,22 @@
 package com.devvalor.howyoudoing.networks.presentation.connect
 
+import howyoudoin.feature.networks.presentation.generated.resources.connectnetwork_gvoice
+import howyoudoin.feature.networks.presentation.generated.resources.connectnetwork_discord
+import howyoudoin.feature.networks.presentation.generated.resources.connectnetwork_linkedin
+import howyoudoin.feature.networks.presentation.generated.resources.connectnetwork_bluesky
+import howyoudoin.feature.networks.presentation.generated.resources.connectnetwork_gmessages_google
+import howyoudoin.feature.networks.presentation.generated.resources.connectnetwork_gmessages_qr
+import howyoudoin.feature.networks.presentation.generated.resources.flow_google_account
+import howyoudoin.feature.networks.presentation.generated.resources.pair_gmessages_emoji
+import howyoudoin.feature.networks.presentation.generated.resources.pair_gmessages_qr
+import howyoudoin.feature.networks.presentation.generated.resources.cookies_gmessages
+import howyoudoin.feature.networks.presentation.generated.resources.cookies_gvoice
+import howyoudoin.feature.networks.presentation.generated.resources.cookies_discord
+import howyoudoin.feature.networks.presentation.generated.resources.cookies_linkedin
+import howyoudoin.feature.networks.presentation.generated.resources.field_app_password
+import howyoudoin.feature.networks.presentation.generated.resources.field_bluesky_handle
+import howyoudoin.feature.networks.presentation.generated.resources.bluesky_instructions
+import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceMessenger
 import howyoudoin.feature.networks.presentation.generated.resources.flow_device_phone
 import howyoudoin.feature.networks.presentation.generated.resources.flow_device_qr
 import howyoudoin.feature.networks.presentation.generated.resources.flow_device_code
@@ -151,6 +168,10 @@ class ConnectNetworkViewModel(
                 when (network) {
                     ChatNetwork.INSTAGRAM -> onDeviceInstagramCookiesStep()
                     ChatNetwork.SLACK -> onDeviceSlackStep()
+                    ChatNetwork.BLUESKY -> blueskyLoginStep()
+                    ChatNetwork.LINKEDIN -> linkedInStep()
+                    ChatNetwork.DISCORD -> discordStep()
+                    ChatNetwork.GOOGLE_VOICE -> googleVoiceStep()
                     else -> onDeviceCookiesStep()
                 }
             }
@@ -170,6 +191,8 @@ class ConnectNetworkViewModel(
             ON_DEVICE_TELEGRAM_QR_FLOW_ID -> linkAccountOnDevice(onDevice.telegram, phoneNumber = null)
             ON_DEVICE_SIGNAL_FLOW_ID -> linkAccountOnDevice(onDevice.signal, phoneNumber = null)
             ON_DEVICE_MATRIX_FLOW_ID -> showStepWhenReady { matrixLoginStep() }
+            ON_DEVICE_GMESSAGES_QR_FLOW_ID -> googleMessages()?.let { linkAccountOnDevice(it, phoneNumber = null) }
+            ON_DEVICE_GMESSAGES_GOOGLE_FLOW_ID -> showStepWhenReady { googleMessagesStep() }
             else -> runStep { bridgeRepository.startLogin(network, flowId) }
         }
     }
@@ -233,7 +256,8 @@ class ConnectNetworkViewModel(
             ON_DEVICE_WHATSAPP_CODE_FLOW_ID -> linkAccountOnDevice(onDevice.whatsApp, firstValue)
             ON_DEVICE_TELEGRAM_FLOW_ID -> linkAccountOnDevice(onDevice.telegram, firstValue)
             ON_DEVICE_PROMPT_FLOW_ID -> submitPromptAnswer(step)
-            ON_DEVICE_MATRIX_FLOW_ID -> signInToMatrix(values)
+            ON_DEVICE_MATRIX_FLOW_ID -> signInWith(onDevice.matrix, values)
+            ON_DEVICE_CREDENTIALS_FLOW_ID -> onDevice.forNetwork(network)?.let { signInWith(it, values) }
             else -> runStep { bridgeRepository.submitUserInput(network, step, values) }
         }
     }
@@ -251,6 +275,13 @@ class ConnectNetworkViewModel(
         val step = (state.value.phase as? ConnectPhase.Step)?.step as? BridgeLoginStep.Cookies ?: return
         if (state.value.isSubmitting || cookiesByName == rejectedCookies) return
         if (step.loginId == ON_DEVICE_FLOW_ID) return linkOnDevice(step, cookiesByName)
+        if (step.loginId == ON_DEVICE_GMESSAGES_GOOGLE_FLOW_ID) {
+            val account = googleMessages() ?: return
+            val cookies = step.cookies
+                .mapNotNull { cookie -> cookiesByName[cookie.cookieName]?.let { cookie.cookieName to it } }
+                .toMap()
+            return linkAccountOnDevice(account) { account.link(cookies) }
+        }
         val values = step.cookies
             .mapNotNull { cookie -> cookiesByName[cookie.cookieName]?.let { cookie.fieldId to it } }
             .toMap()
@@ -478,26 +509,39 @@ class ConnectNetworkViewModel(
                 )
             )
         }
-        val instructions = when {
-            account.network == ChatNetwork.SIGNAL ->
+        return BridgeLoginStep.DisplayAndWait(
+            loginId = ON_DEVICE_WHATSAPP_QR_FLOW_ID,
+            stepId = "on-device-pairing",
+            instructions = pairingInstructions(account.network, pairing),
+            displayType = when {
+                pairing.pairingCode == null -> DisplayType.QR
+                // Google Messages pairs by tapping the emoji shown here
+                account.network == ChatNetwork.GOOGLE_MESSAGES -> DisplayType.EMOJI
+                else -> DisplayType.CODE
+            },
+            data = pairing.pairingCode ?: pairing.qrCode
+        )
+    }
+
+    private suspend fun pairingInstructions(network: ChatNetwork, pairing: OnDevicePairing): String =
+        when {
+            network == ChatNetwork.SIGNAL ->
                 getString(Res.string.pair_signal)
 
-            account.network == ChatNetwork.TELEGRAM ->
+            network == ChatNetwork.TELEGRAM ->
                 getString(Res.string.pair_telegram)
+
+            network == ChatNetwork.GOOGLE_MESSAGES && pairing.pairingCode != null ->
+                getString(Res.string.pair_gmessages_emoji)
+
+            network == ChatNetwork.GOOGLE_MESSAGES ->
+                getString(Res.string.pair_gmessages_qr)
 
             pairing.pairingCode != null ->
                 getString(Res.string.pair_whatsapp_code)
 
             else -> getString(Res.string.pair_whatsapp_qr)
         }
-        return BridgeLoginStep.DisplayAndWait(
-            loginId = ON_DEVICE_WHATSAPP_QR_FLOW_ID,
-            stepId = "on-device-pairing",
-            instructions = instructions,
-            displayType = if (pairing.pairingCode != null) DisplayType.CODE else DisplayType.QR,
-            data = pairing.pairingCode ?: pairing.qrCode
-        )
-    }
 
     private fun submitPromptAnswer(step: BridgeLoginStep.UserInput) {
         val account = linkingAccount ?: return
@@ -574,6 +618,73 @@ class ConnectNetworkViewModel(
         extractScript = SLACK_TOKEN_SCRIPT
     )
 
+    private fun googleMessages(): OnDeviceLinkedAccount? =
+        onDevice.forNetwork(ChatNetwork.GOOGLE_MESSAGES) as? OnDeviceLinkedAccount
+
+    /** Bluesky's own chat API, signed in with the handle and an app password allowed to read direct messages. */
+    private suspend fun blueskyLoginStep() = BridgeLoginStep.UserInput(
+        loginId = ON_DEVICE_CREDENTIALS_FLOW_ID,
+        stepId = "bluesky-login",
+        instructions = getString(Res.string.bluesky_instructions),
+        fields = listOf(
+            LoginInputField(
+                id = "identifier",
+                name = getString(Res.string.field_bluesky_handle),
+                description = "",
+                type = InputFieldType.USERNAME
+            ),
+            LoginInputField(
+                id = "password",
+                name = getString(Res.string.field_app_password),
+                description = "",
+                type = InputFieldType.PASSWORD
+            )
+        )
+    )
+
+    /** linkedin.com's session: li_at, and JSESSIONID, which is also the CSRF token (as mautrix-linkedin uses them). */
+    private suspend fun linkedInStep() = BridgeLoginStep.Cookies(
+        loginId = ON_DEVICE_FLOW_ID,
+        stepId = "on-device-linkedin",
+        instructions = getString(Res.string.cookies_linkedin),
+        url = "https://www.linkedin.com/login",
+        userAgent = DESKTOP_USER_AGENT,
+        cookies = listOf("li_at", "JSESSIONID").map { RequiredCookie(it, it, isRequired = true) }
+    )
+
+    /** discord.com's sign-in; the session is the web client's token, read from the page by [DISCORD_TOKEN_SCRIPT]. */
+    private suspend fun discordStep() = BridgeLoginStep.Cookies(
+        loginId = ON_DEVICE_FLOW_ID,
+        stepId = "on-device-discord",
+        instructions = getString(Res.string.cookies_discord),
+        url = "https://discord.com/login",
+        // Discord sends phone browsers to its app
+        userAgent = DESKTOP_USER_AGENT,
+        cookies = listOf(RequiredCookie("token", "token", isRequired = true)),
+        extractScript = DISCORD_TOKEN_SCRIPT
+    )
+
+    private suspend fun googleVoiceStep() = BridgeLoginStep.Cookies(
+        loginId = ON_DEVICE_FLOW_ID,
+        stepId = "on-device-googlevoice",
+        instructions = getString(Res.string.cookies_gvoice),
+        url = "https://voice.google.com/u/0/messages",
+        userAgent = DESKTOP_USER_AGENT,
+        cookies = GOOGLE_COOKIES.map { RequiredCookie(it, it, isRequired = true) } +
+            listOf("OSID", "__Secure-1PSIDTS", "COMPASS").map { RequiredCookie(it, it, isRequired = false) }
+    )
+
+    /** Pairing Google Messages through the Google account: messages.google.com's cookies, then an emoji. */
+    private suspend fun googleMessagesStep() = BridgeLoginStep.Cookies(
+        loginId = ON_DEVICE_GMESSAGES_GOOGLE_FLOW_ID,
+        stepId = "on-device-gmessages-google",
+        instructions = getString(Res.string.cookies_gmessages),
+        url = "https://messages.google.com/web/config",
+        userAgent = DESKTOP_USER_AGENT,
+        cookies = (GOOGLE_COOKIES + "OSID").map { RequiredCookie(it, it, isRequired = true) } +
+            RequiredCookie("__Secure-1PSIDTS", "__Secure-1PSIDTS", isRequired = false)
+    )
+
     private suspend fun matrixLoginStep() = BridgeLoginStep.UserInput(
         loginId = ON_DEVICE_MATRIX_FLOW_ID,
         stepId = "matrix-login",
@@ -601,13 +712,14 @@ class ConnectNetworkViewModel(
         )
     )
 
-    private fun signInToMatrix(values: Map<String, String>) {
+    /** Signs in with typed values (Matrix: homeserver, username and password; Bluesky: handle and app password). */
+    private fun signInWith(client: OnDeviceMessenger, values: Map<String, String>) {
         stepJob?.cancel()
         stepJob = viewModelScope.launch {
             _state.update { it.copy(isSubmitting = true, error = null) }
-            when (val result = onDevice.matrix.link(values)) {
+            when (val result = client.link(values)) {
                 is Result.Success -> {
-                    val name = (onDevice.matrix.state.value as? OnDeviceMessengerState.Connected)?.accountName
+                    val name = (client.state.value as? OnDeviceMessengerState.Connected)?.accountName
                     _state.update { it.copy(phase = ConnectPhase.Connected(name), isSubmitting = false) }
                 }
 
@@ -620,11 +732,7 @@ class ConnectNetworkViewModel(
         val cookies =
             step.cookies.mapNotNull { cookie -> cookiesByName[cookie.cookieName]?.let { cookie.cookieName to it } }
                 .toMap()
-        val client = when (network) {
-            ChatNetwork.INSTAGRAM -> onDevice.instagram
-            ChatNetwork.SLACK -> onDevice.slack
-            else -> onDevice.messenger
-        }
+        val client = onDevice.forNetwork(network) ?: onDevice.messenger
         stepJob?.cancel()
         stepJob = viewModelScope.launch {
             _state.update { it.copy(isSubmitting = true, error = null) }
@@ -650,6 +758,14 @@ class ConnectNetworkViewModel(
         const val ON_DEVICE_TELEGRAM_QR_FLOW_ID = "howyoudoin-on-device-telegram-qr"
         const val ON_DEVICE_SIGNAL_FLOW_ID = "howyoudoin-on-device-signal"
         const val ON_DEVICE_MATRIX_FLOW_ID = "howyoudoin-matrix-account"
+        const val ON_DEVICE_GMESSAGES_QR_FLOW_ID = "howyoudoin-on-device-gmessages-qr"
+        const val ON_DEVICE_GMESSAGES_GOOGLE_FLOW_ID = "howyoudoin-on-device-gmessages-google"
+
+        /** Signing in with typed values on a network other than Matrix (Bluesky). */
+        const val ON_DEVICE_CREDENTIALS_FLOW_ID = "howyoudoin-on-device-credentials"
+
+        /** Google's session cookies that every Google service needs (as mautrix-gmessages and -gvoice ask for). */
+        val GOOGLE_COOKIES = listOf("SID", "HSID", "SSID", "APISID", "SAPISID")
 
         /** Answers to what a linking client asks for (Telegram's login code and password). */
         const val ON_DEVICE_PROMPT_FLOW_ID = "howyoudoin-on-device-prompt"
@@ -714,6 +830,30 @@ class ConnectNetworkViewModel(
                     Res.string.flow_device,
                     Res.string.connectnetwork_sign_in_to_your_workspace
                 )
+            ),
+            ChatNetwork.GOOGLE_MESSAGES to listOf(
+                OnDeviceOption(
+                    ON_DEVICE_GMESSAGES_GOOGLE_FLOW_ID,
+                    Res.string.flow_google_account,
+                    Res.string.connectnetwork_gmessages_google
+                ),
+                OnDeviceOption(
+                    ON_DEVICE_GMESSAGES_QR_FLOW_ID,
+                    Res.string.flow_device_qr,
+                    Res.string.connectnetwork_gmessages_qr
+                )
+            ),
+            ChatNetwork.BLUESKY to listOf(
+                OnDeviceOption(ON_DEVICE_FLOW_ID, Res.string.flow_device, Res.string.connectnetwork_bluesky)
+            ),
+            ChatNetwork.LINKEDIN to listOf(
+                OnDeviceOption(ON_DEVICE_FLOW_ID, Res.string.flow_device, Res.string.connectnetwork_linkedin)
+            ),
+            ChatNetwork.DISCORD to listOf(
+                OnDeviceOption(ON_DEVICE_FLOW_ID, Res.string.flow_device, Res.string.connectnetwork_discord)
+            ),
+            ChatNetwork.GOOGLE_VOICE to listOf(
+                OnDeviceOption(ON_DEVICE_FLOW_ID, Res.string.flow_device, Res.string.connectnetwork_gvoice)
             )
         )
     }
@@ -739,6 +879,28 @@ private const val SLACK_TOKEN_SCRIPT = """
     var teams = JSON.parse(config).teams;
     var token = teams[Object.keys(teams)[0]].token;
     return JSON.stringify({ token: token });
+  } catch (e) { return '{}'; }
+})()
+"""
+
+/**
+ * Finds the Discord web client's token once signed in. Discord removes localStorage from its own page, so it's read
+ * through a fresh iframe's (the same origin's storage); returns {"token": "…"}.
+ */
+private const val DISCORD_TOKEN_SCRIPT = """
+(function() {
+  try {
+    if (!/(^|\.)discord\.com$/.test(location.host)) return '{}';
+    var frame = window.__hydDiscordFrame;
+    if (!frame) {
+      frame = document.createElement('iframe');
+      frame.style.display = 'none';
+      document.body.appendChild(frame);
+      window.__hydDiscordFrame = frame;
+    }
+    var token = frame.contentWindow.localStorage.getItem('token');
+    if (!token) return '{}';
+    return JSON.stringify({ token: JSON.parse(token) });
   } catch (e) { return '{}'; }
 })()
 """

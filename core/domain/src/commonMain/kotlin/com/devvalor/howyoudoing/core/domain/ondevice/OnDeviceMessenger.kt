@@ -343,6 +343,9 @@ object UnsupportedOnDeviceSlack : OnDeviceSlack, OnDeviceMessenger by Unsupporte
     override val network: ChatNetwork get() = ChatNetwork.SLACK
 }
 
+/** Used for a network whose native client isn't built in on this platform. */
+class UnsupportedOnDeviceNetwork(override val network: ChatNetwork) : OnDeviceMessenger by UnsupportedOnDeviceMessenger
+
 /**
  * A Matrix account (any homeserver) connected as one of the networks: its rooms join the inbox, also without the
  * app's own server. [link] takes "homeserver", "username" and "password".

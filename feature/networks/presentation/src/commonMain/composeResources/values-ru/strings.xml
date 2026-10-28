@@ -192,4 +192,24 @@
         <item quantity="other">Подключено %1$d аккаунта</item>
     </plurals>
     <string name="networks_calls_info">Пока голосовые и видеозвонки работают только через Matrix: подключите аккаунт Matrix, чтобы звонить другим пользователям Matrix.</string>
+    <string name="networks_untested">Не проверено: ещё не пробовали с настоящим аккаунтом</string>
+    <string name="networks_discord_title">Discord блокирует за это аккаунты</string>
+    <string name="networks_discord_body">Правила Discord запрещают пользоваться личным аккаунтом из другого приложения, и Discord блокировал за это аккаунты, иногда без предупреждения. Ни разработчик, ни поддержка Discord не вернут заблокированный аккаунт с друзьями и серверами.\n\nПодключайте Discord только аккаунтом, который не жалко потерять.</string>
+    <string name="flow_google_account">Аккаунт Google</string>
+    <string name="connectnetwork_gmessages_qr">Отсканируйте код в Google Сообщениях на Android-телефоне (Связь с устройствами). Код должен быть на другом экране.</string>
+    <string name="connectnetwork_gmessages_google">Войдите в аккаунт Google, который использует Google Сообщения, и нажмите такой же эмодзи на телефоне.</string>
+    <string name="connectnetwork_bluesky">Войдите с именем пользователя и паролем приложения; чаты подключаются с этого телефона.</string>
+    <string name="connectnetwork_linkedin">Войдите на linkedin.com; сообщения подключаются с этого телефона.</string>
+    <string name="connectnetwork_discord">Войдите на discord.com; личные сообщения подключаются с этого телефона. Discord может заблокировать за это аккаунт.</string>
+    <string name="connectnetwork_gvoice">Войдите через Google на voice.google.com; SMS подключаются с этого телефона.</string>
+    <string name="bluesky_instructions">Используйте пароль приложения, а не пароль аккаунта: в Bluesky откройте Настройки → Конфиденциальность и безопасность → Пароли приложений, добавьте пароль и включите «Разрешить доступ к личным сообщениям».</string>
+    <string name="field_bluesky_handle">Имя пользователя или e-mail</string>
+    <string name="field_app_password">Пароль приложения</string>
+    <string name="cookies_linkedin">Войдите в LinkedIn. Затем HowYouDoin подключит ваши сообщения с этого телефона.</string>
+    <string name="cookies_discord">Войдите в Discord. Затем HowYouDoin подключит ваши личные сообщения с этого телефона.</string>
+    <string name="cookies_gvoice">Войдите в аккаунт Google с вашим номером Google Voice. Затем HowYouDoin подключит ваши SMS с этого телефона.</string>
+    <string name="cookies_gmessages">Войдите в аккаунт Google, который использует Google Сообщения на телефоне. Здесь появится эмодзи; нажмите такой же в Google Сообщениях.</string>
+    <string name="pair_gmessages_qr">На Android-телефоне откройте Google Сообщения → фото профиля → Связь с устройствами → Сканер QR-кодов и отсканируйте этот код. Сканеру нужен код на другом экране.</string>
+    <string name="pair_gmessages_emoji">Google Сообщения на телефоне попросят выбрать эмодзи: нажмите этот.</string>
+    <string name="cookies_steps_google">1. Введите e-mail Google, затем пароль.\n2. Если Google попросит, подтвердите вход на телефоне.\nHowYouDoin продолжит сам, когда вы войдёте. Сведите пальцы для увеличения, если страница мелкая.</string>
 </resources>

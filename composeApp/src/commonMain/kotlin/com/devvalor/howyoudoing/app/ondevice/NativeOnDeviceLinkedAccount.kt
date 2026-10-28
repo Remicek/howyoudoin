@@ -34,6 +34,8 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -52,6 +54,9 @@ interface NativeLinkedClient {
 
     /** Starts linking; what happens with the phone number depends on the network (see OnDeviceLinkedAccount). */
     fun startLinking(phoneNumber: String)
+
+    /** Starts linking with a web login's cookies (JSON), where the network pairs that way (Google Messages). */
+    fun startGoogleLinking(cookiesJson: String): Unit = throw UnsupportedOperationException()
     fun submitCode(code: String): Unit = throw UnsupportedOperationException()
     fun submitPassword(password: String): Unit = throw UnsupportedOperationException()
     fun cancelLinking()
@@ -176,11 +181,11 @@ abstract class NativeOnDeviceLinkedAccount(
     override suspend fun startLinking(phoneNumber: String?): EmptyResult<DataError.Remote> =
         beginLinking { startLinking(phoneNumber.orEmpty()) }
 
-    // These networks link by pairing or prompts, not with web cookies
+    // These networks link by pairing or prompts, not with web cookies (except where a subclass says otherwise)
     override suspend fun link(cookies: Map<String, String>): EmptyResult<DataError.Remote> =
         Result.Failure(DataError.Remote.BAD_REQUEST)
 
-    private suspend fun beginLinking(start: NativeLinkedClient.() -> Unit): EmptyResult<DataError.Remote> =
+    protected suspend fun beginLinking(start: NativeLinkedClient.() -> Unit): EmptyResult<DataError.Remote> =
         lock.withLock {
             withContext(Dispatchers.IO) {
                 try {
@@ -431,6 +436,11 @@ abstract class NativeOnDeviceLinkedAccount(
                 )
             }
 
+            "error" -> if (_state.value !is OnDeviceMessengerState.NotLinked) {
+                _pairing.value = null
+                _state.value = OnDeviceMessengerState.Failed(error.ifEmpty { "Disconnected" })
+            }
+
             "logged_out" -> {
                 _state.value = OnDeviceMessengerState.NotLinked
                 accountName = null
@@ -478,4 +488,21 @@ class NativeOnDeviceSignal(factory: NativeLinkedClientFactory?, dataDir: OnDevic
 
     // A one-to-one chat is keyed by the contact's ACI
     override fun directChatKey(contactId: String): String = contactId
+}
+
+/**
+ * Google Messages on the user's Android phone, paired like Messages for web: [startLinking] shows a QR code to scan
+ * with the Messages app, and [link] with messages.google.com's Google cookies shows an emoji to tap there instead.
+ */
+class NativeOnDeviceGoogleMessages(
+    factory: NativeLinkedClientFactory?,
+    dataDir: OnDeviceDataDirectory,
+    scope: CoroutineScope
+) : NativeOnDeviceLinkedAccount(factory, dataDir, scope) {
+    override val network: ChatNetwork get() = ChatNetwork.GOOGLE_MESSAGES
+
+    override suspend fun link(cookies: Map<String, String>): EmptyResult<DataError.Remote> {
+        val json = JsonObject(cookies.mapValues { JsonPrimitive(it.value) }).toString()
+        return beginLinking { startGoogleLinking(json) }
+    }
 }

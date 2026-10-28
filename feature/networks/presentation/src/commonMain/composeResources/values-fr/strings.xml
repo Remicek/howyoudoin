@@ -190,4 +190,24 @@
         <item quantity="other">%1$d comptes connectés</item>
     </plurals>
     <string name="networks_calls_info">Pour l'instant, les appels vocaux et vidéo passent par Matrix : connectez un compte Matrix pour appeler d'autres utilisateurs de Matrix.</string>
+    <string name="networks_untested">Non testé : pas encore essayé avec un vrai compte</string>
+    <string name="networks_discord_title">Discord bannit des comptes pour cela</string>
+    <string name="networks_discord_body">Les règles de Discord interdisent d'utiliser un compte personnel depuis une autre app, et Discord a déjà banni des comptes pour cela, parfois sans prévenir. Ni le développeur ni le support de Discord ne récupéreront un compte banni avec ses amis et serveurs.\n\nConnectez Discord uniquement avec un compte que vous pouvez vous permettre de perdre.</string>
+    <string name="flow_google_account">Compte Google</string>
+    <string name="connectnetwork_gmessages_qr">Scannez un code avec Google Messages sur votre téléphone Android (Association d'appareils). Le code doit être sur un autre écran.</string>
+    <string name="connectnetwork_gmessages_google">Connectez-vous avec le compte Google utilisé par Google Messages, puis touchez le même emoji sur votre téléphone.</string>
+    <string name="connectnetwork_bluesky">Connectez-vous avec votre identifiant et un mot de passe d'app ; les discussions se connectent depuis ce téléphone.</string>
+    <string name="connectnetwork_linkedin">Connectez-vous sur linkedin.com ; les messages se connectent depuis ce téléphone.</string>
+    <string name="connectnetwork_discord">Connectez-vous sur discord.com ; les messages privés se connectent depuis ce téléphone. Discord peut bannir les comptes qui font cela.</string>
+    <string name="connectnetwork_gvoice">Connectez-vous avec Google sur voice.google.com ; les SMS se connectent depuis ce téléphone.</string>
+    <string name="bluesky_instructions">Utilisez un mot de passe d'app, pas celui de votre compte : dans Bluesky, ouvrez Paramètres → Confidentialité et sécurité → Mots de passe d'app, ajoutez-en un et activez « Autoriser l'accès à vos messages privés ».</string>
+    <string name="field_bluesky_handle">Identifiant ou e-mail</string>
+    <string name="field_app_password">Mot de passe d'app</string>
+    <string name="cookies_linkedin">Connectez-vous à LinkedIn. HowYouDoin connecte ensuite vos messages depuis ce téléphone.</string>
+    <string name="cookies_discord">Connectez-vous à Discord. HowYouDoin connecte ensuite vos messages privés depuis ce téléphone.</string>
+    <string name="cookies_gvoice">Connectez-vous avec le compte Google de votre numéro Google Voice. HowYouDoin connecte ensuite vos SMS depuis ce téléphone.</string>
+    <string name="cookies_gmessages">Connectez-vous avec le compte Google utilisé par Google Messages sur votre téléphone. Un emoji apparaît ici ; touchez le même dans Google Messages.</string>
+    <string name="pair_gmessages_qr">Sur votre téléphone Android, ouvrez Google Messages → votre photo de profil → Association d'appareils → Lecteur de code QR, et scannez ce code. Le lecteur a besoin du code sur un autre écran.</string>
+    <string name="pair_gmessages_emoji">Google Messages sur votre téléphone vous demande de choisir un emoji : touchez celui-ci.</string>
+    <string name="cookies_steps_google">1. Saisissez votre adresse Google, puis votre mot de passe.\n2. Si Google le demande, confirmez sur votre téléphone que c'est bien vous.\nHowYouDoin continue tout seul une fois connecté. Pincez pour zoomer si la page paraît petite.</string>
 </resources>

@@ -188,4 +188,24 @@
         <item quantity="other">%1$d खाते जुड़े हैं</item>
     </plurals>
     <string name="networks_calls_info">अभी वॉइस और वीडियो कॉल केवल Matrix से होती हैं: दूसरे Matrix उपयोगकर्ताओं को कॉल करने के लिए Matrix खाता जोड़ें।</string>
+    <string name="networks_untested">जाँचा नहीं गया: अभी किसी असली खाते से नहीं आज़माया</string>
+    <string name="networks_discord_title">Discord इसके लिए खाते बंद करता है</string>
+    <string name="networks_discord_body">Discord के नियम निजी खाते को किसी दूसरे ऐप से चलाने की मनाही करते हैं, और Discord ने इसके लिए खाते बंद किए हैं, कभी-कभी बिना चेतावनी के। बंद हुआ खाता उसके दोस्तों और सर्वरों समेत न डेवलपर लौटा सकता है, न Discord सपोर्ट।\n\nDiscord केवल ऐसे खाते से जोड़ें जिसे खोना आपको मंज़ूर हो।</string>
+    <string name="flow_google_account">Google खाता</string>
+    <string name="connectnetwork_gmessages_qr">अपने Android फ़ोन पर Google Messages से एक कोड स्कैन करें (डिवाइस पेयरिंग)। कोड किसी दूसरी स्क्रीन पर होना चाहिए।</string>
+    <string name="connectnetwork_gmessages_google">Google Messages वाले Google खाते से साइन इन करें, फिर अपने फ़ोन पर वही इमोजी टैप करें।</string>
+    <string name="connectnetwork_bluesky">अपने हैंडल और ऐप पासवर्ड से साइन इन करें; चैट इस फ़ोन से जुड़ती हैं।</string>
+    <string name="connectnetwork_linkedin">linkedin.com पर लॉग इन करें; संदेश इस फ़ोन से जुड़ते हैं।</string>
+    <string name="connectnetwork_discord">discord.com पर लॉग इन करें; डायरेक्ट मैसेज इस फ़ोन से जुड़ते हैं। Discord इसके लिए खाता बंद कर सकता है।</string>
+    <string name="connectnetwork_gvoice">voice.google.com पर Google से साइन इन करें; SMS इस फ़ोन से जुड़ते हैं।</string>
+    <string name="bluesky_instructions">खाते का पासवर्ड नहीं, ऐप पासवर्ड इस्तेमाल करें: Bluesky में सेटिंग्स → निजता और सुरक्षा → ऐप पासवर्ड खोलें, एक जोड़ें और "अपने डायरेक्ट मैसेज तक पहुँच दें" चालू करें।</string>
+    <string name="field_bluesky_handle">हैंडल या ईमेल</string>
+    <string name="field_app_password">ऐप पासवर्ड</string>
+    <string name="cookies_linkedin">LinkedIn में लॉग इन करें। फिर HowYouDoin आपके संदेश इस फ़ोन से जोड़ देगा।</string>
+    <string name="cookies_discord">Discord में लॉग इन करें। फिर HowYouDoin आपके डायरेक्ट मैसेज इस फ़ोन से जोड़ देगा।</string>
+    <string name="cookies_gvoice">उस Google खाते से साइन इन करें जिसमें आपका Google Voice नंबर है। फिर HowYouDoin आपके SMS इस फ़ोन से जोड़ देगा।</string>
+    <string name="cookies_gmessages">आपके फ़ोन पर Google Messages जिस Google खाते का इस्तेमाल करता है, उससे साइन इन करें। यहाँ एक इमोजी दिखेगा; Google Messages में वही टैप करें।</string>
+    <string name="pair_gmessages_qr">अपने Android फ़ोन पर Google Messages → अपनी प्रोफ़ाइल फ़ोटो → डिवाइस पेयरिंग → QR कोड स्कैनर खोलें और यह कोड स्कैन करें। स्कैनर को कोड किसी दूसरी स्क्रीन पर चाहिए।</string>
+    <string name="pair_gmessages_emoji">आपके फ़ोन पर Google Messages एक इमोजी चुनने को कहेगा: यह वाला टैप करें।</string>
+    <string name="cookies_steps_google">1. अपना Google ईमेल, फिर पासवर्ड डालें।\n2. अगर Google पूछे, तो अपने फ़ोन पर पुष्टि करें कि यह आप हैं।\nसाइन इन होते ही HowYouDoin अपने आप आगे बढ़ेगा। पेज छोटा दिखे तो पिंच करके ज़ूम करें।</string>
 </resources>

@@ -190,4 +190,24 @@
         <item quantity="other">%1$d contas conectadas</item>
     </plurals>
     <string name="networks_calls_info">Por enquanto, chamadas de voz e vídeo funcionam pelo Matrix: conecte uma conta Matrix para ligar para outros usuários do Matrix.</string>
+    <string name="networks_untested">Não testado: ainda não foi testado com uma conta real</string>
+    <string name="networks_discord_title">O Discord bane contas por isso</string>
+    <string name="networks_discord_body">As regras do Discord proíbem usar uma conta pessoal em outro app, e o Discord já baniu contas por isso, às vezes sem aviso. Nem o desenvolvedor nem o suporte do Discord vão recuperar uma conta banida com seus amigos e servidores.\n\nConecte o Discord só com uma conta que você pode perder.</string>
+    <string name="flow_google_account">Conta do Google</string>
+    <string name="connectnetwork_gmessages_qr">Leia um código com o Mensagens do Google no seu Android (Pareamento de dispositivos). O código precisa estar em outra tela.</string>
+    <string name="connectnetwork_gmessages_google">Entre com a conta do Google usada pelo Mensagens do Google e toque no mesmo emoji no seu telefone.</string>
+    <string name="connectnetwork_bluesky">Entre com seu identificador e uma senha de app; as conversas se conectam a partir deste telefone.</string>
+    <string name="connectnetwork_linkedin">Entre em linkedin.com; as mensagens se conectam a partir deste telefone.</string>
+    <string name="connectnetwork_discord">Entre em discord.com; as mensagens diretas se conectam a partir deste telefone. O Discord pode banir contas por isso.</string>
+    <string name="connectnetwork_gvoice">Entre com o Google em voice.google.com; os SMS se conectam a partir deste telefone.</string>
+    <string name="bluesky_instructions">Use uma senha de app, não a senha da conta: no Bluesky abra Configurações → Privacidade e segurança → Senhas de app, adicione uma e ative "Permitir acesso às suas mensagens diretas".</string>
+    <string name="field_bluesky_handle">Identificador ou e-mail</string>
+    <string name="field_app_password">Senha de app</string>
+    <string name="cookies_linkedin">Entre no LinkedIn. O HowYouDoin conecta suas mensagens a partir deste telefone.</string>
+    <string name="cookies_discord">Entre no Discord. O HowYouDoin conecta suas mensagens diretas a partir deste telefone.</string>
+    <string name="cookies_gvoice">Entre com a conta do Google que tem seu número do Google Voice. O HowYouDoin conecta seus SMS a partir deste telefone.</string>
+    <string name="cookies_gmessages">Entre com a conta do Google usada pelo Mensagens do Google no seu telefone. Um emoji aparece aqui; toque no mesmo no Mensagens do Google.</string>
+    <string name="pair_gmessages_qr">No seu Android abra o Mensagens do Google → sua foto de perfil → Pareamento de dispositivos → Leitor de QR code e leia este código. O leitor precisa do código em outra tela.</string>
+    <string name="pair_gmessages_emoji">O Mensagens do Google no seu telefone pede para escolher um emoji: toque neste.</string>
+    <string name="cookies_steps_google">1. Digite seu e-mail do Google e depois a senha.\n2. Se o Google pedir, confirme que é você no seu telefone.\nO HowYouDoin continua sozinho quando você entrar. Faça pinça para ampliar se a página parecer pequena.</string>
 </resources>

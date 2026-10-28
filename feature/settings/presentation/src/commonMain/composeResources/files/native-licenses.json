@@ -1009,6 +1009,13 @@
    "usedFor": null
   },
   {
+   "name": "github.com/bwmarrin/discordgo",
+   "version": "v0.27.0",
+   "license": "BSD-3-Clause",
+   "url": "https://github.com/bwmarrin/discordgo",
+   "usedFor": null
+  },
+  {
    "name": "github.com/bytemare/cryptotools",
    "version": "v0.0.0-20210309005813-f9985b05742f",
    "license": "MIT",
@@ -1108,7 +1115,7 @@
   },
   {
    "name": "github.com/gorilla/websocket",
-   "version": "v1.5.0",
+   "version": "v1.5.3",
    "license": "BSD-2-Clause",
    "url": "https://github.com/gorilla/websocket",
    "usedFor": null
@@ -1338,6 +1345,27 @@
    "usedFor": null
   },
   {
+   "name": "go.mau.fi/mautrix-gmessages",
+   "version": "commit 138a57d",
+   "license": "AGPL-3.0",
+   "url": "https://go.mau.fi/mautrix-gmessages",
+   "usedFor": null
+  },
+  {
+   "name": "go.mau.fi/mautrix-gvoice",
+   "version": "commit 4f5ca46",
+   "license": "AGPL-3.0",
+   "url": "https://go.mau.fi/mautrix-gvoice",
+   "usedFor": null
+  },
+  {
+   "name": "go.mau.fi/mautrix-linkedin",
+   "version": "commit f1aac6b",
+   "license": "AGPL-3.0",
+   "url": "https://go.mau.fi/mautrix-linkedin",
+   "usedFor": null
+  },
+  {
    "name": "go.mau.fi/mautrix-slack",
    "version": "commit 26a8655",
    "license": "AGPL-3.0",
@@ -1409,7 +1437,7 @@
   },
   {
    "name": "golang.org/x/net",
-   "version": "v0.61.0",
+   "version": "v0.62.0",
    "license": "BSD-3-Clause",
    "url": "https://golang.org/x/net",
    "usedFor": null

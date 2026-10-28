@@ -1,5 +1,8 @@
 package com.devvalor.howyoudoing.networks.presentation.list
 
+import howyoudoin.feature.networks.presentation.generated.resources.networks_untested
+import howyoudoin.feature.networks.presentation.generated.resources.networks_discord_body
+import howyoudoin.feature.networks.presentation.generated.resources.networks_discord_title
 import androidx.compose.runtime.saveable.rememberSaveable
 import howyoudoin.feature.networks.presentation.generated.resources.networks_connect
 import howyoudoin.feature.networks.presentation.generated.resources.networks_connected_device
@@ -108,6 +111,7 @@ fun NetworksRoot(
     var riskWarningFor by rememberSaveable { mutableStateOf<ChatNetwork?>(null) }
     riskWarningFor?.let { network ->
         RiskWarningDialog(
+            network = network,
             onAccept = {
                 riskWarningFor = null
                 viewModel.onAction(NetworksAction.OnRiskAccepted)
@@ -220,6 +224,7 @@ private fun NetworkCard(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
+                    UntestedNote(network)
                 }
                 when (item.status) {
                     NetworkStatus.Loading if onDevice != OnDeviceMessengerState.NotLinked -> Unit
@@ -348,15 +353,48 @@ private fun NetworkStatus.summary(): String = when (this) {
     }
 }
 
+/** Says when the network hasn't been connected with a real account yet, so connecting it may not work. */
 @Composable
-private fun RiskWarningDialog(onAccept: () -> Unit, onReadTerms: () -> Unit, onDismiss: () -> Unit) {
+private fun UntestedNote(network: ChatNetwork) {
+    if (!network.isUntested) return
+    Text(
+        stringResource(Res.string.networks_untested),
+        style = MaterialTheme.typography.labelSmall,
+        color = MaterialTheme.colorScheme.tertiary,
+    )
+}
+
+@Composable
+private fun RiskWarningDialog(
+    network: ChatNetwork,
+    onAccept: () -> Unit,
+    onReadTerms: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    val isDiscord = network == ChatNetwork.DISCORD
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(Res.string.networks_your_account_could_be_blocked)) },
+        title = {
+            Text(
+                stringResource(
+                    if (isDiscord) {
+                        Res.string.networks_discord_title
+                    } else {
+                        Res.string.networks_your_account_could_be_blocked
+                    }
+                )
+            )
+        },
         text = {
             Column {
                 Text(
-                    stringResource(Res.string.networks_howyoudoin_is_unofficial_whatsapp_messenger)
+                    stringResource(
+                        if (isDiscord) {
+                            Res.string.networks_discord_body
+                        } else {
+                            Res.string.networks_howyoudoin_is_unofficial_whatsapp_messenger
+                        }
+                    )
                 )
                 TextButton(onClick = onReadTerms, modifier = Modifier.padding(top = HowYouDoinSpacing.sm)) {
                     Text(stringResource(Res.string.networks_read_the_terms_of_use))

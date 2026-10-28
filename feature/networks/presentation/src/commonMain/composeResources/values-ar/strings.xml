@@ -196,4 +196,24 @@
         <item quantity="other">%1$d حساب متصل</item>
     </plurals>
     <string name="networks_calls_info">تعمل المكالمات الصوتية والمرئية حاليًا عبر Matrix فقط: اربط حساب Matrix للاتصال بمستخدمي Matrix الآخرين.</string>
+    <string name="networks_untested">لم يُختبر بعد: لم يُجرَّب بحساب حقيقي</string>
+    <string name="networks_discord_title">ديسكورد يحظر الحسابات بسبب هذا</string>
+    <string name="networks_discord_body">تمنع قواعد ديسكورد استخدام حساب شخصي من تطبيق آخر، وقد حظر ديسكورد حسابات بسبب ذلك، أحيانًا دون تحذير. لن يستعيد المطوّر ولا دعم ديسكورد حسابًا محظورًا مع أصدقائه وخوادمه.\n\nاربط ديسكورد فقط بحساب يمكنك تحمّل خسارته.</string>
+    <string name="flow_google_account">حساب Google</string>
+    <string name="connectnetwork_gmessages_qr">امسح رمزًا باستخدام رسائل Google على هاتف Android (إقران الأجهزة). يجب أن يكون الرمز على شاشة أخرى.</string>
+    <string name="connectnetwork_gmessages_google">سجّل الدخول بحساب Google الذي تستخدمه رسائل Google، ثم انقر على الرمز التعبيري نفسه في هاتفك.</string>
+    <string name="connectnetwork_bluesky">سجّل الدخول باسم المستخدم وكلمة مرور تطبيق؛ تتصل المحادثات من هذا الهاتف.</string>
+    <string name="connectnetwork_linkedin">سجّل الدخول في linkedin.com؛ تتصل الرسائل من هذا الهاتف.</string>
+    <string name="connectnetwork_discord">سجّل الدخول في discord.com؛ تتصل الرسائل المباشرة من هذا الهاتف. قد يحظر ديسكورد الحسابات بسبب ذلك.</string>
+    <string name="connectnetwork_gvoice">سجّل الدخول بحساب Google في voice.google.com؛ تتصل الرسائل النصية من هذا الهاتف.</string>
+    <string name="bluesky_instructions">استخدم كلمة مرور تطبيق، لا كلمة مرور حسابك: في Bluesky افتح الإعدادات ← الخصوصية والأمان ← كلمات مرور التطبيقات، وأضف واحدة وفعّل «السماح بالوصول إلى رسائلك المباشرة».</string>
+    <string name="field_bluesky_handle">اسم المستخدم أو البريد</string>
+    <string name="field_app_password">كلمة مرور التطبيق</string>
+    <string name="cookies_linkedin">سجّل الدخول إلى LinkedIn. سيربط HowYouDoin رسائلك من هذا الهاتف.</string>
+    <string name="cookies_discord">سجّل الدخول إلى ديسكورد. سيربط HowYouDoin رسائلك المباشرة من هذا الهاتف.</string>
+    <string name="cookies_gvoice">سجّل الدخول بحساب Google الذي فيه رقم Google Voice. سيربط HowYouDoin رسائلك النصية من هذا الهاتف.</string>
+    <string name="cookies_gmessages">سجّل الدخول بحساب Google الذي تستخدمه رسائل Google على هاتفك. سيظهر رمز تعبيري هنا؛ انقر على الرمز نفسه في رسائل Google.</string>
+    <string name="pair_gmessages_qr">على هاتف Android افتح رسائل Google ← صورة ملفك الشخصي ← إقران الأجهزة ← ماسح رموز QR، وامسح هذا الرمز. يحتاج الماسح إلى الرمز على شاشة أخرى.</string>
+    <string name="pair_gmessages_emoji">ستطلب منك رسائل Google على هاتفك اختيار رمز تعبيري: انقر على هذا.</string>
+    <string name="cookies_steps_google">1. أدخل بريد Google ثم كلمة المرور.\n2. إذا طلب Google، أكّد هويتك على هاتفك.\nسيكمل HowYouDoin تلقائيًا بعد تسجيل الدخول. باعد بين إصبعين للتكبير إذا بدت الصفحة صغيرة.</string>
 </resources>

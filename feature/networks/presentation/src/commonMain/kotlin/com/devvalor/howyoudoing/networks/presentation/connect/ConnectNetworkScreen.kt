@@ -1,5 +1,6 @@
 package com.devvalor.howyoudoing.networks.presentation.connect
 
+import howyoudoin.feature.networks.presentation.generated.resources.cookies_steps_google
 import howyoudoin.feature.networks.presentation.generated.resources.connect_title
 import howyoudoin.feature.networks.presentation.generated.resources.connect_bridge_intro
 import howyoudoin.feature.networks.presentation.generated.resources.connect_unofficial_telegram
@@ -600,5 +601,6 @@ private fun Instructions(text: String) {
 @Composable
 private fun cookieLoginInstructions(network: ChatNetwork): String = when (network) {
     ChatNetwork.SLACK -> stringResource(Res.string.cookies_steps_slack)
+    ChatNetwork.GOOGLE_MESSAGES, ChatNetwork.GOOGLE_VOICE -> stringResource(Res.string.cookies_steps_google)
     else -> stringResource(Res.string.cookies_steps, network.displayName)
 }

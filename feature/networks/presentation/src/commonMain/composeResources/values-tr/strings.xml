@@ -188,4 +188,24 @@
         <item quantity="other">%1$d hesap bağlı</item>
     </plurals>
     <string name="networks_calls_info">Sesli ve görüntülü aramalar şimdilik yalnızca Matrix üzerinden çalışır: diğer Matrix kullanıcılarını aramak için bir Matrix hesabı bağlayın.</string>
+    <string name="networks_untested">Test edilmedi: henüz gerçek bir hesapla denenmedi</string>
+    <string name="networks_discord_title">Discord bu yüzden hesapları yasaklıyor</string>
+    <string name="networks_discord_body">Discord'un kuralları kişisel bir hesabı başka bir uygulamadan kullanmayı yasaklar ve Discord bu yüzden hesapları, bazen uyarmadan, yasakladı. Ne geliştirici ne de Discord desteği yasaklanan bir hesabı arkadaşları ve sunucularıyla geri getirmez.\n\nDiscord'u yalnızca kaybetmeyi göze alabileceğiniz bir hesapla bağlayın.</string>
+    <string name="flow_google_account">Google hesabı</string>
+    <string name="connectnetwork_gmessages_qr">Android telefonunuzdaki Google Mesajlar ile bir kod tarayın (Cihaz eşleme). Kodun başka bir ekranda olması gerekir.</string>
+    <string name="connectnetwork_gmessages_google">Google Mesajlar'ın kullandığı Google hesabıyla oturum açın, sonra telefonunuzda aynı emojiye dokunun.</string>
+    <string name="connectnetwork_bluesky">Kullanıcı adınız ve bir uygulama şifresiyle oturum açın; sohbetler bu telefondan bağlanır.</string>
+    <string name="connectnetwork_linkedin">linkedin.com'da oturum açın; mesajlar bu telefondan bağlanır.</string>
+    <string name="connectnetwork_discord">discord.com'da oturum açın; doğrudan mesajlar bu telefondan bağlanır. Discord bu yüzden hesapları yasaklayabilir.</string>
+    <string name="connectnetwork_gvoice">voice.google.com'da Google ile oturum açın; SMS'ler bu telefondan bağlanır.</string>
+    <string name="bluesky_instructions">Hesap şifrenizi değil, bir uygulama şifresi kullanın: Bluesky'da Ayarlar → Gizlilik ve güvenlik → Uygulama şifreleri'ni açın, bir tane ekleyin ve "Doğrudan mesajlarınıza erişime izin ver"i açın.</string>
+    <string name="field_bluesky_handle">Kullanıcı adı veya e-posta</string>
+    <string name="field_app_password">Uygulama şifresi</string>
+    <string name="cookies_linkedin">LinkedIn'de oturum açın. HowYouDoin ardından mesajlarınızı bu telefondan bağlar.</string>
+    <string name="cookies_discord">Discord'da oturum açın. HowYouDoin ardından doğrudan mesajlarınızı bu telefondan bağlar.</string>
+    <string name="cookies_gvoice">Google Voice numaranızın bulunduğu Google hesabıyla oturum açın. HowYouDoin ardından SMS'lerinizi bu telefondan bağlar.</string>
+    <string name="cookies_gmessages">Telefonunuzdaki Google Mesajlar'ın kullandığı Google hesabıyla oturum açın. Burada bir emoji görünür; Google Mesajlar'da aynısına dokunun.</string>
+    <string name="pair_gmessages_qr">Android telefonunuzda Google Mesajlar → profil fotoğrafınız → Cihaz eşleme → QR kodu tarayıcı'yı açın ve bu kodu tarayın. Tarayıcının kodu başka bir ekranda görmesi gerekir.</string>
+    <string name="pair_gmessages_emoji">Telefonunuzdaki Google Mesajlar bir emoji seçmenizi ister: bunu seçin.</string>
+    <string name="cookies_steps_google">1. Google e-postanızı, ardından şifrenizi girin.\n2. Google isterse telefonunuzda siz olduğunuzu onaylayın.\nGiriş yaptığınızda HowYouDoin kendiliğinden devam eder. Sayfa küçük görünüyorsa iki parmakla yakınlaştırın.</string>
 </resources>

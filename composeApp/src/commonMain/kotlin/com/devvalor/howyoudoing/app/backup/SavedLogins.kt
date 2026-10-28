@@ -1,5 +1,6 @@
 package com.devvalor.howyoudoing.app.backup
 
+import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceNetworks
 import com.devvalor.howyoudoing.core.domain.auth.AuthInfo
 import com.devvalor.howyoudoing.core.domain.backup.LoginRestoreOffer
 import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
@@ -106,8 +107,9 @@ object SavedLoginsFormat {
         )
     }.getOrNull()
 
-    /** Networks restored from their web login's cookies. */
-    val COOKIE_NETWORKS = listOf(ChatNetwork.MESSENGER, ChatNetwork.INSTAGRAM, ChatNetwork.SLACK)
+    /** Networks restored from their saved login (web cookies, or Bluesky's handle and app password). */
+    val COOKIE_NETWORKS = listOf(ChatNetwork.MESSENGER, ChatNetwork.INSTAGRAM, ChatNetwork.SLACK) +
+        OnDeviceNetworks.WEB_LOGIN
 
     private fun AuthInfo.toJson() = buildJsonObject {
         put("homeserverUrl", homeserverUrl)

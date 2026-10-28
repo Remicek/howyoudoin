@@ -553,3 +553,150 @@ class AndroidSlackFactory : NativeMessengerFactory {
 
     private fun unsupported(): Nothing = throw UnsupportedOperationException("Slack has no encrypted chats")
 }
+
+/**
+ * hydbridge's shared ChatClient for a network logged in from its web page or with a password ([goName] is its
+ * name in hydbridge: "bluesky", "linkedin", "discord", "googlevoice"). None of them has encrypted chats.
+ */
+class AndroidChatClientFactory(private val goName: String) : NativeMessengerFactory {
+    override fun create(cookiesJson: String, dataDir: String, onEvent: (String) -> Unit): NativeMessengerClient {
+        val c = Hydbridge.newChatClient(goName, cookiesJson, dataDir, listener(onEvent))
+        return object : NativeMessengerClient {
+            override fun connect() = c.connect()
+            override fun disconnect() = c.disconnect()
+            override fun sendText(threadKey: String, text: String): String = c.sendText(threadKey, text)
+            override fun sendReply(
+                threadKey: String,
+                isEncrypted: Boolean,
+                isGroup: Boolean,
+                text: String,
+                replyToId: String,
+                replySenderId: String
+            ): String = c.sendReply(threadKey, text, replyToId)
+
+            override fun editMessage(
+                threadKey: String,
+                isEncrypted: Boolean,
+                isGroup: Boolean,
+                messageId: String,
+                text: String
+            ) = c.editMessage(threadKey, messageId, text)
+
+            override fun unsend(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, messageId: String) =
+                c.unsend(threadKey, messageId)
+
+            override fun sendEncryptedText(threadKey: String, isGroup: Boolean, text: String): String = unsupported()
+            override fun requestOlder(threadKey: String, beforeTimestampMs: Long, beforeMessageId: String) =
+                c.requestOlder(threadKey, beforeMessageId)
+
+            override fun historyStatus(): String = unsupported()
+            override fun restoreHistory(pin: String) = unsupported()
+            override fun fetchEncryptedHistory(
+                threadKey: String,
+                isGroup: Boolean,
+                beforeTimestampMs: Long,
+                count: Long
+            ) = unsupported()
+
+            override fun sendReaction(threadKey: String, messageId: String, emoji: String) =
+                c.sendReaction(threadKey, messageId, emoji)
+
+            override fun sendEncryptedReaction(
+                threadKey: String,
+                isGroup: Boolean,
+                messageId: String,
+                messageSenderId: String,
+                emoji: String
+            ) = unsupported()
+
+            override fun markRead(
+                threadKey: String,
+                isEncrypted: Boolean,
+                isGroup: Boolean,
+                lastMessageId: String,
+                senderId: String
+            ) = c.markRead(threadKey, lastMessageId)
+
+            override fun setTyping(threadKey: String, isEncrypted: Boolean, isGroup: Boolean, isTyping: Boolean) =
+                c.setTyping(threadKey, isTyping)
+
+            override fun sendMediaFile(
+                threadKey: String,
+                isEncrypted: Boolean,
+                isGroup: Boolean,
+                path: String,
+                mimeType: String,
+                fileName: String,
+                caption: String,
+                width: Long,
+                height: Long
+            ): String = c.sendMediaFile(threadKey, path, mimeType, fileName, caption)
+
+            override fun sendVoice(
+                threadKey: String,
+                isEncrypted: Boolean,
+                isGroup: Boolean,
+                path: String,
+                mimeType: String,
+                durationMs: Long,
+                waveform: String
+            ): String = c.sendMediaFile(threadKey, path, mimeType, voiceFileName(mimeType), "")
+        }
+    }
+
+    private fun voiceFileName(mimeType: String) =
+        if (mimeType == "audio/ogg") "Voice message.ogg" else "Voice message.m4a"
+
+    private fun unsupported(): Nothing = throw UnsupportedOperationException("$goName has no encrypted chats")
+}
+
+/** hydbridge's Google Messages client, paired with the user's phone (QR code or Google account). */
+class AndroidGoogleMessagesFactory : NativeLinkedClientFactory {
+    override fun create(dataDir: String, onEvent: (String) -> Unit): NativeLinkedClient {
+        val g = Hydbridge.newGoogleMessages(dataDir, listener(onEvent))
+        return object : NativeLinkedClient {
+            override fun isLinked() = g.isLinked
+            override fun connect() = g.connect()
+            override fun startLinking(phoneNumber: String) = g.startLinking()
+            override fun startGoogleLinking(cookiesJson: String) = g.startGoogleLinking(cookiesJson)
+            override fun cancelLinking() = g.cancelLinking()
+            override fun disconnect() = g.disconnect()
+            override fun logout() = g.logout()
+            override fun sendText(chat: String, text: String): String = g.sendText(chat, text)
+            override fun sendReply(
+                chat: String,
+                text: String,
+                replyToId: String,
+                replySenderId: String,
+                quotedText: String
+            ): String = g.sendReply(chat, text, replyToId)
+
+            override fun unsend(chat: String, messageId: String) = g.unsend(chat, messageId)
+            override fun sendReaction(chat: String, messageId: String, senderId: String, emoji: String) =
+                g.sendReaction(chat, messageId, emoji)
+
+            override fun markRead(chat: String, messageId: String, senderId: String) = g.markRead(chat, messageId)
+            override fun setTyping(chat: String, isTyping: Boolean) = g.setTyping(chat, isTyping)
+            override fun requestOlder(
+                chat: String,
+                beforeMessageId: String,
+                beforeIsOutgoing: Boolean,
+                beforeTimestampMs: Long
+            ) = g.requestOlder(chat, beforeMessageId)
+
+            override fun sendMediaFile(
+                chat: String,
+                path: String,
+                mimeType: String,
+                fileName: String,
+                caption: String,
+                width: Long,
+                height: Long
+            ): String = g.sendMediaFile(chat, path, mimeType, fileName)
+
+            // Media arrives downloaded with its message
+            override fun downloadMedia(chat: String, messageId: String, mediaRef: String): String =
+                throw UnsupportedOperationException("Google Messages media is downloaded with its message")
+        }
+    }
+}

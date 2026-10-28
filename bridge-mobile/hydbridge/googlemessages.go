@@ -211,13 +211,13 @@ func (g *GoogleMessages) StartLinking() error {
 			case <-time.After(googleMessagesQRLifetime):
 				if attempt >= googleMessagesQRAttempts {
 					g.reset()
-					g.emitState("error", "The QR code expired, try again")
+					g.emitState("pairing_failed", "timeout")
 					return
 				}
 				qr, err := client.RefreshPhoneRelay()
 				if err != nil {
 					g.reset()
-					g.emitState("error", "Pairing failed: "+err.Error())
+					g.emitState("pairing_failed", err.Error())
 					return
 				}
 				g.emit(map[string]any{"type": "pairing", "qr": qr,
@@ -273,16 +273,16 @@ func (g *GoogleMessages) StartGoogleLinking(cookiesJSON string) error {
 		case ctx.Err() != nil:
 		case errors.Is(err, libgm.ErrIncorrectEmoji):
 			g.reset()
-			g.emitState("error", "A different emoji was tapped on the phone, try again")
+			g.emitState("pairing_failed", "a different emoji was tapped on the phone")
 		case errors.Is(err, libgm.ErrPairingCancelled):
 			g.reset()
-			g.emitState("error", "Pairing was cancelled on the phone")
+			g.emitState("pairing_failed", "cancelled on the phone")
 		case errors.Is(err, libgm.ErrPairingTimeout):
 			g.reset()
-			g.emitState("error", "Pairing timed out, try again")
+			g.emitState("pairing_failed", "timeout")
 		default:
 			g.reset()
-			g.emitState("error", "Pairing failed: "+err.Error())
+			g.emitState("pairing_failed", err.Error())
 		}
 	}()
 	return nil
@@ -330,8 +330,9 @@ func (g *GoogleMessages) handleEvent(raw any) {
 	case *events.GaiaLoggedOut:
 		g.emitState("error", "Signed out of Google, pair again")
 	case *gmproto.RevokePairData:
+		// Unpaired from the phone: the app forgets the account
 		_ = os.Remove(g.sessionPath())
-		g.emitState("error", "Google Messages was unpaired, pair it again")
+		g.emitState("logged_out", "")
 	case *gmproto.Conversation:
 		g.emitConversation(evt)
 	case *libgm.WrappedMessage:

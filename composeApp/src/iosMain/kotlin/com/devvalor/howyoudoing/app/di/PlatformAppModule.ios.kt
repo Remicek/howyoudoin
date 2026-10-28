@@ -1,5 +1,9 @@
 package com.devvalor.howyoudoing.app.di
 
+import com.devvalor.howyoudoing.chat.data.di.onDeviceClientName
+import com.devvalor.howyoudoing.chat.data.di.onDeviceCacheName
+import com.devvalor.howyoudoing.core.domain.ondevice.UnsupportedOnDeviceNetwork
+import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceNetworks
 import com.devvalor.howyoudoing.app.ondevice.IosDataDirectory
 import com.devvalor.howyoudoing.app.ondevice.IosMessengerFactory
 import com.devvalor.howyoudoing.app.ondevice.IosSecretStore
@@ -76,6 +80,16 @@ actual val platformAppModule: Module = module {
         com.devvalor.howyoudoing.core.domain.backup.NoLoginBackup
     }
     single<OnDeviceSlack> { UnsupportedOnDeviceSlack }
+    // The networks added later aren't built for iOS either
+    OnDeviceNetworks.ALL.forEach { network ->
+        single<OnDeviceMessenger>(named(onDeviceClientName(network))) { UnsupportedOnDeviceNetwork(network) }
+        single<OnDeviceInboxCache>(named(onDeviceCacheName(network))) {
+            IosInboxCache("on_device_" + network.name.lowercase())
+        }
+    }
+    single {
+        OnDeviceNetworks(OnDeviceNetworks.ALL.associateWith { get<OnDeviceMessenger>(named(onDeviceClientName(it))) })
+    }
     single<OnDeviceInboxCache>(named(ON_DEVICE_SLACK_CACHE)) { IosInboxCache("on_device_slack") }
     single<OnDeviceTelegram> { UnsupportedOnDeviceTelegram }
     single<OnDeviceSignal> { UnsupportedOnDeviceSignal }

@@ -186,4 +186,24 @@
         <item quantity="other">%1$d akun tersambung</item>
     </plurals>
     <string name="networks_calls_info">Untuk saat ini, panggilan suara dan video berjalan lewat Matrix: hubungkan akun Matrix untuk menelepon pengguna Matrix lain.</string>
+    <string name="networks_untested">Belum diuji: belum dicoba dengan akun sungguhan</string>
+    <string name="networks_discord_title">Discord memblokir akun karena ini</string>
+    <string name="networks_discord_body">Aturan Discord melarang memakai akun pribadi dari aplikasi lain, dan Discord pernah memblokir akun karena itu, kadang tanpa peringatan. Pengembang maupun dukungan Discord tidak akan memulihkan akun yang diblokir beserta teman dan servernya.\n\nHubungkan Discord hanya dengan akun yang siap Anda relakan.</string>
+    <string name="flow_google_account">Akun Google</string>
+    <string name="connectnetwork_gmessages_qr">Pindai kode dengan Google Messages di ponsel Android Anda (Penyambungan perangkat). Kodenya harus ada di layar lain.</string>
+    <string name="connectnetwork_gmessages_google">Masuk dengan akun Google yang dipakai Google Messages, lalu ketuk emoji yang sama di ponsel Anda.</string>
+    <string name="connectnetwork_bluesky">Masuk dengan nama pengguna dan sandi aplikasi; chat terhubung dari ponsel ini.</string>
+    <string name="connectnetwork_linkedin">Masuk di linkedin.com; pesan terhubung dari ponsel ini.</string>
+    <string name="connectnetwork_discord">Masuk di discord.com; pesan langsung terhubung dari ponsel ini. Discord bisa memblokir akun karena ini.</string>
+    <string name="connectnetwork_gvoice">Masuk dengan Google di voice.google.com; SMS terhubung dari ponsel ini.</string>
+    <string name="bluesky_instructions">Gunakan sandi aplikasi, bukan sandi akun: di Bluesky buka Setelan → Privasi dan keamanan → Sandi aplikasi, tambahkan satu dan aktifkan "Izinkan akses ke pesan langsung Anda".</string>
+    <string name="field_bluesky_handle">Nama pengguna atau email</string>
+    <string name="field_app_password">Sandi aplikasi</string>
+    <string name="cookies_linkedin">Masuk ke LinkedIn. HowYouDoin lalu menghubungkan pesan Anda dari ponsel ini.</string>
+    <string name="cookies_discord">Masuk ke Discord. HowYouDoin lalu menghubungkan pesan langsung Anda dari ponsel ini.</string>
+    <string name="cookies_gvoice">Masuk dengan akun Google yang memiliki nomor Google Voice Anda. HowYouDoin lalu menghubungkan SMS Anda dari ponsel ini.</string>
+    <string name="cookies_gmessages">Masuk dengan akun Google yang dipakai Google Messages di ponsel Anda. Sebuah emoji akan muncul di sini; ketuk emoji yang sama di Google Messages.</string>
+    <string name="pair_gmessages_qr">Di ponsel Android buka Google Messages → foto profil Anda → Penyambungan perangkat → Pemindai kode QR, lalu pindai kode ini. Pemindai memerlukan kode di layar lain.</string>
+    <string name="pair_gmessages_emoji">Google Messages di ponsel Anda meminta Anda memilih emoji: ketuk yang ini.</string>
+    <string name="cookies_steps_google">1. Masukkan email Google Anda, lalu sandi.\n2. Jika Google meminta, konfirmasi di ponsel bahwa itu Anda.\nHowYouDoin melanjutkan sendiri setelah Anda masuk. Cubit untuk memperbesar jika halaman terlihat kecil.</string>
 </resources>

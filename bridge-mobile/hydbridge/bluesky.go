@@ -59,9 +59,9 @@ var (
 )
 
 const (
-	blueskyChatProxy    = "did:web:api.bsky.chat#bsky_chat"
-	blueskyPageSize     = 50
-	blueskyConvoPages   = 4
+	blueskyChatProxy  = "did:web:api.bsky.chat#bsky_chat"
+	blueskyPageSize   = 50
+	blueskyConvoPages = 4
 	// Chats whose recent messages load on connect
 	blueskyPrefetchConvos = 20
 )

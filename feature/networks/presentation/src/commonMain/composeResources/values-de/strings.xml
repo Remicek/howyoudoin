@@ -188,4 +188,24 @@
         <item quantity="other">%1$d Konten verbunden</item>
     </plurals>
     <string name="networks_calls_info">Sprach- und Videoanrufe funktionieren vorerst nur über Matrix: Verbinde ein Matrix-Konto, um andere Matrix-Nutzer anzurufen.</string>
+    <string name="networks_untested">Ungetestet: noch nicht mit einem echten Konto ausprobiert</string>
+    <string name="networks_discord_title">Discord sperrt dafür Konten</string>
+    <string name="networks_discord_body">Discords Regeln verbieten, ein persönliches Konto über eine andere App zu nutzen, und Discord hat dafür Konten gesperrt, manchmal ohne Vorwarnung. Weder der Entwickler noch Discords Support holt ein gesperrtes Konto samt Freunden und Servern zurück.\n\nVerbinde Discord nur mit einem Konto, dessen Verlust du verkraften kannst.</string>
+    <string name="flow_google_account">Google-Konto</string>
+    <string name="connectnetwork_gmessages_qr">Scanne einen Code mit Google Messages auf deinem Android-Handy (Geräte koppeln). Der Code muss auf einem anderen Bildschirm sein.</string>
+    <string name="connectnetwork_gmessages_google">Melde dich mit dem Google-Konto von Google Messages an und tippe dann auf dem Handy auf dasselbe Emoji.</string>
+    <string name="connectnetwork_bluesky">Melde dich mit deinem Handle und einem App-Passwort an; Chats verbinden sich von diesem Handy.</string>
+    <string name="connectnetwork_linkedin">Melde dich auf linkedin.com an; Nachrichten verbinden sich von diesem Handy.</string>
+    <string name="connectnetwork_discord">Melde dich auf discord.com an; Direktnachrichten verbinden sich von diesem Handy. Discord kann dafür Konten sperren.</string>
+    <string name="connectnetwork_gvoice">Melde dich mit Google auf voice.google.com an; SMS verbinden sich von diesem Handy.</string>
+    <string name="bluesky_instructions">Nutze ein App-Passwort, nicht dein Kontopasswort: Öffne in Bluesky Einstellungen → Privatsphäre und Sicherheit → App-Passwörter, füge eins hinzu und aktiviere „Zugriff auf deine Direktnachrichten erlauben“.</string>
+    <string name="field_bluesky_handle">Handle oder E-Mail</string>
+    <string name="field_app_password">App-Passwort</string>
+    <string name="cookies_linkedin">Melde dich bei LinkedIn an. HowYouDoin verbindet dann deine Nachrichten von diesem Handy.</string>
+    <string name="cookies_discord">Melde dich bei Discord an. HowYouDoin verbindet dann deine Direktnachrichten von diesem Handy.</string>
+    <string name="cookies_gvoice">Melde dich mit dem Google-Konto deiner Google-Voice-Nummer an. HowYouDoin verbindet dann deine SMS von diesem Handy.</string>
+    <string name="cookies_gmessages">Melde dich mit dem Google-Konto an, das Google Messages auf deinem Handy nutzt. Hier erscheint dann ein Emoji; tippe in Google Messages auf dasselbe.</string>
+    <string name="pair_gmessages_qr">Öffne auf deinem Android-Handy Google Messages → dein Profilbild → Geräte koppeln → QR-Code-Scanner und scanne diesen Code. Der Scanner braucht den Code auf einem anderen Bildschirm.</string>
+    <string name="pair_gmessages_emoji">Google Messages auf deinem Handy fragt nach einem Emoji: tippe auf dieses.</string>
+    <string name="cookies_steps_google">1. Gib deine Google-E-Mail-Adresse und dann dein Passwort ein.\n2. Bestätige auf dem Handy, falls Google danach fragt.\nHowYouDoin macht von selbst weiter, sobald du angemeldet bist. Zum Vergrößern mit zwei Fingern ziehen.</string>
 </resources>

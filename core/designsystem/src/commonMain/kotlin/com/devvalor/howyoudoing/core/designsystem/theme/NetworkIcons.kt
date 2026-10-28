@@ -12,7 +12,7 @@ import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
  * Network logos from Simple Icons (https://simpleicons.org, CC0 1.0), unmodified, one colour on the brand colour.
  * They only identify which network a chat or login belongs to; the logos are trademarks of their owners
  * (see the About screen). Slack isn't in Simple Icons (removed at the owner's request), so instead of its logo it
- * gets a hashtag, its long-standing channel symbol.
+ * gets a hashtag, its long-standing channel symbol; LinkedIn and Google Voice aren't either, and show a letter.
  */
 
 /** The network's logo, or null where we only show a letter. */
@@ -25,6 +25,10 @@ val ChatNetwork.logo: ImageVector?
         ChatNetwork.SIGNAL -> SignalLogo
         ChatNetwork.MATRIX -> MatrixLogo
         ChatNetwork.SLACK -> SlackMark
+        ChatNetwork.GOOGLE_MESSAGES -> GoogleMessagesLogo
+        ChatNetwork.BLUESKY -> BlueskyLogo
+        ChatNetwork.DISCORD -> DiscordLogo
+        ChatNetwork.LINKEDIN, ChatNetwork.GOOGLE_VOICE -> null
     }
 
 /** A plain hashtag, drawn here rather than taken from Slack's logo. */
@@ -158,3 +162,50 @@ private fun simpleIcon(name: String, pathData: String): ImageVector =
     )
         .addPath(pathData = addPathNodes(pathData), fill = SolidColor(Color.White))
         .build()
+
+private val GoogleMessagesLogo: ImageVector by lazy {
+    simpleIcon(
+        "googlemessages",
+        "M12 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12 -12A12 12 0 0 0 12 0zM4.911" +
+        " 7.089h11.456a2.197 2.197 0 0 1 2.165 2.19v5.863a2.213 2.213 0 0 1 -2.177 2.178H8.04c-1.174 0" +
+        " -2.04 -.99 -2.04 -2.178v-4.639L4.503 7.905c-.31 -.42 -.05 -.816 .408 -.816zm3.415 2.19c-.347 0" +
+        " -.68 .21 -.68 .544 0 .334 .333 .544 .68 .544h7.905c.346 0 .68 -.21 .68 -.544 0 -.334 -.334" +
+        " -.545 -.68 -.545zm0 2.177c-.347 0 -.68 .21 -.68 .544 0 .334 .333 .544 .68 .544h7.905c.346 0" +
+        " .68 -.21 .68 -.544 0 -.334 -.334 -.544 -.68 -.544zm-.013 2.19c-.346 0 -.68 .21 -.68 .544 0" +
+        " .334 .334 .544 .68 .544h5.728c.347 0 .68 -.21 .68 -.544 0 -.334 -.333 -.545 -.68 -.545z"
+    )
+}
+
+private val BlueskyLogo: ImageVector by lazy {
+    simpleIcon(
+        "bluesky",
+        "M5.202 2.857C7.954 4.922 10.913 9.11 12 11.358c1.087 -2.247 4.046 -6.436 6.798 -8.501C20.783" +
+        " 1.366 24 .213 24 3.883c0 .732 -.42 6.156 -.667 7.037 -.856 3.061 -3.978 3.842 -6.755 3.37" +
+        " 4.854 .826 6.089 3.562 3.422 6.299 -5.065 5.196 -7.28 -1.304 -7.847 -2.97 -.104 -.305 -.152" +
+        " -.448 -.153 -.327 0 -.121 -.05 .022 -.153 .327 -.568 1.666 -2.782 8.166 -7.847 2.97 -2.667" +
+        " -2.737 -1.432 -5.473 3.422 -6.3 -2.777 .473 -5.899 -.308 -6.755 -3.369C.42 10.04 0 4.615 0" +
+        " 3.883c0 -3.67 3.217 -2.517 5.202 -1.026"
+    )
+}
+
+private val DiscordLogo: ImageVector by lazy {
+    simpleIcon(
+        "discord",
+        "M20.317 4.3698a19.7913 19.7913 0 0 0 -4.8851 -1.5152 .0741 .0741 0 0 0 -.0785 .0371c-.211 .3753" +
+        " -.4447 .8648 -.6083 1.2495 -1.8447 -.2762 -3.68 -.2762 -5.4868 0 -.1636 -.3933 -.4058 -.8742" +
+        " -.6177 -1.2495a.077 .077 0 0 0 -.0785 -.037 19.7363 19.7363 0 0 0 -4.8852 1.515 .0699 .0699 0" +
+        " 0 0 -.0321 .0277C.5334 9.0458 -.319 13.5799 .0992 18.0578a.0824 .0824 0 0 0 .0312 .0561c2.0528" +
+        " 1.5076 4.0413 2.4228 5.9929 3.0294a.0777 .0777 0 0 0 .0842 -.0276c.4616 -.6304 .8731 -1.2952" +
+        " 1.226 -1.9942a.076 .076 0 0 0 -.0416 -.1057c-.6528 -.2476 -1.2743 -.5495 -1.8722 -.8923a.077" +
+        " .077 0 0 1 -.0076 -.1277c.1258 -.0943 .2517 -.1923 .3718 -.2914a.0743 .0743 0 0 1 .0776" +
+        " -.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739 .0739 0 0 1 .0785 .0095c.1202 .099 .246 .1981" +
+        " .3728 .2924a.077 .077 0 0 1 -.0066 .1276 12.2986 12.2986 0 0 1 -1.873 .8914 .0766 .0766 0 0 0" +
+        " -.0407 .1067c.3604 .698 .7719 1.3628 1.225 1.9932a.076 .076 0 0 0 .0842 .0286c1.961 -.6067" +
+        " 3.9495 -1.5219 6.0023 -3.0294a.077 .077 0 0 0 .0313 -.0552c.5004 -5.177 -.8382 -9.6739 -3.5485" +
+        " -13.6604a.061 .061 0 0 0 -.0312 -.0286zM8.02 15.3312c-1.1825 0 -2.1569 -1.0857 -2.1569 -2.419" +
+        " 0 -1.3332 .9555 -2.4189 2.157 -2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332 -.9555" +
+        " 2.4189 -2.1569 2.4189zm7.9748 0c-1.1825 0 -2.1569 -1.0857 -2.1569 -2.419 0 -1.3332 .9554" +
+        " -2.4189 2.1569 -2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332 -.946 2.4189 -2.1568" +
+        " 2.4189Z"
+    )
+}

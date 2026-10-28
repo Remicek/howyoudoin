@@ -192,4 +192,24 @@
         <item quantity="other">Połączono %1$d konta</item>
     </plurals>
     <string name="networks_calls_info">Połączenia głosowe i wideo działają na razie tylko przez Matrix: połącz konto Matrix, aby dzwonić do innych użytkowników Matrix.</string>
+    <string name="networks_untested">Nieprzetestowane: jeszcze nie sprawdzone z prawdziwym kontem</string>
+    <string name="networks_discord_title">Discord blokuje za to konta</string>
+    <string name="networks_discord_body">Zasady Discorda zabraniają korzystania z konta osobistego przez inną aplikację, a Discord blokował za to konta, czasem bez ostrzeżenia. Ani autor aplikacji, ani pomoc Discorda nie przywrócą zablokowanego konta razem ze znajomymi i serwerami.\n\nPodłącz Discorda tylko kontem, którego utratę możesz zaakceptować.</string>
+    <string name="flow_google_account">Konto Google</string>
+    <string name="connectnetwork_gmessages_qr">Zeskanuj kod w Wiadomościach Google na telefonie z Androidem (Parowanie urządzeń). Kod musi być na innym ekranie.</string>
+    <string name="connectnetwork_gmessages_google">Zaloguj się kontem Google używanym przez Wiadomości Google, a potem kliknij to samo emoji na telefonie.</string>
+    <string name="connectnetwork_bluesky">Zaloguj się nazwą użytkownika i hasłem aplikacji; czaty łączą się z tego telefonu.</string>
+    <string name="connectnetwork_linkedin">Zaloguj się na linkedin.com; wiadomości łączą się z tego telefonu.</string>
+    <string name="connectnetwork_discord">Zaloguj się na discord.com; wiadomości prywatne łączą się z tego telefonu. Discord może za to zablokować konto.</string>
+    <string name="connectnetwork_gvoice">Zaloguj się kontem Google na voice.google.com; SMS-y łączą się z tego telefonu.</string>
+    <string name="bluesky_instructions">Użyj hasła aplikacji, nie hasła do konta: w Bluesky otwórz Ustawienia → Prywatność i bezpieczeństwo → Hasła aplikacji, dodaj nowe i włącz „Zezwalaj na dostęp do wiadomości prywatnych”.</string>
+    <string name="field_bluesky_handle">Nazwa użytkownika lub e-mail</string>
+    <string name="field_app_password">Hasło aplikacji</string>
+    <string name="cookies_linkedin">Zaloguj się do LinkedIn. HowYouDoin połączy wtedy Twoje wiadomości z tego telefonu.</string>
+    <string name="cookies_discord">Zaloguj się do Discorda. HowYouDoin połączy wtedy Twoje wiadomości prywatne z tego telefonu.</string>
+    <string name="cookies_gvoice">Zaloguj się kontem Google z numerem Google Voice. HowYouDoin połączy wtedy Twoje SMS-y z tego telefonu.</string>
+    <string name="cookies_gmessages">Zaloguj się kontem Google, którego używają Wiadomości Google na telefonie. Pojawi się tu emoji; kliknij to samo w Wiadomościach Google.</string>
+    <string name="pair_gmessages_qr">Na telefonie z Androidem otwórz Wiadomości Google → swoje zdjęcie profilowe → Parowanie urządzeń → Skaner kodów QR i zeskanuj ten kod. Skaner potrzebuje kodu na innym ekranie.</string>
+    <string name="pair_gmessages_emoji">Wiadomości Google na telefonie poproszą o wybór emoji: kliknij to.</string>
+    <string name="cookies_steps_google">1. Wpisz e-mail konta Google, a potem hasło.\n2. Jeśli Google poprosi, potwierdź logowanie na telefonie.\nHowYouDoin przejdzie dalej sam, gdy się zalogujesz. Rozsuń palce, żeby powiększyć stronę.</string>
 </resources>

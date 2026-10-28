@@ -450,3 +450,15 @@ class NativeOnDeviceSlack(
 ) : NativeOnDeviceMessenger(factory, secrets, dataDir, scope), OnDeviceSlack {
     override val network: ChatNetwork get() = ChatNetwork.SLACK
 }
+
+/**
+ * A network logged in from its web page or with a password (Bluesky, LinkedIn, Discord, Google Voice), through
+ * hydbridge's shared ChatClient; the "cookies" are whatever that network's login needs.
+ */
+class NativeOnDeviceWebAccount(
+    override val network: ChatNetwork,
+    factory: NativeMessengerFactory,
+    secrets: OnDeviceSecretStore,
+    dataDir: OnDeviceDataDirectory,
+    scope: CoroutineScope
+) : NativeOnDeviceMessenger(factory, secrets, dataDir, scope)

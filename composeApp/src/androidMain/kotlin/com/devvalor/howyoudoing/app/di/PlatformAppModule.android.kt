@@ -1,5 +1,13 @@
 package com.devvalor.howyoudoing.app.di
 
+import com.devvalor.howyoudoing.chat.data.di.onDeviceClientName
+import com.devvalor.howyoudoing.chat.data.di.onDeviceCacheName
+import com.devvalor.howyoudoing.app.ondevice.AndroidGoogleMessagesFactory
+import com.devvalor.howyoudoing.app.ondevice.AndroidChatClientFactory
+import com.devvalor.howyoudoing.app.ondevice.NativeOnDeviceGoogleMessages
+import com.devvalor.howyoudoing.app.ondevice.NativeOnDeviceWebAccount
+import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceLinkedAccount
+import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceNetworks
 import com.devvalor.howyoudoing.app.ondevice.AndroidDataDirectory
 import com.devvalor.howyoudoing.app.ondevice.AndroidMessengerFactory
 import com.devvalor.howyoudoing.app.ondevice.AndroidMatrixMediaCache
@@ -87,8 +95,9 @@ actual val platformAppModule: Module = module {
                 get<OnDeviceTelegram>(),
                 get<OnDeviceSignal>(),
                 get<OnDeviceSlack>()
-            ),
-            linkedAccounts = listOf(get<OnDeviceWhatsApp>(), get<OnDeviceTelegram>(), get<OnDeviceSignal>()),
+            ) + get<OnDeviceNetworks>().clients.values,
+            linkedAccounts = listOf(get<OnDeviceWhatsApp>(), get<OnDeviceTelegram>(), get<OnDeviceSignal>()) +
+                get<OnDeviceNetworks>().clients.values.filterIsInstance<OnDeviceLinkedAccount>(),
             scope = get()
         )
     }
@@ -124,6 +133,32 @@ actual val platformAppModule: Module = module {
             scope = get()
         )
     }
+    OnDeviceNetworks.ALL.forEach { network ->
+        single<OnDeviceInboxCache>(named(onDeviceCacheName(network))) {
+            AndroidInboxCache(androidContext(), network.dataDir)
+        }
+    }
+    OnDeviceNetworks.WEB_LOGIN.forEach { network ->
+        single<OnDeviceMessenger>(named(onDeviceClientName(network)), createdAtStart = true) {
+            NativeOnDeviceWebAccount(
+                network = network,
+                factory = AndroidChatClientFactory(network.goName),
+                secrets = KeystoreSecretStore(androidContext(), network.dataDir),
+                dataDir = AndroidDataDirectory(androidContext(), network.dataDir),
+                scope = get()
+            )
+        }
+    }
+    single<OnDeviceMessenger>(named(onDeviceClientName(ChatNetwork.GOOGLE_MESSAGES)), createdAtStart = true) {
+        NativeOnDeviceGoogleMessages(
+            AndroidGoogleMessagesFactory(),
+            AndroidDataDirectory(androidContext(), ChatNetwork.GOOGLE_MESSAGES.dataDir),
+            get()
+        )
+    }
+    single {
+        OnDeviceNetworks(OnDeviceNetworks.ALL.associateWith { get<OnDeviceMessenger>(named(onDeviceClientName(it))) })
+    }
     single { AndroidCallMediaEngine(androidContext()) } bind CallMediaEngine::class
     single<MatrixCryptoFactory> { GoMatrixCryptoFactory(androidContext()) }
     single<MatrixMediaCache> { AndroidMatrixMediaCache(androidContext()) }
@@ -142,10 +177,14 @@ actual val platformAppModule: Module = module {
                     ChatNetwork.INSTAGRAM to
                         (get<OnDeviceInstagram>() to KeystoreSecretStore(androidContext(), INSTAGRAM_DIR)),
                     ChatNetwork.SLACK to (get<OnDeviceSlack>() to KeystoreSecretStore(androidContext(), SLACK_DIR))
-                ),
+                ) + OnDeviceNetworks.WEB_LOGIN.associateWith { network ->
+                    get<OnDeviceMessenger>(named(onDeviceClientName(network))) to
+                        KeystoreSecretStore(androidContext(), network.dataDir)
+                },
                 telegram = get<OnDeviceTelegram>() as NativeOnDeviceTelegram,
                 telegramDir = File(androidContext().noBackupFilesDir, TELEGRAM_DIR),
-                relinkOnly = listOf(get<OnDeviceWhatsApp>(), get<OnDeviceSignal>()),
+                relinkOnly = listOf(get<OnDeviceWhatsApp>(), get<OnDeviceSignal>()) +
+                    OnDeviceNetworks.PAIRED.map { get<OnDeviceMessenger>(named(onDeviceClientName(it))) },
                 matrix = get<OnDeviceMatrix>()
             ),
             scope = get()
@@ -166,3 +205,9 @@ private const val INSTAGRAM_DIR = "on_device_instagram"
 private const val TELEGRAM_DIR = "on_device_telegram"
 private const val SIGNAL_DIR = "on_device_signal"
 private const val SLACK_DIR = "on_device_slack"
+
+/** Where a network added later keeps its data ("on_device_bluesky"). */
+private val ChatNetwork.dataDir: String get() = "on_device_" + name.lowercase()
+
+/** The network's name in hydbridge's NewChatClient. */
+private val ChatNetwork.goName: String get() = name.lowercase().replace("_", "")

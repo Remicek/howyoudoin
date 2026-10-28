@@ -13,7 +13,9 @@ import com.devvalor.howyoudoing.chat.data.matrix.MatrixCallManager
 import com.devvalor.howyoudoing.chat.domain.CallManager
 import com.devvalor.howyoudoing.core.domain.auth.MATRIX_ACCOUNT_SESSION
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceInstagram
+import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceMessenger
+import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceNetworks
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceWhatsApp
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceSignal
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceSlack
@@ -88,6 +90,16 @@ val chatDataModule = module {
             OnDeviceMessengerStore.SLACK_CHAT_ID_PREFIX
         )
     }
+    OnDeviceNetworks.ALL.forEach { network ->
+        single(named(storeName(network)), createdAtStart = true) {
+            OnDeviceMessengerStore(
+                get<OnDeviceMessenger>(named(onDeviceClientName(network))),
+                get(named(onDeviceCacheName(network))),
+                get(),
+                OnDeviceMessengerStore.chatIdPrefix(network)
+            )
+        }
+    }
     // The Matrix account connected as a network: a second sync engine on its own session
     single(named(MATRIX_ACCOUNT_ENGINE)) {
         MatrixSyncEngine(
@@ -116,7 +128,9 @@ val chatDataModule = module {
                 OnDeviceSource(get<OnDeviceTelegram>(), get(named(TELEGRAM_STORE))),
                 OnDeviceSource(get<OnDeviceSignal>(), get(named(SIGNAL_STORE))),
                 OnDeviceSource(get<OnDeviceSlack>(), get(named(SLACK_STORE)))
-            ),
+            ) + OnDeviceNetworks.ALL.map { network ->
+                OnDeviceSource(get(named(onDeviceClientName(network))), get(named(storeName(network))))
+            },
             httpClient = get(),
             matrixAccount = get()
         )
@@ -145,3 +159,11 @@ const val ON_DEVICE_SIGNAL_CACHE = "onDeviceSignalCache"
 
 /** Koin name of the Slack inbox cache. */
 const val ON_DEVICE_SLACK_CACHE = "onDeviceSlackCache"
+
+private fun storeName(network: ChatNetwork) = "onDeviceStore:${network.name}"
+
+/** Koin name of the client that connects one of the [OnDeviceNetworks] from the phone. */
+fun onDeviceClientName(network: ChatNetwork) = "onDevice:${network.name}"
+
+/** Koin name of the inbox cache of one of the [OnDeviceNetworks]. */
+fun onDeviceCacheName(network: ChatNetwork) = "onDeviceCache:${network.name}"

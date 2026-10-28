@@ -196,29 +196,9 @@ class DemoChatRepository(
 
     private fun seed(): Map<String, DemoChat> {
         val now = now()
-
-        fun chat(
-            id: String,
-            name: String,
-            network: ChatNetwork,
-            unread: Int,
-            isGroup: Boolean,
-            replies: List<String>,
-            vararg lines: Triple<String, String, Duration>
-        ): Pair<String, DemoChat> {
-            val messages = lines.mapIndexed { index, (sender, body, ago) ->
-                val senderId = if (sender == "You") myUserId else "@${network.name.lowercase()}_$index:howyoudoin.local"
-                message(id, "$id-$index", Author(senderId, sender), body, now - ago.inWholeMilliseconds)
-            }
-            return id to DemoChat(
-                chat = Chat(id, name, network, messages.lastOrNull(), unread, isGroup),
-                messages = messages,
-                replies = replies
-            )
-        }
-
         return mapOf(
-            chat(
+            demoChat(
+                now,
                 "wa-mom", "Mom", ChatNetwork.WHATSAPP, unread = 2, isGroup = false,
                 replies = listOf("❤️", "Call me when you can", "Ok, see you Sunday!"),
                 Triple("Mom", "Did you eat today?", 3.hours),
@@ -226,7 +206,8 @@ class DemoChatRepository(
                 Triple("Mom", "Are you coming for dinner on Sunday?", 12.minutes),
                 Triple("Mom", "Dad is making pierogi", 11.minutes),
             ),
-            chat(
+            demoChat(
+                now,
                 "wa-hiking", "Weekend Hiking 🏔️", ChatNetwork.WHATSAPP, unread = 5, isGroup = true,
                 replies = listOf("Count me in!", "Weather looks great 🌤️", "I'll bring snacks"),
                 Triple("Kasia", "Who's in for Saturday?", 2.hours),
@@ -234,7 +215,8 @@ class DemoChatRepository(
                 Triple("Kasia", "Meeting at 7:00 at the station", 50.minutes),
                 Triple("Ola", "Can someone grab an extra map?", 40.minutes),
             ),
-            chat(
+            demoChat(
+                now,
                 "msg-tom", "Tom Becker", ChatNetwork.MESSENGER, unread = 0, isGroup = false,
                 replies = listOf("Haha nice", "Sounds good 👍", "Let me check and get back to you"),
                 Triple("Tom Becker", "Did you see the match yesterday?", 1.days + 2.hours),
@@ -242,25 +224,86 @@ class DemoChatRepository(
                 Triple("Tom Becker", "Unreal. Drinks on Friday?", 5.hours),
                 Triple("You", "Sure, the usual place", 4.hours),
             ),
-            chat(
+            demoChat(
+                now,
                 "msg-bookclub", "Book Club 📚", ChatNetwork.MESSENGER, unread = 1, isGroup = true,
                 replies = listOf("Finished chapter 5!", "No spoilers please 🙈"),
                 Triple("Anna", "Next pick: Project Hail Mary", 3.days),
                 Triple("Mark", "Already started it, so good", 2.days),
                 Triple("Anna", "Meeting moved to Thursday", 30.minutes),
             ),
-            chat(
+            demoChat(
+                now,
                 "wa-kasia", "Kasia Nowak", ChatNetwork.WHATSAPP, unread = 0, isGroup = false,
                 replies = listOf("Thanks!", "👍"),
                 Triple("You", "Sending you the photos from the trip", 6.days),
                 Triple("Kasia Nowak", "These are amazing, thank you!", 6.days - 1.hours),
             ),
-            chat(
+            demoChat(
+                now,
                 "msg-anna", "Anna Schmidt", ChatNetwork.MESSENGER, unread = 0, isGroup = false,
                 replies = listOf("Perfect", "See you there"),
                 Triple("Anna Schmidt", "Could you review my slides?", 9.days),
                 Triple("You", "Sure, send them over", 9.days - 2.hours),
             ),
+        ) + phoneOnlyChats(now)
+    }
+
+    /** One chat from each network that connects from the phone without a bridge, older than the rest. */
+    private fun phoneOnlyChats(now: Long): Map<String, DemoChat> = mapOf(
+        demoChat(
+            now,
+            "dc-gamenight", "Game Night 🎮", ChatNetwork.DISCORD, unread = 0, isGroup = true,
+            replies = listOf("I'm in", "Saving you a seat"),
+            Triple("Leo", "Lobby opens at 9, who's playing?", 10.days),
+            Triple("You", "Count me in", 10.days - 30.minutes),
+        ),
+        demoChat(
+            now,
+            "gm-pharmacy", "City Pharmacy", ChatNetwork.GOOGLE_MESSAGES, unread = 0, isGroup = false,
+            replies = listOf("Thanks!"),
+            Triple("City Pharmacy", "Your prescription is ready for pickup.", 11.days),
+        ),
+        demoChat(
+            now,
+            "bs-jamie", "Jamie Lee", ChatNetwork.BLUESKY, unread = 0, isGroup = false,
+            replies = listOf("Thank you!", "Next one soon 📸"),
+            Triple("Jamie Lee", "Loved your photos from the mountains!", 12.days),
+            Triple("You", "Thanks, it was a great trip", 12.days - 1.hours),
+        ),
+        demoChat(
+            now,
+            "li-priya", "Priya Shah", ChatNetwork.LINKEDIN, unread = 0, isGroup = false,
+            replies = listOf("Sounds interesting", "Happy to chat"),
+            Triple("Priya Shah", "Hi! Would you be open to a quick call about a role?", 13.days),
+        ),
+        demoChat(
+            now,
+            "gv-novak", "Mr. Novak", ChatNetwork.GOOGLE_VOICE, unread = 0, isGroup = false,
+            replies = listOf("Great, thanks", "I'll be home"),
+            Triple("Mr. Novak", "The plumber comes Tuesday at 10.", 14.days),
+        ),
+    )
+
+    @Suppress("LongParameterList")
+    private fun demoChat(
+        now: Long,
+        id: String,
+        name: String,
+        network: ChatNetwork,
+        unread: Int,
+        isGroup: Boolean,
+        replies: List<String>,
+        vararg lines: Triple<String, String, Duration>
+    ): Pair<String, DemoChat> {
+        val messages = lines.mapIndexed { index, (sender, body, ago) ->
+            val senderId = if (sender == "You") myUserId else "@${network.name.lowercase()}_$index:howyoudoin.local"
+            message(id, "$id-$index", Author(senderId, sender), body, now - ago.inWholeMilliseconds)
+        }
+        return id to DemoChat(
+            chat = Chat(id, name, network, messages.lastOrNull(), unread, isGroup),
+            messages = messages,
+            replies = replies
         )
     }
 

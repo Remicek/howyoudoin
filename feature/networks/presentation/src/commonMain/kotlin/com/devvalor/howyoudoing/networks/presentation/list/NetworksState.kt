@@ -19,8 +19,12 @@ data class NetworksState(
         )
     }
 ) {
-    /** Matrix is an open protocol made for other apps, so only the other networks carry the risk. */
-    fun shouldWarnAboutRisk(network: ChatNetwork): Boolean = network.isBridged && !isRiskAccepted
+    /**
+     * Matrix is an open protocol made for other apps, so only the other networks carry the risk. Discord bans
+     * accounts for it outright, so it's warned about every time.
+     */
+    fun shouldWarnAboutRisk(network: ChatNetwork): Boolean =
+        network.isBridged && (!isRiskAccepted || network == ChatNetwork.DISCORD)
 
     fun shouldShowTutorial(network: ChatNetwork): Boolean =
         network in TUTORIAL_NETWORKS && network !in dismissedTutorials
