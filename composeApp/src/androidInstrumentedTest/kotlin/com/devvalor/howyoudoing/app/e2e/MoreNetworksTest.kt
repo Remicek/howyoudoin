@@ -147,8 +147,8 @@ class MoreNetworksTest {
     }
 
     private companion object {
-        /** Networks not yet connected with a real account (Bluesky has been). */
-        val UNTESTED_NETWORKS = listOf("LinkedIn", "Discord", "X", "Google Voice")
+        /** Networks not yet connected with a real account (Bluesky and LinkedIn have been). */
+        val UNTESTED_NETWORKS = listOf("Discord", "X", "Google Voice")
         const val UNTESTED = "Untested"
         const val DISCORD_WARNING = "Discord bans accounts for this"
         const val NETWORK_TIMEOUT_MILLIS = 30_000L

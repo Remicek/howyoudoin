@@ -81,8 +81,7 @@ enum class ChatNetwork(
         displayName = "LinkedIn",
         isSupported = false,
         bridgeProtocolIds = setOf("linkedin"),
-        ghostUserPrefixes = setOf("linkedin_"),
-        isUntested = true
+        ghostUserPrefixes = setOf("linkedin_")
     ),
 
     /** Direct messages and group DMs only; server channels stay out of the inbox. */

@@ -5,7 +5,9 @@ built into `hydbridge`) and talks only to that network's servers. A server bridg
 WhatsApp and Messenger.
 
 "Tested" means it was connected with a real account (Bluesky: signing in, receiving with a notification, sending,
-reactions both ways and reconnecting after a restart, on a Galaxy A53 on 29 October 2026). The networks marked untested work against fake servers and
+reactions both ways and reconnecting after a restart, on a Galaxy A53 on 29 October 2026; LinkedIn: signing in, the
+existing inbox, receiving with a notification, sending, a reaction, an edit and reconnecting after a restart, on the
+same phone the same day). The networks marked untested work against fake servers and
 real servers' refusals in the tests (wrong logins, a real pairing QR code), but have never been signed in with a
 real account; the app shows "Untested" on their card until they have.
 
@@ -19,7 +21,7 @@ real account; the app shows "Untested" on their card until they have.
 | Slack | slack.com in the login browser | mautrix-slack (slack-go) | tested |
 | Matrix | homeserver, username, password | the app's own Matrix client | tested |
 | Bluesky | handle and an app password allowed to read messages | HowYouDoin's own client for Bluesky's chat API | tested |
-| LinkedIn | linkedin.com in the login browser | mautrix-linkedin (linkedingo) | **untested** |
+| LinkedIn | linkedin.com in the login browser | mautrix-linkedin (linkedingo) | tested |
 | Discord | discord.com in the login browser (the web client's token) | Beeper's discordgo | **untested** |
 | X | x.com in the login browser, then the X Chat passcode | mautrix-twitter (twittermeow) | **untested** |
 | Google Voice | Google account on voice.google.com | mautrix-gvoice (libgv) | **untested** |
