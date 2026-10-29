@@ -922,8 +922,11 @@ func (t *Twitter) SearchPeople(query string) (string, error) {
 	}
 	ctx, cancel := twitterContext()
 	defer cancel()
-	resp, err := client.Search(ctx, payload.SearchQuery{Query: strings.TrimPrefix(query, "@"),
-		ResultType: payload.SEARCH_RESULT_TYPE_USERS})
+	// The fields x.com's own "new message" box sends; without src X answers with no one
+	resp, err := client.Search(ctx, payload.SearchQuery{
+		Query: strings.TrimPrefix(query, "@"), Src: "compose_message", ResultType: payload.SEARCH_RESULT_TYPE_USERS,
+		IncludeExtIsBlueVerified: "1", IncludeExtVerifiedType: "1", IncludeExtProfileImageShape: "1",
+	})
 	if err != nil {
 		return "", err
 	}

@@ -160,7 +160,7 @@
     <string name="contacts_search">Personen suchen</string>
     <string name="contacts_choose_network">Wo möchtest du schreiben?</string>
     <string name="contacts_none">Niemand gefunden</string>
-    <string name="contacts_only_known">Vorerst findest du nur Personen, die deine Netzwerke HowYouDoin bekannt gemacht haben.</string>
+    <string name="contacts_only_known">Bluesky, X und LinkedIn werden nach Name oder Benutzername durchsucht; andere Netzwerke zeigen nur Personen, die sie HowYouDoin mitgeteilt haben.</string>
     <string name="contacts_on_network">Auf %1$s</string>
     <string name="contacts_searching">Suche auf %1$s…</string>
     <string name="contacts_search_failed">%1$s konnte nicht durchsucht werden. Prüfe die Verbindung und versuche es erneut.</string>

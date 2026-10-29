@@ -27,6 +27,8 @@ Status: experimental, Android only for now. (An iOS build exists in the code but
 - Bluesky, LinkedIn, Discord, X and Google Voice are new; Bluesky, LinkedIn and X have been tested with real
   accounts, the others are **untested with real accounts** so far; see
   [docs/networks.md](docs/networks.md) for what each one can do and which networks were left out and why
+- New messages to anyone on Bluesky and X (found by name or handle); on the other networks, to the people they've
+  told HowYouDoin about
 - Voice and video calls with Matrix contacts (calls on the other networks aren't supported)
 - Notifications from a background connection, without push servers
 - App lock with a PIN or fingerprint, hidden message text in notifications, and no screenshots while locked

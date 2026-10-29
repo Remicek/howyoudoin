@@ -164,7 +164,7 @@
     <string name="contacts_search">Поиск людей</string>
     <string name="contacts_choose_network">Где вы хотите написать?</string>
     <string name="contacts_none">Никого не найдено</string>
-    <string name="contacts_only_known">Пока можно найти только людей, о которых ваши сети сообщили HowYouDoin.</string>
+    <string name="contacts_only_known">В Bluesky, X и LinkedIn поиск идёт по имени или нику; другие сети показывают только тех, о ком сообщили HowYouDoin.</string>
     <string name="contacts_on_network">В %1$s</string>
     <string name="contacts_searching">Поиск в %1$s…</string>
     <string name="contacts_search_failed">Не удалось выполнить поиск в %1$s. Проверьте подключение и попробуйте снова.</string>

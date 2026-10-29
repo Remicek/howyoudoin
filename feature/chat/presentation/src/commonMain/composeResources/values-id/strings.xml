@@ -158,7 +158,7 @@
     <string name="contacts_search">Cari orang</string>
     <string name="contacts_choose_network">Mau menulis di mana?</string>
     <string name="contacts_none">Tidak ada yang ditemukan</string>
-    <string name="contacts_only_known">Untuk saat ini hanya orang yang sudah diberitahukan jaringan Anda ke HowYouDoin yang bisa ditemukan.</string>
+    <string name="contacts_only_known">Bluesky, X, dan LinkedIn dicari berdasarkan nama atau handle; jaringan lain hanya menampilkan orang yang sudah diberitahukan ke HowYouDoin.</string>
     <string name="contacts_on_network">Di %1$s</string>
     <string name="contacts_searching">Mencari di %1$s…</string>
     <string name="contacts_search_failed">Tidak bisa mencari di %1$s. Periksa koneksi lalu coba lagi.</string>

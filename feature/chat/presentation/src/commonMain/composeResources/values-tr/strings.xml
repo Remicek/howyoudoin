@@ -160,7 +160,7 @@
     <string name="contacts_search">Kişi ara</string>
     <string name="contacts_choose_network">Nereye yazmak istiyorsunuz?</string>
     <string name="contacts_none">Kimse bulunamadı</string>
-    <string name="contacts_only_known">Şimdilik yalnızca ağlarınızın HowYouDoin'e bildirdiği kişiler bulunabilir.</string>
+    <string name="contacts_only_known">Bluesky, X ve LinkedIn ad veya kullanıcı adıyla aranır; diğer ağlar yalnızca HowYouDoin\'e bildirdikleri kişileri gösterir.</string>
     <string name="contacts_on_network">%1$s\'ta</string>
     <string name="contacts_searching">%1$s\'ta aranıyor…</string>
     <string name="contacts_search_failed">%1$s\'ta arama yapılamadı. Bağlantıyı kontrol edip tekrar dene.</string>
