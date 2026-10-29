@@ -184,29 +184,48 @@ func (l *LinkedIn) syncConversations(ctx context.Context) {
 	if err != nil {
 		return
 	}
-	before := time.Now()
-	for page := 0; page < linkedInConvoPages && ctx.Err() == nil; page++ {
-		resp, err := client.GetConversationsUpdatedBefore(ctx, before)
+	// The latest conversations come from the sync-token query: the "updated before" one can answer with an empty
+	// first page for an inbox that has conversations, so it only pages back from there
+	latest, err := client.GetConversationsBySyncToken(ctx)
+	if err != nil {
+		l.log.Error().Err(err).Msg("Failed to load LinkedIn conversations")
+		return
+	}
+	if latest == nil || len(latest.Elements) == 0 {
+		return
+	}
+	before := l.emitConversations(ctx, latest.Elements, time.Now())
+	for page := 1; page < linkedInConvoPages && ctx.Err() == nil; page++ {
+		older, err := client.GetConversationsUpdatedBefore(ctx, before)
 		if err != nil {
-			l.log.Warn().Err(err).Msg("Failed to load LinkedIn conversations")
+			l.log.Error().Err(err).Msg("Failed to load older LinkedIn conversations")
 			return
 		}
-		if resp == nil || len(resp.Elements) == 0 {
-			l.log.Info().Int("page", page).Msg("No more LinkedIn conversations")
+		if older == nil || len(older.Elements) == 0 {
 			return
 		}
-		l.log.Info().Int("page", page).Int("conversations", len(resp.Elements)).Msg("Loaded LinkedIn conversations")
-		for i := range resp.Elements {
-			conv := &resp.Elements[i]
-			l.emitConversation(conv)
-			for j := range conv.Messages.Elements {
-				l.emitMessage(ctx, conv.EntityURN, &conv.Messages.Elements[j])
-			}
-			if t := conv.LastActivityAt.Time; !t.IsZero() && t.Before(before) {
-				before = t
-			}
+		next := l.emitConversations(ctx, older.Elements, before)
+		if !next.Before(before) {
+			return
+		}
+		before = next
+	}
+}
+
+// emitConversations sends conversations and their latest messages and returns the oldest activity among them (or
+// before, if none is older).
+func (l *LinkedIn) emitConversations(ctx context.Context, convs []linkedingo.Conversation, before time.Time) time.Time {
+	for i := range convs {
+		conv := &convs[i]
+		l.emitConversation(conv)
+		for j := range conv.Messages.Elements {
+			l.emitMessage(ctx, conv.EntityURN, &conv.Messages.Elements[j])
+		}
+		if t := conv.LastActivityAt.Time; !t.IsZero() && t.Before(before) {
+			before = t
 		}
 	}
+	return before
 }
 
 func (l *LinkedIn) emitConversation(conv *linkedingo.Conversation) {
@@ -321,9 +340,10 @@ func (l *LinkedIn) emitMessage(ctx context.Context, conversation linkedingo.URN,
 			replyTo = rc.RepliedMessageContent.OriginalMessage.EntityURN.String()
 		case rc.ForwardedMessage != nil:
 			text = firstNonEmpty(text, rc.ForwardedMessage.ForwardedBody.Text)
-		default:
+		case linkedInMediaKind(rc) != "other":
 			media = append(media, rc)
 		}
+		// Other content (e.g. the card on a sponsored or LinkedIn Learning message) is left out: the text says it
 	}
 	if len(media) > 0 {
 		kind = linkedInMediaKind(media[0])
