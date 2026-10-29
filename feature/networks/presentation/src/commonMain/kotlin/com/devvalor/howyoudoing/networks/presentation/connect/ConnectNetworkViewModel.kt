@@ -723,7 +723,8 @@ class ConnectNetworkViewModel(
         loginId = ON_DEVICE_GMESSAGES_GOOGLE_FLOW_ID,
         stepId = "on-device-gmessages-google",
         instructions = getString(Res.string.cookies_gmessages),
-        url = "https://messages.google.com/web/config",
+        // Signing in first: the config page itself only shows raw data while signed out
+        url = "https://accounts.google.com/AccountChooser?continue=https://messages.google.com/web/config",
         userAgent = DESKTOP_USER_AGENT,
         cookies = (GOOGLE_COOKIES + "OSID").map { RequiredCookie(it, it, isRequired = true) } +
             RequiredCookie("__Secure-1PSIDTS", "__Secure-1PSIDTS", isRequired = false)
