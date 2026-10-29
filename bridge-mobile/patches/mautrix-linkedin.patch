@@ -1,0 +1,27 @@
+diff --git a/pkg/linkedingo/messages.go b/pkg/linkedingo/messages.go
+index 227eef6..dc0f04a 100644
+--- a/pkg/linkedingo/messages.go
++++ b/pkg/linkedingo/messages.go
+@@ -209,13 +209,17 @@ func (c *Client) SendMessage(ctx context.Context, conversationURN URN, body Send
+ }
+ 
+ func (c *Client) NewChat(ctx context.Context, title string, participants []URN) (*MessageSentResponse, error) {
+-	transactionID := uuid.NewString()
++	return c.NewChatWithMessage(ctx, title, participants, SendMessageBody{Text: "New chat"}, nil, uuid.NewString())
++}
++
++// NewChatWithMessage creates a conversation whose first message is the given one (NewChat sends "New chat"). The
++// response's message carries the new conversation's URN.
++func (c *Client) NewChatWithMessage(ctx context.Context, title string, participants []URN, body SendMessageBody, renderContent []SendRenderContent, transactionID string) (*MessageSentResponse, error) {
+ 	payload := sendMessagePayload{
+ 		Message: SendMessage{
+-			Body: SendMessageBody{
+-				Text: "New chat",
+-			},
+-			OriginToken: transactionID,
++			Body:                body,
++			RenderContentUnions: renderContent,
++			OriginToken:         transactionID,
+ 		},
+ 		MailboxURN:        c.userEntityURN.AsFsdProfile(),
+ 		TrackingID:        random.String(16),

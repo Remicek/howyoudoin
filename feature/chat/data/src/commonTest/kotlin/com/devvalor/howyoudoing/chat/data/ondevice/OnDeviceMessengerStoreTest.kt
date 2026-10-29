@@ -134,6 +134,24 @@ class OnDeviceMessengerStoreTest {
     }
 
     @Test
+    fun a_chat_started_in_the_app_moves_to_the_one_the_network_created() = runTest {
+        val store = store()
+        self()
+        contact("2", "Anna Nowak")
+        val started = store.startDirectChat("new:2", "2", "Anna Nowak")
+        store.addPending("new:2", "local-1", "Hi Anna")
+
+        emit("""{"type":"moved","from":"new:2","to":"conv-9"}""")
+
+        assertEquals("conv-9", store.snapshot.value.currentKey("new:2"))
+        assertEquals("fbdevice:new:2", started)
+        val chat = store.chats().single()
+        assertEquals("fbdevice:conv-9", chat.id)
+        assertEquals("Anna Nowak", chat.name)
+        assertEquals(listOf("Hi Anna"), store.messages("conv-9").map { it.body })
+    }
+
+        @Test
     fun whatsapp_group_known_only_from_messages_is_a_group() = runTest {
         val store = store()
         self()

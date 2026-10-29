@@ -31,6 +31,9 @@ type LinkedIn struct {
 	headers http.Header
 	// The login's li_at, which saved cookies must have grown from to be used
 	loginLiAt string
+	// Profile ID → the one-to-one conversation with them; new-chat key → the conversation its first message created
+	directChats sync.Map
+	started     sync.Map
 
 	lock   sync.Mutex
 	client *linkedingo.Client
@@ -64,6 +67,8 @@ const (
 	linkedInCookieSaveInterval = 5 * time.Minute
 	// The name the app gives its voice recordings
 	linkedInVoiceFileName = "Voice message"
+	// Thread keys of chats not created yet: the first message creates them
+	linkedInNewChatPrefix = "new:"
 	linkedInTypingTimeout = 6 * time.Second
 	linkedInMaxDownload   = 25 << 20
 )
@@ -299,6 +304,9 @@ func (l *LinkedIn) emitConversation(conv *linkedingo.Conversation) {
 		}
 		others = append(others, p)
 		names = append(names, linkedInName(p))
+		if len(conv.ConversationParticipants) == 2 && conv.Title == "" {
+			l.directChats.Store(id, key)
+		}
 		l.emit(map[string]any{"type": "participant", "threadKey": key, "contactId": id})
 	}
 	name := conv.Title
@@ -593,10 +601,56 @@ func (l *LinkedIn) send(threadKey, text string, content []linkedingo.SendRenderC
 	}
 	ctx, cancel := linkedInContext()
 	defer cancel()
-	resp, err := client.SendMessage(ctx, linkedingo.NewURN(threadKey), linkedingo.SendMessageBody{Text: text}, content,
+	key, personID := l.resolveKey(threadKey)
+	if personID != "" {
+		return l.createChat(ctx, client, threadKey, personID, text, content)
+	}
+	resp, err := client.SendMessage(ctx, linkedingo.NewURN(key), linkedingo.SendMessageBody{Text: text}, content,
 		uuid.NewString())
 	if err != nil {
 		return "", err
+	}
+	return resp.Data.EntityURN.String(), nil
+}
+
+// StartChat returns the conversation with a person: the one there is, or a new-chat key whose first message
+// creates it on LinkedIn (which has no empty chats).
+func (l *LinkedIn) StartChat(personID string) (string, error) {
+	if key, ok := l.directChats.Load(personID); ok {
+		return key.(string), nil
+	}
+	return linkedInNewChatPrefix + personID, nil
+}
+
+// resolveKey gives the conversation a thread key stands for, or, for a chat its first message hasn't created yet,
+// the person it's with.
+func (l *LinkedIn) resolveKey(threadKey string) (key, newChatWith string) {
+	personID, isNew := strings.CutPrefix(threadKey, linkedInNewChatPrefix)
+	if !isNew {
+		return threadKey, ""
+	}
+	if created, ok := l.started.Load(threadKey); ok {
+		return created.(string), ""
+	}
+	if existing, ok := l.directChats.Load(personID); ok {
+		return existing.(string), ""
+	}
+	return threadKey, personID
+}
+
+// createChat creates the conversation with the first message and tells the app the new-chat key moved there.
+func (l *LinkedIn) createChat(ctx context.Context, client *linkedingo.Client, threadKey, personID, text string,
+	content []linkedingo.SendRenderContent) (string, error) {
+	resp, err := client.NewChatWithMessage(ctx, "", []linkedingo.URN{linkedingo.NewURN(personID).AsFsdProfile()},
+		linkedingo.SendMessageBody{Text: text}, content, uuid.NewString())
+	if err != nil {
+		return "", err
+	}
+	created := firstURN(resp.Data.ConversationURN, resp.Data.BackendConversationURN).String()
+	if created != "" {
+		l.started.Store(threadKey, created)
+		l.directChats.Store(personID, created)
+		l.emit(map[string]any{"type": "moved", "from": threadKey, "to": created})
 	}
 	return resp.Data.EntityURN.String(), nil
 }
@@ -677,9 +731,13 @@ func (l *LinkedIn) MarkRead(threadKey string) error {
 	if err != nil {
 		return err
 	}
+	key, newChatWith := l.resolveKey(threadKey)
+	if newChatWith != "" {
+		return nil
+	}
 	ctx, cancel := linkedInContext()
 	defer cancel()
-	_, err = client.MarkConversationRead(ctx, linkedingo.NewURN(threadKey))
+	_, err = client.MarkConversationRead(ctx, linkedingo.NewURN(key))
 	return err
 }
 
@@ -692,9 +750,13 @@ func (l *LinkedIn) SetTyping(threadKey string, isTyping bool) error {
 	if err != nil {
 		return err
 	}
+	key, newChatWith := l.resolveKey(threadKey)
+	if newChatWith != "" {
+		return nil
+	}
 	ctx, cancel := linkedInContext()
 	defer cancel()
-	return client.StartTyping(ctx, linkedingo.NewURN(threadKey))
+	return client.StartTyping(ctx, linkedingo.NewURN(key))
 }
 
 // SendMediaFile uploads a photo or file into a conversation and returns the message URN.
@@ -754,9 +816,15 @@ func (l *LinkedIn) RequestOlder(threadKey, beforeMessageID string) error {
 	} else if oldest, ok := l.oldest.Load(threadKey); ok && beforeMessageID != "" {
 		before = oldest.(time.Time)
 	}
+	key, newChatWith := l.resolveKey(threadKey)
+	if newChatWith != "" {
+		// Nothing before the first message
+		l.emit(map[string]any{"type": "range", "threadKey": threadKey, "hasMoreBefore": false})
+		return nil
+	}
 	ctx, cancel := linkedInContext()
 	defer cancel()
-	conv := linkedingo.NewURN(threadKey)
+	conv := linkedingo.NewURN(key)
 	resp, err := client.GetMessagesBefore(ctx, conv, before.Add(-time.Millisecond), linkedInPageSize)
 	if err != nil {
 		return err
@@ -768,7 +836,7 @@ func (l *LinkedIn) RequestOlder(threadKey, beforeMessageID string) error {
 			l.emitMessage(ctx, conv, &resp.Elements[i])
 		}
 	}
-	l.emit(map[string]any{"type": "range", "threadKey": threadKey, "hasMoreBefore": count >= linkedInPageSize})
+	l.emit(map[string]any{"type": "range", "threadKey": key, "hasMoreBefore": count >= linkedInPageSize})
 	return nil
 }
 

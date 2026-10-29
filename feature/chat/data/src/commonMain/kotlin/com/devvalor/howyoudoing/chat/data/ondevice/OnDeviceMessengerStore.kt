@@ -76,8 +76,13 @@ class OnDeviceMessengerStore(
         /** Thread key → contact → read up to (ms). */
         val readWatermarks: Map<String, Map<String, Long>> = emptyMap(),
         /** Thread key → its picture (group photo, or a WhatsApp contact's profile picture). */
-        val avatars: Map<String, String> = emptyMap()
-    )
+        val avatars: Map<String, String> = emptyMap(),
+        /** A chat started in the app → the one the network created for it with the first message (LinkedIn). */
+        val moved: Map<String, String> = emptyMap()
+    ) {
+        /** The key a thread is under now (a chat started in the app moves once the network creates it). */
+        fun currentKey(threadKey: String): String = moved[threadKey] ?: threadKey
+    }
 
     @Serializable
     data class Link(val threadKey: String, val isGroup: Boolean, val lastActivityMs: Long)
@@ -270,7 +275,24 @@ class OnDeviceMessengerStore(
         "reaction" -> withReaction(event)
         "edit", "unsend" -> withChangedMessage(event)
         "message" -> withMessageEvent(event)
+        "moved" -> withMoved(event.str("from"), event.str("to"))
         else -> this
+    }
+
+    /** A chat started in the app now exists on the network under another key: what it had goes there. */
+    private fun Snapshot.withMoved(from: String, to: String): Snapshot {
+        if (from.isEmpty() || to.isEmpty() || from == to) return this
+        val thread = threads[from]?.takeIf { to !in threads }?.copy(key = to)
+        return copy(
+            threads = (threads - from).let { if (thread != null) it + (to to thread) else it },
+            participants = (participants - from) +
+                (to to participants[to].orEmpty() + participants[from].orEmpty()),
+            messages = (messages - from) + (to to messages[to].orEmpty() + messages[from].orEmpty()),
+            pending = pending.mapValues { (_, echo) ->
+                if (echo.threadKey == from) echo.copy(threadKey = to) else echo
+            },
+            moved = moved + (from to to)
+        )
     }
 
     private fun Snapshot.withContact(event: JsonObject): Snapshot =

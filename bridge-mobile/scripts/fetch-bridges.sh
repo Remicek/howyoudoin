@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Checks out the network clients hydbridge is built from, at the versions the app uses, next to this repository in
-# ../howyoudoin-bridges (where bridge-mobile/go.mod expects them), and applies our patch to mautrix-meta:
+# ../howyoudoin-bridges (where bridge-mobile/go.mod expects them), and applies our patches (mautrix-meta, and mautrix-linkedin: starting a chat with the user's own first
+# message):
 #   bridge-mobile/scripts/fetch-bridges.sh
 # Used by the CI build; an existing checkout is left alone.
 set -euo pipefail
@@ -34,8 +35,11 @@ for entry in "${PINNED[@]}"; do
     echo "$name: $commit"
 done
 
-meta="$BRIDGES/mautrix-meta"
-if git -C "$meta" diff --quiet && git -C "$meta" apply --check "$MODULE_DIR/patches/mautrix-meta.patch" 2>/dev/null; then
-    git -C "$meta" apply "$MODULE_DIR/patches/mautrix-meta.patch"
-    echo "mautrix-meta: patch applied"
-fi
+# Each patch goes on an unchanged checkout only, so running this again leaves a patched one alone
+for name in mautrix-meta mautrix-linkedin; do
+    dir="$BRIDGES/$name"
+    if git -C "$dir" diff --quiet && git -C "$dir" apply --check "$MODULE_DIR/patches/$name.patch" 2>/dev/null; then
+        git -C "$dir" apply "$MODULE_DIR/patches/$name.patch"
+        echo "$name: patch applied"
+    fi
+done

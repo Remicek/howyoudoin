@@ -40,9 +40,12 @@ class OnDeviceChatRepository(
     private val matrixAccount: MatrixAccountChats
 ) : ChatRepository {
 
-    private data class Route(val source: OnDeviceSource, val key: String) {
+    /** A chat on a phone connection; [key] is read each time, as a chat started in the app can move. */
+    private data class Route(val source: OnDeviceSource, val startKey: String) {
         val client get() = source.client
         val store get() = source.store
+        val key get() = source.store.snapshot.value.currentKey(startKey)
+        val chatId get() = source.store.chatIdPrefix + key
     }
 
     private fun route(chatId: String): Route? = sources.firstNotNullOfOrNull { source ->
@@ -153,7 +156,7 @@ class OnDeviceChatRepository(
     override fun observeChat(chatId: String): Flow<Chat?> {
         if (matrixAccount.owns(chatId)) return matrixAccount.observeChat(chatId)
         val route = route(chatId) ?: return server.observeChat(chatId)
-        return route.store.snapshot.map { route.store.chats().firstOrNull { it.id == chatId } }
+        return route.store.snapshot.map { route.store.chats().firstOrNull { it.id == route.chatId } }
     }
 
     override fun observeMessages(chatId: String): Flow<List<Message>> {

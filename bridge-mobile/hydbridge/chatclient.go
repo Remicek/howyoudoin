@@ -88,11 +88,8 @@ func (blueskyChat) EditMessage(_, _, _ string) error                   { return 
 func (blueskyChat) SetTyping(_ string, _ bool) error                   { return nil }
 func (blueskyChat) SendMediaFile(_, _, _, _, _ string) (string, error) { return "", ErrUnsupported }
 
-// LinkedIn marks a whole conversation read. Finding people works, but its library starts a chat only by sending
-// "New chat" to them, so a new chat can't be opened from the app yet.
+// LinkedIn marks a whole conversation read.
 type linkedInChat struct{ *LinkedIn }
-
-func (linkedInChat) StartChat(_ string) (string, error) { return "", ErrUnsupported }
 
 func (c linkedInChat) MarkRead(threadKey, _ string) error { return c.LinkedIn.MarkRead(threadKey) }
 
