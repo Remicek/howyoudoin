@@ -2,6 +2,7 @@ package com.devvalor.howyoudoing.chat.data
 
 import com.devvalor.howyoudoing.core.domain.util.Result
 import com.devvalor.howyoudoing.chat.domain.ChatContact
+import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
 import com.devvalor.howyoudoing.chat.data.demo.DemoChatRepository
 import com.devvalor.howyoudoing.chat.domain.Attachment
 import com.devvalor.howyoudoing.chat.domain.Chat
@@ -54,6 +55,10 @@ class SessionAwareChatRepository(
     override fun observeContacts(): Flow<List<ChatContact>> = select { observeContacts() }
     override suspend fun startChat(contact: ChatContact): Result<String, DataError.Remote> =
         current().startChat(contact)
+    override suspend fun searchPeople(
+        network: ChatNetwork,
+        query: String
+    ): Result<List<ChatContact>, DataError.Remote> = current().searchPeople(network, query)
     override fun observeChat(chatId: String): Flow<Chat?> = select { observeChat(chatId) }
     override fun observeMessages(chatId: String): Flow<List<Message>> = select { observeMessages(chatId) }
     override fun hasMoreHistory(chatId: String): Flow<Boolean> = select { hasMoreHistory(chatId) }

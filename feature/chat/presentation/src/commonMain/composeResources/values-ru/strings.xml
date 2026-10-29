@@ -165,6 +165,9 @@
     <string name="contacts_choose_network">Где вы хотите написать?</string>
     <string name="contacts_none">Никого не найдено</string>
     <string name="contacts_only_known">Пока можно найти только людей, о которых ваши сети сообщили HowYouDoin.</string>
+    <string name="contacts_on_network">В %1$s</string>
+    <string name="contacts_searching">Поиск в %1$s…</string>
+    <string name="contacts_search_failed">Не удалось выполнить поиск в %1$s. Проверьте подключение и попробуйте снова.</string>
     <string name="contacts_cannot_start">Начать новый чат в %1$s из приложения пока нельзя.</string>
     <string name="contacts_no_networks">Подключите сеть, чтобы писать людям.</string>
 </resources>

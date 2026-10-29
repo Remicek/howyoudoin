@@ -113,8 +113,40 @@ class OnDeviceChatRepository(
         return when {
             existing != null -> Result.Success(existing)
             source == null -> server.startChat(contact)
-            key == null -> Result.Failure(DataError.Remote.BAD_REQUEST)
-            else -> Result.Success(source.store.startDirectChat(key, contact.id, contact.name))
+            key != null -> Result.Success(source.store.startDirectChat(key, contact.id, contact.name))
+            // Networks whose chats have IDs of their own open the chat there first (Bluesky, X)
+            else -> when (val started = source.client.startChatWith(contact.id)) {
+                is Result.Failure -> started
+                is Result.Success ->
+                    Result.Success(source.store.startDirectChat(started.data, contact.id, contact.name))
+            }
+        }
+    }
+
+    override suspend fun searchPeople(
+        network: ChatNetwork,
+        query: String
+    ): Result<List<ChatContact>, DataError.Remote> {
+        val source = sources.firstOrNull { it.client.network == network && it.client.isSupported }
+            ?: return server.searchPeople(network, query)
+        return when (val found = source.client.searchPeople(query)) {
+            is Result.Failure -> found
+            is Result.Success -> {
+                // Someone already written to opens that chat
+                val known = source.store.contacts(network).associateBy { it.id }
+                Result.Success(
+                    found.data.map { person ->
+                        ChatContact(
+                            id = person.id,
+                            name = person.name,
+                            network = network,
+                            avatarUrl = person.avatarUrl,
+                            chatId = known[person.id]?.chatId,
+                            handle = person.handle
+                        )
+                    }
+                )
+            }
         }
     }
 

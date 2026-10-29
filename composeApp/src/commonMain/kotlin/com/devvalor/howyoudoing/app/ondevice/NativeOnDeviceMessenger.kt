@@ -6,6 +6,7 @@ package com.devvalor.howyoudoing.app.ondevice
 import com.devvalor.howyoudoing.core.domain.media.Attachment
 import com.devvalor.howyoudoing.core.domain.media.MessageRef
 import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
+import com.devvalor.howyoudoing.core.domain.ondevice.FoundPerson
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceHistoryError
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceInstagram
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceHistoryStatus
@@ -35,6 +36,7 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 
@@ -99,6 +101,12 @@ interface NativeMessengerClient {
         durationMs: Long,
         waveform: String
     ): String = throw UnsupportedOperationException("Voice messages aren't supported here yet")
+
+    /** People found on the network, as a JSON array of {"id", "name", "handle", "avatarUrl"}. */
+    fun searchPeople(query: String): String = throw UnsupportedOperationException("Searching isn't supported here")
+
+    /** Opens the one-to-one chat with a person found by [searchPeople]; returns its thread key. */
+    fun startChat(personId: String): String = throw UnsupportedOperationException("New chats aren't supported here")
 }
 
 fun interface NativeMessengerFactory {
@@ -390,6 +398,15 @@ open class NativeOnDeviceMessenger(
         }
     }
 
+    override suspend fun searchPeople(query: String): Result<List<FoundPerson>, DataError.Remote> =
+        when (val found = native("Searching people") { searchPeople(query) }) {
+            is Result.Failure -> found
+            is Result.Success -> Result.Success(parsePeople(found.data))
+        }
+
+    override suspend fun startChatWith(personId: String): Result<String, DataError.Remote> =
+        native("Starting a chat") { startChat(personId) }
+
     /** Runs a native call off the main thread; exceptions become failures. */
     private suspend fun <T> native(
         description: String,
@@ -466,3 +483,16 @@ class NativeOnDeviceWebAccount(
     dataDir: OnDeviceDataDirectory,
     scope: CoroutineScope
 ) : NativeOnDeviceMessenger(factory, secrets, dataDir, scope)
+
+/** Reads SearchPeople's JSON array; anything that isn't one gives no one. */
+internal fun parsePeople(json: String): List<FoundPerson> =
+    runCatching { Json.parseToJsonElement(json).jsonArray }.getOrNull().orEmpty().mapNotNull { element ->
+        val person = element as? JsonObject ?: return@mapNotNull null
+        val id = person["id"]?.jsonPrimitive?.contentOrNull ?: return@mapNotNull null
+        FoundPerson(
+            id = id,
+            name = person["name"]?.jsonPrimitive?.contentOrNull ?: id,
+            handle = person["handle"]?.jsonPrimitive?.contentOrNull?.takeIf { it.isNotBlank() },
+            avatarUrl = person["avatarUrl"]?.jsonPrimitive?.contentOrNull?.takeIf { it.isNotBlank() }
+        )
+    }

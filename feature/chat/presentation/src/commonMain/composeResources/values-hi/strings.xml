@@ -161,6 +161,9 @@
     <string name="contacts_choose_network">आप कहाँ लिखना चाहते हैं?</string>
     <string name="contacts_none">कोई नहीं मिला</string>
     <string name="contacts_only_known">अभी केवल वही लोग मिल सकते हैं जिनके बारे में आपके नेटवर्क ने HowYouDoin को बताया है।</string>
+    <string name="contacts_on_network">%1$s पर</string>
+    <string name="contacts_searching">%1$s पर खोज रहे हैं…</string>
+    <string name="contacts_search_failed">%1$s पर खोज नहीं हो सकी। कनेक्शन जाँचें और फिर से कोशिश करें।</string>
     <string name="contacts_cannot_start">%1$s पर नई चैट शुरू करना अभी ऐप से संभव नहीं है।</string>
     <string name="contacts_no_networks">लोगों को लिखने के लिए कोई नेटवर्क जोड़ें।</string>
 </resources>

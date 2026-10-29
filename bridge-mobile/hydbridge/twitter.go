@@ -28,6 +28,7 @@ import (
 	"go.mau.fi/mautrix-twitter/pkg/twittermeow/data/payload"
 	"go.mau.fi/mautrix-twitter/pkg/twittermeow/data/response"
 	"go.mau.fi/mautrix-twitter/pkg/twittermeow/data/types"
+	"go.mau.fi/mautrix-twitter/pkg/twittermeow/methods"
 )
 
 // Twitter is the user's X direct messages ("X Chat", end-to-end encrypted), logged in with x.com's session
@@ -912,3 +913,58 @@ var (
 	_ crypto.KeyStore = (*twitterKeyStore)(nil)
 	_ ChatClient      = (*Twitter)(nil)
 )
+
+// SearchPeople finds X accounts by name or @handle.
+func (t *Twitter) SearchPeople(query string) (string, error) {
+	client, err := t.current()
+	if err != nil {
+		return "", err
+	}
+	ctx, cancel := twitterContext()
+	defer cancel()
+	resp, err := client.Search(ctx, payload.SearchQuery{Query: strings.TrimPrefix(query, "@"),
+		ResultType: payload.SEARCH_RESULT_TYPE_USERS})
+	if err != nil {
+		return "", err
+	}
+	people := make([]foundPerson, 0, len(resp.Users))
+	for _, u := range resp.Users {
+		if u.IDStr == "" || u.IDStr == t.selfID {
+			continue
+		}
+		people = append(people, foundPerson{ID: u.IDStr, Name: firstNonEmpty(u.Name, "@"+u.ScreenName),
+			Handle: "@" + u.ScreenName, AvatarURL: u.ProfileImageURLHTTPS})
+		if _, sent := t.contacts.LoadOrStore(u.IDStr, firstNonEmpty(u.Name, "@"+u.ScreenName)); !sent {
+			t.emit(map[string]any{"type": "contact", "id": u.IDStr, "name": firstNonEmpty(u.Name, "@"+u.ScreenName),
+				"firstName": strings.SplitN(firstNonEmpty(u.Name, u.ScreenName), " ", 2)[0],
+				"avatarUrl": u.ProfileImageURLHTTPS})
+		}
+	}
+	return peopleJSON(people)
+}
+
+// StartChat opens the one-to-one chat with an account (its ID is both user IDs, as X makes it), after checking that
+// X lets the user message them.
+func (t *Twitter) StartChat(personID string) (string, error) {
+	client, err := t.current()
+	if err != nil {
+		return "", err
+	}
+	ctx, cancel := twitterContext()
+	defer cancel()
+	perms, err := client.GetDMPermissions(ctx, payload.GetDMPermissionsQuery{RecipientIDs: personID, DMUsers: true})
+	if err != nil {
+		return "", err
+	}
+	if p := perms.Permissions.GetPermissionsForUser(personID); p == nil || !p.CanDM || p.ErrorCode > 0 {
+		return "", errors.New("X doesn't let you message this account")
+	}
+	convID := methods.CreateConversationID([]string{personID, t.selfID})
+	name := personID
+	if value, ok := t.contacts.Load(personID); ok {
+		name = value.(string)
+	}
+	t.emit(map[string]any{"type": "thread", "key": convID, "name": name, "isGroup": false, "isEncrypted": false})
+	t.emit(map[string]any{"type": "participant", "threadKey": convID, "contactId": personID})
+	return convID, nil
+}

@@ -1,6 +1,7 @@
 package hydbridge
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 )
@@ -20,6 +21,28 @@ type ChatClient interface {
 	SetTyping(threadKey string, isTyping bool) error
 	SendMediaFile(threadKey, path, mimeType, fileName, caption string) (string, error)
 	RequestOlder(threadKey, beforeMessageID string) error
+	// SearchPeople looks for people on the network (by name or handle) and returns them as a JSON array of
+	// {"id", "name", "handle", "avatarUrl"}.
+	SearchPeople(query string) (string, error)
+	// StartChat opens the one-to-one chat with a person found by SearchPeople (sending its thread event) and
+	// returns its thread key.
+	StartChat(personID string) (string, error)
+}
+
+// foundPerson is one SearchPeople result.
+type foundPerson struct {
+	ID        string `json:"id"`
+	Name      string `json:"name"`
+	Handle    string `json:"handle,omitempty"`
+	AvatarURL string `json:"avatarUrl,omitempty"`
+}
+
+func peopleJSON(people []foundPerson) (string, error) {
+	if people == nil {
+		people = []foundPerson{}
+	}
+	data, err := json.Marshal(people)
+	return string(data), err
 }
 
 // ErrUnsupported is what a ChatClient answers for something its network doesn't have.
@@ -65,8 +88,11 @@ func (blueskyChat) EditMessage(_, _, _ string) error                   { return 
 func (blueskyChat) SetTyping(_ string, _ bool) error                   { return nil }
 func (blueskyChat) SendMediaFile(_, _, _, _, _ string) (string, error) { return "", ErrUnsupported }
 
-// LinkedIn marks a whole conversation read.
+// LinkedIn marks a whole conversation read. Finding people works, but its library starts a chat only by sending
+// "New chat" to them, so a new chat can't be opened from the app yet.
 type linkedInChat struct{ *LinkedIn }
+
+func (linkedInChat) StartChat(_ string) (string, error) { return "", ErrUnsupported }
 
 func (c linkedInChat) MarkRead(threadKey, _ string) error { return c.LinkedIn.MarkRead(threadKey) }
 
@@ -86,6 +112,12 @@ func (c googleVoiceChat) MarkRead(threadKey, _ string) error {
 func (c googleVoiceChat) SendMediaFile(threadKey, path, mimeType, _, caption string) (string, error) {
 	return c.GoogleVoice.SendMediaFile(threadKey, path, mimeType, caption)
 }
+func (googleVoiceChat) SearchPeople(_ string) (string, error) { return "", ErrUnsupported }
+func (googleVoiceChat) StartChat(_ string) (string, error)    { return "", ErrUnsupported }
+
+// Discord (direct messages only) isn't searched from the app.
+func (*Discord) SearchPeople(_ string) (string, error) { return "", ErrUnsupported }
+func (*Discord) StartChat(_ string) (string, error)    { return "", ErrUnsupported }
 
 var (
 	_ ChatClient = blueskyChat{}

@@ -161,6 +161,9 @@
     <string name="contacts_choose_network">Wo möchtest du schreiben?</string>
     <string name="contacts_none">Niemand gefunden</string>
     <string name="contacts_only_known">Vorerst findest du nur Personen, die deine Netzwerke HowYouDoin bekannt gemacht haben.</string>
+    <string name="contacts_on_network">Auf %1$s</string>
+    <string name="contacts_searching">Suche auf %1$s…</string>
+    <string name="contacts_search_failed">%1$s konnte nicht durchsucht werden. Prüfe die Verbindung und versuche es erneut.</string>
     <string name="contacts_cannot_start">Einen neuen Chat auf %1$s zu beginnen geht in der App noch nicht.</string>
     <string name="contacts_no_networks">Verbinde ein Netzwerk, um Leuten zu schreiben.</string>
 </resources>

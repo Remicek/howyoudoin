@@ -159,6 +159,9 @@
     <string name="contacts_choose_network">どこに書きますか？</string>
     <string name="contacts_none">見つかりませんでした</string>
     <string name="contacts_only_known">今のところ、ネットワークが HowYouDoin に知らせた人だけを検索できます。</string>
+    <string name="contacts_on_network">%1$s上</string>
+    <string name="contacts_searching">%1$sを検索中…</string>
+    <string name="contacts_search_failed">%1$sを検索できませんでした。接続を確認して、もう一度お試しください。</string>
     <string name="contacts_cannot_start">%1$s で新しいチャットを始めることは、まだアプリからはできません。</string>
     <string name="contacts_no_networks">ネットワークを接続すると、人にメッセージを送れます。</string>
 </resources>

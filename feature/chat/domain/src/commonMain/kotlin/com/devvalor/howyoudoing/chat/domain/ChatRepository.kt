@@ -1,5 +1,6 @@
 package com.devvalor.howyoudoing.chat.domain
 
+import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
 import kotlinx.coroutines.flow.map
 import com.devvalor.howyoudoing.core.domain.util.DataError
 import com.devvalor.howyoudoing.core.domain.util.EmptyResult
@@ -15,12 +16,8 @@ interface ChatRepository {
 
     /**
      * People the user can write to, on every connected network. By default the people of the one-to-one chats;
-     * repositories that know more (the networks' contact lists) add them.
-     *
-     * TODO: only people the networks already told the app about are listed; searching a network's directory for
-     *  anyone else (e.g. a WhatsApp number, a Telegram username, a Bluesky handle) isn't supported yet.
+     * repositories that know more (the networks' contact lists) add them. Anyone else is found with [searchPeople].
      */
-    @Suppress("ForbiddenComment")
     fun observeContacts(): Flow<List<ChatContact>> = observeChats().map { chats ->
         chats.filter { !it.isGroup }.map { ChatContact(it.id, it.name, it.network, it.avatarUrl, chatId = it.id) }
     }
@@ -31,6 +28,13 @@ interface ChatRepository {
      */
     suspend fun startChat(contact: ChatContact): Result<String, DataError.Remote> =
         contact.chatId?.let { Result.Success(it) } ?: Result.Failure(DataError.Remote.BAD_REQUEST)
+
+    /**
+     * Searches a network's directory by name or handle (Bluesky, X and LinkedIn so far); fails with
+     * [DataError.Remote.BAD_REQUEST] where the network can't be searched from the app.
+     */
+    suspend fun searchPeople(network: ChatNetwork, query: String): Result<List<ChatContact>, DataError.Remote> =
+        Result.Failure(DataError.Remote.BAD_REQUEST)
     fun observeChat(chatId: String): Flow<Chat?>
 
     /** Messages ordered oldest first. */

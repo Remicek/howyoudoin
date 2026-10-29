@@ -165,6 +165,9 @@
     <string name="contacts_choose_network">Gdzie chcesz napisać?</string>
     <string name="contacts_none">Nikogo nie znaleziono</string>
     <string name="contacts_only_known">Na razie można znaleźć tylko osoby, o których Twoje sieci poinformowały HowYouDoin.</string>
+    <string name="contacts_on_network">Na %1$s</string>
+    <string name="contacts_searching">Szukam na %1$s…</string>
+    <string name="contacts_search_failed">Nie udało się przeszukać %1$s. Sprawdź połączenie i spróbuj ponownie.</string>
     <string name="contacts_cannot_start">Rozpoczęcie nowego czatu w %1$s nie jest jeszcze możliwe z aplikacji.</string>
     <string name="contacts_no_networks">Podłącz sieć, żeby pisać do ludzi.</string>
 </resources>

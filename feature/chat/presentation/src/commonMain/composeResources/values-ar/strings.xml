@@ -169,6 +169,9 @@
     <string name="contacts_choose_network">أين تريد أن تكتب؟</string>
     <string name="contacts_none">لم يُعثر على أحد</string>
     <string name="contacts_only_known">يمكن حاليًا العثور فقط على الأشخاص الذين أخبرت شبكاتك HowYouDoin عنهم.</string>
+    <string name="contacts_on_network">على %1$s</string>
+    <string name="contacts_searching">جارٍ البحث في %1$s…</string>
+    <string name="contacts_search_failed">تعذّر البحث في %1$s. تحقّق من الاتصال وحاول مرة أخرى.</string>
     <string name="contacts_cannot_start">لا يمكن بدء محادثة جديدة على %1$s من التطبيق بعد.</string>
     <string name="contacts_no_networks">اربط شبكة لتكتب إلى الناس.</string>
 </resources>

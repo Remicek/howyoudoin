@@ -42,6 +42,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.devvalor.howyoudoing.chat.domain.ChatContact
 import com.devvalor.howyoudoing.chat.presentation.components.HomeBottomBar
+import com.devvalor.howyoudoing.chat.presentation.conversation.components.AvatarImage
+import com.devvalor.howyoudoing.chat.presentation.conversation.components.MediaResolver
 import com.devvalor.howyoudoing.chat.presentation.components.HomeTab
 import com.devvalor.howyoudoing.core.designsystem.components.ChatAvatar
 import com.devvalor.howyoudoing.core.designsystem.components.NetworkBadge
@@ -52,8 +54,10 @@ import howyoudoin.feature.chat.presentation.generated.resources.Res
 import howyoudoin.feature.chat.presentation.generated.resources.contacts_choose_network
 import howyoudoin.feature.chat.presentation.generated.resources.contacts_no_networks
 import howyoudoin.feature.chat.presentation.generated.resources.contacts_none
+import howyoudoin.feature.chat.presentation.generated.resources.contacts_on_network
 import howyoudoin.feature.chat.presentation.generated.resources.contacts_only_known
 import howyoudoin.feature.chat.presentation.generated.resources.contacts_search
+import howyoudoin.feature.chat.presentation.generated.resources.contacts_searching
 import howyoudoin.feature.chat.presentation.generated.resources.contacts_title
 import howyoudoin.feature.chat.presentation.generated.resources.inbox_all
 import howyoudoin.feature.chat.presentation.generated.resources.inbox_clear_search
@@ -85,6 +89,7 @@ fun ContactsRoot(
     ContactsScreen(
         state = state,
         onAction = viewModel::onAction,
+        resolver = viewModel::resolveMedia,
         onTab = { tab ->
             when (tab) {
                 HomeTab.CHATS -> onChatsTab()
@@ -97,7 +102,12 @@ fun ContactsRoot(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ContactsScreen(state: ContactsState, onAction: (ContactsAction) -> Unit, onTab: (HomeTab) -> Unit = {}) {
+fun ContactsScreen(
+    state: ContactsState,
+    onAction: (ContactsAction) -> Unit,
+    onTab: (HomeTab) -> Unit = {},
+    resolver: MediaResolver = { _, _ -> null },
+) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -123,7 +133,7 @@ fun ContactsScreen(state: ContactsState, onAction: (ContactsAction) -> Unit, onT
                 state.isLoading -> Unit
                 state.networks.isEmpty() -> Message(stringResource(Res.string.contacts_no_networks))
                 state.isPickingNetwork -> NetworkPicker(state.networks) { onAction(ContactsAction.OnNetworkSelect(it)) }
-                else -> People(state, onAction)
+                else -> People(state, onAction, resolver)
             }
         }
     }
@@ -155,7 +165,7 @@ private fun NetworkPicker(networks: List<ChatNetwork>, onPick: (ChatNetwork) -> 
 }
 
 @Composable
-private fun People(state: ContactsState, onAction: (ContactsAction) -> Unit) {
+private fun People(state: ContactsState, onAction: (ContactsAction) -> Unit, resolver: MediaResolver) {
     SearchField(state.query) { onAction(ContactsAction.OnQueryChange(it)) }
     if (!state.isNewMessage && state.networks.size > 1) NetworkFilters(state, onAction)
     state.error?.let { error ->
@@ -166,13 +176,44 @@ private fun People(state: ContactsState, onAction: (ContactsAction) -> Unit) {
             modifier = Modifier.padding(horizontal = HowYouDoinSpacing.md, vertical = HowYouDoinSpacing.xs),
         )
     }
-    if (state.contacts.isEmpty()) {
-        Message(stringResource(Res.string.contacts_none), stringResource(Res.string.contacts_only_known))
+    val network = state.network?.displayName.orEmpty()
+    state.searchError?.let { error ->
+        Text(
+            error.asString(),
+            color = MaterialTheme.colorScheme.error,
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.padding(horizontal = HowYouDoinSpacing.md, vertical = HowYouDoinSpacing.xs),
+        )
+    }
+    if (state.contacts.isEmpty() && state.found.isEmpty()) {
+        if (state.isSearching) {
+            Message(stringResource(Res.string.contacts_searching, network))
+        } else {
+            Message(stringResource(Res.string.contacts_none), stringResource(Res.string.contacts_only_known))
+        }
         return
     }
     LazyColumn(Modifier.fillMaxSize()) {
         items(state.contacts, key = { "${it.network}/${it.id}" }) { contact ->
-            ContactRow(contact, showNetwork = !state.isNewMessage) { onAction(ContactsAction.OnContactClick(contact)) }
+            ContactRow(contact, showNetwork = !state.isNewMessage, resolver) {
+                onAction(ContactsAction.OnContactClick(contact))
+            }
+        }
+        if (state.found.isNotEmpty() || state.isSearching) {
+            item(key = "found-header") {
+                Text(
+                    stringResource(
+                        if (state.isSearching) Res.string.contacts_searching else Res.string.contacts_on_network,
+                        network
+                    ),
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(horizontal = HowYouDoinSpacing.md, vertical = HowYouDoinSpacing.sm),
+                )
+            }
+        }
+        items(state.found, key = { "found/${it.network}/${it.id}" }) { contact ->
+            ContactRow(contact, showNetwork = false, resolver) { onAction(ContactsAction.OnContactClick(contact)) }
         }
     }
 }
@@ -205,7 +246,7 @@ private fun NetworkFilters(state: ContactsState, onAction: (ContactsAction) -> U
 }
 
 @Composable
-private fun ContactRow(contact: ChatContact, showNetwork: Boolean, onClick: () -> Unit) {
+private fun ContactRow(contact: ChatContact, showNetwork: Boolean, resolver: MediaResolver, onClick: () -> Unit) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
@@ -213,9 +254,23 @@ private fun ContactRow(contact: ChatContact, showNetwork: Boolean, onClick: () -
             .clickable(onClick = onClick)
             .padding(horizontal = HowYouDoinSpacing.md, vertical = 10.dp),
     ) {
-        ChatAvatar(name = contact.name, network = contact.network.takeIf { showNetwork }, size = 44.dp)
+        ChatAvatar(
+            name = contact.name,
+            network = contact.network.takeIf { showNetwork },
+            size = 44.dp,
+            image = contact.avatarUrl?.let { url -> { AvatarImage(url, resolver) } },
+        )
         Spacer(Modifier.width(HowYouDoinSpacing.md))
-        Text(contact.name, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+        Column(Modifier.weight(1f)) {
+            Text(contact.name, style = MaterialTheme.typography.titleMedium)
+            contact.handle?.let { handle ->
+                Text(
+                    handle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
     }
     HorizontalDivider(
         color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),

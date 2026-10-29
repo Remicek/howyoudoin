@@ -163,6 +163,9 @@
     <string name="contacts_choose_network">Onde você quer escrever?</string>
     <string name="contacts_none">Ninguém encontrado</string>
     <string name="contacts_only_known">Por enquanto só dá para encontrar pessoas que suas redes informaram ao HowYouDoin.</string>
+    <string name="contacts_on_network">No %1$s</string>
+    <string name="contacts_searching">Procurando no %1$s…</string>
+    <string name="contacts_search_failed">Não foi possível pesquisar no %1$s. Verifique a conexão e tente novamente.</string>
     <string name="contacts_cannot_start">Ainda não é possível iniciar uma conversa nova no %1$s pelo app.</string>
     <string name="contacts_no_networks">Conecte uma rede para escrever para as pessoas.</string>
 </resources>

@@ -163,6 +163,9 @@
     <string name="contacts_choose_network">Où voulez-vous écrire ?</string>
     <string name="contacts_none">Personne trouvé</string>
     <string name="contacts_only_known">Pour l'instant, seules les personnes que vos réseaux ont fait connaître à HowYouDoin peuvent être trouvées.</string>
+    <string name="contacts_on_network">Sur %1$s</string>
+    <string name="contacts_searching">Recherche sur %1$s…</string>
+    <string name="contacts_search_failed">Impossible de rechercher sur %1$s. Vérifie la connexion et réessaie.</string>
     <string name="contacts_cannot_start">Démarrer une nouvelle discussion sur %1$s n'est pas encore possible depuis l'app.</string>
     <string name="contacts_no_networks">Connectez un réseau pour écrire à des gens.</string>
 </resources>

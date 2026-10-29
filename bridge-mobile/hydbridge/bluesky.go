@@ -743,3 +743,40 @@ func (b *Bluesky) emit(event map[string]any) {
 		b.listener.OnEvent(string(data))
 	}
 }
+
+// SearchPeople finds Bluesky accounts by handle or name (the same search as Bluesky's "new chat" box).
+func (b *Bluesky) SearchPeople(query string) (string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+	defer cancel()
+	var resp struct {
+		Actors []blueskyMember `json:"actors"`
+	}
+	if err := b.chat(ctx, http.MethodGet, "app.bsky.actor.searchActorsTypeahead",
+		url.Values{"q": {query}, "limit": {"20"}}, nil, &resp); err != nil {
+		return "", b.describe(err)
+	}
+	people := make([]foundPerson, 0, len(resp.Actors))
+	for _, a := range resp.Actors {
+		if a.Did == b.session.Did {
+			continue
+		}
+		people = append(people, foundPerson{ID: a.Did, Name: blueskyName(a), Handle: "@" + a.Handle, AvatarURL: a.Avatar})
+	}
+	return peopleJSON(people)
+}
+
+// StartChat opens (or creates) the chat with an account; Bluesky refuses it when the person doesn't accept
+// messages from the user.
+func (b *Bluesky) StartChat(personID string) (string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+	defer cancel()
+	var resp struct {
+		Convo blueskyConvo `json:"convo"`
+	}
+	if err := b.chat(ctx, http.MethodGet, "chat.bsky.convo.getConvoForMembers", url.Values{"members": {personID}},
+		nil, &resp); err != nil {
+		return "", b.describe(err)
+	}
+	b.emitConvo(&resp.Convo)
+	return resp.Convo.ID, nil
+}

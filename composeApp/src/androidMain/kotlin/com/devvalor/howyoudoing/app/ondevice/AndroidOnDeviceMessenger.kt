@@ -641,6 +641,10 @@ class AndroidChatClientFactory(private val goName: String) : NativeMessengerFact
                 durationMs: Long,
                 waveform: String
             ): String = c.sendMediaFile(threadKey, path, mimeType, voiceFileName(mimeType), "")
+
+            override fun searchPeople(query: String): String = c.searchPeople(query)
+
+            override fun startChat(personId: String): String = c.startChat(personId)
         }
     }
 

@@ -37,6 +37,14 @@ interface OnDeviceMessenger {
      */
     fun directChatKey(contactId: String): String? = null
 
+    /** Looks for people on the network by name or handle; fails where the network can't be searched from here. */
+    suspend fun searchPeople(query: String): Result<List<FoundPerson>, DataError.Remote> =
+        Result.Failure(DataError.Remote.BAD_REQUEST)
+
+    /** Opens the one-to-one chat with someone [searchPeople] found and returns its thread key. */
+    suspend fun startChatWith(personId: String): Result<String, DataError.Remote> =
+        Result.Failure(DataError.Remote.BAD_REQUEST)
+
     /** Why the last [link] failed, in the network client's words (e.g. "Wrong Bluesky handle or app password"). */
     val linkError: String? get() = null
 
@@ -356,3 +364,11 @@ class UnsupportedOnDeviceNetwork(override val network: ChatNetwork) : OnDeviceMe
 interface OnDeviceMatrix : OnDeviceMessenger {
     override val network: ChatNetwork get() = ChatNetwork.MATRIX
 }
+
+/** Someone a network search found: [handle] is how the network shows them (e.g. "@name"), when it has one. */
+data class FoundPerson(
+    val id: String,
+    val name: String,
+    val handle: String? = null,
+    val avatarUrl: String? = null
+)

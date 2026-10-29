@@ -782,3 +782,31 @@ func (l *LinkedIn) emit(event map[string]any) {
 		l.listener.OnEvent(string(data))
 	}
 }
+
+// SearchPeople finds LinkedIn members by name (LinkedIn's people search).
+func (l *LinkedIn) SearchPeople(query string) (string, error) {
+	client, err := l.current()
+	if err != nil {
+		return "", err
+	}
+	ctx, cancel := linkedInContext()
+	defer cancel()
+	results, err := client.Search(ctx, query)
+	if err != nil {
+		return "", err
+	}
+	people := make([]foundPerson, 0, len(results))
+	for _, r := range results {
+		id := r.ProfileURN.ID()
+		if id == "" || id == l.selfID {
+			continue
+		}
+		avatar := ""
+		if r.ProfilePicture != nil {
+			avatar = linkedInImageURL(r.ProfilePicture)
+		}
+		people = append(people, foundPerson{ID: id, Name: strings.TrimSpace(r.FirstName + " " + r.LastName),
+			AvatarURL: avatar})
+	}
+	return peopleJSON(people)
+}

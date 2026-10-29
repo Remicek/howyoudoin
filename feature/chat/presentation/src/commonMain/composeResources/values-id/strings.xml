@@ -159,6 +159,9 @@
     <string name="contacts_choose_network">Mau menulis di mana?</string>
     <string name="contacts_none">Tidak ada yang ditemukan</string>
     <string name="contacts_only_known">Untuk saat ini hanya orang yang sudah diberitahukan jaringan Anda ke HowYouDoin yang bisa ditemukan.</string>
+    <string name="contacts_on_network">Di %1$s</string>
+    <string name="contacts_searching">Mencari di %1$s…</string>
+    <string name="contacts_search_failed">Tidak bisa mencari di %1$s. Periksa koneksi lalu coba lagi.</string>
     <string name="contacts_cannot_start">Memulai chat baru di %1$s belum bisa dari aplikasi.</string>
     <string name="contacts_no_networks">Hubungkan jaringan untuk menulis ke orang lain.</string>
 </resources>
