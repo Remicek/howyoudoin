@@ -123,7 +123,6 @@ class MoreNetworksTest {
 
     private fun openNetworks() {
         startDemo()
-        app.onNodeWithContentDescription("More").performClick()
         app.onNodeWithText("Settings").performClick()
         app.waitForText("App lock")
         app.scrollToAndClick("Networks")
