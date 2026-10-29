@@ -563,22 +563,27 @@ func (t *Twitter) SendReply(convID, text, replyToID string) (string, error) {
 		return "", err
 	}
 	opts := twittermeow.SendEncryptedMessageOpts{ConversationID: convID, MessageID: newTwitterMessageID(), Text: text}
+	// A message from before this session (the app keeps chats across restarts) is quoted by its ID alone, as
+	// mautrix-twitter does when it can't find the original
+	info := twitterMessageInfo{sequenceID: replyToID, clientID: replyToID}
 	if value, ok := t.messages.Load(replyToID); ok {
-		info := value.(twitterMessageInfo)
-		preview := &payload.ReplyingToPreview{
-			ReplyingToMessageId:         &info.clientID,
-			ReplyingToMessageSequenceId: &info.sequenceID,
-			MessageText:                 &info.text,
-		}
-		if id, err := strconv.ParseInt(info.senderID, 10, 64); err == nil {
-			preview.SenderId = &id
-		}
-		if name, ok := t.contacts.Load(info.senderID); ok {
-			displayName := name.(string)
-			preview.SenderDisplayName = &displayName
-		}
-		opts.ReplyTo = preview
+		info = value.(twitterMessageInfo)
 	}
+	preview := &payload.ReplyingToPreview{
+		ReplyingToMessageId:         &info.clientID,
+		ReplyingToMessageSequenceId: &info.sequenceID,
+	}
+	if info.text != "" {
+		preview.MessageText = &info.text
+	}
+	if id, err := strconv.ParseInt(info.senderID, 10, 64); err == nil {
+		preview.SenderId = &id
+	}
+	if name, ok := t.contacts.Load(info.senderID); ok {
+		displayName := name.(string)
+		preview.SenderDisplayName = &displayName
+	}
+	opts.ReplyTo = preview
 	ctx, cancel := twitterContext()
 	defer cancel()
 	return t.send(ctx, client, opts)
