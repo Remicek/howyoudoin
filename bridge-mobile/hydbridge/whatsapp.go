@@ -518,9 +518,81 @@ func describeWAMessage(msg *waE2E.Message) (kind, text string) {
 		return describeWAMessage(msg.GetEphemeralMessage().GetMessage())
 	case msg.GetViewOnceMessage() != nil:
 		return describeWAMessage(msg.GetViewOnceMessage().GetMessage())
+	case msg.GetViewOnceMessageV2() != nil:
+		return describeWAMessage(msg.GetViewOnceMessageV2().GetMessage())
+	case msg.GetViewOnceMessageV2Extension() != nil:
+		return describeWAMessage(msg.GetViewOnceMessageV2Extension().GetMessage())
+	case msg.GetDocumentWithCaptionMessage() != nil:
+		return describeWAMessage(msg.GetDocumentWithCaptionMessage().GetMessage())
 	default:
+		if text := describeWARichMessage(msg); text != "" {
+			return "text", text
+		}
 		return "other", ""
 	}
+}
+
+// describeWARichMessage is the text of messages the app shows as plain text: businesses' templates, buttons and
+// lists (and the replies to them), polls, events and contact cards.
+func describeWARichMessage(msg *waE2E.Message) string {
+	lines := func(parts ...string) string {
+		var kept []string
+		for _, p := range parts {
+			if p = strings.TrimSpace(p); p != "" {
+				kept = append(kept, p)
+			}
+		}
+		return strings.Join(kept, "\n")
+	}
+	switch {
+	case msg.GetTemplateMessage() != nil:
+		t := msg.GetTemplateMessage()
+		if h := firstNonNil(t.GetHydratedTemplate(), t.GetHydratedFourRowTemplate()); h != nil {
+			return lines(h.GetHydratedTitleText(), h.GetHydratedContentText(), h.GetHydratedFooterText())
+		}
+		if i := t.GetInteractiveMessageTemplate(); i != nil {
+			return lines(i.GetHeader().GetTitle(), i.GetBody().GetText(), i.GetFooter().GetText())
+		}
+	case msg.GetInteractiveMessage() != nil:
+		i := msg.GetInteractiveMessage()
+		return lines(i.GetHeader().GetTitle(), i.GetBody().GetText(), i.GetFooter().GetText())
+	case msg.GetButtonsMessage() != nil:
+		b := msg.GetButtonsMessage()
+		return lines(b.GetText(), b.GetContentText(), b.GetFooterText())
+	case msg.GetListMessage() != nil:
+		l := msg.GetListMessage()
+		return lines(l.GetTitle(), l.GetDescription(), l.GetFooterText())
+	case msg.GetTemplateButtonReplyMessage() != nil:
+		return msg.GetTemplateButtonReplyMessage().GetSelectedDisplayText()
+	case msg.GetButtonsResponseMessage() != nil:
+		return msg.GetButtonsResponseMessage().GetSelectedDisplayText()
+	case msg.GetListResponseMessage() != nil:
+		return msg.GetListResponseMessage().GetTitle()
+	case msg.GetInteractiveResponseMessage() != nil:
+		return msg.GetInteractiveResponseMessage().GetBody().GetText()
+	case msg.GetPollCreationMessage() != nil:
+		return "📊 " + msg.GetPollCreationMessage().GetName()
+	case msg.GetPollCreationMessageV2() != nil:
+		return "📊 " + msg.GetPollCreationMessageV2().GetName()
+	case msg.GetPollCreationMessageV3() != nil:
+		return "📊 " + msg.GetPollCreationMessageV3().GetName()
+	case msg.GetEventMessage() != nil:
+		return lines("📅 "+msg.GetEventMessage().GetName(), msg.GetEventMessage().GetDescription())
+	case msg.GetContactMessage() != nil:
+		return "👤 " + msg.GetContactMessage().GetDisplayName()
+	case msg.GetContactsArrayMessage() != nil:
+		return "👤 " + msg.GetContactsArrayMessage().GetDisplayName()
+	}
+	return ""
+}
+
+func firstNonNil[T any](values ...*T) *T {
+	for _, v := range values {
+		if v != nil {
+			return v
+		}
+	}
+	return nil
 }
 
 func (w *WhatsApp) downloadMedia(chat, messageID, kind string, msg *waE2E.Message) (string, error) {
