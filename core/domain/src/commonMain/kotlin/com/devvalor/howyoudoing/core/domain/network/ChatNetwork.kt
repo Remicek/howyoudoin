@@ -99,12 +99,14 @@ enum class ChatNetwork(
         bridgeProtocolIds = setOf("twitter"),
         ghostUserPrefixes = setOf("twitter_")
     ),
+    /** Not offered: Google refuses its sign-in in the app's login browser, as for [GOOGLE_MESSAGES]. */
     GOOGLE_VOICE(
         displayName = "Google Voice",
         isSupported = false,
         bridgeProtocolIds = setOf("gvoice"),
         ghostUserPrefixes = setOf("gvoice_"),
-        isUntested = true
+        isUntested = true,
+        isAvailable = false
     ),
 
     /** Native Matrix rooms, no bridge involved. */

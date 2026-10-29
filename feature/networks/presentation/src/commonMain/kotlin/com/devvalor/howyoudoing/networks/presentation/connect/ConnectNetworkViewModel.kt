@@ -692,7 +692,8 @@ class ConnectNetworkViewModel(
         loginId = ON_DEVICE_FLOW_ID,
         stepId = "on-device-googlevoice",
         instructions = getString(Res.string.cookies_gvoice),
-        url = "https://voice.google.com/u/0/messages",
+        // Signed out, Voice's own pages show a Google Workspace ad instead of a sign-in
+        url = "https://accounts.google.com/AccountChooser?continue=https://voice.google.com/u/0/messages",
         userAgent = DESKTOP_USER_AGENT,
         cookies = GOOGLE_COOKIES.map { RequiredCookie(it, it, isRequired = true) } +
             listOf("OSID", "__Secure-1PSIDTS", "COMPASS").map { RequiredCookie(it, it, isRequired = false) }

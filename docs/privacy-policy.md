@@ -3,7 +3,7 @@
 Last updated: 28 October 2026
 
 HowYouDoin is a free, open-source chat app that brings your WhatsApp, Messenger, Instagram, Telegram, Signal, Slack,
-Bluesky, LinkedIn, Discord, X, Google Voice and Matrix conversations into one inbox. This policy explains what happens to your data.
+Bluesky, LinkedIn, Discord, X and Matrix conversations into one inbox. This policy explains what happens to your data.
 
 ## What we collect
 
@@ -28,11 +28,11 @@ phone; uninstalling the app or clearing its data deletes everything.
 ## Where your data goes
 
 When you connect a network, the app talks directly to that network's servers (Meta for WhatsApp, Messenger and
-Instagram, Telegram, Signal, Slack, Google for Google Voice, Bluesky, LinkedIn, Discord, X, and the
+Instagram, Telegram, Signal, Slack, Bluesky, LinkedIn, Discord, X, and the
 Matrix homeserver of your account) to send and receive your messages, just as the official apps do. Those companies'
 own privacy policies apply to what they receive.
 
-- Messenger, Instagram, Slack, LinkedIn, Discord, X and Google Voice are
+- Messenger, Instagram, Slack, LinkedIn, Discord and X are
   logged into on their own web pages, shown inside the app; those pages are theirs, and the app only keeps the
   session they create.
 - Bluesky is signed into with your handle and an app password you create in Bluesky; the app keeps the app password

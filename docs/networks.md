@@ -26,7 +26,6 @@ real account; the app shows "Untested" on their card until they have.
 | LinkedIn | linkedin.com in the login browser | mautrix-linkedin (linkedingo) | tested |
 | Discord | discord.com in the login browser (the web client's token) | Beeper's discordgo | **untested** |
 | X | x.com in the login browser, then the X Chat passcode | mautrix-twitter (twittermeow) | tested |
-| Google Voice | Google account on voice.google.com | mautrix-gvoice (libgv) | **untested** |
 
 ## What the newer networks can't do yet
 
@@ -40,12 +39,6 @@ real account; the app shows "Untested" on their card until they have.
   files and voice messages can't be sent (X Chat takes audio only inside a video, which would need ffmpeg). A message
   request shows up only once it's accepted in X, and the account needs X Chat set up (X asks for the passcode the
   first time Chat is opened).
-- **Google Voice**: texts, photos, calls and voicemails (shown as messages); replies, edits, deletes and reactions
-  don't exist there. Google's web page signs texts with a browser-made token that the app doesn't make
-  (mautrix-gvoice runs Electron for it); Google accepts texts without it but may limit accounts that send many.
-  Google Voice is only available in some countries (mainly the US).
-- **Google sign-in** (Google Voice) happens in the login browser, which Google may refuse as "This browser or app may
-  not be secure".
 
 ## Networks left out
 
@@ -55,6 +48,9 @@ These were considered, but nothing can run them on the phone alone:
   QR pairing in 2026, leaving only pairing through the Google account, and Google refuses that sign-in in an app's
   login browser ("This browser or app may not be secure"; Beeper's Android app hits the same and sends people to its
   desktop app). Tried on two Galaxy phones on 29 October 2026.
+- **Google Voice**: the client (mautrix-gvoice's libgv) is in the app but switched off for the same reason: Google
+  refuses the account sign-in in an app's login browser (tried on the emulator on 29 October 2026). It's also only
+  available in some countries (mainly the US).
 
 - **LINE**: no maintained open-source client for its protocol; its chats use LINE's own end-to-end encryption.
 - **Viber**: no open-source client for its messaging protocol.

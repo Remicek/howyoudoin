@@ -277,12 +277,6 @@ class DemoChatRepository(
             replies = listOf("Haha, true", "Saw that too 👀"),
             Triple("Sam Rivera", "Did you see the launch thread? Wild.", 13.days - 6.hours),
         ),
-        demoChat(
-            now,
-            "gv-novak", "Mr. Novak", ChatNetwork.GOOGLE_VOICE, unread = 0, isGroup = false,
-            replies = listOf("Great, thanks", "I'll be home"),
-            Triple("Mr. Novak", "The plumber comes Tuesday at 10.", 14.days),
-        ),
     )
 
     @Suppress("LongParameterList")

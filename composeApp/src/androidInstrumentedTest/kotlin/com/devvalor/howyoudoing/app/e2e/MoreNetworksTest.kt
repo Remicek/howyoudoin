@@ -22,8 +22,8 @@ import org.junit.rules.TestRule
 import org.junit.runner.RunWith
 
 /**
- * The networks that connect from the phone without a bridge and were added later: Bluesky, LinkedIn, Discord, X
- * and Google Voice (Google Messages isn't offered). Bluesky's sign-in reaches the real service, so the emulator
+ * The networks that connect from the phone without a bridge and were added later: Bluesky, LinkedIn, Discord and X
+ * (Google Messages and Google Voice aren't offered). Bluesky's sign-in reaches the real service, so the emulator
  * needs the internet.
  */
 @RunWith(AndroidJUnit4::class)
@@ -47,13 +47,16 @@ class MoreNetworksTest {
     @Test
     fun demoInboxHasAChatFromEachNewNetwork() {
         startDemo()
-        listOf("Game Night 🎮", "Jamie Lee", "Priya Shah", "Sam Rivera", "Mr. Novak").forEach { chat ->
+        listOf("Game Night 🎮", "Jamie Lee", "Priya Shah", "Sam Rivera").forEach { chat ->
             app.onAllNodes(hasScrollToNodeAction()).onFirst().performScrollToNode(hasText(chat))
             app.waitForText(chat)
         }
     }
 
-    /** Bluesky's real server turns down a made-up app password, and the app says so. */
+    /**
+     * Bluesky's real server turns down a made-up app password, and the app says so (or that it's had too many sign-ins
+     * to try, after several runs in a row).
+     */
     @Test
     fun blueskySignInReportsAWrongAppPassword() {
         openNetworks()
@@ -66,7 +69,11 @@ class MoreNetworksTest {
         fields[0].performTextInput("howyoudoin-test-no-such-user.bsky.social")
         fields[1].performTextInput("aaaa-bbbb-cccc-dddd")
         app.onNodeWithText("Continue").performClick()
-        app.waitForText("Wrong Bluesky handle or app password", timeoutMillis = NETWORK_TIMEOUT_MILLIS)
+        app.waitForNode(
+            hasText("Wrong Bluesky handle or app password", substring = true) or
+                hasText("Too many sign-ins", substring = true),
+            NETWORK_TIMEOUT_MILLIS
+        )
     }
 
     @Test
@@ -76,7 +83,7 @@ class MoreNetworksTest {
             connect("Discord")
             app.waitForText(DISCORD_WARNING)
             app.onNodeWithText("Cancel").performClick()
-            app.waitForText("Discord")
+            app.waitForText("Networks")
         }
         connect("Discord")
         app.waitForText(DISCORD_WARNING)
@@ -85,10 +92,11 @@ class MoreNetworksTest {
     }
 
     @Test
-    fun googleMessagesIsNotOffered() {
+    fun googleNetworksAreNotOffered() {
         openNetworks()
-        scrollTo("Google Voice")
+        scrollTo("Matrix")
         app.onAllNodes(hasText("Google Messages")).assertCountEquals(0)
+        app.onAllNodes(hasText("Google Voice")).assertCountEquals(0)
     }
 
     @Test
@@ -97,7 +105,6 @@ class MoreNetworksTest {
         listOf(
             "LinkedIn" to "Enter your LinkedIn email",
             "X" to "Enter your X email",
-            "Google Voice" to "Enter your Google email",
         ).forEach { (network, instructions) ->
             connect(network)
             acceptRiskIfAsked()
@@ -148,7 +155,7 @@ class MoreNetworksTest {
 
     private companion object {
         /** Networks not yet connected with a real account (Bluesky, LinkedIn and X have been). */
-        val UNTESTED_NETWORKS = listOf("Discord", "Google Voice")
+        val UNTESTED_NETWORKS = listOf("Discord")
         const val UNTESTED = "Untested"
         const val DISCORD_WARNING = "Discord bans accounts for this"
         const val NETWORK_TIMEOUT_MILLIS = 30_000L

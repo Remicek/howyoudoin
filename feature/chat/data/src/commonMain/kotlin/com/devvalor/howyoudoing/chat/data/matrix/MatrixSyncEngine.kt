@@ -716,7 +716,9 @@ class MatrixSyncEngine(
         const val LONG_POLL_MILLIS = 30_000L
         const val REFRESH_TIMEOUT_MILLIS = 30_000L
         const val INITIAL_BACKOFF_MILLIS = 1_000L
-        const val MAX_BACKOFF_MILLIS = 30_000L
+        // A server that stays unreachable (e.g. a development server that's off) is tried less and less often, up to
+        // every five minutes; pulling to refresh tries again at once
+        const val MAX_BACKOFF_MILLIS = 300_000L
         const val TYPING_TIMEOUT_MILLIS = 10_000L
         const val CALL_EVENT_MAX_AGE_MILLIS = 60_000L
     }
