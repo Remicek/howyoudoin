@@ -7,6 +7,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"image"
+	_ "image/gif"
+	_ "image/jpeg"
+	_ "image/png"
 	"os"
 	"path/filepath"
 	"slices"
@@ -45,14 +49,21 @@ type Twitter struct {
 	cancel context.CancelFunc
 	selfID string
 
+	// User ID → display name, once their contact event was sent
 	contacts sync.Map
+	// Message ID (sequence and client ID) → what a reply to it quotes
+	messages sync.Map
 	// "conversation/sequence" → our reaction there
 	ownReactions sync.Map
 	typingTimers sync.Map
 }
 
 const (
-	twitterInboxPages     = 3
+	twitterInboxPages = 3
+	// The largest attachment downloaded
+	twitterMaxDownload = 50 << 20
+	// The key version that asks for history under any key
+	twitterAnyKeyVersion  = "9223372036854775807"
 	twitterTypingTimeout  = 6 * time.Second
 	twitterAuthFailedText = "X session expired, log in again"
 )
@@ -311,7 +322,7 @@ func (t *Twitter) processPage(ctx context.Context, client *twittermeow.Client, p
 		if err := processor.ProcessMessageAndReadEvents(ctx, item); err != nil {
 			t.log.Error().Err(err).Msg("Failed to read X Chat messages")
 		}
-		t.emit(map[string]any{"type": "range", "threadKey": item.ConversationDetail.ConversationID, "hasMoreBefore": false})
+		t.emit(map[string]any{"type": "range", "threadKey": item.ConversationDetail.ConversationID, "hasMoreBefore": item.HasMore})
 	}
 }
 
@@ -355,14 +366,14 @@ func twitterName(u *response.XChatUser) string {
 }
 
 func (t *Twitter) emitUser(u *response.XChatUser) {
-	if _, sent := t.contacts.LoadOrStore(u.RestID, true); sent {
+	name := twitterName(u)
+	if _, sent := t.contacts.LoadOrStore(u.RestID, name); sent {
 		return
 	}
 	avatar := ""
 	if u.Avatar != nil {
 		avatar = u.Avatar.ImageURL
 	}
-	name := twitterName(u)
 	t.emit(map[string]any{"type": "contact", "id": u.RestID, "name": name,
 		"firstName": strings.SplitN(name, " ", 2)[0], "avatarUrl": avatar})
 }
@@ -409,15 +420,23 @@ func (t *Twitter) emitMessage(m *types.Message) {
 	if len(attachments) == 0 && m.MessageData.Attachment != nil {
 		attachments = []*types.Attachment{m.MessageData.Attachment}
 	}
+	var media *types.AttachmentInfo
 	for _, a := range attachments {
 		switch {
 		case a.Photo != nil:
-			kind = "image"
-		case a.Video != nil, a.AnimatedGif != nil:
-			kind = "video"
+			kind, media = "image", a.Photo
+		case a.Video != nil:
+			kind, media = "video", a.Video
+		case a.AnimatedGif != nil:
+			kind, media = "video", a.AnimatedGif
 		case a.Tweet != nil && a.Tweet.ExpandedURL != "" && !strings.Contains(text, a.Tweet.ExpandedURL):
 			text = strings.TrimSpace(text + "\n" + a.Tweet.ExpandedURL)
 		}
+	}
+	info := twitterMessageInfo{sequenceID: m.ID, clientID: firstNonEmpty(m.RequestID, m.ID), senderID: m.MessageData.SenderID, text: text}
+	t.messages.Store(m.ID, info)
+	if m.RequestID != "" {
+		t.messages.Store(m.RequestID, info)
 	}
 	if text == "" && kind == "text" {
 		kind = "other"
@@ -436,6 +455,49 @@ func (t *Twitter) emitMessage(m *types.Message) {
 	for _, r := range m.MessageReactions {
 		t.emitReaction(m.ConversationID, m.ID, r.SenderID, r.EmojiReaction, true)
 	}
+	if media != nil && media.MediaHashKey != "" {
+		go t.downloadMedia(m.ConversationID, m.ID, kind, firstNonEmpty(m.ConversationKeyVersion, m.MessageData.ConversationKeyVersion), media)
+	}
+}
+
+// twitterMessageInfo is what a reply to a message quotes.
+type twitterMessageInfo struct {
+	sequenceID, clientID, senderID, text string
+}
+
+// downloadMedia saves an X Chat photo or video (encrypted with the conversation's key) and points the app to it.
+func (t *Twitter) downloadMedia(convID, messageID, kind, keyVersion string, media *types.AttachmentInfo) {
+	client, err := t.current()
+	if err != nil {
+		return
+	}
+	dir := filepath.Join(t.dataDir, "media")
+	if err := os.MkdirAll(dir, 0o700); err != nil {
+		return
+	}
+	path := filepath.Join(dir, strings.NewReplacer("/", "_", ":", "_").Replace(convID+"-"+messageID))
+	if _, err := os.Stat(path); err != nil {
+		var data bytes.Buffer
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+		_, err := client.DownloadXChatMedia(ctx, convID, media.MediaHashKey, keyVersion, &data)
+		cancel()
+		if err != nil || data.Len() > twitterMaxDownload {
+			t.log.Error().Err(err).Msg("Failed to download an X Chat attachment")
+			return
+		}
+		if err := writeFileAtomic(path, data.Bytes()); err != nil {
+			return
+		}
+	}
+	mimeType := "image/jpeg"
+	if kind == "video" {
+		mimeType = "video/mp4"
+	}
+	t.emit(map[string]any{
+		"type": "attachment", "threadKey": convID, "messageId": messageID, "kind": kind, "url": "file://" + path,
+		"previewUrl": "file://" + path, "mimeType": mimeType, "fileName": media.Filename,
+		"width": media.OriginalInfo.Width, "height": media.OriginalInfo.Height,
+	})
 }
 
 func (t *Twitter) emitReaction(convID, messageID, sender, emoji string, added bool) {
@@ -483,7 +545,10 @@ func (t *Twitter) SendText(convID, text string) (string, error) {
 	}
 	ctx, cancel := twitterContext()
 	defer cancel()
-	opts := twittermeow.SendEncryptedMessageOpts{ConversationID: convID, MessageID: newTwitterMessageID(), Text: text}
+	return t.send(ctx, client, twittermeow.SendEncryptedMessageOpts{ConversationID: convID, MessageID: newTwitterMessageID(), Text: text})
+}
+
+func (t *Twitter) send(ctx context.Context, client *twittermeow.Client, opts twittermeow.SendEncryptedMessageOpts) (string, error) {
 	if _, err := client.SendEncryptedMessage(ctx, opts); err != nil {
 		return "", err
 	}
@@ -491,7 +556,33 @@ func (t *Twitter) SendText(convID, text string) (string, error) {
 }
 
 // SendReply sends a message; X Chat replies need the replied-to message's preview, so it goes as a plain message.
-func (t *Twitter) SendReply(convID, text, _ string) (string, error) { return t.SendText(convID, text) }
+// SendReply quotes the message replied to, as X shows replies (its text and sender, by both of its IDs).
+func (t *Twitter) SendReply(convID, text, replyToID string) (string, error) {
+	client, err := t.current()
+	if err != nil {
+		return "", err
+	}
+	opts := twittermeow.SendEncryptedMessageOpts{ConversationID: convID, MessageID: newTwitterMessageID(), Text: text}
+	if value, ok := t.messages.Load(replyToID); ok {
+		info := value.(twitterMessageInfo)
+		preview := &payload.ReplyingToPreview{
+			ReplyingToMessageId:         &info.clientID,
+			ReplyingToMessageSequenceId: &info.sequenceID,
+			MessageText:                 &info.text,
+		}
+		if id, err := strconv.ParseInt(info.senderID, 10, 64); err == nil {
+			preview.SenderId = &id
+		}
+		if name, ok := t.contacts.Load(info.senderID); ok {
+			displayName := name.(string)
+			preview.SenderDisplayName = &displayName
+		}
+		opts.ReplyTo = preview
+	}
+	ctx, cancel := twitterContext()
+	defer cancel()
+	return t.send(ctx, client, opts)
+}
 
 // EditMessage changes the text of one of our messages.
 func (t *Twitter) EditMessage(convID, messageID, text string) error {
@@ -574,14 +665,92 @@ func (t *Twitter) SetTyping(convID string, isTyping bool) error {
 }
 
 // SendMediaFile isn't supported yet: X Chat media needs its own encrypted upload.
-func (t *Twitter) SendMediaFile(_, path, _, _, _ string) (string, error) {
-	_ = os.Remove(path)
-	return "", ErrUnsupported
+// SendMediaFile sends a photo or video, encrypted for the conversation like X Chat's own. Other files and voice
+// messages aren't sent: X Chat takes audio only inside a video, which needs ffmpeg.
+func (t *Twitter) SendMediaFile(convID, path, mimeType, fileName, caption string) (string, error) {
+	defer os.Remove(path)
+	mediaType := payload.MediaTypeImage
+	switch {
+	case strings.HasPrefix(mimeType, "image/"):
+	case strings.HasPrefix(mimeType, "video/"):
+		mediaType = payload.MediaTypeVideo
+	default:
+		return "", ErrUnsupported
+	}
+	client, err := t.current()
+	if err != nil {
+		return "", err
+	}
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return "", err
+	}
+	var width, height int64
+	if mediaType == payload.MediaTypeImage {
+		if cfg, _, err := image.DecodeConfig(bytes.NewReader(data)); err == nil {
+			width, height = int64(cfg.Width), int64(cfg.Height)
+		}
+	}
+	if fileName == "" {
+		fileName = filepath.Base(path)
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	defer cancel()
+	messageID := newTwitterMessageID()
+	upload, err := client.UploadXChatMedia(ctx, convID, messageID, data)
+	if err != nil {
+		return "", err
+	}
+	size := int64(len(data))
+	attachmentType := int32(mediaType)
+	return t.send(ctx, client, twittermeow.SendEncryptedMessageOpts{
+		ConversationID: convID, MessageID: messageID, Text: caption,
+		Attachments: []*payload.MessageAttachment{{Media: &payload.MediaAttachment{
+			MediaHashKey: &upload.MediaHashKey, Type: &attachmentType,
+			Dimensions:    &payload.MediaDimensions{Width: &width, Height: &height},
+			FilesizeBytes: &size, Filename: &fileName,
+		}}},
+	})
 }
 
 // RequestOlder: only each chat's latest page is loaded for now.
-func (t *Twitter) RequestOlder(convID, _ string) error {
-	t.emit(map[string]any{"type": "range", "threadKey": convID, "hasMoreBefore": false})
+// RequestOlder loads the page of X Chat history before beforeMessageID (its sequence ID; the latest page without
+// one); the messages arrive as message events, then a range event.
+func (t *Twitter) RequestOlder(convID, beforeMessageID string) error {
+	client, err := t.current()
+	if err != nil {
+		return err
+	}
+	before := beforeMessageID
+	if value, ok := t.messages.Load(beforeMessageID); ok {
+		before = value.(twitterMessageInfo).sequenceID
+	}
+	ctx, cancel := twitterContext()
+	defer cancel()
+	// As mautrix-twitter: the conversation's latest key version, or any version when there's no key yet
+	keyVersion := twitterAnyKeyVersion
+	if km := client.GetKeyManager(); km != nil {
+		if key, err := km.GetLatestConversationKey(ctx, convID); err == nil && key != nil && key.KeyVersion != "" {
+			keyVersion = key.KeyVersion
+		}
+	}
+	resp, err := client.GetConversationPage(ctx, payload.NewGetConversationPageQueryVariables(convID, before, keyVersion, nil))
+	if err != nil {
+		t.log.Error().Err(err).Msg("Failed to load older X Chat messages")
+		return err
+	}
+	page := resp.Data.GetConversationPage
+	processor := client.GetXChatProcessor()
+	// Keys first, so the page's messages can be read
+	if len(page.MissingConversationKeyChangeEvents) > 0 {
+		if err := processor.ProcessEncodedMessageEvents(ctx, page.MissingConversationKeyChangeEvents); err != nil {
+			t.log.Error().Err(err).Msg("Failed to read older X Chat keys")
+		}
+	}
+	if err := processor.ProcessEncodedMessageEvents(ctx, page.EncodedMessageEvents); err != nil {
+		t.log.Error().Err(err).Msg("Failed to read older X Chat messages")
+	}
+	t.emit(map[string]any{"type": "range", "threadKey": convID, "hasMoreBefore": page.HasMore})
 	return nil
 }
 
