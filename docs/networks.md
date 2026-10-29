@@ -4,7 +4,8 @@ Every network connects straight from the phone: the app runs the network's own c
 built into `hydbridge`) and talks only to that network's servers. A server bridge is optional and only exists for
 WhatsApp and Messenger.
 
-"Tested" means it was connected with a real account. The networks marked untested work against fake servers and
+"Tested" means it was connected with a real account (Bluesky: signing in, receiving with a notification, sending,
+reactions both ways and reconnecting after a restart, on a Galaxy A53 on 29 October 2026). The networks marked untested work against fake servers and
 real servers' refusals in the tests (wrong logins, a real pairing QR code), but have never been signed in with a
 real account; the app shows "Untested" on their card until they have.
 
@@ -18,7 +19,7 @@ real account; the app shows "Untested" on their card until they have.
 | Slack | slack.com in the login browser | mautrix-slack (slack-go) | tested |
 | Matrix | homeserver, username, password | the app's own Matrix client | tested |
 | Google Messages | QR code, or Google account and an emoji tapped on the phone | mautrix-gmessages (libgm) | **untested** |
-| Bluesky | handle and an app password allowed to read messages | HowYouDoin's own client for Bluesky's chat API | **untested** |
+| Bluesky | handle and an app password allowed to read messages | HowYouDoin's own client for Bluesky's chat API | tested |
 | LinkedIn | linkedin.com in the login browser | mautrix-linkedin (linkedingo) | **untested** |
 | Discord | discord.com in the login browser (the web client's token) | Beeper's discordgo | **untested** |
 | X | x.com in the login browser, then the X Chat passcode | mautrix-twitter (twittermeow) | **untested** |

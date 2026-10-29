@@ -68,8 +68,7 @@ enum class ChatNetwork(
         displayName = "Bluesky",
         isSupported = false,
         bridgeProtocolIds = setOf("bluesky"),
-        ghostUserPrefixes = setOf("bluesky_"),
-        isUntested = true
+        ghostUserPrefixes = setOf("bluesky_")
     ),
     LINKEDIN(
         displayName = "LinkedIn",

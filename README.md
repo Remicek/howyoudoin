@@ -25,7 +25,8 @@ Status: experimental, Android only for now. (An iOS build exists in the code but
 - WhatsApp, Telegram, Signal and Google Messages link like a desktop app (QR code, pairing code, login code or an
   emoji); Messenger, Instagram, Slack, LinkedIn, Discord, X and Google Voice log in through their websites inside the
   app; Bluesky with an app password
-- Google Messages, Bluesky, LinkedIn, Discord, X and Google Voice are new and **untested with real accounts**; see
+- Google Messages, Bluesky, LinkedIn, Discord, X and Google Voice are new; Bluesky has been tested with real accounts, the
+  others are **untested with real accounts** so far; see
   [docs/networks.md](docs/networks.md) for what each one can do and which networks were left out and why
 - Voice and video calls with Matrix contacts (calls on the other networks aren't supported)
 - Notifications from a background connection, without push servers

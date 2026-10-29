@@ -37,7 +37,7 @@ class MoreNetworksTest {
     @Test
     fun newNetworksAreListedAsUntested() {
         openNetworks()
-        NEW_NETWORKS.forEach { network ->
+        UNTESTED_NETWORKS.forEach { network ->
             scrollTo(network)
             app.waitForNode(hasText(UNTESTED, substring = true) and hasParent(hasAnyDescendant(hasText(network))))
         }
@@ -149,7 +149,8 @@ class MoreNetworksTest {
     }
 
     private companion object {
-        val NEW_NETWORKS = listOf("Google Messages", "Bluesky", "LinkedIn", "Discord", "X", "Google Voice")
+        /** Networks not yet connected with a real account (Bluesky has been). */
+        val UNTESTED_NETWORKS = listOf("Google Messages", "LinkedIn", "Discord", "X", "Google Voice")
         const val UNTESTED = "Untested"
         const val DISCORD_WARNING = "Discord bans accounts for this"
         const val NETWORK_TIMEOUT_MILLIS = 30_000L
