@@ -270,7 +270,7 @@ func compareNumeric(a, b string) int {
 func (t *Twitter) syncInbox(ctx context.Context, client *twittermeow.Client) {
 	resp, err := client.GetInitialXChatPage(ctx, payload.NewInitialXChatPageQueryVariables(""))
 	if err != nil {
-		t.log.Warn().Err(err).Msg("Failed to load the X Chat inbox")
+		t.log.Error().Err(err).Msg("Failed to load the X Chat inbox")
 		if isTwitterAuthError(err) {
 			t.emitState("error", twitterAuthFailedText)
 			return
@@ -306,10 +306,10 @@ func (t *Twitter) processPage(ctx context.Context, client *twittermeow.Client, p
 		}
 		t.emitConversation(&item.ConversationDetail)
 		if err := processor.ProcessKeyChangeEvents(ctx, item); err != nil {
-			t.log.Warn().Err(err).Msg("Failed to read an X Chat conversation's keys")
+			t.log.Error().Err(err).Msg("Failed to read an X Chat conversation's keys")
 		}
 		if err := processor.ProcessMessageAndReadEvents(ctx, item); err != nil {
-			t.log.Warn().Err(err).Msg("Failed to read X Chat messages")
+			t.log.Error().Err(err).Msg("Failed to read X Chat messages")
 		}
 		t.emit(map[string]any{"type": "range", "threadKey": item.ConversationDetail.ConversationID, "hasMoreBefore": false})
 	}
