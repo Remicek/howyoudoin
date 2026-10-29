@@ -36,9 +36,10 @@ real account; the app shows "Untested" on their card until they have.
 - **Discord**: direct messages and group DMs only; server channels stay out of the inbox. Discord's rules forbid
   using a personal account from another app and it bans accounts for it, so the app warns every time.
 - **X**: only X Chat (the encrypted direct messages). The passcode recovers the keys once; X locks Chat after a few
-  wrong tries, which the passcode screen says. Replies go as plain messages, photos and files can't be sent yet, and
-  only each chat's latest messages load (no older history yet). A message request shows up only once it's accepted
-  in X, and the account needs X Chat set up (X asks for the passcode the first time Chat is opened).
+  wrong tries, which the passcode screen says. Replies quote the original, and photos and videos go both ways; other
+  files and voice messages can't be sent (X Chat takes audio only inside a video, which would need ffmpeg). A message
+  request shows up only once it's accepted in X, and the account needs X Chat set up (X asks for the passcode the
+  first time Chat is opened).
 - **Google Voice**: texts, photos, calls and voicemails (shown as messages); replies, edits, deletes and reactions
   don't exist there. Google's web page signs texts with a browser-made token that the app doesn't make
   (mautrix-gvoice runs Electron for it); Google accepts texts without it but may limit accounts that send many.
