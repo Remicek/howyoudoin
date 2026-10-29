@@ -8,14 +8,16 @@ package com.devvalor.howyoudoing.core.domain.network
  * puppet users they create. Both are used to tell which network a Matrix room belongs to.
  *
  * [isSupported] networks have a server bridge set up; the rest connect only from the phone. [isUntested] ones
- * haven't been connected with a real account yet, so the app says connecting them may not work.
+ * haven't been connected with a real account yet, so the app says connecting them may not work. Networks that aren't
+ * [isAvailable] keep their client but aren't offered on the networks screen.
  */
 enum class ChatNetwork(
     val displayName: String,
     val isSupported: Boolean,
     val bridgeProtocolIds: Set<String> = emptySet(),
     val ghostUserPrefixes: Set<String> = emptySet(),
-    val isUntested: Boolean = false
+    val isUntested: Boolean = false,
+    val isAvailable: Boolean = true
 ) {
     WHATSAPP(
         displayName = "WhatsApp",
@@ -56,13 +58,18 @@ enum class ChatNetwork(
         ghostUserPrefixes = setOf("slack_")
     ),
 
-    /** SMS and RCS through the Google Messages app on the user's Android phone, paired like Messages for web. */
+    /**
+     * SMS and RCS through the Google Messages app on the user's Android phone, paired like Messages for web. Not
+     * offered: the Messages app dropped QR pairing in 2026, and Google refuses its account sign-in in the app's
+     * login browser ("This browser or app may not be secure").
+     */
     GOOGLE_MESSAGES(
         displayName = "Google Messages",
         isSupported = false,
         bridgeProtocolIds = setOf("gmessages"),
         ghostUserPrefixes = setOf("gmessages_"),
-        isUntested = true
+        isUntested = true,
+        isAvailable = false
     ),
     BLUESKY(
         displayName = "Bluesky",
@@ -111,7 +118,7 @@ enum class ChatNetwork(
         val bridged: List<ChatNetwork> = entries.filter { it.isBridged }
 
         /** What the networks screen lists: the bridged networks and a Matrix account of its own. */
-        val connectable: List<ChatNetwork> = bridged + MATRIX
+        val connectable: List<ChatNetwork> = bridged.filter { it.isAvailable } + MATRIX
 
         fun fromProtocolId(protocolId: String): ChatNetwork? =
             entries.firstOrNull { protocolId.lowercase() in it.bridgeProtocolIds }

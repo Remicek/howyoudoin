@@ -2,6 +2,7 @@ package com.devvalor.howyoudoing.app.e2e
 
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.hasAnyDescendant
 import androidx.compose.ui.test.hasParent
 import androidx.compose.ui.test.hasScrollToNodeAction
@@ -21,9 +22,9 @@ import org.junit.rules.TestRule
 import org.junit.runner.RunWith
 
 /**
- * The networks that connect from the phone without a bridge and were added later: Google Messages, Bluesky,
- * LinkedIn, Discord and Google Voice. Some steps reach the real services (Bluesky's sign-in, Google's pairing QR
- * code), so the emulator needs the internet.
+ * The networks that connect from the phone without a bridge and were added later: Bluesky, LinkedIn, Discord, X
+ * and Google Voice (Google Messages isn't offered). Bluesky's sign-in reaches the real service, so the emulator
+ * needs the internet.
  */
 @RunWith(AndroidJUnit4::class)
 class MoreNetworksTest {
@@ -46,7 +47,7 @@ class MoreNetworksTest {
     @Test
     fun demoInboxHasAChatFromEachNewNetwork() {
         startDemo()
-        listOf("Game Night 🎮", "City Pharmacy", "Jamie Lee", "Priya Shah", "Sam Rivera", "Mr. Novak").forEach { chat ->
+        listOf("Game Night 🎮", "Jamie Lee", "Priya Shah", "Sam Rivera", "Mr. Novak").forEach { chat ->
             app.onAllNodes(hasScrollToNodeAction()).onFirst().performScrollToNode(hasText(chat))
             app.waitForText(chat)
         }
@@ -83,15 +84,11 @@ class MoreNetworksTest {
         app.waitForText("Discord may ban accounts that do this", substring = true)
     }
 
-    /** Google's pairing service hands out a real QR code, shown with how to scan it in Google Messages. */
     @Test
-    fun googleMessagesShowsAPairingQrCode() {
+    fun googleMessagesIsNotOffered() {
         openNetworks()
-        connect("Google Messages")
-        acceptRiskIfAsked()
-        app.waitForText("On this device · QR code")
-        app.onNodeWithText("On this device · QR code").performClick()
-        app.waitForText("Device pairing", substring = true, timeoutMillis = NETWORK_TIMEOUT_MILLIS)
+        scrollTo("Google Voice")
+        app.onAllNodes(hasText("Google Messages")).assertCountEquals(0)
     }
 
     @Test
@@ -108,7 +105,8 @@ class MoreNetworksTest {
             app.onNodeWithText("On this device").performClick()
             app.waitForText(instructions, substring = true)
             app.pressBack()
-            app.waitForText(network)
+            app.waitForText("Networks")
+            scrollTo(network)
         }
     }
 
@@ -150,7 +148,7 @@ class MoreNetworksTest {
 
     private companion object {
         /** Networks not yet connected with a real account (Bluesky has been). */
-        val UNTESTED_NETWORKS = listOf("Google Messages", "LinkedIn", "Discord", "X", "Google Voice")
+        val UNTESTED_NETWORKS = listOf("LinkedIn", "Discord", "X", "Google Voice")
         const val UNTESTED = "Untested"
         const val DISCORD_WARNING = "Discord bans accounts for this"
         const val NETWORK_TIMEOUT_MILLIS = 30_000L

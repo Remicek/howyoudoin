@@ -2,7 +2,7 @@
 
 # HowYouDoin
 
-All your chats in one inbox: WhatsApp, Messenger, Instagram, Telegram, Signal, Slack, Google Messages, Bluesky,
+All your chats in one inbox: WhatsApp, Messenger, Instagram, Telegram, Signal, Slack, Bluesky,
 LinkedIn, Discord, X, Google Voice and Matrix, connected straight from your Android phone. There are no HowYouDoin servers and no account to create: your messages and logins stay on the
 phone and go only to the networks themselves.
 
@@ -22,10 +22,9 @@ Status: experimental, Android only for now. (An iOS build exists in the code but
 - One inbox for all connected networks, with search and an unread filter
 - Text, photos, videos, voice messages and files; reactions, replies, edits, deletions, typing and read receipts
   where the network supports them
-- WhatsApp, Telegram, Signal and Google Messages link like a desktop app (QR code, pairing code, login code or an
-  emoji); Messenger, Instagram, Slack, LinkedIn, Discord, X and Google Voice log in through their websites inside the
+- WhatsApp, Telegram and Signal link like a desktop app (QR code, pairing code or login code); Messenger, Instagram, Slack, LinkedIn, Discord, X and Google Voice log in through their websites inside the
   app; Bluesky with an app password
-- Google Messages, Bluesky, LinkedIn, Discord, X and Google Voice are new; Bluesky has been tested with real accounts, the
+- Bluesky, LinkedIn, Discord, X and Google Voice are new; Bluesky has been tested with real accounts, the
   others are **untested with real accounts** so far; see
   [docs/networks.md](docs/networks.md) for what each one can do and which networks were left out and why
 - Voice and video calls with Matrix contacts (calls on the other networks aren't supported)

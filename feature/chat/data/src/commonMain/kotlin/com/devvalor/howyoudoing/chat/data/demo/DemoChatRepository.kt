@@ -260,12 +260,6 @@ class DemoChatRepository(
         ),
         demoChat(
             now,
-            "gm-pharmacy", "City Pharmacy", ChatNetwork.GOOGLE_MESSAGES, unread = 0, isGroup = false,
-            replies = listOf("Thanks!"),
-            Triple("City Pharmacy", "Your prescription is ready for pickup.", 11.days),
-        ),
-        demoChat(
-            now,
             "bs-jamie", "Jamie Lee", ChatNetwork.BLUESKY, unread = 0, isGroup = false,
             replies = listOf("Thank you!", "Next one soon 📸"),
             Triple("Jamie Lee", "Loved your photos from the mountains!", 12.days),

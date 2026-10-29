@@ -3,7 +3,7 @@
 Last updated: 28 October 2026
 
 HowYouDoin is a free, open-source chat app that brings your WhatsApp, Messenger, Instagram, Telegram, Signal, Slack,
-Google Messages, Bluesky, LinkedIn, Discord, X, Google Voice and Matrix conversations into one inbox. This policy explains what happens to your data.
+Bluesky, LinkedIn, Discord, X, Google Voice and Matrix conversations into one inbox. This policy explains what happens to your data.
 
 ## What we collect
 
@@ -28,17 +28,15 @@ phone; uninstalling the app or clearing its data deletes everything.
 ## Where your data goes
 
 When you connect a network, the app talks directly to that network's servers (Meta for WhatsApp, Messenger and
-Instagram, Telegram, Signal, Slack, Google for Google Messages and Google Voice, Bluesky, LinkedIn, Discord, X, and the
+Instagram, Telegram, Signal, Slack, Google for Google Voice, Bluesky, LinkedIn, Discord, X, and the
 Matrix homeserver of your account) to send and receive your messages, just as the official apps do. Those companies'
 own privacy policies apply to what they receive.
 
-- Messenger, Instagram, Slack, LinkedIn, Discord, X, Google Voice and Google Messages' Google-account pairing are
+- Messenger, Instagram, Slack, LinkedIn, Discord, X and Google Voice are
   logged into on their own web pages, shown inside the app; those pages are theirs, and the app only keeps the
   session they create.
 - Bluesky is signed into with your handle and an app password you create in Bluesky; the app keeps the app password
   on your phone to sign in again.
-- Google Messages works through the Google Messages app on your Android phone, like Messages for web: your texts
-  travel between that app and HowYouDoin through Google's servers, end-to-end encrypted by Google Messages.
 - X's messages (X Chat) are end-to-end encrypted. Your X Chat passcode unlocks your keys from X's key backup once;
   the keys and the passcode then stay on your phone, encrypted.
 - Profile pictures, photos and files are downloaded from those networks' servers.
