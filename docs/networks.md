@@ -27,6 +27,14 @@ real account; the app shows "Untested" on their card until they have.
 | Discord | discord.com in the login browser (the web client's token) | Beeper's discordgo | **untested** |
 | X | x.com in the login browser, then the X Chat passcode | mautrix-twitter (twittermeow) | tested |
 
+## Finding people
+
+"New message" lists the people HowYouDoin already knows and also searches the chosen network: WhatsApp checks a
+phone number (with the country code); Telegram searches names and @usernames; Signal looks up a phone number or a
+username (name.12), and a number whose owner hides their account still gets a first message, the chat moving to
+their account when they answer; Slack searches the workspace's members; Messenger, Instagram, Bluesky, X and LinkedIn
+use their own people search. Picking someone opens the chat with them, or a new one their first message starts.
+
 ## What the newer networks can't do yet
 
 - **Bluesky** chats have no attachments, edits or typing indicators (Bluesky's chat API doesn't have them).

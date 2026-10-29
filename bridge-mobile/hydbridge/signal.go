@@ -36,9 +36,12 @@ import (
 type Signal struct {
 	// Timestamp of a reply we sent → its quote, repeated in edits
 	sentQuotes sync.Map
-	dataDir    string
-	listener   Listener
-	log        zerolog.Logger
+	// PNI of a chat started by phone number (its key is "PNI:<pni>") → true; once the person answers from their
+	// account, the chat moves to its ACI key and the PNI maps to that
+	pniChats sync.Map
+	dataDir  string
+	listener Listener
+	log      zerolog.Logger
 
 	db        *dbutil.Database
 	container *store.Container
@@ -494,6 +497,9 @@ func (s *Signal) handleEvent(rawEvt events.SignalEvent) bool {
 func (s *Signal) handleChatEvent(evt *events.ChatEvent) {
 	key := evt.Info.ChatID
 	isGroup := isSignalGroup(key)
+	if !isGroup {
+		s.movePNIChat(evt.Info.Sender)
+	}
 	sender := evt.Info.Sender.String()
 	switch content := evt.Event.(type) {
 	case *signalpb.DataMessage:
@@ -646,11 +652,25 @@ func (s *Signal) send(ctx context.Context, threadKey string, content *signalpb.C
 		}
 		return nil
 	}
-	aci, err := uuid.Parse(threadKey)
-	if err != nil {
-		return err
+	recipient := libsignalgo.NewACIServiceID(uuid.Nil)
+	if pniKey, ok := strings.CutPrefix(threadKey, signalPNIPrefix); ok {
+		pni, err := uuid.Parse(pniKey)
+		if err != nil {
+			return err
+		}
+		if moved, ok := s.pniChats.Load(pni); ok && moved != true {
+			recipient = libsignalgo.NewACIServiceID(moved.(uuid.UUID))
+		} else {
+			recipient = libsignalgo.NewPNIServiceID(pni)
+		}
+	} else {
+		aci, err := uuid.Parse(threadKey)
+		if err != nil {
+			return err
+		}
+		recipient = libsignalgo.NewACIServiceID(aci)
 	}
-	result := client.SendMessage(ctx, libsignalgo.NewACIServiceID(aci), content)
+	result := client.SendMessage(ctx, recipient, content)
 	if !result.WasSuccessful {
 		if result.Error != nil {
 			return result.Error
@@ -872,11 +892,11 @@ func (s *Signal) SearchPeople(query string) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 	query = strings.TrimSpace(query)
-	var aci uuid.UUID
+	var aci, pni uuid.UUID
 	name, handle := query, query
 	if digits := phoneDigits(query); digits != "" {
 		e164 := "+" + digits
-		handle = e164
+		name, handle = e164, e164
 		if recipient, err := client.ContactByE164(ctx, e164); err == nil && recipient != nil && recipient.ACI != uuid.Nil {
 			aci = recipient.ACI
 			name = firstNonEmpty(recipient.ContactName, recipient.Profile.Name, e164)
@@ -886,7 +906,7 @@ func (s *Signal) SearchPeople(query string) (string, error) {
 			if err != nil {
 				return "", err
 			}
-			aci = resp[number].ACI
+			aci, pni = resp[number].ACI, resp[number].PNI
 			if aci != uuid.Nil {
 				_, _ = client.Store.RecipientStore.UpdateRecipientE164(ctx, aci, resp[number].PNI, e164)
 			}
@@ -898,9 +918,43 @@ func (s *Signal) SearchPeople(query string) (string, error) {
 		}
 		aci, _ = serviceID.ToACIAndPNI()
 	}
+	if aci == uuid.Nil && pni != uuid.Nil {
+		// The number's owner hides their account behind it: Signal takes a first message to the number itself
+		key := signalPNIPrefix + pni.String()
+		s.pniChats.LoadOrStore(pni, true)
+		s.emit(map[string]any{"type": "contact", "id": key, "name": name, "firstName": strings.Fields(name)[0]})
+		return peopleJSON([]foundPerson{{ID: key, Name: name, Handle: handle}})
+	}
 	if aci == uuid.Nil {
 		return peopleJSON(nil)
 	}
 	s.emit(map[string]any{"type": "contact", "id": aci.String(), "name": name, "firstName": strings.Fields(name)[0]})
 	return peopleJSON([]foundPerson{{ID: aci.String(), Name: name, Handle: handle}})
+}
+
+// signalPNIPrefix starts the key of a chat started by phone number, before the person's account is known.
+const signalPNIPrefix = "PNI:"
+
+// movePNIChat: someone a chat was started with by phone number now writes from their account (ACI): the chat moves
+// to it, and later messages to the number go to the account.
+func (s *Signal) movePNIChat(aci uuid.UUID) {
+	client := s.currentClient()
+	if client == nil || aci == uuid.Nil || aci == client.Store.ACI {
+		return
+	}
+	s.pniChats.Range(func(key, value any) bool {
+		pni := key.(uuid.UUID)
+		if value != true {
+			return true
+		}
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		recipient, err := client.Store.RecipientStore.LoadAndUpdateRecipient(ctx, aci, uuid.Nil, nil)
+		if err == nil && recipient != nil && recipient.PNI == pni {
+			s.pniChats.Store(pni, aci)
+			s.emit(map[string]any{"type": "moved", "from": signalPNIPrefix + pni.String(), "to": aci.String()})
+			return false
+		}
+		return true
+	})
 }

@@ -942,12 +942,17 @@ func (w *WhatsApp) SearchPeople(query string) (string, error) {
 		if !r.IsIn {
 			continue
 		}
-		name := "+" + r.JID.User
-		if contact, err := client.Store.Contacts.GetContact(ctx, r.JID); err == nil && contact.Found {
+		// JID can be the account's internal ID (a LID); the chat goes by the phone number, as in the address book
+		pn := r.PhoneNumber
+		if pn.IsEmpty() {
+			pn = w.pnJID(r.JID)
+		}
+		name := "+" + pn.User
+		if contact, err := client.Store.Contacts.GetContact(ctx, pn); err == nil && contact.Found {
 			name = firstNonEmpty(contact.FullName, contact.FirstName, contact.PushName, contact.BusinessName, name)
 		}
-		w.emitContact(r.JID, name)
-		people = append(people, foundPerson{ID: w.pnJID(r.JID).String(), Name: name, Handle: "+" + r.JID.User})
+		w.emitContact(pn, name)
+		people = append(people, foundPerson{ID: pn.String(), Name: name, Handle: "+" + pn.User})
 	}
 	return peopleJSON(people)
 }
