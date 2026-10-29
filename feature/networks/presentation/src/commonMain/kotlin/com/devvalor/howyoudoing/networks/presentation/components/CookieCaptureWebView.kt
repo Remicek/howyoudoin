@@ -4,8 +4,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 
 /**
- * Shows [url] so the user can log in on the network's own website, then reports the
- * values of [cookieNames] once they are all set. Used for bridges whose login step is
+ * Shows [url] so the user can log in on the network's own website, then reports the site's cookies once all of
+ * [cookieNames] are set and, with [waitForUrl], the page's address matches it. Used for bridges whose login step is
  * "cookies" (e.g. mautrix-meta for Messenger).
  *
  * [extractScript], if given, runs in the page on every poll and
@@ -19,6 +19,7 @@ expect fun CookieCaptureWebView(
     onCookiesCaptured: (Map<String, String>) -> Unit,
     modifier: Modifier = Modifier,
     extractScript: String? = null,
+    waitForUrl: String? = null,
 )
 
 internal const val COOKIE_POLL_INTERVAL_MILLIS = 1_000L
@@ -68,6 +69,10 @@ internal const val FORM_WIDTH_SHARE = 0.9
 internal const val MAX_ZOOM_STEP = 3f
 /** How often the page is checked for a new thing to zoom to (a dialog closing, the next login step). */
 internal const val REFOCUS_INTERVAL_MILLIS = 1_500L
+
+/** Whether the page at [url] is where the values may be taken: anywhere without a [pattern], else where it matches. */
+internal fun isAtCaptureUrl(pattern: String?, url: String?): Boolean =
+    pattern == null || url?.let { Regex(pattern).containsMatchIn(it) } == true
 
 /** Parses a `name=value; name2=value2` cookie header. */
 internal fun parseCookieHeader(header: String?): Map<String, String> =

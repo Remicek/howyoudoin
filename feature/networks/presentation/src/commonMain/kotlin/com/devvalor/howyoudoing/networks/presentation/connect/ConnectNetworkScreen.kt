@@ -544,6 +544,7 @@ private fun CookiesStep(
                 onCookiesCaptured = { onAction(ConnectNetworkAction.OnCookiesCaptured(it)) },
                 modifier = Modifier.fillMaxWidth().weight(1f),
                 extractScript = step.extractScript,
+                waitForUrl = step.waitForUrl,
             )
         }
     }

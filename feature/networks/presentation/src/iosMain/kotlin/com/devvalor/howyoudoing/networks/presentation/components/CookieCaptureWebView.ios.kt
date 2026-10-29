@@ -43,6 +43,7 @@ actual fun CookieCaptureWebView(
     onCookiesCaptured: (Map<String, String>) -> Unit,
     modifier: Modifier,
     extractScript: String?,
+    waitForUrl: String?,
 ) {
     val currentOnCookiesCaptured by rememberUpdatedState(onCookiesCaptured)
     val baseDomain = remember(url) {
@@ -87,8 +88,9 @@ actual fun CookieCaptureWebView(
         while (true) {
             val extracted = extractScript?.let { webView.evaluate(it) }
             val cookies = webView.cookiesFor(baseDomain) + parseExtractedValues(extracted)
-            if (cookieNames.isNotEmpty() && cookieNames.all { it in cookies }) {
-                currentOnCookiesCaptured(cookies.filterKeys { it in cookieNames })
+            val isAtUrl = isAtCaptureUrl(waitForUrl, webView.URL?.absoluteString)
+            if (cookieNames.isNotEmpty() && cookieNames.all { it in cookies } && isAtUrl) {
+                currentOnCookiesCaptured(cookies)
                 break
             }
             delay(COOKIE_POLL_INTERVAL_MILLIS)

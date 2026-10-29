@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -26,6 +27,8 @@ type LinkedIn struct {
 	listener Listener
 	log      zerolog.Logger
 	jar      *linkedingo.StringCookieJar
+	// The login browser's User-Agent and client hints: LinkedIn ends a session that comes back from another browser
+	headers http.Header
 
 	lock   sync.Mutex
 	client *linkedingo.Client
@@ -51,8 +54,10 @@ type linkedInMessageInfo struct {
 }
 
 const (
-	linkedInPageSize      = 20
-	linkedInConvoPages    = 3
+	linkedInPageSize   = 20
+	linkedInConvoPages = 3
+	// Login values named so are the login browser's headers, not cookies
+	linkedInHeaderPrefix  = "hyd.header."
 	linkedInTypingTimeout = 6 * time.Second
 	linkedInMaxDownload   = 25 << 20
 )
@@ -67,8 +72,13 @@ func NewLinkedIn(cookiesJSON string, dataDir string, listener Listener) (*Linked
 		return nil, errors.New("missing the LinkedIn cookies")
 	}
 	var header []string
+	headers := make(http.Header)
 	for name, value := range cookies {
-		header = append(header, name+"="+value)
+		if headerName, ok := strings.CutPrefix(name, linkedInHeaderPrefix); ok {
+			headers.Set(headerName, value)
+		} else if name != "g_state" { // Google's sign-in state, which linkedingo can't parse (as mautrix-linkedin)
+			header = append(header, name+"="+value)
+		}
 	}
 	jar, err := linkedingo.NewJarFromCookieHeader(strings.Join(header, "; "))
 	if err != nil {
@@ -78,7 +88,7 @@ func NewLinkedIn(cookiesJSON string, dataDir string, listener Listener) (*Linked
 		return nil, err
 	}
 	log := zerolog.New(logWriter{}).With().Timestamp().Str("component", "linkedin").Logger().Level(zerolog.InfoLevel)
-	return &LinkedIn{dataDir: dataDir, listener: listener, log: log, jar: jar}, nil
+	return &LinkedIn{dataDir: dataDir, listener: listener, log: log, jar: jar, headers: headers}, nil
 }
 
 // Connect checks the login, loads the conversations and opens the real-time stream.
@@ -93,6 +103,7 @@ func (l *LinkedIn) Connect() error {
 	l.lock.Unlock()
 
 	probe := linkedingo.NewClient(ctx, linkedingo.NewURN(""), l.jar, "", "", "", linkedingo.Handlers{})
+	probe.SetBrowserHeaders(l.headers)
 	profile, err := probe.GetCurrentUserProfile(ctx)
 	if err != nil || profile.MiniProfile.EntityURN.ID() == "" {
 		l.resetCancel()
@@ -116,6 +127,7 @@ func (l *LinkedIn) Connect() error {
 		UnknownError:   func(ctx context.Context, err error) { l.emitState("reconnecting", errString(err)) },
 		DecoratedEvent: l.handleEvent,
 	})
+	client.SetBrowserHeaders(l.headers)
 	l.lock.Lock()
 	l.client = client
 	l.lock.Unlock()
@@ -180,8 +192,10 @@ func (l *LinkedIn) syncConversations(ctx context.Context) {
 			return
 		}
 		if resp == nil || len(resp.Elements) == 0 {
+			l.log.Info().Int("page", page).Msg("No more LinkedIn conversations")
 			return
 		}
+		l.log.Info().Int("page", page).Int("conversations", len(resp.Elements)).Msg("Loaded LinkedIn conversations")
 		for i := range resp.Elements {
 			conv := &resp.Elements[i]
 			l.emitConversation(conv)

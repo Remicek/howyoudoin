@@ -44,7 +44,11 @@ sealed interface BridgeLoginStep {
         val userAgent: String?,
         val cookies: List<RequiredCookie>,
         /** Runs in the page; returns a JSON object of more values (e.g. a token in the page's storage). */
-        val extractScript: String? = null
+        val extractScript: String? = null,
+        /** The values are taken only once the page's address matches this, e.g. after "confirm it's you" steps. */
+        val waitForUrl: String? = null,
+        /** Hands over every cookie of the site (and every extracted value), not only [cookies]. */
+        val keepAllCookies: Boolean = false
     ) : BridgeLoginStep
 
     data class Complete(

@@ -668,7 +668,12 @@ class ConnectNetworkViewModel(
         instructions = getString(Res.string.cookies_linkedin),
         url = "https://www.linkedin.com/login",
         userAgent = DESKTOP_USER_AGENT,
-        cookies = listOf("li_at", "JSESSIONID").map { RequiredCookie(it, it, isRequired = true) }
+        cookies = listOf("li_at", "JSESSIONID").map { RequiredCookie(it, it, isRequired = true) },
+        // As mautrix-linkedin: the whole session once the feed is open (after any "confirm it's you" steps), and the
+        // login browser's own headers, since LinkedIn ends sessions that come back from a different browser
+        extractScript = LINKEDIN_BROWSER_HEADERS_SCRIPT,
+        waitForUrl = "^https://www\\.linkedin\\.com/feed",
+        keepAllCookies = true
     )
 
     /** discord.com's sign-in; the session is the web client's token, read from the page by [DISCORD_TOKEN_SCRIPT]. */
@@ -776,9 +781,12 @@ class ConnectNetworkViewModel(
     }
 
     private fun linkOnDevice(step: BridgeLoginStep.Cookies, cookiesByName: Map<String, String>) {
-        val cookies =
+        val cookies = if (step.keepAllCookies) {
+            cookiesByName
+        } else {
             step.cookies.mapNotNull { cookie -> cookiesByName[cookie.cookieName]?.let { cookie.cookieName to it } }
                 .toMap()
+        }
         val client = onDevice.forNetwork(network) ?: onDevice.messenger
         stepJob?.cancel()
         stepJob = viewModelScope.launch {
@@ -915,6 +923,19 @@ class ConnectNetworkViewModel(
 }
 
 /** The desktop Chrome user agent hydbridge (messagix) uses, so the session looks the same from both. */
+/** The login browser's User-Agent and client hints, as the "hyd.header.<name>" values the LinkedIn client sends. */
+private const val LINKEDIN_BROWSER_HEADERS_SCRIPT = """
+(function() {
+  var d = navigator.userAgentData, h = { 'hyd.header.User-Agent': navigator.userAgent };
+  if (d) {
+    h['hyd.header.Sec-Ch-Ua'] = d.brands.map(function(b) { return '"' + b.brand + '";v="' + b.version + '"'; }).join(', ');
+    h['hyd.header.Sec-Ch-Ua-Platform'] = '"' + d.platform + '"';
+    h['hyd.header.Sec-Ch-Ua-Mobile'] = d.mobile ? '?1' : '?0';
+  }
+  return JSON.stringify(h);
+})()
+"""
+
 private const val DESKTOP_USER_AGENT =
     "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
 
