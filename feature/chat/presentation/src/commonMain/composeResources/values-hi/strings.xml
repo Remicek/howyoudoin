@@ -160,7 +160,7 @@
     <string name="contacts_search">लोगों को खोजें</string>
     <string name="contacts_choose_network">आप कहाँ लिखना चाहते हैं?</string>
     <string name="contacts_none">कोई नहीं मिला</string>
-    <string name="contacts_only_known">Bluesky, X और LinkedIn में नाम या हैंडल से खोजा जाता है; दूसरे नेटवर्क सिर्फ़ उन्हीं लोगों को दिखाते हैं जिनके बारे में उन्होंने HowYouDoin को बताया है।</string>
+    <string name="contacts_only_known">हर नेटवर्क में भी खोजा जाता है: नाम या यूज़रनेम से, और WhatsApp व Signal पर देश कोड के साथ फ़ोन नंबर से।</string>
     <string name="contacts_on_network">%1$s पर</string>
     <string name="contacts_searching">%1$s पर खोज रहे हैं…</string>
     <string name="contacts_search_failed">%1$s पर खोज नहीं हो सकी। कनेक्शन जाँचें और फिर से कोशिश करें।</string>

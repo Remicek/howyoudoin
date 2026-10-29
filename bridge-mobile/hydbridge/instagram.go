@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -33,6 +34,8 @@ type Instagram struct {
 	igThreadIDs sync.Map
 	// Thread key → the long IG thread ID that read receipts use
 	igLongThreadIDs sync.Map
+	// Person ID → their Instagram ID, for a first message to someone found by search
+	newDMRecipients sync.Map
 	// Message ID → time sent, for read receipts; "threadKey/messageID" → our own reaction there, to remove it
 	messageTimes sync.Map
 	ownReactions sync.Map
@@ -107,17 +110,18 @@ func (ig *Instagram) Disconnect() {
 // SendText sends a text message to a thread (by thread key) and returns its offline threading ID (the echo carries
 // it as otid).
 func (ig *Instagram) SendText(threadKey string, text string) (string, error) {
-	rawID, ok := ig.igThreadIDs.Load(threadKey)
-	if !ok {
+	otid := strconv.FormatInt(methods.GenerateEpochID(), 10)
+	req := &slidetypes.SendTextRequest{OfflineThreadingID: otid, Text: slidetypes.SensitiveString{Value: text}}
+	if rawID, ok := ig.igThreadIDs.Load(threadKey); ok {
+		threadIGID := rawID.(string)
+		req.IGThreadIGID = &threadIGID
+	} else if pk, ok := ig.newDMRecipients.Load(threadKey); ok {
+		// A first message to someone found by search: Instagram creates the chat (keyed by their ID, like ours)
+		req.RecipientIGIDs = []string{pk.(string)}
+	} else {
 		return "", errors.New("unknown thread")
 	}
-	threadIGID := rawID.(string)
-	otid := strconv.FormatInt(methods.GenerateEpochID(), 10)
-	_, err := ig.client.SendMessage(context.Background(), &slidetypes.SendTextRequest{
-		IGThreadIGID:       &threadIGID,
-		OfflineThreadingID: otid,
-		Text:               slidetypes.SensitiveString{Value: text},
-	})
+	_, err := ig.client.SendMessage(context.Background(), req)
 	if err != nil {
 		return "", err
 	}
@@ -360,4 +364,55 @@ func (ig *Instagram) loadNewThread(threadKey string) {
 		return
 	}
 	ig.emitThread(resp.ThreadInfo.AsIGDirectThread)
+}
+
+// SearchPeople uses Instagram's search for people to message.
+func (ig *Instagram) SearchPeople(query string) (string, error) {
+	client := ig.client
+	if client == nil {
+		return "", errors.New("Instagram isn't connected")
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	resp, err := client.SearchUsers(ctx, query)
+	if err != nil {
+		return "", err
+	}
+	var people []foundPerson
+	for _, r := range resp.Data.Results {
+		if r == nil || r.InteropMessagingUserFBID == 0 {
+			continue
+		}
+		id := strconv.FormatInt(r.InteropMessagingUserFBID, 10)
+		if r.PK != "" {
+			ig.newDMRecipients.Store(id, r.PK)
+		}
+		name := firstNonEmpty(r.FullName, r.Username)
+		ig.emit(map[string]any{"type": "contact", "id": id, "name": name,
+			"firstName": strings.SplitN(name, " ", 2)[0], "avatarUrl": r.ProfilePicURL})
+		people = append(people, foundPerson{ID: id, Name: name, Handle: "@" + r.Username, AvatarURL: r.ProfilePicURL})
+	}
+	return peopleJSON(people)
+}
+
+// StartChat opens the chat with someone; a DM's key is their ID. Without one yet, the first message creates it.
+func (ig *Instagram) StartChat(personID string) (string, error) {
+	fbid, err := strconv.ParseInt(personID, 10, 64)
+	if err != nil {
+		return "", err
+	}
+	if _, known := ig.igThreadIDs.Load(personID); known {
+		return personID, nil
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	if ids, err := ig.client.FetchThreadID(ctx, fbid); err == nil {
+		ig.igThreadIDs.Store(personID, ids.ShortID)
+		ig.igLongThreadIDs.Store(personID, ids.LongID)
+		ig.threadKeys.Store(ids.ShortID, personID)
+		ig.threadKeys.Store(ids.LongID, personID)
+	} else if _, canStart := ig.newDMRecipients.Load(personID); !canStart {
+		return "", err
+	}
+	return personID, nil
 }

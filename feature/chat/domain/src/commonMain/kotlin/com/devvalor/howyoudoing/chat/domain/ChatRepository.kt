@@ -30,7 +30,7 @@ interface ChatRepository {
         contact.chatId?.let { Result.Success(it) } ?: Result.Failure(DataError.Remote.BAD_REQUEST)
 
     /**
-     * Searches a network's directory by name or handle (Bluesky, X and LinkedIn so far); fails with
+     * Searches a network's directory by name, handle or phone number; fails with
      * [DataError.Remote.BAD_REQUEST] where the network can't be searched from the app.
      */
     suspend fun searchPeople(network: ChatNetwork, query: String): Result<List<ChatContact>, DataError.Remote> =

@@ -40,6 +40,7 @@ type Slack struct {
 	cancel context.CancelFunc
 
 	selfID string
+	teamID string
 	// Channel ID → *slack.Channel
 	channels sync.Map
 	// User ID → *slack.User, once looked up
@@ -113,6 +114,7 @@ func (s *Slack) Connect() error {
 		return fmt.Errorf("failed to load Slack: %w", err)
 	}
 	s.selfID = boot.Self.ID
+	s.teamID = boot.Team.ID
 	s.users.Store(boot.Self.ID, &boot.Self)
 	s.emit(map[string]any{"type": "self", "id": boot.Self.ID, "name": boot.Team.Name})
 	s.emitUser(&boot.Self)
@@ -624,4 +626,46 @@ func (s *Slack) emit(event map[string]any) {
 	if err == nil && s.listener != nil {
 		s.listener.OnEvent(string(data))
 	}
+}
+
+// SearchPeople finds members of the workspace by name.
+func (s *Slack) SearchPeople(query string) (string, error) {
+	client := s.client
+	if client == nil {
+		return "", errors.New("Slack isn't connected")
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	resp, err := client.SearchUsersCacheContext(ctx, s.teamID, query)
+	if err != nil {
+		return "", err
+	}
+	var people []foundPerson
+	for _, u := range resp.Results {
+		if u == nil || u.Deleted || u.ID == s.selfID {
+			continue
+		}
+		s.users.Store(u.ID, u)
+		s.emitUser(u)
+		people = append(people, foundPerson{ID: u.ID, Name: firstNonEmpty(u.Profile.DisplayName, u.RealName, u.Name),
+			Handle: "@" + u.Name, AvatarURL: u.Profile.Image72})
+	}
+	return peopleJSON(people)
+}
+
+// StartChat opens the direct message channel with a member; its ID is the chat's thread key.
+func (s *Slack) StartChat(personID string) (string, error) {
+	client := s.client
+	if client == nil {
+		return "", errors.New("Slack isn't connected")
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	channel, _, _, err := client.OpenConversationContext(ctx, &slack.OpenConversationParameters{
+		Users: []string{personID}, ReturnIM: true,
+	})
+	if err != nil {
+		return "", err
+	}
+	return channel.ID, nil
 }

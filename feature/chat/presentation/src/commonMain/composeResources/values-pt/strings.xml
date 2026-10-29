@@ -162,7 +162,7 @@
     <string name="contacts_search">Pesquisar pessoas</string>
     <string name="contacts_choose_network">Onde você quer escrever?</string>
     <string name="contacts_none">Ninguém encontrado</string>
-    <string name="contacts_only_known">Bluesky, X e LinkedIn são pesquisados por nome ou usuário; as outras redes só mostram as pessoas que informaram ao HowYouDoin.</string>
+    <string name="contacts_only_known">Cada rede também é pesquisada: por nome ou usuário, e no WhatsApp e no Signal pelo número de telefone com o código do país.</string>
     <string name="contacts_on_network">No %1$s</string>
     <string name="contacts_searching">Procurando no %1$s…</string>
     <string name="contacts_search_failed">Não foi possível pesquisar no %1$s. Verifique a conexão e tente novamente.</string>

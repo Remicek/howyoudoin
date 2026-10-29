@@ -19,6 +19,8 @@ class AndroidMessengerFactory : NativeMessengerFactory {
 
 private class AndroidMessengerClient(private val m: Messenger) : NativeMessengerClient {
     override fun connect() = m.connect()
+    override fun searchPeople(query: String): String = m.searchPeople(query)
+    override fun startChat(personId: String): String = m.startChat(personId)
     override fun disconnect() = m.disconnect()
     override fun sendText(threadKey: String, text: String): String = m.sendText(threadKey, text)
     override fun sendReply(
@@ -160,6 +162,7 @@ class AndroidWhatsAppFactory : NativeLinkedClientFactory {
         return object : NativeLinkedClient {
             override fun isLinked() = w.isLinked
             override fun connect() = w.connect("")
+            override fun searchPeople(query: String): String = w.searchPeople(query)
 
             // A phone number asks for a pairing code, none for QR codes
             override fun startLinking(phoneNumber: String) = w.connect(phoneNumber)
@@ -235,6 +238,7 @@ class AndroidTelegramFactory(private val apiId: Long, private val apiHash: Strin
         return object : NativeLinkedClient {
             override fun isLinked() = t.isLoggedIn
             override fun connect() = t.connect()
+            override fun searchPeople(query: String): String = t.searchPeople(query)
             override fun startLinking(phoneNumber: String) = t.startLogin(phoneNumber)
             override fun submitCode(code: String) = t.submitCode(code)
             override fun submitPassword(password: String) = t.submitPassword(password)
@@ -306,6 +310,7 @@ class AndroidSignalFactory : NativeLinkedClientFactory {
         return object : NativeLinkedClient {
             override fun isLinked() = s.isLinked
             override fun connect() = s.connect()
+            override fun searchPeople(query: String): String = s.searchPeople(query)
             override fun startLinking(phoneNumber: String) = s.link()
             override fun cancelLinking() = s.cancelLink()
             override fun disconnect() = s.disconnect()
@@ -372,6 +377,8 @@ class AndroidInstagramFactory : NativeMessengerFactory {
         val ig = Hydbridge.newInstagram(cookiesJson, listener(onEvent))
         return object : NativeMessengerClient {
             override fun connect() = ig.connect()
+            override fun searchPeople(query: String): String = ig.searchPeople(query)
+            override fun startChat(personId: String): String = ig.startChat(personId)
             override fun disconnect() = ig.disconnect()
             override fun sendText(threadKey: String, text: String): String = ig.sendText(threadKey, text)
             override fun sendReply(
@@ -466,6 +473,8 @@ class AndroidSlackFactory : NativeMessengerFactory {
         val s = Hydbridge.newSlack(cookiesJson, dataDir, listener(onEvent))
         return object : NativeMessengerClient {
             override fun connect() = s.connect()
+            override fun searchPeople(query: String): String = s.searchPeople(query)
+            override fun startChat(personId: String): String = s.startChat(personId)
             override fun disconnect() = s.disconnect()
             override fun sendText(threadKey: String, text: String): String = s.sendText(threadKey, text)
             override fun sendReply(

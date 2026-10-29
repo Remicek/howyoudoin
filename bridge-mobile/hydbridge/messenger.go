@@ -381,3 +381,54 @@ func (m *Messenger) FetchAvatars(contactIDs string) {
 }
 
 const avatarRefreshInterval = 300 * time.Millisecond
+
+// SearchPeople uses Messenger's own search (friends, and people you can message).
+func (m *Messenger) SearchPeople(query string) (string, error) {
+	client := m.client
+	if client == nil {
+		return "", errors.New("Messenger isn't connected")
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	resp, err := client.ExecuteTasks(ctx, &socket.SearchUserTask{
+		Query:          query,
+		SupportedTypes: []table.SearchType{table.SearchTypeContact, table.SearchTypeNonContact},
+		SurfaceType:    5,
+	})
+	if err != nil {
+		return "", err
+	}
+	var people []foundPerson
+	seen := map[int64]bool{}
+	for _, r := range resp.LSInsertSearchResult {
+		fbid := r.GetFBID()
+		canMessage := r.CanViewerMessage || (r.OtherUserId != 0 && r.BlockedByViewerStatus == 0)
+		if !r.ThreadType.IsOneToOne() || !canMessage || fbid == 0 || seen[fbid] {
+			continue
+		}
+		seen[fbid] = true
+		id := strconv.FormatInt(fbid, 10)
+		m.emit(map[string]any{"type": "contact", "id": id, "name": r.DisplayName,
+			"firstName": strings.SplitN(r.DisplayName, " ", 2)[0], "avatarUrl": r.ProfilePicUrl})
+		people = append(people, foundPerson{ID: id, Name: r.DisplayName, AvatarURL: r.ProfilePicUrl})
+	}
+	return peopleJSON(people)
+}
+
+// StartChat creates the one-to-one thread with someone (its key is their ID, as for every Messenger DM).
+func (m *Messenger) StartChat(personID string) (string, error) {
+	client := m.client
+	if client == nil {
+		return "", errors.New("Messenger isn't connected")
+	}
+	id, err := strconv.ParseInt(personID, 10, 64)
+	if err != nil {
+		return "", err
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	if _, err := client.ExecuteTasks(ctx, &socket.CreateThreadTask{ThreadFBID: id, SyncGroup: 1}); err != nil {
+		return "", err
+	}
+	return personID, nil
+}

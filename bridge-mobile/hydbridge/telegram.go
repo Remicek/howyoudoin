@@ -1040,3 +1040,35 @@ func (t *Telegram) emit(event map[string]any) {
 		t.listener.OnEvent(string(data))
 	}
 }
+
+// SearchPeople finds Telegram users by name or @username (Telegram's global search).
+func (t *Telegram) SearchPeople(query string) (string, error) {
+	client := t.client
+	if client == nil {
+		return "", errors.New("Telegram isn't connected")
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	found, err := client.API().ContactsSearch(ctx, &tg.ContactsSearchRequest{
+		Q: strings.TrimPrefix(strings.TrimSpace(query), "@"), Limit: 20,
+	})
+	if err != nil {
+		return "", friendlyTelegramError(err)
+	}
+	var people []foundPerson
+	for _, u := range found.Users {
+		user, ok := u.(*tg.User)
+		if !ok || user.Self || user.Deleted || user.AccessHash == 0 {
+			continue
+		}
+		// Remembers the user's access hash, which sending to them needs
+		t.learnUser(user)
+		handle := ""
+		if user.Username != "" {
+			handle = "@" + user.Username
+		}
+		people = append(people, foundPerson{ID: strconv.FormatInt(user.ID, 10),
+			Name: firstNonEmpty(userName(user), handle), Handle: handle})
+	}
+	return peopleJSON(people)
+}

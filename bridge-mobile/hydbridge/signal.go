@@ -860,3 +860,47 @@ func (s *Signal) emit(event map[string]any) {
 		s.listener.OnEvent(string(data))
 	}
 }
+
+// SearchPeople looks up a phone number or a Signal username (name.12) on Signal's servers.
+func (s *Signal) SearchPeople(query string) (string, error) {
+	s.lock.Lock()
+	client := s.client
+	s.lock.Unlock()
+	if client == nil {
+		return "", errors.New("Signal isn't connected")
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	query = strings.TrimSpace(query)
+	var aci uuid.UUID
+	name, handle := query, query
+	if digits := phoneDigits(query); digits != "" {
+		e164 := "+" + digits
+		handle = e164
+		if recipient, err := client.ContactByE164(ctx, e164); err == nil && recipient != nil && recipient.ACI != uuid.Nil {
+			aci = recipient.ACI
+			name = firstNonEmpty(recipient.ContactName, recipient.Profile.Name, e164)
+		} else {
+			number, _ := strconv.ParseUint(digits, 10, 64)
+			resp, err := client.LookupPhone(ctx, number)
+			if err != nil {
+				return "", err
+			}
+			aci = resp[number].ACI
+			if aci != uuid.Nil {
+				_, _ = client.Store.RecipientStore.UpdateRecipientE164(ctx, aci, resp[number].PNI, e164)
+			}
+		}
+	} else if signalmeow.SignalUsernameRegex.MatchString(query) {
+		serviceID, err := client.ResolveUsername(ctx, strings.TrimPrefix(query, "@"))
+		if err != nil {
+			return peopleJSON(nil)
+		}
+		aci, _ = serviceID.ToACIAndPNI()
+	}
+	if aci == uuid.Nil {
+		return peopleJSON(nil)
+	}
+	s.emit(map[string]any{"type": "contact", "id": aci.String(), "name": name, "firstName": strings.Fields(name)[0]})
+	return peopleJSON([]foundPerson{{ID: aci.String(), Name: name, Handle: handle}})
+}

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 )
 
 // ChatClient is one network logged in from its web page or with a password (Bluesky, LinkedIn, Discord, Google
@@ -122,3 +123,21 @@ var (
 	_ ChatClient = (*Discord)(nil)
 	_ ChatClient = googleVoiceChat{}
 )
+
+// phoneDigits is a phone number as its digits (with the country code), or "" when the query isn't one.
+func phoneDigits(query string) string {
+	var digits strings.Builder
+	for _, r := range strings.TrimSpace(query) {
+		switch {
+		case r >= '0' && r <= '9':
+			digits.WriteRune(r)
+		case r == '+' && digits.Len() == 0, r == ' ', r == '-', r == '(', r == ')', r == '.':
+		default:
+			return ""
+		}
+	}
+	if digits.Len() < 7 || digits.Len() > 15 {
+		return ""
+	}
+	return digits.String()
+}

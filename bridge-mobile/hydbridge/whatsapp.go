@@ -921,3 +921,33 @@ func optionalString(s string) *string {
 	}
 	return &s
 }
+
+// SearchPeople looks a phone number up on WhatsApp (the people in the address book are found by name in the app).
+func (w *WhatsApp) SearchPeople(query string) (string, error) {
+	digits := phoneDigits(query)
+	client := w.client
+	if digits == "" {
+		return peopleJSON(nil)
+	} else if client == nil {
+		return "", errors.New("WhatsApp isn't connected")
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	resp, err := client.IsOnWhatsApp(ctx, []string{"+" + digits})
+	if err != nil {
+		return "", err
+	}
+	var people []foundPerson
+	for _, r := range resp {
+		if !r.IsIn {
+			continue
+		}
+		name := "+" + r.JID.User
+		if contact, err := client.Store.Contacts.GetContact(ctx, r.JID); err == nil && contact.Found {
+			name = firstNonEmpty(contact.FullName, contact.FirstName, contact.PushName, contact.BusinessName, name)
+		}
+		w.emitContact(r.JID, name)
+		people = append(people, foundPerson{ID: w.pnJID(r.JID).String(), Name: name, Handle: "+" + r.JID.User})
+	}
+	return peopleJSON(people)
+}

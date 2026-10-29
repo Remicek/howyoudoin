@@ -168,7 +168,7 @@
     <string name="contacts_search">ابحث عن أشخاص</string>
     <string name="contacts_choose_network">أين تريد أن تكتب؟</string>
     <string name="contacts_none">لم يُعثر على أحد</string>
-    <string name="contacts_only_known">يُبحث في Bluesky وX وLinkedIn بالاسم أو المعرّف؛ أما الشبكات الأخرى فتعرض فقط الأشخاص الذين أخبرت HowYouDoin عنهم.</string>
+    <string name="contacts_only_known">يُبحث في كل شبكة أيضًا: بالاسم أو اسم المستخدم، وفي WhatsApp وSignal برقم الهاتف مع رمز الدولة.</string>
     <string name="contacts_on_network">على %1$s</string>
     <string name="contacts_searching">جارٍ البحث في %1$s…</string>
     <string name="contacts_search_failed">تعذّر البحث في %1$s. تحقّق من الاتصال وحاول مرة أخرى.</string>

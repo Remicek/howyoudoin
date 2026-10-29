@@ -6,6 +6,7 @@ package com.devvalor.howyoudoing.app.ondevice
 import com.devvalor.howyoudoing.core.domain.media.Attachment
 import com.devvalor.howyoudoing.core.domain.media.MessageRef
 import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
+import com.devvalor.howyoudoing.core.domain.ondevice.FoundPerson
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceHistoryError
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceHistoryStatus
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceLinkedAccount
@@ -99,6 +100,9 @@ interface NativeLinkedClient {
 
     /** Asks for these chats' pictures (comma-separated chat keys); they arrive as avatar events. */
     fun fetchAvatars(chats: String) = Unit
+
+    /** People found on the network (a phone number, a name or a username), as a JSON array; see SearchPeople. */
+    fun searchPeople(query: String): String = throw UnsupportedOperationException("Searching isn't supported here")
 }
 
 fun interface NativeLinkedClientFactory {
@@ -248,6 +252,12 @@ abstract class NativeOnDeviceLinkedAccount(
         isGroup: Boolean
     ): Result<String, DataError.Remote> =
         native("Sending a message") { sendText(threadKey, text) }
+
+    override suspend fun searchPeople(query: String): Result<List<FoundPerson>, DataError.Remote> =
+        when (val found = native("Searching people") { searchPeople(query) }) {
+            is Result.Failure -> found
+            is Result.Success -> Result.Success(parsePeople(found.data))
+        }
 
     override suspend fun sendReply(
         threadKey: String,

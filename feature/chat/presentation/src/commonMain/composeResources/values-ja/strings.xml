@@ -158,7 +158,7 @@
     <string name="contacts_search">人を検索</string>
     <string name="contacts_choose_network">どこに書きますか？</string>
     <string name="contacts_none">見つかりませんでした</string>
-    <string name="contacts_only_known">Bluesky、X、LinkedInは名前やハンドルで検索されます。その他のネットワークでは、HowYouDoinに知らされた人だけが表示されます。</string>
+    <string name="contacts_only_known">各ネットワークも検索されます。名前やユーザー名で、WhatsAppとSignalでは国番号付きの電話番号で検索できます。</string>
     <string name="contacts_on_network">%1$s上</string>
     <string name="contacts_searching">%1$sを検索中…</string>
     <string name="contacts_search_failed">%1$sを検索できませんでした。接続を確認して、もう一度お試しください。</string>
