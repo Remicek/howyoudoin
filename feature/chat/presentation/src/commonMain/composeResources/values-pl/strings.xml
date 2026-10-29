@@ -152,4 +152,19 @@
         <item quantity="many">%1$d osób pisze…</item>
         <item quantity="other">%1$d osoby piszą…</item>
     </plurals>
+    <string name="home_chats">Czaty</string>
+    <string name="home_contacts">Kontakty</string>
+    <string name="home_settings">Ustawienia</string>
+    <string name="inbox_new">Nowy</string>
+    <string name="inbox_new_message">Nowa wiadomość</string>
+    <string name="inbox_add_network">Dodaj sieć</string>
+    <string name="inbox_search">Szukaj</string>
+    <string name="inbox_more_filters">Więcej filtrów</string>
+    <string name="contacts_title">Kontakty</string>
+    <string name="contacts_search">Szukaj osób</string>
+    <string name="contacts_choose_network">Gdzie chcesz napisać?</string>
+    <string name="contacts_none">Nikogo nie znaleziono</string>
+    <string name="contacts_only_known">Na razie można znaleźć tylko osoby, o których Twoje sieci poinformowały HowYouDoin.</string>
+    <string name="contacts_cannot_start">Rozpoczęcie nowego czatu w %1$s nie jest jeszcze możliwe z aplikacji.</string>
+    <string name="contacts_no_networks">Podłącz sieć, żeby pisać do ludzi.</string>
 </resources>

@@ -137,4 +137,6 @@
     <string name="appearance_dark_off">オフ</string>
     <string name="appearance_dark_on">オン</string>
     <string name="appearance_themes">テーマ</string>
+    <string name="settings_log_out">ログアウト</string>
+    <string name="settings_log_out_sub">このセッションを終了してようこそ画面に戻ります</string>
 </resources>

@@ -157,7 +157,6 @@ class AppJourneyTest {
     }
 
     private fun openSettings() {
-        app.onNodeWithContentDescription("More").performClick()
         app.onNodeWithText("Settings").performClick()
         app.waitForText("App lock")
     }

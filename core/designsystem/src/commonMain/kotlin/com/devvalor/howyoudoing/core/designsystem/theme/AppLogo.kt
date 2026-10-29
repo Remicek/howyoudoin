@@ -1,5 +1,15 @@
 package com.devvalor.howyoudoing.core.designsystem.theme
 
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.Modifier
+import androidx.compose.runtime.Composable
+import androidx.compose.material3.Text
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -48,4 +58,18 @@ val AppLogo: ImageVector by lazy {
             }
         }
         .build()
+}
+
+/** "howyoudoin" as the app writes its name: "howyou" in the text colour, "doin" in the logo's blue to violet. */
+@Composable
+fun Wordmark(modifier: Modifier = Modifier, fontSize: Int = 22) {
+    val text = buildAnnotatedString {
+        withStyle(SpanStyle(color = MaterialTheme.colorScheme.onBackground)) { append("howyou") }
+        withStyle(SpanStyle(brush = Brush.horizontalGradient(listOf(BrandBlue, BrandViolet)))) { append("doin") }
+    }
+    Text(
+        text,
+        style = TextStyle(fontSize = fontSize.sp, fontWeight = FontWeight.ExtraBold, letterSpacing = (-0.5).sp),
+        modifier = modifier,
+    )
 }

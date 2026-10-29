@@ -143,4 +143,6 @@
     <string name="appearance_dark_off">Wyłączony</string>
     <string name="appearance_dark_on">Włączony</string>
     <string name="appearance_themes">Motyw</string>
+    <string name="settings_log_out">Wyloguj</string>
+    <string name="settings_log_out_sub">Zakończ tę sesję i wróć do ekranu powitalnego</string>
 </resources>

@@ -45,6 +45,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.devvalor.howyoudoing.core.designsystem.components.NetworkBadge
 import com.devvalor.howyoudoing.core.designsystem.theme.AppLogo
+import com.devvalor.howyoudoing.core.designsystem.theme.Wordmark
 import com.devvalor.howyoudoing.core.designsystem.theme.HowYouDoinSpacing
 import com.devvalor.howyoudoing.core.presentation.util.ObserveAsEvents
 import org.koin.compose.viewmodel.koinViewModel
@@ -108,7 +109,7 @@ private fun WelcomeContent(state: LoginState, onAction: (LoginAction) -> Unit) {
     Image(AppLogo, contentDescription = null, modifier = Modifier.size(96.dp))
 
     Spacer(Modifier.height(HowYouDoinSpacing.md))
-    Text("HowYouDoin", style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.Bold)
+    Wordmark(fontSize = WORDMARK_SIZE)
     Spacer(Modifier.height(HowYouDoinSpacing.xs))
     Text(
         stringResource(Res.string.login_tagline),
@@ -174,3 +175,5 @@ private fun PrivacyPoint(icon: ImageVector, title: String, text: String) {
         }
     }
 }
+
+private const val WORDMARK_SIZE = 38

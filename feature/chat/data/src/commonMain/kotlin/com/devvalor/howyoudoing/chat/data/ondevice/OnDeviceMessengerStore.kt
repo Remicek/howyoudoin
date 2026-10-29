@@ -1,5 +1,6 @@
 package com.devvalor.howyoudoing.chat.data.ondevice
 
+import com.devvalor.howyoudoing.chat.domain.ChatContact
 import com.devvalor.howyoudoing.chat.domain.Chat
 import com.devvalor.howyoudoing.chat.domain.MediaInfo
 import com.devvalor.howyoudoing.chat.domain.Message
@@ -473,6 +474,41 @@ class OnDeviceMessengerStore(
     }
 
     fun thread(threadKey: String): Thread? = allThreads(_snapshot.value)[threadKey]
+
+    /** The people this network told the app about, with their one-to-one chat where there is one. */
+    fun contacts(network: ChatNetwork): List<ChatContact> {
+        val s = _snapshot.value
+        val directChats = s.threads.values.filter { !it.isGroup }.mapNotNull { thread ->
+            s.participants[thread.key]?.singleOrNull { it != s.selfId }?.let { it to thread.key }
+        }.toMap()
+        return s.contacts.values
+            .filter { it.id != s.selfId && it.name.isNotBlank() }
+            .map { contact ->
+                ChatContact(
+                    id = contact.id,
+                    name = contact.name,
+                    network = network,
+                    avatarUrl = contact.avatarUrl,
+                    chatId = directChats[contact.id]?.let { chatIdPrefix + it }
+                )
+            }
+    }
+
+    /**
+     * Starts a one-to-one chat locally (the network creates it with the first message) so it can be opened; it shows
+     * at the top of the inbox. Returns its chat ID.
+     */
+    fun startDirectChat(threadKey: String, contactId: String, name: String): String {
+        _snapshot.update { s ->
+            if (threadKey in s.threads) return@update s
+            val now = Clock.System.now().toEpochMilliseconds()
+            s.copy(
+                threads = s.threads + (threadKey to Thread(threadKey, name, false, false, now, now, "", "")),
+                participants = s.participants + (threadKey to setOfNotNull(contactId, s.selfId))
+            )
+        }
+        return chatIdPrefix + threadKey
+    }
 
     /**
      * 1:1 chats whose picture is missing or about to expire (CDN links carry their expiry as `oe=<hex seconds>`);

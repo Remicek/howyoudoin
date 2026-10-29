@@ -1,5 +1,9 @@
 package com.devvalor.howyoudoing.settings.presentation.main
 
+import howyoudoin.feature.settings.presentation.generated.resources.settings_log_out_sub
+import howyoudoin.feature.settings.presentation.generated.resources.settings_log_out
+import androidx.compose.material.icons.automirrored.rounded.Logout
+import com.devvalor.howyoudoing.core.domain.auth.AuthService
 import howyoudoin.feature.settings.presentation.generated.resources.settings_not_backed_up
 import howyoudoin.feature.settings.presentation.generated.resources.Res
 import howyoudoin.feature.settings.presentation.generated.resources.settings_about
@@ -72,8 +76,12 @@ data class SettingsState(
     val lastBackupMillis: Long? = null,
 )
 
-class SettingsViewModel(appLock: AppLockRepository, crashReports: CrashReports, private val loginBackup: LoginBackup) :
-    ViewModel() {
+class SettingsViewModel(
+    appLock: AppLockRepository,
+    crashReports: CrashReports,
+    private val loginBackup: LoginBackup,
+    private val authService: AuthService
+) : ViewModel() {
     val state = combine(
         appLock.observeSettings(),
         crashReports.observeLastReport(),
@@ -93,6 +101,11 @@ class SettingsViewModel(appLock: AppLockRepository, crashReports: CrashReports, 
 
     fun setLoginBackup(on: Boolean) {
         viewModelScope.launch { loginBackup.setEnabled(on) }
+    }
+
+    /** Ends the session; the app then goes back to the welcome screen. */
+    fun logOut() {
+        viewModelScope.launch { authService.logout() }
     }
 }
 
@@ -205,6 +218,14 @@ fun SettingsRoot(
                 subtitle = stringResource(Res.string.settings_about_sub),
                 icon = Icons.Rounded.Info,
                 onClick = onAboutClick
+            )
+        }
+        item {
+            SettingsRow(
+                title = stringResource(Res.string.settings_log_out),
+                subtitle = stringResource(Res.string.settings_log_out_sub),
+                icon = Icons.AutoMirrored.Rounded.Logout,
+                onClick = viewModel::logOut
             )
         }
     }

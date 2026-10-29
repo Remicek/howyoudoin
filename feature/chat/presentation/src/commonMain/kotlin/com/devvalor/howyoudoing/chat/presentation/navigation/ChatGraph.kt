@@ -1,5 +1,6 @@
 package com.devvalor.howyoudoing.chat.presentation.navigation
 
+import com.devvalor.howyoudoing.chat.presentation.contacts.ContactsRoot
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavController
 import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
@@ -24,8 +25,31 @@ fun NavGraphBuilder.chatGraph(
                 },
                 onNetworksClick = onNetworksClick,
                 onSettingsClick = onSettingsClick,
+                onContactsClick = { navController.navigate(ChatRoutes.Contacts) { launchSingleTop = true } },
+                onNewMessageClick = { navController.navigate(ChatRoutes.NewMessage) { launchSingleTop = true } },
                 onGuideClick = onGuideClick,
                 banner = inboxBanner,
+            )
+        }
+        composable<ChatRoutes.Contacts> {
+            ContactsRoot(
+                isNewMessage = false,
+                onChatOpen = { chatId -> navController.navigate(ChatRoutes.Conversation(chatId)) },
+                onClose = { navController.navigateUp() },
+                onChatsTab = { navController.popBackStack(ChatRoutes.Inbox, inclusive = false) },
+                onSettingsTab = onSettingsClick,
+            )
+        }
+        composable<ChatRoutes.NewMessage> {
+            ContactsRoot(
+                isNewMessage = true,
+                // The chat replaces the new message screen, so back from it goes to the inbox
+                onChatOpen = { chatId ->
+                    navController.navigate(ChatRoutes.Conversation(chatId)) {
+                        popUpTo(ChatRoutes.NewMessage) { inclusive = true }
+                    }
+                },
+                onClose = { navController.navigateUp() },
             )
         }
         composable<ChatRoutes.Conversation> {

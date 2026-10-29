@@ -455,6 +455,9 @@ class NativeOnDeviceWhatsApp(
 ) :
     NativeOnDeviceLinkedAccount(factory, dataDir, scope), OnDeviceWhatsApp {
     override val network: ChatNetwork get() = ChatNetwork.WHATSAPP
+
+    // A one-to-one chat's JID is the contact's own
+    override fun directChatKey(contactId: String): String = contactId
 }
 
 class NativeOnDeviceTelegram(
@@ -464,9 +467,15 @@ class NativeOnDeviceTelegram(
 ) :
     NativeOnDeviceLinkedAccount(factory, dataDir, scope), OnDeviceTelegram {
     override val network: ChatNetwork get() = ChatNetwork.TELEGRAM
+
+    // hydbridge keys a user's chat "u<user ID>"
+    override fun directChatKey(contactId: String): String = "u$contactId"
 }
 
 class NativeOnDeviceSignal(factory: NativeLinkedClientFactory?, dataDir: OnDeviceDataDirectory, scope: CoroutineScope) :
     NativeOnDeviceLinkedAccount(factory, dataDir, scope), OnDeviceSignal {
     override val network: ChatNetwork get() = ChatNetwork.SIGNAL
+
+    // A one-to-one chat is keyed by the contact's ACI
+    override fun directChatKey(contactId: String): String = contactId
 }

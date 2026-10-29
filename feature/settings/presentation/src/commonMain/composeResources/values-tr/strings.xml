@@ -139,4 +139,6 @@
     <string name="appearance_dark_off">Kapalı</string>
     <string name="appearance_dark_on">Açık</string>
     <string name="appearance_themes">Tema</string>
+    <string name="settings_log_out">Çıkış yap</string>
+    <string name="settings_log_out_sub">Bu oturumdan çıkıp karşılama ekranına dönün</string>
 </resources>

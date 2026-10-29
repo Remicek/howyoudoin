@@ -139,4 +139,6 @@
     <string name="appearance_dark_off">Off</string>
     <string name="appearance_dark_on">On</string>
     <string name="appearance_themes">Theme</string>
+    <string name="settings_log_out">Log out</string>
+    <string name="settings_log_out_sub">Leave this session and go back to the welcome screen</string>
 </resources>

@@ -7,6 +7,8 @@ sealed interface InboxAction {
     data class OnFilterSelect(val filter: InboxFilter) : InboxAction
     data class OnChatClick(val chatId: String) : InboxAction
     data object OnNetworksClick : InboxAction
+    data object OnNewMessageClick : InboxAction
+    data object OnContactsClick : InboxAction
     data object OnSettingsClick : InboxAction
     data object OnGuideClick : InboxAction
     data object OnRefresh : InboxAction

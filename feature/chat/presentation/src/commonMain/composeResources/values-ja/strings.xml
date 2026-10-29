@@ -146,4 +146,19 @@
     <plurals name="typing_many">
         <item quantity="other">%1$d 人が入力中…</item>
     </plurals>
+    <string name="home_chats">チャット</string>
+    <string name="home_contacts">連絡先</string>
+    <string name="home_settings">設定</string>
+    <string name="inbox_new">新規</string>
+    <string name="inbox_new_message">新しいメッセージ</string>
+    <string name="inbox_add_network">ネットワークを追加</string>
+    <string name="inbox_search">検索</string>
+    <string name="inbox_more_filters">その他のフィルタ</string>
+    <string name="contacts_title">連絡先</string>
+    <string name="contacts_search">人を検索</string>
+    <string name="contacts_choose_network">どこに書きますか？</string>
+    <string name="contacts_none">見つかりませんでした</string>
+    <string name="contacts_only_known">今のところ、ネットワークが HowYouDoin に知らせた人だけを検索できます。</string>
+    <string name="contacts_cannot_start">%1$s で新しいチャットを始めることは、まだアプリからはできません。</string>
+    <string name="contacts_no_networks">ネットワークを接続すると、人にメッセージを送れます。</string>
 </resources>
