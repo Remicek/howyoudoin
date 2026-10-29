@@ -97,8 +97,7 @@ enum class ChatNetwork(
         displayName = "X",
         isSupported = false,
         bridgeProtocolIds = setOf("twitter"),
-        ghostUserPrefixes = setOf("twitter_"),
-        isUntested = true
+        ghostUserPrefixes = setOf("twitter_")
     ),
     GOOGLE_VOICE(
         displayName = "Google Voice",

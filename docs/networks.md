@@ -7,7 +7,9 @@ WhatsApp and Messenger.
 "Tested" means it was connected with a real account (Bluesky: signing in, receiving with a notification, sending,
 reactions both ways and reconnecting after a restart, on a Galaxy A53 on 29 October 2026; LinkedIn: signing in, the
 existing inbox, receiving with a notification, sending, a reaction, an edit and reconnecting after a restart, on the
-same phone the same day). The networks marked untested work against fake servers and
+same phone the same day; X: logging in, unlocking X Chat with the passcode, receiving with a notification, sending, a
+reaction, read receipts, an edit, deleting for everyone and reconnecting after a restart, between two Galaxy phones
+the same day). The networks marked untested work against fake servers and
 real servers' refusals in the tests (wrong logins, a real pairing QR code), but have never been signed in with a
 real account; the app shows "Untested" on their card until they have.
 
@@ -23,7 +25,7 @@ real account; the app shows "Untested" on their card until they have.
 | Bluesky | handle and an app password allowed to read messages | HowYouDoin's own client for Bluesky's chat API | tested |
 | LinkedIn | linkedin.com in the login browser | mautrix-linkedin (linkedingo) | tested |
 | Discord | discord.com in the login browser (the web client's token) | Beeper's discordgo | **untested** |
-| X | x.com in the login browser, then the X Chat passcode | mautrix-twitter (twittermeow) | **untested** |
+| X | x.com in the login browser, then the X Chat passcode | mautrix-twitter (twittermeow) | tested |
 | Google Voice | Google account on voice.google.com | mautrix-gvoice (libgv) | **untested** |
 
 ## What the newer networks can't do yet
@@ -35,7 +37,8 @@ real account; the app shows "Untested" on their card until they have.
   using a personal account from another app and it bans accounts for it, so the app warns every time.
 - **X**: only X Chat (the encrypted direct messages). The passcode recovers the keys once; X locks Chat after a few
   wrong tries, which the passcode screen says. Replies go as plain messages, photos and files can't be sent yet, and
-  only each chat's latest messages load (no older history yet).
+  only each chat's latest messages load (no older history yet). A message request shows up only once it's accepted
+  in X, and the account needs X Chat set up (X asks for the passcode the first time Chat is opened).
 - **Google Voice**: texts, photos, calls and voicemails (shown as messages); replies, edits, deletes and reactions
   don't exist there. Google's web page signs texts with a browser-made token that the app doesn't make
   (mautrix-gvoice runs Electron for it); Google accepts texts without it but may limit accounts that send many.
