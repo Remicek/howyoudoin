@@ -22,7 +22,6 @@ import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceLinkedAccount
 import kotlinx.coroutines.CoroutineScope
 import org.koin.core.context.GlobalContext
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.SupervisorJob
@@ -54,10 +53,10 @@ class OnDeviceConnectionService : Service() {
         }
         ServiceCompat.startForeground(this, NOTIFICATION_ID, notification, type)
         if (follow == null) {
-            // Keep the notification in step with what's connected, whoever started the service
+            // Keep the notification in step with what's connected, whoever started the service; from the current list
+            // on, as everything may have connected before the service started (it then said "Connecting…" for good)
             val keeper = GlobalContext.get().get<OnDeviceConnectionKeeper>()
             follow = keeper.active
-                .drop(1)
                 .onEach { active ->
                     getSystemService(NotificationManager::class.java).notify(
                         NOTIFICATION_ID,
