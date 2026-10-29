@@ -4,6 +4,8 @@ import (
 	"os"
 	"strings"
 	"testing"
+
+	"go.mau.fi/mautrix-linkedin/pkg/linkedingo"
 )
 
 // Against the real linkedin.com with cookies that can't work: the login must fail as an expired session.
@@ -27,5 +29,36 @@ func TestLinkedInLiveBadCookies(t *testing.T) {
 func TestLinkedInNeedsBothCookies(t *testing.T) {
 	if _, err := NewLinkedIn(`{"li_at":"x"}`, t.TempDir(), nil); err == nil {
 		t.Fatal("a login without JSESSIONID was accepted")
+	}
+}
+
+// The cookies LinkedIn refreshed are used again for the same login, but a new login starts from its own.
+func TestLinkedInKeepsRefreshedCookiesForTheSameLogin(t *testing.T) {
+	dir := t.TempDir()
+	login := `{"li_at":"first","JSESSIONID":"\"ajax:1\""}`
+	l, err := NewLinkedIn(login, dir, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	refreshed, err := linkedingo.NewJarFromCookieHeader(`li_at=first; JSESSIONID="ajax:1"; lidc=refreshed`)
+	if err != nil {
+		t.Fatal(err)
+	}
+	l.jar = refreshed
+	l.saveCookies()
+
+	again, err := NewLinkedIn(login, dir, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := again.jar.GetCookie("lidc"); got != "refreshed" {
+		t.Fatalf("the refreshed cookie wasn't used again: %q", got)
+	}
+	other, err := NewLinkedIn(`{"li_at":"second","JSESSIONID":"\"ajax:2\""}`, dir, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := other.jar.GetCookie("li_at"); got != "second" {
+		t.Fatalf("a new login used the old cookies: %q", got)
 	}
 }

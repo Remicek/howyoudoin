@@ -29,6 +29,8 @@ type LinkedIn struct {
 	jar      *linkedingo.StringCookieJar
 	// The login browser's User-Agent and client hints: LinkedIn ends a session that comes back from another browser
 	headers http.Header
+	// The login's li_at, which saved cookies must have grown from to be used
+	loginLiAt string
 
 	lock   sync.Mutex
 	client *linkedingo.Client
@@ -57,7 +59,11 @@ const (
 	linkedInPageSize   = 20
 	linkedInConvoPages = 3
 	// Login values named so are the login browser's headers, not cookies
-	linkedInHeaderPrefix  = "hyd.header."
+	linkedInHeaderPrefix = "hyd.header."
+	// How often the cookies LinkedIn refreshes are saved
+	linkedInCookieSaveInterval = 5 * time.Minute
+	// The name the app gives its voice recordings
+	linkedInVoiceFileName = "Voice message"
 	linkedInTypingTimeout = 6 * time.Second
 	linkedInMaxDownload   = 25 << 20
 )
@@ -88,7 +94,57 @@ func NewLinkedIn(cookiesJSON string, dataDir string, listener Listener) (*Linked
 		return nil, err
 	}
 	log := zerolog.New(logWriter{}).With().Timestamp().Str("component", "linkedin").Logger().Level(zerolog.InfoLevel)
-	return &LinkedIn{dataDir: dataDir, listener: listener, log: log, jar: jar, headers: headers}, nil
+	l := &LinkedIn{dataDir: dataDir, listener: listener, log: log, jar: jar, headers: headers, loginLiAt: cookies["li_at"]}
+	if saved := l.loadSavedCookies(); saved != nil {
+		l.jar = saved
+	}
+	return l, nil
+}
+
+// savedLinkedInCookies is the cookie jar as LinkedIn last left it (it refreshes cookies as it goes), kept for the
+// login it grew from: a new login starts from its own cookies.
+type savedLinkedInCookies struct {
+	LoginLiAt string                      `json:"loginLiAt"`
+	Jar       *linkedingo.StringCookieJar `json:"jar"`
+}
+
+func (l *LinkedIn) cookiesPath() string { return filepath.Join(l.dataDir, "cookies.json") }
+
+func (l *LinkedIn) loadSavedCookies() *linkedingo.StringCookieJar {
+	data, err := os.ReadFile(l.cookiesPath())
+	if err != nil {
+		return nil
+	}
+	var saved savedLinkedInCookies
+	if json.Unmarshal(data, &saved) != nil || saved.LoginLiAt != l.loginLiAt || saved.Jar == nil ||
+		saved.Jar.GetCookie("li_at") == "" {
+		return nil
+	}
+	return saved.Jar
+}
+
+// saveCookies keeps the cookies LinkedIn refreshed, so the next start doesn't send ones it has since replaced.
+func (l *LinkedIn) saveCookies() {
+	data, err := json.Marshal(savedLinkedInCookies{LoginLiAt: l.loginLiAt, Jar: l.jar})
+	if err != nil {
+		return
+	}
+	if err := os.WriteFile(l.cookiesPath(), data, 0o600); err != nil {
+		l.log.Error().Err(err).Msg("Failed to save the LinkedIn cookies")
+	}
+}
+
+func (l *LinkedIn) saveCookiesPeriodically(ctx context.Context) {
+	ticker := time.NewTicker(linkedInCookieSaveInterval)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			l.saveCookies()
+		}
+	}
 }
 
 // Connect checks the login, loads the conversations and opens the real-time stream.
@@ -135,6 +191,8 @@ func (l *LinkedIn) Connect() error {
 		l.resetCancel()
 		return fmt.Errorf("failed to connect to LinkedIn: %w", err)
 	}
+	l.saveCookies()
+	go l.saveCookiesPeriodically(ctx)
 	go l.syncConversations(ctx)
 	return nil
 }
@@ -154,6 +212,7 @@ func (l *LinkedIn) Disconnect() {
 	l.lock.Unlock()
 	if client != nil {
 		client.RealtimeDisconnect()
+		l.saveCookies()
 	}
 	l.resetCancel()
 	l.emitState("disconnected", "")
@@ -434,7 +493,7 @@ func (l *LinkedIn) downloadMedia(threadKey, messageID, kind string, rc linkeding
 		data, err := client.DownloadBytes(ctx, link)
 		cancel()
 		if err != nil || len(data) > linkedInMaxDownload {
-			l.log.Warn().Err(err).Msg("Failed to download a LinkedIn attachment")
+			l.log.Error().Err(err).Msg("Failed to download a LinkedIn attachment")
 			return
 		}
 		if err := writeFileAtomic(path, data); err != nil {
@@ -657,8 +716,13 @@ func (l *LinkedIn) SendMediaFile(threadKey, path, mimeType, fileName, caption st
 	if fileName == "" {
 		fileName = filepath.Base(path)
 	}
+	// The app's recordings come as "Voice message.m4a" (AAC, which LinkedIn's voice messages are)
+	isVoice := strings.HasPrefix(fileName, linkedInVoiceFileName) && mimeType == "audio/mp4"
 	uploadType := linkedingo.MediaUploadTypeFileAttachment
-	if strings.HasPrefix(mimeType, "image/") {
+	switch {
+	case isVoice:
+		uploadType = linkedingo.MediaUploadTypeVoiceMessage
+	case strings.HasPrefix(mimeType, "image/"):
 		uploadType = linkedingo.MediaUploadTypePhotoAttachment
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
@@ -666,6 +730,11 @@ func (l *LinkedIn) SendMediaFile(threadKey, path, mimeType, fileName, caption st
 	urn, err := client.UploadMedia(ctx, uploadType, fileName, mimeType, int(info.Size()), file)
 	if err != nil {
 		return "", err
+	}
+	if isVoice {
+		return l.send(threadKey, caption, []linkedingo.SendRenderContent{{
+			Audio: &linkedingo.SendAudio{AssetURN: urn, ByteSize: int(info.Size())},
+		}})
 	}
 	return l.send(threadKey, caption, []linkedingo.SendRenderContent{{
 		File: &linkedingo.SendFile{AssetURN: urn, Name: fileName, MediaType: mimeType, ByteSize: int(info.Size())},

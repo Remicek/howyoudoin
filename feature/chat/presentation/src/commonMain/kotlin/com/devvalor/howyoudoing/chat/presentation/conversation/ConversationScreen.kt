@@ -188,7 +188,8 @@ private fun voiceFormatFor(network: ChatNetwork?, isOnDevice: Boolean): VoiceFor
     !isOnDevice -> VoiceFormat.OGG_OPUS
     network == ChatNetwork.WHATSAPP || network == ChatNetwork.TELEGRAM -> VoiceFormat.OGG_OPUS
     network == ChatNetwork.SIGNAL -> VoiceFormat.AAC_ADTS
-    network == ChatNetwork.MESSENGER || network == ChatNetwork.INSTAGRAM -> VoiceFormat.M4A_AAC
+    network == ChatNetwork.MESSENGER || network == ChatNetwork.INSTAGRAM || network == ChatNetwork.LINKEDIN ->
+        VoiceFormat.M4A_AAC
     else -> null
 }
 

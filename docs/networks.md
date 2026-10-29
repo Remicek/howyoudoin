@@ -32,7 +32,7 @@ real account; the app shows "Untested" on their card until they have.
 
 - **Bluesky** chats have no attachments, edits or typing indicators (Bluesky's chat API doesn't have them).
   "Delete" removes a message only for the user.
-- **LinkedIn**: replies, edits, deletes, reactions, photos and files work; voice messages go as audio files.
+- **LinkedIn**: replies, edits, deletes, reactions, voice messages, photos and files work.
 - **Discord**: direct messages and group DMs only; server channels stay out of the inbox. Discord's rules forbid
   using a personal account from another app and it bans accounts for it, so the app warns every time.
 - **X**: only X Chat (the encrypted direct messages). The passcode recovers the keys once; X locks Chat after a few
