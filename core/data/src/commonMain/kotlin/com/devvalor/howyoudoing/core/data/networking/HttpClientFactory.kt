@@ -23,7 +23,8 @@ object HttpClientFactory {
         encodeDefaults = true
     }
 
-    fun create(engine: HttpClientEngine): HttpClient {
+    /** [logRequests]: debug builds log each request's method and URL; release builds log nothing. */
+    fun create(engine: HttpClientEngine, logRequests: Boolean = false): HttpClient {
         return HttpClient(engine) {
             install(ContentNegotiation) {
                 json(json)
@@ -34,13 +35,15 @@ object HttpClientFactory {
                 socketTimeoutMillis = LONG_POLL_TIMEOUT.inWholeMilliseconds
                 connectTimeoutMillis = 20.seconds.inWholeMilliseconds
             }
-            install(Logging) {
-                logger = object : Logger {
-                    override fun log(message: String) {
-                        println("HowYouDoin HTTP: $message")
+            if (logRequests) {
+                install(Logging) {
+                    logger = object : Logger {
+                        override fun log(message: String) {
+                            println("HowYouDoin HTTP: $message")
+                        }
                     }
+                    level = LogLevel.INFO
                 }
-                level = LogLevel.INFO
             }
             defaultRequest {
                 contentType(ContentType.Application.Json)

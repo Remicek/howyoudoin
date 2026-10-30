@@ -18,7 +18,8 @@ To show your chats, the app keeps on your phone:
 - the login sessions of the networks you connect (session cookies, device keys, encryption keys), in the app's
   private storage, partly encrypted with a key from Android's Keystore;
 - your chats, messages, contacts' names and pictures, and downloaded photos and files;
-- your settings, including the app lock PIN as a salted one-way hash (not the PIN itself).
+- your settings, including the app lock PIN as a salted one-way hash (not the PIN itself);
+- your own Telegram API keys, if you enter them (Settings → Telegram API keys), encrypted like the logins.
 
 Your chats and messages are never copied to the cloud. Settings → Back up logins is on unless you turn it off: it
 puts only the network logins in your phone's Google backup, and only when that backup is end-to-end encrypted with

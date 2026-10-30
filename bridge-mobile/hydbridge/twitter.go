@@ -670,7 +670,6 @@ func (t *Twitter) SetTyping(convID string, isTyping bool) error {
 	return client.SendXChatTypingNotification(ctx, convID)
 }
 
-// SendMediaFile isn't supported yet: X Chat media needs its own encrypted upload.
 // SendMediaFile sends a photo or video, encrypted for the conversation like X Chat's own. Other files and voice
 // messages aren't sent: X Chat takes audio only inside a video, which needs ffmpeg.
 func (t *Twitter) SendMediaFile(convID, path, mimeType, fileName, caption string) (string, error) {

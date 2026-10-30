@@ -1,5 +1,6 @@
 package com.devvalor.howyoudoing.core.data.di
 
+import com.devvalor.howyoudoing.core.domain.config.BuildInfo
 import com.devvalor.howyoudoing.core.data.auth.DataStoreSessionStorage
 import com.devvalor.howyoudoing.core.data.networking.HttpClientFactory
 import com.devvalor.howyoudoing.core.domain.auth.SessionStorage
@@ -17,7 +18,7 @@ expect val platformCoreDataModule: Module
 
 val coreDataModule = module {
     includes(platformCoreDataModule)
-    single { HttpClientFactory.create(get<HttpClientEngine>()) }
+    single { HttpClientFactory.create(get<HttpClientEngine>(), logRequests = get<BuildInfo>().isDebug()) }
     single<CoroutineScope> { CoroutineScope(SupervisorJob() + Dispatchers.Default) }
     single { DataStoreSessionStorage(get()) } bind SessionStorage::class
     // A Matrix account connected as one of the networks, next to (or without) the app's own server session

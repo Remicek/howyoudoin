@@ -2,6 +2,9 @@ module com.devvalor/howyoudoin/bridgemobile
 
 go 1.26.0
 
+// 1.27.3 fixes GO-2026-6809 (crypto/x509), which the network clients reach
+toolchain go1.27.3
+
 require (
 	github.com/bwmarrin/discordgo v0.27.0
 	github.com/google/uuid v1.6.0

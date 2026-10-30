@@ -72,7 +72,10 @@ actual fun rememberFileOpener(): (bytes: ByteArray, fileName: String, mimeType: 
     return { bytes, fileName, mimeType ->
         // Shared through FileProvider (declared in the app manifest, authority "<package>.files")
         val dir = File(context.cacheDir, "shared").apply { mkdirs() }
-        val file = File(dir, fileName.replace(Regex("[/\\\\:]"), "_")).apply { writeBytes(bytes) }
+        // The name comes from the network: no path separators, and not "", "." or ".." (the folder itself)
+        val safeName = fileName.replace(Regex("[/\\\\:]"), "_").takeUnless { it.isBlank() || it.all { c -> c == '.' } }
+            ?: "file"
+        val file = File(dir, safeName).apply { writeBytes(bytes) }
         val uri = FileProvider.getUriForFile(context, "${context.packageName}.files", file)
         val intent = Intent(Intent.ACTION_VIEW)
             .setDataAndType(uri, mimeType ?: context.contentResolver.getType(uri) ?: "*/*")
