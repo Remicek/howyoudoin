@@ -52,6 +52,9 @@ type Twitter struct {
 
 	// User ID → display name, once their contact event was sent
 	contacts sync.Map
+	// Chat keys X Chat delivers, and old-style chats (twitter_legacy.go) it doesn't
+	xchatChats  sync.Map
+	legacyChats sync.Map
 	// Message ID (sequence and client ID) → what a reply to it quotes
 	messages sync.Map
 	// "conversation/sequence" → our reaction there
@@ -104,7 +107,8 @@ func (t *Twitter) Connect() error {
 	t.lock.Unlock()
 
 	client := twittermeow.NewClient(cookies.NewCookies(t.cookies), t.keys, t.log.With().Str("component", "twittermeow").Logger())
-	client.SetEventHandler(func(types.TwitterEvent, *response.TwitterInboxData) bool { return true }, nil, nil)
+	// Polled REST events: old-style chats (twitter_legacy.go)
+	client.SetEventHandler(t.handleLegacyEvent, nil, nil)
 	client.SetXChatEventHandler(t.handleEvent)
 	profile, err := client.LoadMessagesPage(ctx)
 	if err != nil {
@@ -307,6 +311,7 @@ func (t *Twitter) syncInbox(ctx context.Context, client *twittermeow.Client) {
 	// Live events after the inbox, so they apply on top of it
 	client.Connect(ctx)
 	t.emitState("connected", "")
+	go t.syncLegacyInbox(ctx, client)
 }
 
 func (t *Twitter) processPage(ctx context.Context, client *twittermeow.Client, page response.XChatInboxPage) {
@@ -328,6 +333,7 @@ func (t *Twitter) processPage(ctx context.Context, client *twittermeow.Client, p
 }
 
 func (t *Twitter) emitConversation(d *response.XChatConversationDetail) {
+	t.xchatChats.Store(d.ConversationID, true)
 	people := d.ParticipantsResults
 	if len(d.GroupMembersResults) > 0 {
 		people = d.GroupMembersResults
@@ -546,6 +552,9 @@ func (t *Twitter) SendText(convID, text string) (string, error) {
 	}
 	ctx, cancel := twitterContext()
 	defer cancel()
+	if t.isLegacyChat(convID) {
+		return t.sendLegacy(ctx, client, convID, text, "")
+	}
 	return t.send(ctx, client, twittermeow.SendEncryptedMessageOpts{ConversationID: convID, MessageID: newTwitterMessageID(), Text: text})
 }
 
@@ -562,6 +571,11 @@ func (t *Twitter) SendReply(convID, text, replyToID string) (string, error) {
 	client, err := t.current()
 	if err != nil {
 		return "", err
+	}
+	if t.isLegacyChat(convID) {
+		ctx, cancel := twitterContext()
+		defer cancel()
+		return t.sendLegacy(ctx, client, convID, text, replyToID)
 	}
 	opts := twittermeow.SendEncryptedMessageOpts{ConversationID: convID, MessageID: newTwitterMessageID(), Text: text}
 	// A message from before this session (the app keeps chats across restarts) is quoted by its ID alone, as

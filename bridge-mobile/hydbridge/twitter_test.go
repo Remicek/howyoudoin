@@ -74,3 +74,16 @@ func TestTwitterLiveBadCookies(t *testing.T) {
 	}
 	t.Log(err)
 }
+
+// Old-style chats get the same keys as X Chat's, and back.
+func TestTwitterLegacyChatKeys(t *testing.T) {
+	if got := twitterChatKey("1784990243969478656-2115825700477300736"); got != "1784990243969478656:2115825700477300736" {
+		t.Fatalf("got %q", got)
+	}
+	if got := twitterRESTID("1784990243969478656:2115825700477300736"); got != "1784990243969478656-2115825700477300736" {
+		t.Fatalf("got %q", got)
+	}
+	if twitterChatKey("g123") != "g123" || twitterRESTID("g123") != "g123" {
+		t.Fatal("group IDs changed")
+	}
+}
