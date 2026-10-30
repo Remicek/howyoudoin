@@ -116,7 +116,7 @@ type savedLinkedInCookies struct {
 func (l *LinkedIn) cookiesPath() string { return filepath.Join(l.dataDir, "cookies.json") }
 
 func (l *LinkedIn) loadSavedCookies() *linkedingo.StringCookieJar {
-	data, err := os.ReadFile(l.cookiesPath())
+	data, err := readSecretFile(l.cookiesPath())
 	if err != nil {
 		return nil
 	}
@@ -134,7 +134,7 @@ func (l *LinkedIn) saveCookies() {
 	if err != nil {
 		return
 	}
-	if err := os.WriteFile(l.cookiesPath(), data, 0o600); err != nil {
+	if err := writeSecretFile(l.cookiesPath(), data); err != nil {
 		l.log.Error().Err(err).Msg("Failed to save the LinkedIn cookies")
 	}
 }

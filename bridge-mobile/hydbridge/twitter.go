@@ -795,7 +795,7 @@ type twitterKeys struct {
 
 func loadTwitterKeyStore(path string) (*twitterKeyStore, error) {
 	s := &twitterKeyStore{path: path}
-	data, err := os.ReadFile(path)
+	data, err := readSecretFile(path)
 	switch {
 	case errors.Is(err, os.ErrNotExist):
 	case err != nil:
@@ -820,7 +820,7 @@ func (s *twitterKeyStore) save() error {
 	if err := json.NewEncoder(&buf).Encode(s.data); err != nil {
 		return err
 	}
-	return writeFileAtomic(s.path, buf.Bytes())
+	return writeSecretFile(s.path, buf.Bytes())
 }
 
 func (s *twitterKeyStore) hasOwnKeys() bool {

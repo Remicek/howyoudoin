@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"os"
 	"path/filepath"
 	"regexp"
 	"time"
@@ -161,7 +160,7 @@ func (m *Messenger) historyDevice() *securehistory.Device {
 	if m.dataDir == "" {
 		return nil
 	}
-	data, err := os.ReadFile(m.historyDevicePath())
+	data, err := readSecretFile(m.historyDevicePath())
 	if err != nil {
 		return nil
 	}
@@ -177,9 +176,5 @@ func (m *Messenger) saveHistoryDevice(device *securehistory.Device) error {
 	if err != nil {
 		return err
 	}
-	tmp := m.historyDevicePath() + ".tmp"
-	if err = os.WriteFile(tmp, data, 0o600); err != nil {
-		return err
-	}
-	return os.Rename(tmp, m.historyDevicePath())
+	return writeSecretFile(m.historyDevicePath(), data)
 }

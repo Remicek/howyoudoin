@@ -2,7 +2,7 @@
 
 # gomobile: Go's native code (libgojni) calls these Java classes and methods by name
 -keep class go.** { *; }
--keep class hydbridge.** { *; }
+-keep class com.devvalor.howyoudoing.bridge.hydbridge.** { *; }
 
 # WebRTC (calls): its native library calls back into the Java classes by name
 -keep class org.webrtc.** { *; }

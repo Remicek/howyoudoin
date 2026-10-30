@@ -18,7 +18,6 @@ import (
 	"github.com/rs/zerolog"
 	"go.uber.org/zap"
 
-	"go.mau.fi/mautrix-telegram/pkg/gotd/session"
 	"go.mau.fi/mautrix-telegram/pkg/gotd/telegram"
 	"go.mau.fi/mautrix-telegram/pkg/gotd/telegram/auth"
 	"go.mau.fi/mautrix-telegram/pkg/gotd/telegram/auth/qrlogin"
@@ -103,7 +102,7 @@ func NewTelegram(apiID int, apiHash, dataDir string, listener Listener) (*Telegr
 // Disconnect makes a new one (the session file keeps the login).
 func (t *Telegram) newClient() *telegram.Client {
 	return telegram.NewClient(t.apiID, t.apiHash, telegram.Options{
-		SessionStorage: &session.FileStorage{Path: filepath.Join(t.dataDir, "telegram-session.json")},
+		SessionStorage: telegramSessionStorage{path: filepath.Join(t.dataDir, "telegram-session.json")},
 		UpdateHandler:  telegramUpdateHandler{t},
 		Logger:         zap.NewNop(),
 		Device: telegram.DeviceConfig{

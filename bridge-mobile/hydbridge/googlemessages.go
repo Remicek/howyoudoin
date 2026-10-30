@@ -77,7 +77,7 @@ func (g *GoogleMessages) IsLinked() bool {
 }
 
 func (g *GoogleMessages) loadSession() (*libgm.AuthData, error) {
-	data, err := os.ReadFile(g.sessionPath())
+	data, err := readSecretFile(g.sessionPath())
 	if err != nil {
 		return nil, err
 	}
@@ -90,7 +90,7 @@ func (g *GoogleMessages) loadSession() (*libgm.AuthData, error) {
 
 func (g *GoogleMessages) saveSession(auth *libgm.AuthData) {
 	if data, err := json.Marshal(auth); err == nil {
-		_ = writeFileAtomic(g.sessionPath(), data)
+		_ = writeSecretFile(g.sessionPath(), data)
 	}
 }
 

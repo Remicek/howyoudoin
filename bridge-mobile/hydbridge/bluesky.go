@@ -139,7 +139,7 @@ func (b *Bluesky) resetCancel() {
 func (b *Bluesky) sessionPath() string { return filepath.Join(b.dataDir, "session.json") }
 
 func (b *Bluesky) signIn(ctx context.Context) error {
-	if data, err := os.ReadFile(b.sessionPath()); err == nil {
+	if data, err := readSecretFile(b.sessionPath()); err == nil {
 		var saved blueskySession
 		if json.Unmarshal(data, &saved) == nil && saved.RefreshJwt != "" && b.matchesLogin(saved) {
 			b.session = saved
@@ -194,7 +194,7 @@ func (b *Bluesky) saveSession() {
 	data, err := json.Marshal(b.session)
 	b.lock.Unlock()
 	if err == nil {
-		_ = writeFileAtomic(b.sessionPath(), data)
+		_ = writeSecretFile(b.sessionPath(), data)
 	}
 }
 

@@ -85,7 +85,7 @@ func NewGoogleVoice(cookiesJSON string, dataDir string, listener Listener) (*Goo
 func (g *GoogleVoice) cookiesPath() string { return filepath.Join(g.dataDir, "cookies.json") }
 
 func (g *GoogleVoice) savedCookies() map[string]string {
-	data, err := os.ReadFile(g.cookiesPath())
+	data, err := readSecretFile(g.cookiesPath())
 	if err != nil {
 		return nil
 	}
@@ -172,7 +172,7 @@ func (g *GoogleVoice) handleEvent(ctx context.Context, raw any) {
 	switch evt := raw.(type) {
 	case *libgv.CookieChanged:
 		if data, err := json.Marshal(evt.Cookies); err == nil {
-			_ = writeFileAtomic(g.cookiesPath(), data)
+			_ = writeSecretFile(g.cookiesPath(), data)
 		}
 	case *libgv.RealtimeConnected:
 		g.emitState("connected", "")

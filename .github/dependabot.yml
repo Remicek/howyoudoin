@@ -1,0 +1,25 @@
+# Weekly pull requests for outdated or vulnerable dependencies (security fixes come as soon as they're known).
+version: 2
+updates:
+  - package-ecosystem: gradle
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      gradle:
+        patterns: ["*"]
+  - package-ecosystem: gomod
+    directory: /bridge-mobile
+    schedule:
+      interval: weekly
+    # The mautrix network clients are local checkouts (replace directives), updated by fetch-bridges.sh
+    ignore:
+      - dependency-name: "go.mau.fi/mautrix-*"
+      - dependency-name: "maunium.net/go/mautrix*"
+    groups:
+      go:
+        patterns: ["*"]
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

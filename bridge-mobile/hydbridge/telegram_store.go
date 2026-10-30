@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"sync"
 
+	"go.mau.fi/mautrix-telegram/pkg/gotd/session"
 	"go.mau.fi/mautrix-telegram/pkg/gotd/telegram/updates"
 )
 
@@ -36,7 +37,7 @@ var errNoTelegramState = errors.New("no update state")
 
 func loadTelegramStore(path string) *telegramStore {
 	s := &telegramStore{path: path}
-	if raw, err := os.ReadFile(path); err == nil {
+	if raw, err := readSecretFile(path); err == nil {
 		_ = json.Unmarshal(raw, &s.data)
 	}
 	if s.data.ChannelPts == nil {
@@ -54,10 +55,23 @@ func (s *telegramStore) save() {
 	if err != nil {
 		return
 	}
-	tmp := s.path + ".tmp"
-	if os.WriteFile(tmp, raw, 0o600) == nil {
-		_ = os.Rename(tmp, s.path)
+	_ = writeSecretFile(s.path, raw)
+}
+
+// telegramSessionStorage keeps Telegram's session (its auth key) as an encrypted login file; a session saved by
+// gotd's FileStorage before is read as it is and encrypted on the next save.
+type telegramSessionStorage struct{ path string }
+
+func (s telegramSessionStorage) LoadSession(context.Context) ([]byte, error) {
+	data, err := readSecretFile(s.path)
+	if errors.Is(err, os.ErrNotExist) {
+		return nil, session.ErrNotFound
 	}
+	return data, err
+}
+
+func (s telegramSessionStorage) StoreSession(_ context.Context, data []byte) error {
+	return writeSecretFile(s.path, data)
 }
 
 func (s *telegramStore) update(f func(d *telegramStoreData)) {
