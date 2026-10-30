@@ -11,6 +11,7 @@ import com.devvalor.howyoudoing.settings.presentation.guide.ConnectGuideRoot
 import com.devvalor.howyoudoing.settings.presentation.licenses.LicensesRoot
 import com.devvalor.howyoudoing.settings.presentation.lock.AppLockSettingsRoot
 import com.devvalor.howyoudoing.settings.presentation.main.SettingsRoot
+import com.devvalor.howyoudoing.settings.presentation.telegram.TelegramKeysRoot
 import com.devvalor.howyoudoing.settings.presentation.terms.TermsRoot
 import kotlinx.serialization.Serializable
 
@@ -28,6 +29,8 @@ sealed interface SettingsRoutes {
     @Serializable data object Terms : SettingsRoutes
     /** Which login to use for each network. */
     @Serializable data object ConnectGuide : SettingsRoutes
+    /** The user's own Telegram API keys. */
+    @Serializable data object TelegramKeys : SettingsRoutes
 }
 
 fun NavGraphBuilder.settingsGraph(
@@ -46,6 +49,7 @@ fun NavGraphBuilder.settingsGraph(
                 onAboutClick = { open(SettingsRoutes.About) },
                 onTermsClick = { open(SettingsRoutes.Terms) },
                 onGuideClick = { open(SettingsRoutes.ConnectGuide) },
+                onTelegramKeysClick = { open(SettingsRoutes.TelegramKeys) },
                 onBack = { navController.navigateUp() },
             )
         }
@@ -67,5 +71,6 @@ fun NavGraphBuilder.settingsGraph(
             )
         }
         composable<SettingsRoutes.Terms> { TermsRoot(onBack = { navController.navigateUp() }) }
+        composable<SettingsRoutes.TelegramKeys> { TelegramKeysRoot(onBack = { navController.navigateUp() }) }
     }
 }

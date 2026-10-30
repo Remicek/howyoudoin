@@ -149,4 +149,14 @@
     <string name="appearance_themes">السمة</string>
     <string name="settings_log_out">تسجيل الخروج</string>
     <string name="settings_log_out_sub">إنهاء هذه الجلسة والعودة إلى شاشة الترحيب</string>
+    <string name="settings_telegram_keys">مفاتيح API الخاصة بـ Telegram</string>
+    <string name="telegram_keys_intro">يتصل HowYouDoin بـ Telegram بمفاتيح API الخاصة به. إذا كنت تفضّل استخدام مفاتيحك، أنشئها على my.telegram.org (API development tools) وأدخلها هنا. تُحفظ مشفّرة على هذا الهاتف.</string>
+    <string name="telegram_keys_using_builtin">تُستخدم مفاتيح HowYouDoin</string>
+    <string name="telegram_keys_using_own">تُستخدم مفاتيحك الخاصة</string>
+    <string name="telegram_keys_id">api_id</string>
+    <string name="telegram_keys_hash">api_hash</string>
+    <string name="telegram_keys_save">حفظ</string>
+    <string name="telegram_keys_use_builtin">استخدام مفاتيح HowYouDoin</string>
+    <string name="telegram_keys_saved">أعد تشغيل HowYouDoin لاستخدام هذه المفاتيح. إذا كان Telegram متصلًا، فافصله ثم اتصل به مجددًا.</string>
+    <string name="telegram_keys_invalid">أدخل api_id (رقم) وapi_hash (32 حرفًا ورقمًا) من my.telegram.org.</string>
 </resources>

@@ -141,4 +141,14 @@
     <string name="appearance_themes">Tema</string>
     <string name="settings_log_out">Çıkış yap</string>
     <string name="settings_log_out_sub">Bu oturumdan çıkıp karşılama ekranına dönün</string>
+    <string name="settings_telegram_keys">Telegram API anahtarları</string>
+    <string name="telegram_keys_intro">HowYouDoin, Telegram\'a kendi API anahtarlarıyla bağlanır. Kendi anahtarlarını kullanmak istersen my.telegram.org\'da (API development tools) oluşturup buraya gir. Bu telefonda şifreli olarak saklanır.</string>
+    <string name="telegram_keys_using_builtin">HowYouDoin\'in anahtarları kullanılıyor</string>
+    <string name="telegram_keys_using_own">Kendi anahtarların kullanılıyor</string>
+    <string name="telegram_keys_id">api_id</string>
+    <string name="telegram_keys_hash">api_hash</string>
+    <string name="telegram_keys_save">Kaydet</string>
+    <string name="telegram_keys_use_builtin">HowYouDoin\'in anahtarlarını kullan</string>
+    <string name="telegram_keys_saved">Bu anahtarları kullanmak için HowYouDoin\'i yeniden başlat. Telegram bağlıysa bağlantıyı kesip yeniden bağlan.</string>
+    <string name="telegram_keys_invalid">my.telegram.org\'daki api_id\'yi (bir sayı) ve api_hash\'i (32 harf ve rakam) gir.</string>
 </resources>

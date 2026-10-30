@@ -1,5 +1,10 @@
 package com.devvalor.howyoudoing.settings.presentation.main
 
+import androidx.compose.material.icons.rounded.Key
+import com.devvalor.howyoudoing.core.domain.ondevice.TelegramApiKeys
+import howyoudoin.feature.settings.presentation.generated.resources.settings_telegram_keys
+import howyoudoin.feature.settings.presentation.generated.resources.telegram_keys_using_builtin
+import howyoudoin.feature.settings.presentation.generated.resources.telegram_keys_using_own
 import howyoudoin.feature.settings.presentation.generated.resources.settings_log_out_sub
 import howyoudoin.feature.settings.presentation.generated.resources.settings_log_out
 import androidx.compose.material.icons.automirrored.rounded.Logout
@@ -74,26 +79,32 @@ data class SettingsState(
     val isLoginBackupOn: Boolean = false,
     /** When the phone last backed the app up; null if it hasn't (Google backup may be off). */
     val lastBackupMillis: Long? = null,
+    val canUseOwnTelegramKeys: Boolean = false,
+    val usesOwnTelegramKeys: Boolean = false,
 )
 
 class SettingsViewModel(
     appLock: AppLockRepository,
     crashReports: CrashReports,
     private val loginBackup: LoginBackup,
-    private val authService: AuthService
+    private val authService: AuthService,
+    private val telegramKeys: TelegramApiKeys
 ) : ViewModel() {
     val state = combine(
         appLock.observeSettings(),
         crashReports.observeLastReport(),
         loginBackup.observeEnabled(),
-        flow { emit(loginBackup.lastBackupMillis()) }
-    ) { lock, crash, backup, lastBackup ->
+        flow { emit(loginBackup.lastBackupMillis()) },
+        telegramKeys.observeOwn()
+    ) { lock, crash, backup, lastBackup, ownTelegramKeys ->
         SettingsState(
             isLockEnabled = lock.isEnabled,
             hasCrashReport = crash != null,
             canBackUpLogins = loginBackup.isSupported,
             isLoginBackupOn = backup,
-            lastBackupMillis = lastBackup
+            lastBackupMillis = lastBackup,
+            canUseOwnTelegramKeys = telegramKeys.isSupported,
+            usesOwnTelegramKeys = ownTelegramKeys != null
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000L), SettingsState())
 
@@ -119,6 +130,7 @@ fun SettingsRoot(
     onAboutClick: () -> Unit,
     onTermsClick: () -> Unit,
     onGuideClick: () -> Unit,
+    onTelegramKeysClick: () -> Unit,
     onBack: () -> Unit,
     viewModel: SettingsViewModel = koinViewModel(),
 ) {
@@ -147,6 +159,22 @@ fun SettingsRoot(
                 icon = Icons.Rounded.Palette,
                 onClick = onAppearanceClick,
             )
+        }
+        if (state.canUseOwnTelegramKeys) {
+            item {
+                SettingsRow(
+                    title = stringResource(Res.string.settings_telegram_keys),
+                    subtitle = stringResource(
+                        if (state.usesOwnTelegramKeys) {
+                            Res.string.telegram_keys_using_own
+                        } else {
+                            Res.string.telegram_keys_using_builtin
+                        }
+                    ),
+                    icon = Icons.Rounded.Key,
+                    onClick = onTelegramKeysClick,
+                )
+            }
         }
         item { SettingsSectionHeader(stringResource(Res.string.settings_section_privacy)) }
         item {

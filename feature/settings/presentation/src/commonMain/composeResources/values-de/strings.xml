@@ -141,4 +141,14 @@
     <string name="appearance_themes">Design</string>
     <string name="settings_log_out">Abmelden</string>
     <string name="settings_log_out_sub">Diese Sitzung beenden und zum Startbildschirm zurückkehren</string>
+    <string name="settings_telegram_keys">Telegram-API-Schlüssel</string>
+    <string name="telegram_keys_intro">HowYouDoin verbindet sich mit eigenen API-Schlüsseln mit Telegram. Wenn du lieber deine verwendest, erstelle sie auf my.telegram.org (API development tools) und gib sie hier ein. Sie werden verschlüsselt auf diesem Telefon gespeichert.</string>
+    <string name="telegram_keys_using_builtin">HowYouDoins Schlüssel werden verwendet</string>
+    <string name="telegram_keys_using_own">Deine eigenen Schlüssel werden verwendet</string>
+    <string name="telegram_keys_id">api_id</string>
+    <string name="telegram_keys_hash">api_hash</string>
+    <string name="telegram_keys_save">Speichern</string>
+    <string name="telegram_keys_use_builtin">HowYouDoins Schlüssel verwenden</string>
+    <string name="telegram_keys_saved">Starte HowYouDoin neu, um diese Schlüssel zu verwenden. Ist Telegram verbunden, trenne es und verbinde es erneut.</string>
+    <string name="telegram_keys_invalid">Gib die api_id (eine Zahl) und den api_hash (32 Buchstaben und Ziffern) von my.telegram.org ein.</string>
 </resources>

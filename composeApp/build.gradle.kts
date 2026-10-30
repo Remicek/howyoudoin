@@ -1,3 +1,4 @@
+import java.security.SecureRandom
 import java.util.Properties
 
 plugins {
@@ -50,16 +51,15 @@ android {
         // End-to-end tests (src/androidInstrumentedTest); each test starts from a freshly cleared app
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         testInstrumentationRunnerArguments["clearPackageData"] = "true"
-        buildConfigField(
-            "long",
-            "TELEGRAM_API_ID",
-            "${localProperties.getProperty("telegram.apiId")?.trim()?.toLongOrNull() ?: 0}L"
-        )
-        buildConfigField(
-            "String",
-            "TELEGRAM_API_HASH",
-            "\"${localProperties.getProperty("telegram.apiHash")?.trim().orEmpty()}\""
-        )
+        // Telegram's keys go into the app XOR-ed with a random pad (see TelegramKeys), so they aren't readable text in
+        // the APK. That only stops casual copying: an app's own API keys can always be dug out of it.
+        val telegramKeys = "${localProperties.getProperty("telegram.apiId")?.trim().orEmpty()}:" +
+            localProperties.getProperty("telegram.apiHash")?.trim().orEmpty()
+        val pad = ByteArray(telegramKeys.length).also { SecureRandom().nextBytes(it) }
+        val masked = telegramKeys.toByteArray().mapIndexed { i, b -> (b.toInt() xor pad[i].toInt()).toByte() }
+        fun hex(bytes: List<Byte>) = bytes.joinToString("") { "%02x".format(it) }
+        buildConfigField("String", "TELEGRAM_KEYS", "\"${hex(masked)}\"")
+        buildConfigField("String", "TELEGRAM_KEYS_PAD", "\"${hex(pad.toList())}\"")
     }
 }
 

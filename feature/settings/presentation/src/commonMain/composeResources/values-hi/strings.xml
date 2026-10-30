@@ -141,4 +141,14 @@
     <string name="appearance_themes">थीम</string>
     <string name="settings_log_out">लॉग आउट</string>
     <string name="settings_log_out_sub">यह सत्र छोड़ें और स्वागत स्क्रीन पर लौटें</string>
+    <string name="settings_telegram_keys">Telegram API कुंजियाँ</string>
+    <string name="telegram_keys_intro">HowYouDoin अपनी API कुंजियों से Telegram से जुड़ता है। अगर आप अपनी कुंजियाँ इस्तेमाल करना चाहें, तो my.telegram.org (API development tools) पर बनाएँ और यहाँ डालें। ये इस फ़ोन पर एन्क्रिप्ट करके रखी जाती हैं।</string>
+    <string name="telegram_keys_using_builtin">HowYouDoin की कुंजियाँ इस्तेमाल हो रही हैं</string>
+    <string name="telegram_keys_using_own">आपकी अपनी कुंजियाँ इस्तेमाल हो रही हैं</string>
+    <string name="telegram_keys_id">api_id</string>
+    <string name="telegram_keys_hash">api_hash</string>
+    <string name="telegram_keys_save">सहेजें</string>
+    <string name="telegram_keys_use_builtin">HowYouDoin की कुंजियाँ इस्तेमाल करें</string>
+    <string name="telegram_keys_saved">इन कुंजियों का इस्तेमाल करने के लिए HowYouDoin को फिर से शुरू करें। अगर Telegram जुड़ा है, तो उसे डिस्कनेक्ट करके फिर से जोड़ें।</string>
+    <string name="telegram_keys_invalid">my.telegram.org से api_id (एक संख्या) और api_hash (32 अक्षर और अंक) डालें।</string>
 </resources>

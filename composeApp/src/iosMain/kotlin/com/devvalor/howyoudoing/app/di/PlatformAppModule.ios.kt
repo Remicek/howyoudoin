@@ -76,6 +76,9 @@ actual val platformAppModule: Module = module {
         com.devvalor.howyoudoing.chat.domain.NoCallMediaEngine
     }
     single { com.devvalor.howyoudoing.chat.domain.CallLauncher { _, _ -> } }
+    single<com.devvalor.howyoudoing.core.domain.ondevice.TelegramApiKeys> {
+        com.devvalor.howyoudoing.core.domain.ondevice.NoTelegramApiKeys
+    }
     single<com.devvalor.howyoudoing.core.domain.backup.LoginBackup> {
         com.devvalor.howyoudoing.core.domain.backup.NoLoginBackup
     }

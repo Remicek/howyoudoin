@@ -139,4 +139,14 @@
     <string name="appearance_themes">Tema</string>
     <string name="settings_log_out">Keluar</string>
     <string name="settings_log_out_sub">Akhiri sesi ini dan kembali ke layar sambutan</string>
+    <string name="settings_telegram_keys">Kunci API Telegram</string>
+    <string name="telegram_keys_intro">HowYouDoin terhubung ke Telegram dengan kunci API miliknya sendiri. Jika kamu lebih suka memakai milikmu, buat di my.telegram.org (API development tools) lalu masukkan di sini. Kunci disimpan terenkripsi di ponsel ini.</string>
+    <string name="telegram_keys_using_builtin">Memakai kunci HowYouDoin</string>
+    <string name="telegram_keys_using_own">Memakai kuncimu sendiri</string>
+    <string name="telegram_keys_id">api_id</string>
+    <string name="telegram_keys_hash">api_hash</string>
+    <string name="telegram_keys_save">Simpan</string>
+    <string name="telegram_keys_use_builtin">Pakai kunci HowYouDoin</string>
+    <string name="telegram_keys_saved">Mulai ulang HowYouDoin untuk memakai kunci ini. Jika Telegram terhubung, putuskan lalu hubungkan lagi.</string>
+    <string name="telegram_keys_invalid">Masukkan api_id (angka) dan api_hash (32 huruf dan angka) dari my.telegram.org.</string>
 </resources>

@@ -145,4 +145,14 @@
     <string name="appearance_themes">Оформление</string>
     <string name="settings_log_out">Выйти</string>
     <string name="settings_log_out_sub">Завершить этот сеанс и вернуться на экран приветствия</string>
+    <string name="settings_telegram_keys">Ключи API Telegram</string>
+    <string name="telegram_keys_intro">HowYouDoin подключается к Telegram со своими ключами API. Если хотите использовать свои, создайте их на my.telegram.org (API development tools) и введите здесь. Они хранятся на этом телефоне в зашифрованном виде.</string>
+    <string name="telegram_keys_using_builtin">Используются ключи HowYouDoin</string>
+    <string name="telegram_keys_using_own">Используются ваши ключи</string>
+    <string name="telegram_keys_id">api_id</string>
+    <string name="telegram_keys_hash">api_hash</string>
+    <string name="telegram_keys_save">Сохранить</string>
+    <string name="telegram_keys_use_builtin">Использовать ключи HowYouDoin</string>
+    <string name="telegram_keys_saved">Перезапустите HowYouDoin, чтобы использовать эти ключи. Если Telegram подключён, отключите его и подключите снова.</string>
+    <string name="telegram_keys_invalid">Введите api_id (число) и api_hash (32 буквы и цифры) с my.telegram.org.</string>
 </resources>

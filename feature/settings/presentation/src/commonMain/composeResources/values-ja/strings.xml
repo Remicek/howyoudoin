@@ -139,4 +139,14 @@
     <string name="appearance_themes">テーマ</string>
     <string name="settings_log_out">ログアウト</string>
     <string name="settings_log_out_sub">このセッションを終了してようこそ画面に戻ります</string>
+    <string name="settings_telegram_keys">Telegram APIキー</string>
+    <string name="telegram_keys_intro">HowYouDoinは独自のAPIキーでTelegramに接続します。自分のキーを使いたい場合は、my.telegram.org(API development tools)で作成してここに入力してください。キーはこのスマートフォンに暗号化して保存されます。</string>
+    <string name="telegram_keys_using_builtin">HowYouDoinのキーを使用中</string>
+    <string name="telegram_keys_using_own">自分のキーを使用中</string>
+    <string name="telegram_keys_id">api_id</string>
+    <string name="telegram_keys_hash">api_hash</string>
+    <string name="telegram_keys_save">保存</string>
+    <string name="telegram_keys_use_builtin">HowYouDoinのキーを使う</string>
+    <string name="telegram_keys_saved">これらのキーを使うにはHowYouDoinを再起動してください。Telegramが接続されている場合は、接続を解除してから再接続してください。</string>
+    <string name="telegram_keys_invalid">my.telegram.orgのapi_id(数字)とapi_hash(英数字32文字)を入力してください。</string>
 </resources>

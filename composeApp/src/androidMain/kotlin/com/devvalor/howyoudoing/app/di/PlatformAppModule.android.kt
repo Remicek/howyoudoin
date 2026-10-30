@@ -1,5 +1,7 @@
 package com.devvalor.howyoudoing.app.di
 
+import com.devvalor.howyoudoing.app.ondevice.AndroidTelegramApiKeys
+import com.devvalor.howyoudoing.core.domain.ondevice.TelegramApiKeys
 import com.devvalor.howyoudoing.chat.data.di.onDeviceClientName
 import com.devvalor.howyoudoing.chat.data.di.onDeviceCacheName
 import com.devvalor.howyoudoing.app.ondevice.AndroidGoogleMessagesFactory
@@ -115,9 +117,10 @@ actual val platformAppModule: Module = module {
         NativeOnDeviceWhatsApp(AndroidWhatsAppFactory(), AndroidDataDirectory(androidContext(), WHATSAPP_DIR), get())
     }
     single<OnDeviceInboxCache>(named(ON_DEVICE_TELEGRAM_CACHE)) { AndroidInboxCache(androidContext(), TELEGRAM_DIR) }
+    single { AndroidTelegramApiKeys(androidContext()) } bind TelegramApiKeys::class
     single<OnDeviceTelegram>(createdAtStart = true) {
-        val factory = BuildConfig.TELEGRAM_API_ID.takeIf { it != 0L && BuildConfig.TELEGRAM_API_HASH.isNotEmpty() }
-            ?.let { AndroidTelegramFactory(it, BuildConfig.TELEGRAM_API_HASH) }
+        // The user's own keys (Settings → Telegram API keys), else the app's; without either, no Telegram
+        val factory = get<AndroidTelegramApiKeys>().current()?.let { AndroidTelegramFactory(it.apiId, it.apiHash) }
         NativeOnDeviceTelegram(factory, AndroidDataDirectory(androidContext(), TELEGRAM_DIR), get())
     }
     single<OnDeviceInboxCache>(named(ON_DEVICE_SIGNAL_CACHE)) { AndroidInboxCache(androidContext(), SIGNAL_DIR) }
