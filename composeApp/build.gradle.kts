@@ -45,6 +45,10 @@ android {
     buildTypes {
         getByName("release") {
             ndk { abiFilters += "arm64-v8a" }
+            // Smaller APK, and the app's own code (with the masked Telegram keys) is harder to read
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
     defaultConfig {
