@@ -7,7 +7,7 @@ LinkedIn, Discord, X and Matrix, connected straight from your Android phone. The
 phone and go only to the networks themselves.
 
 <p align="center">
-  <img src="docs/demo.gif" alt="HowYouDoin in demo mode: the welcome screen, the inbox, a chat, connecting WhatsApp with a QR code and Messenger with its login page, and the note that calls go through Matrix" width="320">
+  <img src="docs/demo.gif" alt="HowYouDoin in demo mode: the welcome screen, the inbox and its network filters, a chat, the contacts, a new message, settings, and connecting X on its login page" width="320">
   <br><sub>Demo mode: welcome, inbox, a chat, connecting WhatsApp and Messenger, and calls through Matrix</sub>
 </p>
 
