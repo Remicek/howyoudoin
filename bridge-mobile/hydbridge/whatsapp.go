@@ -82,7 +82,7 @@ func NewWhatsApp(dataDir string, listener Listener) (*WhatsApp, error) {
 		return nil, errors.New("data directory is required")
 	}
 	log := zerolog.New(logWriter{}).With().Timestamp().Str("component", "whatsapp").Logger().Level(zerolog.InfoLevel)
-	address := "file:" + filepath.Join(dataDir, "whatsapp.db") + "?_foreign_keys=on&_journal_mode=WAL&_busy_timeout=5000"
+	address := sqliteAddress(filepath.Join(dataDir, "whatsapp.db"), log)
 	container, err := sqlstore.New(context.Background(), "sqlite3", address, waLog.Zerolog(log.With().Str("component", "whatsmeow-store").Logger()))
 	if err != nil {
 		return nil, fmt.Errorf("failed to open WhatsApp store: %w", err)

@@ -18,6 +18,8 @@ PINNED=(
     "mautrix-gvoice https://github.com/mautrix/gvoice 4f5ca4619d79a03e074009c1cdd5bb31c4c6dd69"
     "mautrix-gmessages https://github.com/mautrix/gmessages 138a57dcecca697feb492dd2d94fa4a30034c000"
     "mautrix-twitter https://github.com/mautrix/twitter bf81ec50dba36469207547a0191f9da06c6f3842"
+    # SQLCipher driver (tag v0.2.1), used in place of mattn/go-sqlite3: see below and bridge-mobile/go.mod
+    "go-sqlcipher https://github.com/thinkgos/go-sqlcipher ad3e272e584b1704eb586b46ce1d3c28f76b7711"
 )
 
 mkdir -p "$BRIDGES"
@@ -34,6 +36,13 @@ for entry in "${PINNED[@]}"; do
     git -C "$dir" submodule update -q --init --depth 1
     echo "$name: $commit"
 done
+
+# go.mod replaces github.com/mattn/go-sqlite3 with the SQLCipher driver, whose module has to carry that path
+sqlcipher="$BRIDGES/go-sqlcipher/go.mod"
+if grep -q '^module github.com/thinkgos/go-sqlcipher' "$sqlcipher"; then
+    sed -i.bak 's#^module github.com/thinkgos/go-sqlcipher#module github.com/mattn/go-sqlite3#' "$sqlcipher" && rm -f "$sqlcipher.bak"
+    echo "go-sqlcipher: module path set"
+fi
 
 # Each patch goes on an unchanged checkout only, so running this again leaves a patched one alone
 for name in mautrix-meta mautrix-linkedin; do

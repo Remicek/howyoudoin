@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 
 	"github.com/google/uuid"
-	_ "github.com/mattn/go-sqlite3" // driver for whatsmeow's device store
 	"go.mau.fi/whatsmeow/proto/waCommon"
 	"go.mau.fi/whatsmeow/proto/waConsumerApplication"
 	"go.mau.fi/whatsmeow/store/sqlstore"
@@ -22,7 +21,7 @@ func (m *Messenger) connectE2EE(ctx context.Context) error {
 		return nil
 	}
 	if m.deviceStore == nil {
-		address := "file:" + filepath.Join(m.dataDir, "e2ee.db") + "?_foreign_keys=on&_journal_mode=WAL&_busy_timeout=5000"
+		address := sqliteAddress(filepath.Join(m.dataDir, "e2ee.db"), m.log)
 		container, err := sqlstore.New(ctx, "sqlite3", address, waLog.Zerolog(m.log.With().Str("component", "whatsmeow-store").Logger()))
 		if err != nil {
 			return fmt.Errorf("failed to open encrypted chat store: %w", err)

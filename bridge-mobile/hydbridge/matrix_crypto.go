@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"sync"
 
-	_ "github.com/mattn/go-sqlite3"
 	"github.com/rs/zerolog"
 	"go.mau.fi/util/dbutil"
 	"maunium.net/go/mautrix"
@@ -44,10 +43,7 @@ func NewMatrixCrypto(homeserver, userID, deviceID, accessToken, dbPath, pickleKe
 	syncer := mautrix.NewDefaultSyncer()
 	client.Syncer = syncer
 
-	db, err := dbutil.NewWithDialect(
-		fmt.Sprintf("file:%s?_txlock=immediate&_foreign_keys=on&_journal_mode=WAL&_busy_timeout=5000", dbPath),
-		"sqlite3",
-	)
+	db, err := dbutil.NewWithDialect(sqliteAddress(dbPath, client.Log)+"&_txlock=immediate", "sqlite3")
 	if err != nil {
 		return nil, err
 	}

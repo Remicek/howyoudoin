@@ -126,3 +126,7 @@ replace go.mau.fi/mautrix-gvoice => ../../howyoudoin-bridges/mautrix-gvoice
 replace go.mau.fi/mautrix-gmessages => ../../howyoudoin-bridges/mautrix-gmessages
 
 replace go.mau.fi/mautrix-twitter => ../../howyoudoin-bridges/mautrix-twitter
+
+// SQLCipher in place of plain SQLite, so the WhatsApp, Signal and Messenger stores can be encrypted
+// (github.com/thinkgos/go-sqlcipher v0.2.1, SQLCipher 4.6.1, with its module path renamed; fetch-bridges.sh)
+replace github.com/mattn/go-sqlite3 => ../../howyoudoin-bridges/go-sqlcipher

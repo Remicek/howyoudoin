@@ -66,7 +66,7 @@ func NewSignal(dataDir string, listener Listener) (*Signal, error) {
 		return nil, err
 	}
 	log := zerolog.New(logWriter{}).With().Timestamp().Str("component", "signal").Logger().Level(zerolog.InfoLevel)
-	address := "file:" + filepath.Join(dataDir, "signal.db") + "?_foreign_keys=on&_journal_mode=WAL&_busy_timeout=5000"
+	address := sqliteAddress(filepath.Join(dataDir, "signal.db"), log)
 	db, err := dbutil.NewWithDialect(address, "sqlite3")
 	if err != nil {
 		return nil, fmt.Errorf("failed to open the Signal store: %w", err)

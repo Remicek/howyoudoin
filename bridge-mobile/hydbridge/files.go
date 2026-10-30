@@ -37,6 +37,9 @@ func writeFileAtomic(path string, data []byte) error {
 // written as they are. Files from before encryption are still read, and written encrypted the next time.
 var storageCipher atomic.Pointer[cipher.AEAD]
 
+// storageKey is the key itself, which the databases' key is derived from (sqlite.go).
+var storageKey atomic.Pointer[[]byte]
+
 // secretFileMagic starts an encrypted login file; then come the GCM nonce and the sealed data.
 var secretFileMagic = []byte("HYDENC1\n")
 
@@ -54,6 +57,8 @@ func SetStorageKey(key []byte) error {
 		return err
 	}
 	storageCipher.Store(&aead)
+	own := append([]byte{}, key...)
+	storageKey.Store(&own)
 	return nil
 }
 

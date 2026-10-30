@@ -1219,13 +1219,6 @@
    "usedFor": null
   },
   {
-   "name": "github.com/mattn/go-sqlite3",
-   "version": "v1.14.52",
-   "license": "MIT",
-   "url": "https://github.com/mattn/go-sqlite3",
-   "usedFor": null
-  },
-  {
    "name": "github.com/openziti/secretstream",
    "version": "v0.1.53",
    "license": "MIT",
@@ -1307,6 +1300,13 @@
    "version": "v0.24.0",
    "license": "BSD-2-Clause",
    "url": "https://github.com/slack-go/slack",
+   "usedFor": null
+  },
+  {
+   "name": "github.com/thinkgos/go-sqlcipher",
+   "version": "commit ad3e272",
+   "license": "MIT",
+   "url": "https://github.com/thinkgos/go-sqlcipher",
    "usedFor": null
   },
   {
@@ -1896,6 +1896,13 @@
    "license": "MIT",
    "url": "https://github.com/rust-lang/compiler-builtins",
    "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "LibTomCrypt",
+   "version": "1.18.2",
+   "license": "Unlicense",
+   "url": "https://github.com/libtom/libtomcrypt",
+   "usedFor": null
   },
   {
    "name": "libz-sys",
@@ -2631,6 +2638,13 @@
    "license": "AGPL-3.0-only",
    "url": null,
    "usedFor": "Signal (Rust)"
+  },
+  {
+   "name": "SQLCipher",
+   "version": "4.6.1",
+   "license": "BSD-3-Clause",
+   "url": "https://www.zetetic.net/sqlcipher/",
+   "usedFor": null
   },
   {
    "name": "static_assertions",

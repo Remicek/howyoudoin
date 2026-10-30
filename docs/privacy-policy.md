@@ -1,6 +1,6 @@
 # HowYouDoin privacy policy
 
-Last updated: 28 October 2026
+Last updated: 30 October 2026
 
 HowYouDoin is a free, open-source chat app that brings your WhatsApp, Messenger, Instagram, Telegram, Signal, Slack,
 Bluesky, LinkedIn, Discord, X and Matrix conversations into one inbox. This policy explains what happens to your data.
@@ -17,7 +17,7 @@ To show your chats, the app keeps on your phone:
 
 - the login sessions of the networks you connect (session cookies, device keys, encryption keys), in the app's
   private storage, encrypted with a key from Android's Keystore (WhatsApp's, Signal's and Messenger's encrypted-chat
-  databases are protected by Android's app sandbox and your phone's storage encryption);
+  databases included);
 - your chats, messages, contacts' names and pictures, and downloaded photos and files;
 - your settings, including the app lock PIN as a salted one-way hash (not the PIN itself);
 - your own Telegram API keys, if you enter them (Settings → Telegram API keys), encrypted like the logins.

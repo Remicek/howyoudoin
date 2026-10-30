@@ -27,6 +27,19 @@ USED_FOR = {
     "com.devvalor/howyoudoin/bridgemobile": "HowYouDoin's network clients",
 }
 
+# Modules replaced (go.mod) by a different project that takes on their module path
+REPLACED_BY = {
+    "github.com/mattn/go-sqlite3": "github.com/thinkgos/go-sqlcipher",
+}
+
+# C libraries a Go module bundles in its own sources, listed next to it
+BUNDLED = {
+    "github.com/mattn/go-sqlite3": [
+        {"name": "SQLCipher", "version": "4.6.1", "license": "BSD-3-Clause", "url": "https://www.zetetic.net/sqlcipher/"},
+        {"name": "LibTomCrypt", "version": "1.18.2", "license": "Unlicense", "url": "https://github.com/libtom/libtomcrypt"},
+    ],
+}
+
 # Modules without a license file whose sources state the license in their headers
 KNOWN_LICENSES = {
     "github.com/beeper/poly1305": "BSD-3-Clause",  # fork of golang.org/x/crypto ("The Go Authors", BSD-style)
@@ -97,7 +110,8 @@ def go_libraries():
         if key in found:
             continue
         rel = os.path.relpath(os.path.dirname(license_path), module_dir) if license_path else "."
-        name = module["Path"] if rel == "." else module["Path"] + "/" + rel
+        path = REPLACED_BY.get(module["Path"], module["Path"])
+        name = path if rel == "." else path + "/" + rel
         version = module.get("Version") or ""
         if module.get("Replace") and module["Replace"].get("Path", "").startswith((".", "/")):
             # A local checkout (replace directive): its commit identifies the code
@@ -107,9 +121,11 @@ def go_libraries():
         if license_path:
             with open(license_path, encoding="utf-8", errors="replace") as f:
                 license_name = classify(f.read())
-        url = "https://" + module["Path"] if "." in module["Path"].split("/")[0] else None
+        url = "https://" + path if "." in path.split("/")[0] else None
         found[key] = {"name": name, "version": version, "license": license_name, "url": url,
                       "usedFor": next((v for k, v in USED_FOR.items() if module["Path"].startswith(k)), None)}
+        for lib in BUNDLED.get(module["Path"], []):
+            found[(lib["name"], None)] = dict(lib, usedFor=None)
     # Go's own runtime and standard library are linked in too
     go_version = subprocess.run(["go", "env", "GOVERSION"], capture_output=True, text=True).stdout.strip()
     found[("go", None)] = {"name": "Go standard library", "version": go_version, "license": "BSD-3-Clause",
