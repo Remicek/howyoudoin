@@ -433,7 +433,10 @@ open class NativeOnDeviceMessenger(
                     val token = challenge?.let { captchaSolver?.solve(it) }
                     if (token == null) {
                         log("$description failed: ${e.message}")
-                        return@withContext Result.Failure(DataError.Remote.UNKNOWN)
+                        val isCancelled = challenge != null && captchaSolver != null
+                        return@withContext Result.Failure(
+                            if (isCancelled) DataError.Remote.CANCELLED else remoteError(e.message)
+                        )
                     }
                     log("$description: CAPTCHA solved, trying again")
                     runCatching { current.answerCaptcha(token) }
@@ -528,6 +531,23 @@ class NativeOnDeviceWebAccount(
     scope: CoroutineScope,
     captchaSolver: CaptchaSolver
 ) : NativeOnDeviceMessenger(factory, secrets, dataDir, scope, captchaSolver)
+
+/** What kind of failure a native error is, from what the network clients put in it. */
+internal fun remoteError(message: String?): DataError.Remote {
+    val text = message.orEmpty()
+    fun has(vararg hints: String) = hints.any { text.contains(it, ignoreCase = true) }
+    return when {
+        has("i/o timeout", "deadline exceeded", "timed out") -> DataError.Remote.REQUEST_TIMEOUT
+        has("dial tcp", "no such host", "network is unreachable", "connection refused", "connection reset") ->
+            DataError.Remote.NO_INTERNET
+        has("HTTP 401", "Unauthorized") -> DataError.Remote.UNAUTHORIZED
+        // Discord's 50007 is "Cannot send messages to this user" (they only take DMs from friends)
+        has("HTTP 403", "Forbidden", "50007") -> DataError.Remote.FORBIDDEN
+        has("HTTP 429", "Too Many Requests", "rate limit") -> DataError.Remote.TOO_MANY_REQUESTS
+        has("HTTP 5") -> DataError.Remote.SERVER_ERROR
+        else -> DataError.Remote.UNKNOWN
+    }
+}
 
 /** The CAPTCHA in a native error ("captcha_required:" and its JSON), or null for any other error. */
 internal fun captchaChallenge(network: ChatNetwork, message: String?): CaptchaChallenge? {

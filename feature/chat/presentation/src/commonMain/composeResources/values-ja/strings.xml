@@ -168,5 +168,10 @@
     <string name="contacts_searching">%1$sを検索中…</string>
     <string name="contacts_search_failed">%1$sを検索できませんでした。接続を確認して、もう一度お試しください。</string>
     <string name="contacts_cannot_start">%1$s で新しいチャットを始めることは、まだアプリからはできません。</string>
+    <string name="contacts_start_not_connected">%1$s は現在接続されていません。復旧してからもう一度お試しください。</string>
+    <string name="contacts_start_offline">%1$s に接続できませんでした。インターネット接続を確認してもう一度お試しください。</string>
+    <string name="contacts_start_refused">%1$s がこのチャットを許可しませんでした。相手は友達や連絡先からのメッセージのみ受け付けている可能性があります。</string>
+    <string name="contacts_start_rate_limited">%1$s は現在リクエストを制限しています。数分後にもう一度お試しください。</string>
+    <string name="contacts_start_failed">%1$s でチャットを開始できませんでした。もう一度お試しください。</string>
     <string name="contacts_no_networks">ネットワークを接続すると、人にメッセージを送れます。</string>
 </resources>

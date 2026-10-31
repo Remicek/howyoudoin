@@ -14,6 +14,7 @@
     <string name="error_server">Ups, terjadi kesalahan di server</string>
     <string name="error_service_unavailable">Layanan tidak tersedia, coba lagi nanti</string>
     <string name="error_serialization">Kesalahan serialisasi</string>
+    <string name="error_cancelled">Dibatalkan</string>
     <string name="day_today">Hari ini</string>
     <string name="day_yesterday">Kemarin</string>
     <string name="weekday_1">Senin</string>

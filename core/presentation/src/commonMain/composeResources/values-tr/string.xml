@@ -14,6 +14,7 @@
     <string name="error_server">Hay aksi, sunucuda bir hata oluştu</string>
     <string name="error_service_unavailable">Hizmet kullanılamıyor, lütfen daha sonra tekrar deneyin</string>
     <string name="error_serialization">Serileştirme hatası</string>
+    <string name="error_cancelled">İptal edildi</string>
     <string name="day_today">Bugün</string>
     <string name="day_yesterday">Dün</string>
     <string name="weekday_1">Pazartesi</string>

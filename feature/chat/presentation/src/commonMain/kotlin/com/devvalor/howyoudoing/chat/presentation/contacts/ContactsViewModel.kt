@@ -12,6 +12,11 @@ import com.devvalor.howyoudoing.core.domain.util.Result
 import com.devvalor.howyoudoing.core.presentation.util.UiText
 import howyoudoin.feature.chat.presentation.generated.resources.Res
 import howyoudoin.feature.chat.presentation.generated.resources.contacts_cannot_start
+import howyoudoin.feature.chat.presentation.generated.resources.contacts_start_failed
+import howyoudoin.feature.chat.presentation.generated.resources.contacts_start_not_connected
+import howyoudoin.feature.chat.presentation.generated.resources.contacts_start_offline
+import howyoudoin.feature.chat.presentation.generated.resources.contacts_start_rate_limited
+import howyoudoin.feature.chat.presentation.generated.resources.contacts_start_refused
 import howyoudoin.feature.chat.presentation.generated.resources.contacts_search_failed
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -159,11 +164,24 @@ class ContactsViewModel(
             when (val result = chatRepository.startChat(contact)) {
                 is Result.Success -> events.send(ContactsEvent.OpenChat(result.data))
                 is Result.Failure -> ui.update {
-                    val network = contact.network.displayName
-                    it.copy(error = UiText.Resource(Res.string.contacts_cannot_start, arrayOf(network)))
+                    it.copy(error = startChatError(result.error, contact.network.displayName))
                 }
             }
         }
+    }
+
+    /** Why a chat couldn't be started, as far as the network said; a closed CAPTCHA needs no message. */
+    private fun startChatError(error: DataError.Remote, network: String): UiText? {
+        val resource = when (error) {
+            DataError.Remote.CANCELLED -> return null
+            DataError.Remote.BAD_REQUEST -> Res.string.contacts_cannot_start
+            DataError.Remote.SERVICE_UNAVAILABLE -> Res.string.contacts_start_not_connected
+            DataError.Remote.NO_INTERNET, DataError.Remote.REQUEST_TIMEOUT -> Res.string.contacts_start_offline
+            DataError.Remote.FORBIDDEN -> Res.string.contacts_start_refused
+            DataError.Remote.TOO_MANY_REQUESTS -> Res.string.contacts_start_rate_limited
+            else -> Res.string.contacts_start_failed
+        }
+        return UiText.Resource(resource, arrayOf(network))
     }
 
     suspend fun resolveMedia(url: String, thumbnail: Boolean): MediaRequest? =

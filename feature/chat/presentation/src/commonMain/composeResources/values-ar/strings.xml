@@ -178,5 +178,10 @@
     <string name="contacts_searching">جارٍ البحث في %1$s…</string>
     <string name="contacts_search_failed">تعذّر البحث في %1$s. تحقّق من الاتصال وحاول مرة أخرى.</string>
     <string name="contacts_cannot_start">لا يمكن بدء محادثة جديدة على %1$s من التطبيق بعد.</string>
+    <string name="contacts_start_not_connected">%1$s غير متصل الآن. حاول مجددًا عند عودته.</string>
+    <string name="contacts_start_offline">تعذّر الوصول إلى %1$s. تحقق من اتصال الإنترنت وحاول مجددًا.</string>
+    <string name="contacts_start_refused">لم يسمح %1$s بهذه الدردشة. قد لا يقبل الشخص الرسائل إلا من الأصدقاء أو جهات الاتصال.</string>
+    <string name="contacts_start_rate_limited">يحدّ %1$s من الطلبات حاليًا. حاول مجددًا بعد بضع دقائق.</string>
+    <string name="contacts_start_failed">تعذّر بدء الدردشة على %1$s. حاول مجددًا.</string>
     <string name="contacts_no_networks">اربط شبكة لتكتب إلى الناس.</string>
 </resources>

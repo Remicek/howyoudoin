@@ -3,6 +3,7 @@ package com.devvalor.howyoudoing.core.presentation.util
 import com.devvalor.howyoudoing.core.domain.util.DataError
 import howyoudoin.core.presentation.generated.resources.Res
 import howyoudoin.core.presentation.generated.resources.error_bad_request
+import howyoudoin.core.presentation.generated.resources.error_cancelled
 import howyoudoin.core.presentation.generated.resources.error_conflict
 import howyoudoin.core.presentation.generated.resources.error_disk_full
 import howyoudoin.core.presentation.generated.resources.error_forbidden
@@ -34,6 +35,7 @@ fun DataError.toUiText(): UiText {
         DataError.Remote.SERVER_ERROR -> Res.string.error_server
         DataError.Remote.SERVICE_UNAVAILABLE -> Res.string.error_service_unavailable
         DataError.Remote.SERIALIZATION -> Res.string.error_serialization
+        DataError.Remote.CANCELLED -> Res.string.error_cancelled
         DataError.Remote.UNKNOWN -> Res.string.error_unknown
     }
     return UiText.Resource(resource)

@@ -14,6 +14,9 @@ sealed interface DataError : Error {
         SERVER_ERROR,
         SERVICE_UNAVAILABLE,
         SERIALIZATION,
+
+        /** The user stopped it (e.g. closed a CAPTCHA it needed). */
+        CANCELLED,
         UNKNOWN
     }
 

@@ -170,5 +170,10 @@
     <string name="contacts_searching">%1$s पर खोज रहे हैं…</string>
     <string name="contacts_search_failed">%1$s पर खोज नहीं हो सकी। कनेक्शन जाँचें और फिर से कोशिश करें।</string>
     <string name="contacts_cannot_start">%1$s पर नई चैट शुरू करना अभी ऐप से संभव नहीं है।</string>
+    <string name="contacts_start_not_connected">%1$s अभी कनेक्ट नहीं है। वापस आने पर फिर से कोशिश करें।</string>
+    <string name="contacts_start_offline">%1$s तक नहीं पहुंच सके। इंटरनेट कनेक्शन जांचें और फिर से कोशिश करें।</string>
+    <string name="contacts_start_refused">%1$s ने यह चैट की अनुमति नहीं दी। हो सकता है वह व्यक्ति केवल दोस्तों या संपर्कों से संदेश लेता हो।</string>
+    <string name="contacts_start_rate_limited">%1$s अभी अनुरोध सीमित कर रहा है। कुछ मिनट बाद फिर से कोशिश करें।</string>
+    <string name="contacts_start_failed">%1$s पर चैट शुरू नहीं हो सकी। फिर से कोशिश करें।</string>
     <string name="contacts_no_networks">लोगों को लिखने के लिए कोई नेटवर्क जोड़ें।</string>
 </resources>

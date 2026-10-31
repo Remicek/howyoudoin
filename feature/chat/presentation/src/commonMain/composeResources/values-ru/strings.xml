@@ -174,5 +174,10 @@
     <string name="contacts_searching">Поиск в %1$s…</string>
     <string name="contacts_search_failed">Не удалось выполнить поиск в %1$s. Проверьте подключение и попробуйте снова.</string>
     <string name="contacts_cannot_start">Начать новый чат в %1$s из приложения пока нельзя.</string>
+    <string name="contacts_start_not_connected">%1$s сейчас не подключён. Попробуйте снова, когда подключение вернётся.</string>
+    <string name="contacts_start_offline">Не удалось связаться с %1$s. Проверьте интернет и попробуйте снова.</string>
+    <string name="contacts_start_refused">%1$s не разрешил этот чат. Возможно, человек принимает сообщения только от друзей или контактов.</string>
+    <string name="contacts_start_rate_limited">%1$s сейчас ограничивает запросы. Попробуйте через несколько минут.</string>
+    <string name="contacts_start_failed">Не удалось начать чат в %1$s. Попробуйте снова.</string>
     <string name="contacts_no_networks">Подключите сеть, чтобы писать людям.</string>
 </resources>

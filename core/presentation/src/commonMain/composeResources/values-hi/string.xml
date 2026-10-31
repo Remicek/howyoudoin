@@ -14,6 +14,7 @@
     <string name="error_server">सर्वर पर कोई गड़बड़ी हुई</string>
     <string name="error_service_unavailable">सेवा उपलब्ध नहीं है, कृपया बाद में फिर से कोशिश करें</string>
     <string name="error_serialization">सीरियलाइज़ेशन की गड़बड़ी</string>
+    <string name="error_cancelled">रद्द किया गया</string>
     <string name="day_today">आज</string>
     <string name="day_yesterday">कल</string>
     <string name="weekday_1">सोमवार</string>

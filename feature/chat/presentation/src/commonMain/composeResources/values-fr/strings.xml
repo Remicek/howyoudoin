@@ -172,5 +172,10 @@
     <string name="contacts_searching">Recherche sur %1$s…</string>
     <string name="contacts_search_failed">Impossible de rechercher sur %1$s. Vérifie la connexion et réessaie.</string>
     <string name="contacts_cannot_start">Démarrer une nouvelle discussion sur %1$s n'est pas encore possible depuis l'app.</string>
+    <string name="contacts_start_not_connected">%1$s n'est pas connecté pour le moment. Réessayez une fois qu'il est revenu.</string>
+    <string name="contacts_start_offline">Impossible de joindre %1$s. Vérifiez la connexion internet et réessayez.</string>
+    <string name="contacts_start_refused">%1$s n'a pas autorisé cette conversation. La personne n'accepte peut-être que les messages de ses amis ou contacts.</string>
+    <string name="contacts_start_rate_limited">%1$s limite les requêtes pour le moment. Réessayez dans quelques minutes.</string>
+    <string name="contacts_start_failed">Impossible de démarrer la conversation sur %1$s. Réessayez.</string>
     <string name="contacts_no_networks">Connectez un réseau pour écrire à des gens.</string>
 </resources>

@@ -14,6 +14,7 @@
     <string name="error_server">حدث خطأ في الخادم</string>
     <string name="error_service_unavailable">الخدمة غير متاحة، حاول مرة أخرى لاحقًا</string>
     <string name="error_serialization">خطأ في معالجة البيانات</string>
+    <string name="error_cancelled">تم الإلغاء</string>
     <string name="day_today">اليوم</string>
     <string name="day_yesterday">أمس</string>
     <string name="weekday_1">الاثنين</string>

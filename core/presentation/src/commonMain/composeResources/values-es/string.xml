@@ -14,6 +14,7 @@
     <string name="error_server">Vaya, se ha producido un error en el servidor</string>
     <string name="error_service_unavailable">Servicio no disponible, inténtalo de nuevo más tarde</string>
     <string name="error_serialization">Error de serialización</string>
+    <string name="error_cancelled">Cancelado</string>
     <string name="day_today">Hoy</string>
     <string name="day_yesterday">Ayer</string>
     <string name="weekday_1">Lunes</string>

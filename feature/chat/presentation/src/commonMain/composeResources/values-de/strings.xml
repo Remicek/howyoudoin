@@ -170,5 +170,10 @@
     <string name="contacts_searching">Suche auf %1$s…</string>
     <string name="contacts_search_failed">%1$s konnte nicht durchsucht werden. Prüfe die Verbindung und versuche es erneut.</string>
     <string name="contacts_cannot_start">Einen neuen Chat auf %1$s zu beginnen geht in der App noch nicht.</string>
+    <string name="contacts_start_not_connected">%1$s ist gerade nicht verbunden. Versuche es erneut, sobald es wieder da ist.</string>
+    <string name="contacts_start_offline">%1$s war nicht erreichbar. Prüfe die Internetverbindung und versuche es erneut.</string>
+    <string name="contacts_start_refused">%1$s hat diesen Chat nicht erlaubt. Die Person nimmt vielleicht nur Nachrichten von Freunden oder Kontakten an.</string>
+    <string name="contacts_start_rate_limited">%1$s begrenzt gerade Anfragen. Versuche es in ein paar Minuten erneut.</string>
+    <string name="contacts_start_failed">Der Chat auf %1$s konnte nicht gestartet werden. Versuche es erneut.</string>
     <string name="contacts_no_networks">Verbinde ein Netzwerk, um Leuten zu schreiben.</string>
 </resources>

@@ -14,6 +14,7 @@
     <string name="error_server">Произошла ошибка на сервере</string>
     <string name="error_service_unavailable">Сервис недоступен, попробуйте позже</string>
     <string name="error_serialization">Ошибка сериализации</string>
+    <string name="error_cancelled">Отменено</string>
     <string name="day_today">Сегодня</string>
     <string name="day_yesterday">Вчера</string>
     <string name="weekday_1">Понедельник</string>

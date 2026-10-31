@@ -14,6 +14,7 @@
     <string name="error_server">サーバー側でエラーが発生しました</string>
     <string name="error_service_unavailable">サービスを利用できません。しばらくしてからもう一度お試しください</string>
     <string name="error_serialization">シリアル化エラー</string>
+    <string name="error_cancelled">キャンセルしました</string>
     <string name="day_today">今日</string>
     <string name="day_yesterday">昨日</string>
     <string name="weekday_1">月曜日</string>

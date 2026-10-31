@@ -14,6 +14,7 @@
     <string name="error_server">Ops, ocorreu um erro no servidor</string>
     <string name="error_service_unavailable">Serviço indisponível, tente novamente mais tarde</string>
     <string name="error_serialization">Erro de serialização</string>
+    <string name="error_cancelled">Cancelado</string>
     <string name="day_today">Hoje</string>
     <string name="day_yesterday">Ontem</string>
     <string name="weekday_1">Segunda-feira</string>

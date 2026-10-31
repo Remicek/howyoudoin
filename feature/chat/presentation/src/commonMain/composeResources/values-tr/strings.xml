@@ -170,5 +170,10 @@
     <string name="contacts_searching">%1$s\'ta aranıyor…</string>
     <string name="contacts_search_failed">%1$s\'ta arama yapılamadı. Bağlantıyı kontrol edip tekrar dene.</string>
     <string name="contacts_cannot_start">%1$s üzerinde yeni sohbet başlatmak uygulamadan henüz mümkün değil.</string>
+    <string name="contacts_start_not_connected">%1$s şu anda bağlı değil. Geri geldiğinde tekrar deneyin.</string>
+    <string name="contacts_start_offline">%1$s ile bağlantı kurulamadı. İnternet bağlantısını kontrol edip tekrar deneyin.</string>
+    <string name="contacts_start_refused">%1$s bu sohbete izin vermedi. Kişi yalnızca arkadaşlarından veya kişilerinden mesaj kabul ediyor olabilir.</string>
+    <string name="contacts_start_rate_limited">%1$s şu anda istekleri sınırlıyor. Birkaç dakika sonra tekrar deneyin.</string>
+    <string name="contacts_start_failed">%1$s üzerinde sohbet başlatılamadı. Tekrar deneyin.</string>
     <string name="contacts_no_networks">İnsanlara yazmak için bir ağ bağlayın.</string>
 </resources>

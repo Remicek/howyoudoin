@@ -168,5 +168,10 @@
     <string name="contacts_searching">Mencari di %1$s…</string>
     <string name="contacts_search_failed">Tidak bisa mencari di %1$s. Periksa koneksi lalu coba lagi.</string>
     <string name="contacts_cannot_start">Memulai chat baru di %1$s belum bisa dari aplikasi.</string>
+    <string name="contacts_start_not_connected">%1$s sedang tidak tersambung. Coba lagi setelah kembali.</string>
+    <string name="contacts_start_offline">Tidak dapat menghubungi %1$s. Periksa koneksi internet lalu coba lagi.</string>
+    <string name="contacts_start_refused">%1$s tidak mengizinkan obrolan ini. Orang tersebut mungkin hanya menerima pesan dari teman atau kontak.</string>
+    <string name="contacts_start_rate_limited">%1$s sedang membatasi permintaan. Coba lagi dalam beberapa menit.</string>
+    <string name="contacts_start_failed">Tidak dapat memulai obrolan di %1$s. Coba lagi.</string>
     <string name="contacts_no_networks">Hubungkan jaringan untuk menulis ke orang lain.</string>
 </resources>

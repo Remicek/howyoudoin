@@ -173,5 +173,10 @@
     <string name="contacts_searching">Searching %1$s…</string>
     <string name="contacts_search_failed">Couldn\'t search %1$s. Check the connection and try again.</string>
     <string name="contacts_cannot_start">Starting a new chat on %1$s isn't possible from the app yet.</string>
+    <string name="contacts_start_not_connected">%1$s isn't connected right now. Try again once it's back.</string>
+    <string name="contacts_start_offline">Couldn't reach %1$s. Check the internet connection and try again.</string>
+    <string name="contacts_start_refused">%1$s didn't allow this chat. The person may only take messages from friends or contacts.</string>
+    <string name="contacts_start_rate_limited">%1$s is limiting requests for now. Try again in a few minutes.</string>
+    <string name="contacts_start_failed">Couldn't start the chat on %1$s. Try again.</string>
     <string name="contacts_no_networks">Connect a network to write to people.</string>
 </resources>

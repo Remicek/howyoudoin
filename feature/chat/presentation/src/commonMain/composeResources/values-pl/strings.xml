@@ -174,5 +174,10 @@
     <string name="contacts_searching">Szukam na %1$s…</string>
     <string name="contacts_search_failed">Nie udało się przeszukać %1$s. Sprawdź połączenie i spróbuj ponownie.</string>
     <string name="contacts_cannot_start">Rozpoczęcie nowego czatu w %1$s nie jest jeszcze możliwe z aplikacji.</string>
+    <string name="contacts_start_not_connected">%1$s nie jest teraz połączony. Spróbuj ponownie, gdy wróci.</string>
+    <string name="contacts_start_offline">Nie udało się połączyć z %1$s. Sprawdź internet i spróbuj ponownie.</string>
+    <string name="contacts_start_refused">%1$s nie pozwolił na ten czat. Ta osoba może przyjmować wiadomości tylko od znajomych lub kontaktów.</string>
+    <string name="contacts_start_rate_limited">%1$s na razie ogranicza liczbę żądań. Spróbuj za kilka minut.</string>
+    <string name="contacts_start_failed">Nie udało się rozpocząć czatu w %1$s. Spróbuj ponownie.</string>
     <string name="contacts_no_networks">Podłącz sieć, żeby pisać do ludzi.</string>
 </resources>
