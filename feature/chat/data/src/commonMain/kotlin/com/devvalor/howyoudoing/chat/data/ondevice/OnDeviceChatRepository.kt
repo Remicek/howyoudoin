@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.withTimeoutOrNull
 
 /** A network connected on the device: its native client and the store built from its events. */
@@ -84,6 +85,8 @@ class OnDeviceChatRepository(
             ) { server, account -> server + account }) { chats, source ->
             combine(chats, source.store.snapshot) { soFar, _ -> soFar + source.store.chats() }
         }.map { chats -> chats.sortedByDescending { it.lastActivity } }
+            // Not an empty inbox while the last run's is still being read
+            .onStart { sources.forEach { it.store.awaitLoaded() } }
 
     private fun visibleServerChats(): Flow<List<Chat>> {
         val onDeviceNetworks =

@@ -23,6 +23,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.dropWhile
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.serialization.json.Json
@@ -150,12 +153,23 @@ class OnDeviceMessengerStore(
     private val _snapshot = MutableStateFlow(Snapshot())
     val snapshot: StateFlow<Snapshot> = _snapshot.asStateFlow()
 
+    private val isLoaded = MutableStateFlow(false)
+
+    /** Waits for the inbox from the last run (read in the background, so the app starts without waiting). */
+    suspend fun awaitLoaded() {
+        isLoaded.first { it }
+    }
+
     init {
-        // The inbox from the last run, so chats known only from live messages survive restarts
-        cache.read()?.let { saved ->
-            runCatching { cacheJson.decodeFromString<Snapshot>(saved) }.getOrNull()?.let { _snapshot.value = it }
+        scope.launch {
+            // The inbox from the last run, so chats known only from live messages survive restarts
+            cache.read()?.let { saved ->
+                runCatching { cacheJson.decodeFromString<Snapshot>(saved) }.getOrNull()?.let { _snapshot.value = it }
+            }
+            isLoaded.value = true
+            // Events (replayed from the connect) go on top of it
+            messenger.events.collect(::apply)
         }
-        messenger.events.onEach(::apply).launchIn(scope)
         // Forget the inbox when the account is disconnected (not at launch, where the state also starts unlinked)
         messenger.state
             .runningFold(null as OnDeviceMessengerState? to (null as OnDeviceMessengerState?)) {
@@ -177,6 +191,8 @@ class OnDeviceMessengerStore(
             .onEach { messenger.fetchAvatars(avatarKeysToRefresh()) }
             .launchIn(scope)
         _snapshot
+            // Not the empty one before loading, nor the one just loaded
+            .dropWhile { !isLoaded.value }
             .drop(1)
             .debounce(CACHE_WRITE_DELAY_MILLIS)
             .onEach { snapshot ->

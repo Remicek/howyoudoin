@@ -8,7 +8,10 @@ import com.devvalor.howyoudoing.chat.domain.ChatRepository
 import com.devvalor.howyoudoing.chat.presentation.model.toChatUi
 import com.devvalor.howyoudoing.core.domain.auth.AuthService
 import com.devvalor.howyoudoing.core.domain.ondevice.ConnectionMonitor
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.conflate
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import com.devvalor.howyoudoing.chat.domain.NotificationPreferences
@@ -90,6 +93,10 @@ class InboxViewModel(
             val encrypted = chats.filter { it.isEncrypted }.mapTo(HashSet()) { it.network }
             Triple(visible, networks, encrypted)
         }
+            // Building the list from every network's chats is too much for the main thread while they pour in, and
+            // only the latest list is worth drawing
+            .flowOn(Dispatchers.Default)
+            .conflate()
             .onEach { (visible, networks, encrypted) ->
                 // The selected network was disconnected: back to all chats
                 if ((filter.value as? InboxFilter.Network)?.network?.let { it !in networks } == true) {
