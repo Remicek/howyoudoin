@@ -134,12 +134,15 @@
     <string name="conversation_download_failed">Не удалось скачать файл</string>
     <string name="problem_failed_title">%1$s не подключён</string>
     <string name="problem_logged_out_title">%1$s: выполнен выход</string>
-    <string name="problem_reconnecting_title">%1$s переподключается</string>
+    <string name="problem_reconnecting_title">%1$s не удалось переподключиться</string>
     <string name="problem_expired_title">%1$s: срок входа истёк</string>
     <string name="problem_failed_text">Не удалось подключиться. Повторные попытки в фоне.</string>
     <string name="problem_logged_out_text">Подключите снова в разделе «Сети», чтобы продолжать получать сообщения.</string>
-    <string name="problem_reconnecting_text">Новые сообщения могут задерживаться, пока подключение не восстановится.</string>
+    <string name="problem_reconnecting_text">Подключение не вернулось за 10 минут. Нажмите «Переподключить» или войдите заново в разделе «Сети», если это не поможет.</string>
     <string name="problem_expired_text">Отключите в разделе «Сети» и войдите заново.</string>
+    <string name="problems_title">Нет подключения: %1$s</string>
+    <string name="problems_text">Новые сообщения из них могут задерживаться. Нажмите, чтобы посмотреть причину в разделе «Сети».</string>
+    <string name="problems_reconnect">Переподключить</string>
     <plurals name="keys_restored">
         <item quantity="one">Восстановлены ключи для %1$d старого зашифрованного разговора; его сообщения откроются по мере загрузки.</item>
         <item quantity="few">Восстановлены ключи для %1$d старых зашифрованных разговоров; их сообщения откроются по мере загрузки.</item>

@@ -134,12 +134,15 @@
     <string name="conversation_download_failed">ファイルをダウンロードできませんでした</string>
     <string name="problem_failed_title">%1$s が接続されていません</string>
     <string name="problem_logged_out_title">%1$s からログアウトされました</string>
-    <string name="problem_reconnecting_title">%1$s に再接続中</string>
+    <string name="problem_reconnecting_title">%1$s に再接続できませんでした</string>
     <string name="problem_expired_title">%1$s のログインの有効期限が切れました</string>
     <string name="problem_failed_text">接続できませんでした。バックグラウンドで再試行しています。</string>
     <string name="problem_logged_out_text">メッセージを受け取り続けるには、ネットワークで接続し直してください。</string>
-    <string name="problem_reconnecting_text">復旧するまで新しいメッセージが遅れることがあります。</string>
+    <string name="problem_reconnecting_text">10 分間試しても復旧しません。「再接続」をタップするか、解決しない場合は「ネットワーク」で再ログインしてください。</string>
     <string name="problem_expired_text">ネットワークで接続を解除し、もう一度ログインしてください。</string>
+    <string name="problems_title">未接続: %1$s</string>
+    <string name="problems_text">これらの新しいメッセージが遅れることがあります。タップして「ネットワーク」で原因を確認できます。</string>
+    <string name="problems_reconnect">再接続</string>
     <plurals name="keys_restored">
         <item quantity="other">以前の暗号化された会話 %1$d 件の鍵を復元しました。メッセージは読み込まれると解除されます。</item>
     </plurals>

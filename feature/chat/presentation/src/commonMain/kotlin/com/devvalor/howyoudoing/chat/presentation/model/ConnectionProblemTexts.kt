@@ -13,6 +13,8 @@ import howyoudoin.feature.chat.presentation.generated.resources.problem_logged_o
 import howyoudoin.feature.chat.presentation.generated.resources.problem_logged_out_title
 import howyoudoin.feature.chat.presentation.generated.resources.problem_reconnecting_text
 import howyoudoin.feature.chat.presentation.generated.resources.problem_reconnecting_title
+import howyoudoin.feature.chat.presentation.generated.resources.problems_text
+import howyoudoin.feature.chat.presentation.generated.resources.problems_title
 
 /** What the inbox banner and the notification say about a network that stopped working. */
 val ConnectionProblem.title: UiText
@@ -34,3 +36,15 @@ val ConnectionProblem.text: UiText
         Kind.RECONNECTING -> UiText.Resource(Res.string.problem_reconnecting_text)
         Kind.LOGIN_EXPIRED -> UiText.Resource(Res.string.problem_expired_text)
     }
+
+/** Several networks at once are named together in one banner; one network keeps its own title and reason. */
+val List<ConnectionProblem>.title: UiText
+    get() = singleOrNull()?.title
+        ?: UiText.Resource(Res.string.problems_title, arrayOf(joinToString { it.network.displayName }))
+
+val List<ConnectionProblem>.text: UiText
+    get() = singleOrNull()?.text ?: UiText.Resource(Res.string.problems_text)
+
+/** Problems the user can try to fix right here by reconnecting. */
+val List<ConnectionProblem>.canReconnect: Boolean
+    get() = any { it.kind == Kind.RECONNECTING || it.kind == Kind.FAILED }

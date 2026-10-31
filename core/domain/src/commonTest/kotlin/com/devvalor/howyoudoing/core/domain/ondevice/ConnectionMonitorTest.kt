@@ -17,6 +17,10 @@ class ConnectionMonitorTest {
 
     private class FakeClient(override val network: ChatNetwork) : OnDeviceMessenger by UnsupportedOnDeviceMessenger {
         override val state = MutableStateFlow<OnDeviceMessengerState>(OnDeviceMessengerState.NotLinked)
+        var reconnects = 0
+        override suspend fun reconnect() {
+            reconnects++
+        }
     }
 
     private val whatsApp = FakeClient(ChatNetwork.WHATSAPP)
@@ -101,7 +105,7 @@ class ConnectionMonitorTest {
     }
 
     @Test
-    fun onlyLongReconnectsAreReported() = runTest {
+    fun aLongReconnectStartsOverBeforeAskingTheUser() = runTest {
         val monitor = monitor()
         set(whatsApp, OnDeviceMessengerState.Connected("Remik"))
         set(whatsApp, OnDeviceMessengerState.Connecting)
@@ -114,6 +118,34 @@ class ConnectionMonitorTest {
         set(whatsApp, OnDeviceMessengerState.Connecting)
         advanceTimeBy(3 * 60_000 + 1)
         runCurrent()
+        assertEquals(1, whatsApp.reconnects)
+        assertTrue(monitor.problems.value.isEmpty())
+
+        // The fresh connection didn't help either
+        advanceTimeBy(7 * 60_000)
+        runCurrent()
         assertEquals(ConnectionProblem.Kind.RECONNECTING, monitor.problems.value.single().kind)
+    }
+
+    @Test
+    fun reconnectingOnRequestTriesAgainAndAsksAgainIfItDoesntHelp() = runTest {
+        val monitor = monitor()
+        set(slack, OnDeviceMessengerState.Connected("Team"))
+        set(slack, OnDeviceMessengerState.Connecting)
+        advanceTimeBy(10 * 60_000 + 1)
+        runCurrent()
+        assertEquals(ConnectionProblem.Kind.RECONNECTING, monitor.problems.value.single().kind)
+
+        monitor.reconnect()
+        runCurrent()
+        assertEquals(2, slack.reconnects)
+        assertTrue(monitor.problems.value.isEmpty())
+
+        advanceTimeBy(7 * 60_000 + 1)
+        runCurrent()
+        assertEquals(ConnectionProblem.Kind.RECONNECTING, monitor.problems.value.single().kind)
+
+        set(slack, OnDeviceMessengerState.Connected("Team"))
+        assertTrue(monitor.problems.value.isEmpty())
     }
 }

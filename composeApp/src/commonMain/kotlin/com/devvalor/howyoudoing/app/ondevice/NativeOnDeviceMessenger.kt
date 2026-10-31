@@ -423,10 +423,17 @@ open class NativeOnDeviceMessenger(
         }
     }
 
+    /** The account's name, from the "self" event of the first connect; reconnects don't send it again. */
+    private var accountName: String? = null
+
     private fun onNativeEvent(json: String) {
         val event = runCatching { Json.parseToJsonElement(json).jsonObject }.getOrNull() ?: return
         when (event["type"]?.jsonPrimitive?.contentOrNull) {
-            "self" -> _state.value = OnDeviceMessengerState.Connected(event["name"]?.jsonPrimitive?.contentOrNull)
+            "self" -> {
+                accountName = event["name"]?.jsonPrimitive?.contentOrNull
+                _state.value = OnDeviceMessengerState.Connected(accountName)
+            }
+
             "state" -> when (
                 event["state"]?.jsonPrimitive?.contentOrNull
                     .also { log("state $it ${event["error"]?.jsonPrimitive?.contentOrNull.orEmpty()}") }
@@ -435,6 +442,11 @@ open class NativeOnDeviceMessenger(
                     OnDeviceMessengerState.Failed(event["error"]?.jsonPrimitive?.contentOrNull ?: "Disconnected")
 
                 "reconnecting" -> _state.value = OnDeviceMessengerState.Connecting
+
+                // Back after a dropped connection (the first connect says so with "self")
+                "connected" -> if (_state.value == OnDeviceMessengerState.Connecting && client != null) {
+                    _state.value = OnDeviceMessengerState.Connected(accountName)
+                }
             }
         }
         _events.tryEmit(json)

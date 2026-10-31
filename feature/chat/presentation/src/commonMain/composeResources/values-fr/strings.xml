@@ -134,12 +134,15 @@
     <string name="conversation_download_failed">Impossible de télécharger le fichier</string>
     <string name="problem_failed_title">%1$s n'est pas connecté</string>
     <string name="problem_logged_out_title">%1$s a été déconnecté</string>
-    <string name="problem_reconnecting_title">%1$s se reconnecte</string>
+    <string name="problem_reconnecting_title">%1$s n'a pas pu se reconnecter</string>
     <string name="problem_expired_title">Connexion à %1$s expirée</string>
     <string name="problem_failed_text">Connexion impossible. Nouvelle tentative en arrière-plan.</string>
     <string name="problem_logged_out_text">Reconnectez-le dans Réseaux pour continuer à recevoir ses messages.</string>
-    <string name="problem_reconnecting_text">Les nouveaux messages peuvent être retardés jusqu'à son retour.</string>
+    <string name="problem_reconnecting_text">Toujours pas de retour après 10 minutes d'essais. Touchez Reconnecter, ou reconnectez-vous dans Réseaux si cela ne suffit pas.</string>
     <string name="problem_expired_text">Déconnectez-le dans Réseaux et reconnectez-vous.</string>
+    <string name="problems_title">Non connectés : %1$s</string>
+    <string name="problems_text">Les nouveaux messages de ces réseaux peuvent être retardés. Touchez pour voir le problème dans Réseaux.</string>
+    <string name="problems_reconnect">Reconnecter</string>
     <plurals name="keys_restored">
         <item quantity="one">Les clés de %1$d ancienne conversation chiffrée ont été restaurées ; ses messages se déverrouillent au chargement.</item>
         <item quantity="many">Les clés de %1$d anciennes conversations chiffrées ont été restaurées ; leurs messages se déverrouillent au chargement.</item>

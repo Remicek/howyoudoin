@@ -134,12 +134,15 @@
     <string name="conversation_download_failed">Dosya indirilemedi</string>
     <string name="problem_failed_title">%1$s bağlı değil</string>
     <string name="problem_logged_out_title">%1$s oturumu kapatıldı</string>
-    <string name="problem_reconnecting_title">%1$s yeniden bağlanıyor</string>
+    <string name="problem_reconnecting_title">%1$s yeniden bağlanamadı</string>
     <string name="problem_expired_title">%1$s girişinin süresi doldu</string>
     <string name="problem_failed_text">Bağlanılamadı. Arka planda yeniden deneniyor.</string>
     <string name="problem_logged_out_text">Mesajlarını almaya devam etmek için Ağlar bölümünden yeniden bağlayın.</string>
-    <string name="problem_reconnecting_text">Geri gelene kadar yeni mesajlar gecikebilir.</string>
+    <string name="problem_reconnecting_text">10 dakikalık denemeden sonra hâlâ bağlanmadı. Yeniden bağlan'a dokunun ya da işe yaramazsa Ağlar'da yeniden giriş yapın.</string>
     <string name="problem_expired_text">Ağlar bölümünden bağlantısını kesip yeniden giriş yapın.</string>
+    <string name="problems_title">Bağlı değil: %1$s</string>
+    <string name="problems_text">Bunlardan gelen yeni mesajlar gecikebilir. Sorunu Ağlar'da görmek için dokunun.</string>
+    <string name="problems_reconnect">Yeniden bağlan</string>
     <plurals name="keys_restored">
         <item quantity="one">%1$d eski şifreli sohbetin anahtarları geri yüklendi; mesajları yüklendikçe açılır.</item>
         <item quantity="other">%1$d eski şifreli sohbetin anahtarları geri yüklendi; mesajları yüklendikçe açılır.</item>

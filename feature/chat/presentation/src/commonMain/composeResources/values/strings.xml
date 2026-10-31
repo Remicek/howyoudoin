@@ -145,12 +145,15 @@
     </plurals>
     <string name="problem_failed_title">%1$s isn't connected</string>
     <string name="problem_logged_out_title">%1$s was logged out</string>
-    <string name="problem_reconnecting_title">%1$s is reconnecting</string>
+    <string name="problem_reconnecting_title">%1$s couldn't reconnect</string>
     <string name="problem_expired_title">%1$s login expired</string>
     <string name="problem_failed_text">Couldn't connect. Retrying in the background.</string>
     <string name="problem_logged_out_text">Connect it again in Networks to keep getting its messages.</string>
-    <string name="problem_reconnecting_text">New messages may be delayed until it's back.</string>
+    <string name="problem_reconnecting_text">Still not back after 10 minutes of trying. Tap Reconnect, or log in again in Networks if that doesn't help.</string>
     <string name="problem_expired_text">Disconnect it in Networks and log in again.</string>
+    <string name="problems_title">Not connected: %1$s</string>
+    <string name="problems_text">New messages from these may be delayed. Tap to see what's wrong in Networks.</string>
+    <string name="problems_reconnect">Reconnect</string>
     <string name="home_chats">Chats</string>
     <string name="home_contacts">Contacts</string>
     <string name="home_settings">Settings</string>

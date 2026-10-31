@@ -51,6 +51,9 @@ interface OnDeviceMessenger {
     /** Connects with saved cookies, if any. */
     suspend fun connectIfLinked()
 
+    /** Drops the connection and starts a fresh one from the saved login (for one that's stuck reconnecting). */
+    suspend fun reconnect() = connectIfLinked()
+
     /**
      * Sends text to a thread; returns the ID the echoed message will carry (offline threading ID for regular
      * chats, message ID for encrypted ones).

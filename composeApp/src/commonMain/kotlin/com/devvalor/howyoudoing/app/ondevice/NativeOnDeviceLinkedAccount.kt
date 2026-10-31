@@ -159,6 +159,8 @@ abstract class NativeOnDeviceLinkedAccount(
         runCatching { current.connect() }.onFailure { failed(it) }.isFailure
     }
 
+    override suspend fun reconnect() = reloadFromDisk()
+
     /** Drops the client and connects again from what's on disk (e.g. a login restored from the backup). */
     suspend fun reloadFromDisk() {
         lock.withLock {

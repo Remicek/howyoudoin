@@ -134,12 +134,15 @@
     <string name="conversation_download_failed">फ़ाइल डाउनलोड नहीं हो सकी</string>
     <string name="problem_failed_title">%1$s कनेक्ट नहीं है</string>
     <string name="problem_logged_out_title">%1$s से लॉग आउट हो गया</string>
-    <string name="problem_reconnecting_title">%1$s फिर से कनेक्ट हो रहा है</string>
+    <string name="problem_reconnecting_title">%1$s फिर से कनेक्ट नहीं हो सका</string>
     <string name="problem_expired_title">%1$s लॉगिन की अवधि खत्म</string>
     <string name="problem_failed_text">कनेक्ट नहीं हो सका। बैकग्राउंड में फिर से कोशिश हो रही है।</string>
     <string name="problem_logged_out_text">इसके मैसेज मिलते रहें, इसके लिए नेटवर्क में इसे फिर से जोड़ें।</string>
-    <string name="problem_reconnecting_text">इसके लौटने तक नए मैसेज देर से आ सकते हैं।</string>
+    <string name="problem_reconnecting_text">10 मिनट कोशिश के बाद भी वापस नहीं आया। फिर से कनेक्ट करें पर टैप करें, या न हो तो नेटवर्क में फिर से लॉग इन करें।</string>
     <string name="problem_expired_text">नेटवर्क में इसे हटाएँ और फिर से लॉग इन करें।</string>
+    <string name="problems_title">कनेक्ट नहीं: %1$s</string>
+    <string name="problems_text">इनके नए संदेशों में देरी हो सकती है। नेटवर्क में समस्या देखने के लिए टैप करें।</string>
+    <string name="problems_reconnect">फिर से कनेक्ट करें</string>
     <plurals name="keys_restored">
         <item quantity="one">%1$d पुरानी एन्क्रिप्टेड बातचीत की कुंजियाँ वापस आ गईं; इसके मैसेज लोड होते ही खुल जाएँगे।</item>
         <item quantity="other">%1$d पुरानी एन्क्रिप्टेड बातचीत की कुंजियाँ वापस आ गईं; उनके मैसेज लोड होते ही खुल जाएँगे।</item>

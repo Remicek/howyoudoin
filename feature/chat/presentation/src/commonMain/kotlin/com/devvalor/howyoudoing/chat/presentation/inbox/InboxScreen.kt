@@ -21,6 +21,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.border
 import androidx.compose.foundation.Image
+import com.devvalor.howyoudoing.chat.presentation.model.canReconnect
 import com.devvalor.howyoudoing.chat.presentation.model.text
 import com.devvalor.howyoudoing.chat.presentation.model.title
 import howyoudoin.feature.chat.presentation.generated.resources.inbox_connecting
@@ -36,6 +37,7 @@ import howyoudoin.feature.chat.presentation.generated.resources.inbox_connect_wh
 import howyoudoin.feature.chat.presentation.generated.resources.inbox_connected_networks
 import howyoudoin.feature.chat.presentation.generated.resources.inbox_connected_on_this_device
 import howyoudoin.feature.chat.presentation.generated.resources.inbox_dismiss
+import howyoudoin.feature.chat.presentation.generated.resources.problems_reconnect
 import howyoudoin.feature.chat.presentation.generated.resources.inbox_end_to_end_encrypted
 import howyoudoin.feature.chat.presentation.generated.resources.inbox_group
 import howyoudoin.feature.chat.presentation.generated.resources.inbox_how_connecting_works
@@ -68,7 +70,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material.icons.rounded.ErrorOutline
 import androidx.compose.material3.Surface
 import com.devvalor.howyoudoing.core.domain.ondevice.ConnectionProblem
 import androidx.compose.foundation.lazy.items
@@ -98,6 +99,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.Text
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -218,6 +220,7 @@ fun InboxScreen(
             ConnectionProblems(
                 problems = state.connectionProblems,
                 onClick = { onAction(InboxAction.OnNetworksClick) },
+                onReconnect = { onAction(InboxAction.OnReconnectClick) },
                 onDismiss = { onAction(InboxAction.OnDismissProblem(it)) },
             )
             banner()
@@ -303,47 +306,60 @@ private fun InboxTopBar(onNewMessage: () -> Unit, onAddNetwork: () -> Unit, onSe
     )
 }
 
-/** One card per network that stopped working; tapping opens Networks to fix it. */
+/**
+ * One card for all the networks that stopped working, with their icons; tapping opens Networks to fix them. Networks
+ * stuck reconnecting can be restarted right here.
+ */
 @Composable
 private fun ConnectionProblems(
     problems: List<ConnectionProblem>,
     onClick: () -> Unit,
+    onReconnect: () -> Unit,
     onDismiss: (ChatNetwork) -> Unit
 ) {
-    problems.forEach { problem ->
-        Surface(
-            onClick = onClick,
-            color = MaterialTheme.colorScheme.errorContainer,
-            contentColor = MaterialTheme.colorScheme.onErrorContainer,
-            shape = MaterialTheme.shapes.medium,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = HowYouDoinSpacing.md, vertical = HowYouDoinSpacing.xs),
+    if (problems.isEmpty()) return
+    Surface(
+        onClick = onClick,
+        color = MaterialTheme.colorScheme.errorContainer,
+        contentColor = MaterialTheme.colorScheme.onErrorContainer,
+        shape = MaterialTheme.shapes.medium,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = HowYouDoinSpacing.md, vertical = HowYouDoinSpacing.xs),
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(
+                start = HowYouDoinSpacing.md,
+                top = HowYouDoinSpacing.sm,
+                bottom = HowYouDoinSpacing.sm
+            ),
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(
-                    start = HowYouDoinSpacing.md,
-                    top = HowYouDoinSpacing.sm,
-                    bottom = HowYouDoinSpacing.sm
-                ),
-            ) {
-                Icon(Icons.Rounded.ErrorOutline, contentDescription = null)
-                Column(Modifier.weight(1f).padding(horizontal = HowYouDoinSpacing.md)) {
-                    Text(
-                        problem.title.asString(),
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                    Text(problem.text.asString(), style = MaterialTheme.typography.bodySmall, maxLines = 3)
+            Column(Modifier.weight(1f).padding(end = HowYouDoinSpacing.md)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(HowYouDoinSpacing.xs)) {
+                    problems.forEach { NetworkBadge(network = it.network, size = 24.dp, borderColor = Color.Transparent) }
                 }
-                // A logged-out network can be ignored; the others clear themselves once they reconnect
-                if (problem.kind == ConnectionProblem.Kind.LOGGED_OUT) {
-                    IconButton(onClick = { onDismiss(problem.network) }) {
-                        Icon(Icons.Rounded.Close, contentDescription = stringResource(Res.string.inbox_dismiss))
+                Spacer(Modifier.height(HowYouDoinSpacing.xs))
+                Text(
+                    problems.title.asString(),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Text(problems.text.asString(), style = MaterialTheme.typography.bodySmall, maxLines = 3)
+                if (problems.canReconnect) {
+                    TextButton(
+                        onClick = onReconnect,
+                        contentPadding = PaddingValues(0.dp),
+                        colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
+                    ) {
+                        Text(stringResource(Res.string.problems_reconnect))
                     }
-                } else {
-                    Spacer(Modifier.width(HowYouDoinSpacing.md))
+                }
+            }
+            // Logged-out networks can be ignored; the others clear themselves once they reconnect
+            if (problems.all { it.kind == ConnectionProblem.Kind.LOGGED_OUT }) {
+                IconButton(onClick = { problems.forEach { onDismiss(it.network) } }) {
+                    Icon(Icons.Rounded.Close, contentDescription = stringResource(Res.string.inbox_dismiss))
                 }
             }
         }

@@ -64,6 +64,7 @@ class InboxViewModel(
             InboxAction.OnLogoutClick -> viewModelScope.launch { authService.logout() }
             InboxAction.OnRefresh -> refresh()
             is InboxAction.OnDismissProblem -> connectionMonitor.dismiss(action.network)
+            InboxAction.OnReconnectClick -> connectionMonitor.reconnect()
             else -> Unit
         }
     }

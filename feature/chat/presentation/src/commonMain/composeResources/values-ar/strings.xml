@@ -134,12 +134,15 @@
     <string name="conversation_download_failed">تعذّر تنزيل الملف</string>
     <string name="problem_failed_title">%1$s غير متصل</string>
     <string name="problem_logged_out_title">تم تسجيل الخروج من %1$s</string>
-    <string name="problem_reconnecting_title">جارٍ إعادة اتصال %1$s</string>
+    <string name="problem_reconnecting_title">تعذّرت إعادة اتصال %1$s</string>
     <string name="problem_expired_title">انتهت صلاحية تسجيل الدخول إلى %1$s</string>
     <string name="problem_failed_text">تعذّر الاتصال. جارٍ إعادة المحاولة في الخلفية.</string>
     <string name="problem_logged_out_text">وصّله مجددًا من الشبكات لتستمر في تلقي رسائله.</string>
-    <string name="problem_reconnecting_text">قد تتأخر الرسائل الجديدة حتى يعود الاتصال.</string>
+    <string name="problem_reconnecting_text">لم يعد الاتصال بعد 10 دقائق من المحاولة. انقر على إعادة الاتصال، أو سجّل الدخول من جديد في الشبكات إن لم ينفع ذلك.</string>
     <string name="problem_expired_text">افصله من الشبكات ثم سجّل الدخول مجددًا.</string>
+    <string name="problems_title">غير متصلة: %1$s</string>
+    <string name="problems_text">قد تتأخر الرسائل الجديدة منها. انقر لمعرفة المشكلة في الشبكات.</string>
+    <string name="problems_reconnect">إعادة الاتصال</string>
     <plurals name="keys_restored">
         <item quantity="zero">لم تُستعد أي مفاتيح.</item>
         <item quantity="one">تمت استعادة مفاتيح محادثة مشفّرة قديمة واحدة؛ تُفتح رسائلها أثناء التحميل.</item>

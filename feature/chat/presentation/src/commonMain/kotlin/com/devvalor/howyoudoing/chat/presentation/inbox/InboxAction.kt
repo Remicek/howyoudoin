@@ -14,4 +14,5 @@ sealed interface InboxAction {
     data object OnRefresh : InboxAction
     data object OnLogoutClick : InboxAction
     data class OnDismissProblem(val network: ChatNetwork) : InboxAction
+    data object OnReconnectClick : InboxAction
 }

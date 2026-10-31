@@ -134,12 +134,15 @@
     <string name="conversation_download_failed">Die Datei konnte nicht heruntergeladen werden</string>
     <string name="problem_failed_title">%1$s ist nicht verbunden</string>
     <string name="problem_logged_out_title">%1$s wurde abgemeldet</string>
-    <string name="problem_reconnecting_title">%1$s verbindet sich neu</string>
+    <string name="problem_reconnecting_title">%1$s konnte sich nicht neu verbinden</string>
     <string name="problem_expired_title">%1$s-Anmeldung abgelaufen</string>
     <string name="problem_failed_text">Verbindung fehlgeschlagen. Neuer Versuch im Hintergrund.</string>
     <string name="problem_logged_out_text">Verbinde es unter Netzwerke neu, um weiter Nachrichten zu erhalten.</string>
-    <string name="problem_reconnecting_text">Neue Nachrichten können sich verzögern, bis es wieder da ist.</string>
+    <string name="problem_reconnecting_text">Nach 10 Minuten noch nicht zurück. Tippe auf Neu verbinden oder melde dich in Netzwerke erneut an, falls das nicht hilft.</string>
     <string name="problem_expired_text">Trenne es unter Netzwerke und melde dich erneut an.</string>
+    <string name="problems_title">Nicht verbunden: %1$s</string>
+    <string name="problems_text">Neue Nachrichten von dort können sich verzögern. Tippe, um in Netzwerke zu sehen, was los ist.</string>
+    <string name="problems_reconnect">Neu verbinden</string>
     <plurals name="keys_restored">
         <item quantity="one">Schlüssel für %1$d ältere verschlüsselte Unterhaltung wurden wiederhergestellt; ihre Nachrichten werden beim Laden entsperrt.</item>
         <item quantity="other">Schlüssel für %1$d ältere verschlüsselte Unterhaltungen wurden wiederhergestellt; ihre Nachrichten werden beim Laden entsperrt.</item>

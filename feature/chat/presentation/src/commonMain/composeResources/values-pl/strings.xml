@@ -134,12 +134,15 @@
     <string name="conversation_download_failed">Nie udało się pobrać pliku</string>
     <string name="problem_failed_title">%1$s nie jest połączony</string>
     <string name="problem_logged_out_title">%1$s został wylogowany</string>
-    <string name="problem_reconnecting_title">%1$s łączy się ponownie</string>
+    <string name="problem_reconnecting_title">%1$s nie może się połączyć</string>
     <string name="problem_expired_title">%1$s: logowanie wygasło</string>
     <string name="problem_failed_text">Nie udało się połączyć. Ponawianie w tle.</string>
     <string name="problem_logged_out_text">Podłącz go ponownie w Sieciach, aby nadal otrzymywać wiadomości.</string>
-    <string name="problem_reconnecting_text">Nowe wiadomości mogą się opóźniać, dopóki nie wróci.</string>
+    <string name="problem_reconnecting_text">Nadal brak połączenia po 10 minutach prób. Stuknij Połącz ponownie albo zaloguj się jeszcze raz w Sieciach, jeśli to nie pomoże.</string>
     <string name="problem_expired_text">Odłącz go w Sieciach i zaloguj się ponownie.</string>
+    <string name="problems_title">Brak połączenia: %1$s</string>
+    <string name="problems_text">Nowe wiadomości z nich mogą się opóźniać. Stuknij, aby zobaczyć, co się dzieje, w Sieciach.</string>
+    <string name="problems_reconnect">Połącz ponownie</string>
     <plurals name="keys_restored">
         <item quantity="one">Przywrócono klucze do %1$d starszej szyfrowanej rozmowy; jej wiadomości odblokują się podczas wczytywania.</item>
         <item quantity="few">Przywrócono klucze do %1$d starszych szyfrowanych rozmów; ich wiadomości odblokują się podczas wczytywania.</item>

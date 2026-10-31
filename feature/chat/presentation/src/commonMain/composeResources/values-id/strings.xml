@@ -134,12 +134,15 @@
     <string name="conversation_download_failed">Tidak dapat mengunduh file</string>
     <string name="problem_failed_title">%1$s tidak tersambung</string>
     <string name="problem_logged_out_title">%1$s telah keluar</string>
-    <string name="problem_reconnecting_title">%1$s sedang menyambung ulang</string>
+    <string name="problem_reconnecting_title">%1$s tidak bisa tersambung ulang</string>
     <string name="problem_expired_title">Info masuk %1$s kedaluwarsa</string>
     <string name="problem_failed_text">Tidak dapat tersambung. Mencoba lagi di latar belakang.</string>
     <string name="problem_logged_out_text">Hubungkan lagi di Jaringan agar tetap menerima pesannya.</string>
-    <string name="problem_reconnecting_text">Pesan baru mungkin tertunda sampai tersambung kembali.</string>
+    <string name="problem_reconnecting_text">Masih belum kembali setelah mencoba 10 menit. Ketuk Sambungkan ulang, atau masuk lagi di Jaringan jika tidak membantu.</string>
     <string name="problem_expired_text">Putuskan di Jaringan lalu masuk lagi.</string>
+    <string name="problems_title">Tidak tersambung: %1$s</string>
+    <string name="problems_text">Pesan baru dari sini mungkin tertunda. Ketuk untuk melihat masalahnya di Jaringan.</string>
+    <string name="problems_reconnect">Sambungkan ulang</string>
     <plurals name="keys_restored">
         <item quantity="other">Kunci untuk %1$d percakapan terenkripsi lama telah dipulihkan; pesannya terbuka saat dimuat.</item>
     </plurals>
