@@ -25,3 +25,31 @@ index 227eef6..dc0f04a 100644
  		},
  		MailboxURN:        c.userEntityURN.AsFsdProfile(),
  		TrackingID:        random.String(16),
+diff --git a/pkg/linkedingo/search.go b/pkg/linkedingo/search.go
+index 1438e00..708f7f0 100644
+--- a/pkg/linkedingo/search.go
++++ b/pkg/linkedingo/search.go
+@@ -17,6 +17,7 @@ type SearchResult struct {
+ 	ProfileURN     URN
+ 	FirstName      string
+ 	LastName       string
++	Headline       string
+ 	ProfilePicture *VectorImage
+ }
+ 
+@@ -29,6 +30,7 @@ type searchProfile struct {
+ 	EntityURN      URN                   `json:"entityUrn,omitempty"`
+ 	FirstName      string                `json:"firstName,omitempty"`
+ 	LastName       string                `json:"lastName,omitempty"`
++	Headline       string                `json:"headline,omitempty"`
+ 	ProfilePicture *searchProfilePicture `json:"profilePicture,omitempty"`
+ }
+ 
+@@ -78,6 +80,7 @@ func (c *Client) Search(ctx context.Context, keywords string) ([]SearchResult, e
+ 			ProfileURN:     inc.EntityURN,
+ 			FirstName:      inc.FirstName,
+ 			LastName:       inc.LastName,
++			Headline:       inc.Headline,
+ 			ProfilePicture: inc.ProfilePicture.vectorImage(),
+ 		})
+ 	}

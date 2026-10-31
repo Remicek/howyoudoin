@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Checks out the network clients hydbridge is built from, at the versions the app uses, next to this repository in
 # ../howyoudoin-bridges (where bridge-mobile/go.mod expects them), and applies our patches (mautrix-meta, and mautrix-linkedin: starting a chat with the user's own first
-# message):
+# message, and people's headlines in search results):
 #   bridge-mobile/scripts/fetch-bridges.sh
 # Used by the CI build; an existing checkout is left alone.
 set -euo pipefail

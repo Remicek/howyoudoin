@@ -873,8 +873,9 @@ func (l *LinkedIn) SearchPeople(query string) (string, error) {
 		if r.ProfilePicture != nil {
 			avatar = linkedInImageURL(r.ProfilePicture)
 		}
+		// LinkedIn has no handles: the headline ("Senior Developer at …") tells people with the same name apart
 		people = append(people, foundPerson{ID: id, Name: strings.TrimSpace(r.FirstName + " " + r.LastName),
-			AvatarURL: avatar})
+			Handle: strings.TrimSpace(r.Headline), AvatarURL: avatar})
 	}
 	return peopleJSON(people)
 }
