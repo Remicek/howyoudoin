@@ -49,6 +49,11 @@ class ConnectionMonitor(
     private val _problems = MutableStateFlow<List<ConnectionProblem>>(emptyList())
     val problems: StateFlow<List<ConnectionProblem>> = _problems.asStateFlow()
 
+    private val _linkedNetworks = MutableStateFlow<Set<ChatNetwork>>(emptySet())
+
+    /** Networks logged in on this phone, working or not (a logged-out or never-connected one isn't). */
+    val linkedNetworks: StateFlow<Set<ChatNetwork>> = _linkedNetworks.asStateFlow()
+
     /** Networks the user is disconnecting right now: their logout is expected. */
     private val disconnecting = mutableSetOf<ChatNetwork>()
     private val reconnectTimers = mutableMapOf<ChatNetwork, Job>()
@@ -95,6 +100,7 @@ class ConnectionMonitor(
         client.state.onEach { state ->
             val network = client.network
             if (state !is OnDeviceMessengerState.Connecting) reconnectTimers.remove(network)?.cancel()
+            _linkedNetworks.update { if (state == OnDeviceMessengerState.NotLinked) it - network else it + network }
             when (state) {
                 is OnDeviceMessengerState.Connected -> {
                     wasConnected = true

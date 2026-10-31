@@ -74,17 +74,27 @@ class InboxViewModel(
             chatRepository.observeChats(),
             query,
             filter,
-            notificationPreferences.observeMutedChats()
-        ) { chats, query, filter, muted ->
+            notificationPreferences.observeMutedChats(),
+            connectionMonitor.linkedNetworks
+        ) { chats, query, filter, muted, linked ->
             val visible = chats
                 .filter { chat -> filter.matches(chat) }
                 .filter { chat -> query.isBlank() || chat.name.contains(query.trim(), ignoreCase = true) }
                 .map { it.toChatUi().copy(isMuted = it.id in muted) }
-            val networks = chats.map { it.network }.distinct().sortedBy { it.ordinal }
+            // Only networks that are connected get a filter; chats of a disconnected one can stay in the list
+            val networks = chats
+                .filter { !it.isOnDevice || it.network in linked }
+                .map { it.network }
+                .distinct()
+                .sortedBy { it.ordinal }
             val encrypted = chats.filter { it.isEncrypted }.mapTo(HashSet()) { it.network }
             Triple(visible, networks, encrypted)
         }
             .onEach { (visible, networks, encrypted) ->
+                // The selected network was disconnected: back to all chats
+                if ((filter.value as? InboxFilter.Network)?.network?.let { it !in networks } == true) {
+                    onAction(InboxAction.OnFilterSelect(InboxFilter.All))
+                }
                 _state.update {
                     it.copy(
                         chats = visible,

@@ -148,4 +148,16 @@ class ConnectionMonitorTest {
         set(slack, OnDeviceMessengerState.Connected("Team"))
         assertTrue(monitor.problems.value.isEmpty())
     }
+
+    @Test
+    fun linkedNetworksAreTheOnesLoggedIn() = runTest {
+        val monitor = monitor()
+        assertTrue(monitor.linkedNetworks.value.isEmpty())
+        set(slack, OnDeviceMessengerState.Connected("Team"))
+        set(whatsApp, OnDeviceMessengerState.Failed("No network"))
+        assertEquals(setOf(ChatNetwork.SLACK, ChatNetwork.WHATSAPP), monitor.linkedNetworks.value)
+
+        set(slack, OnDeviceMessengerState.NotLinked)
+        assertEquals(setOf(ChatNetwork.WHATSAPP), monitor.linkedNetworks.value)
+    }
 }
