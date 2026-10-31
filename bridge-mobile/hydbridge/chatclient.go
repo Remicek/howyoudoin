@@ -113,10 +113,6 @@ func (c googleVoiceChat) SendMediaFile(threadKey, path, mimeType, _, caption str
 func (googleVoiceChat) SearchPeople(_ string) (string, error) { return "", ErrUnsupported }
 func (googleVoiceChat) StartChat(_ string) (string, error)    { return "", ErrUnsupported }
 
-// Discord (direct messages only) isn't searched from the app.
-func (*Discord) SearchPeople(_ string) (string, error) { return "", ErrUnsupported }
-func (*Discord) StartChat(_ string) (string, error)    { return "", ErrUnsupported }
-
 var (
 	_ ChatClient = blueskyChat{}
 	_ ChatClient = linkedInChat{}

@@ -41,6 +41,8 @@ type Discord struct {
 	channels sync.Map
 	// User ID → true once its contact event was sent
 	contacts sync.Map
+	// User ID → *discordgo.User: friends and the people in DMs, searched for new chats
+	users sync.Map
 	// "channel/message" → our reaction (its API name) there
 	ownReactions sync.Map
 	typingTimers sync.Map
@@ -322,6 +324,7 @@ func (d *Discord) emitUser(u *discordgo.User) {
 	if u == nil || u.ID == "" {
 		return
 	}
+	d.users.Store(u.ID, u)
 	if _, sent := d.contacts.LoadOrStore(u.ID, true); sent {
 		return
 	}
@@ -623,4 +626,94 @@ func (d *Discord) emit(event map[string]any) {
 	if err == nil && d.listener != nil {
 		d.listener.OnEvent(string(data))
 	}
+}
+
+// --- new chats ---
+
+// discordUsernamePrefix marks a SearchPeople result that is only a username nobody known has: starting a chat
+// with it sends a friend request first.
+const discordUsernamePrefix = "username:"
+
+var discordUsername = regexp.MustCompile(`^[a-z0-9_.]{2,32}$`)
+
+// SearchPeople finds friends and people from DMs by username or display name. Discord has no people search, so
+// an exact username nobody known has is offered as is (StartChat adds them as a friend).
+func (d *Discord) SearchPeople(query string) (string, error) {
+	if _, err := d.current(); err != nil {
+		return "", err
+	}
+	q := strings.ToLower(strings.TrimPrefix(strings.TrimSpace(query), "@"))
+	var people []foundPerson
+	exact := false
+	d.users.Range(func(_, value any) bool {
+		u := value.(*discordgo.User)
+		if u.ID == d.selfID || u.Bot || u.System {
+			return true
+		}
+		if !strings.Contains(strings.ToLower(u.Username), q) && !strings.Contains(strings.ToLower(u.GlobalName), q) {
+			return true
+		}
+		exact = exact || strings.EqualFold(u.Username, q)
+		people = append(people, foundPerson{ID: u.ID, Name: u.DisplayName(), Handle: "@" + u.Username,
+			AvatarURL: u.AvatarURL("256")})
+		return true
+	})
+	slices.SortFunc(people, func(a, b foundPerson) int { return strings.Compare(a.Name, b.Name) })
+	if !exact && discordUsername.MatchString(q) {
+		people = append(people, foundPerson{ID: discordUsernamePrefix + q, Name: q, Handle: "@" + q})
+	}
+	return peopleJSON(people)
+}
+
+// StartChat opens the DM channel with a person (its ID is the thread key). A bare username is sent a friend
+// request first: that's how Discord finds someone by username, and most people only take DMs from friends.
+func (d *Discord) StartChat(personID string) (string, error) {
+	session, err := d.current()
+	if err != nil {
+		return "", err
+	}
+	userID := personID
+	if username, ok := strings.CutPrefix(personID, discordUsernamePrefix); ok {
+		if userID, err = d.addFriend(session, username); err != nil {
+			return "", err
+		}
+	}
+	ch, err := session.UserChannelCreate(userID)
+	if err != nil {
+		return "", err
+	}
+	d.emitChannel(ch, "")
+	return ch.ID, nil
+}
+
+// addFriend sends a friend request by username and returns the user's ID from the outgoing request it made.
+func (d *Discord) addFriend(session *discordgo.Session, username string) (string, error) {
+	body := map[string]any{"username": username, "discriminator": nil}
+	if _, err := session.RequestWithBucketID("POST", discordgo.EndpointRelationships(), body,
+		discordgo.EndpointRelationships()); err != nil {
+		var restErr *discordgo.RESTError
+		if errors.As(err, &restErr) && restErr.Message != nil && restErr.Message.Message != "" {
+			return "", fmt.Errorf("Discord didn't send the friend request: %s", restErr.Message.Message)
+		}
+		return "", err
+	}
+	data, err := session.RequestWithBucketID("GET", discordgo.EndpointRelationships(), nil,
+		discordgo.EndpointRelationships())
+	if err != nil {
+		return "", err
+	}
+	var relationships []struct {
+		ID   string          `json:"id"`
+		User *discordgo.User `json:"user"`
+	}
+	if err := json.Unmarshal(data, &relationships); err != nil {
+		return "", err
+	}
+	for _, r := range relationships {
+		if r.User != nil && strings.EqualFold(r.User.Username, username) {
+			d.emitUser(r.User)
+			return r.User.ID, nil
+		}
+	}
+	return "", fmt.Errorf("no Discord user %s", username)
 }
