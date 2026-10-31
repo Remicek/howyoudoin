@@ -28,6 +28,9 @@ type ChatClient interface {
 	// StartChat opens the one-to-one chat with a person found by SearchPeople (sending its thread event) and
 	// returns its thread key.
 	StartChat(personID string) (string, error)
+	// AnswerCaptcha takes the token of a CAPTCHA a request failed for (its error starts with "captcha_required:"
+	// and the CAPTCHA as JSON); the request is then made again.
+	AnswerCaptcha(token string) error
 }
 
 // foundPerson is one SearchPeople result.
@@ -88,11 +91,13 @@ func (c blueskyChat) SendReply(threadKey, text, _ string) (string, error) {
 func (blueskyChat) EditMessage(_, _, _ string) error                   { return ErrUnsupported }
 func (blueskyChat) SetTyping(_ string, _ bool) error                   { return nil }
 func (blueskyChat) SendMediaFile(_, _, _, _, _ string) (string, error) { return "", ErrUnsupported }
+func (blueskyChat) AnswerCaptcha(_ string) error                       { return ErrUnsupported }
 
 // LinkedIn marks a whole conversation read.
 type linkedInChat struct{ *LinkedIn }
 
 func (c linkedInChat) MarkRead(threadKey, _ string) error { return c.LinkedIn.MarkRead(threadKey) }
+func (linkedInChat) AnswerCaptcha(_ string) error         { return ErrUnsupported }
 
 // Google Voice texts can't be replied to, edited, unsent or reacted to, and only photos can be sent.
 type googleVoiceChat struct{ *GoogleVoice }
@@ -112,6 +117,7 @@ func (c googleVoiceChat) SendMediaFile(threadKey, path, mimeType, _, caption str
 }
 func (googleVoiceChat) SearchPeople(_ string) (string, error) { return "", ErrUnsupported }
 func (googleVoiceChat) StartChat(_ string) (string, error)    { return "", ErrUnsupported }
+func (googleVoiceChat) AnswerCaptcha(_ string) error          { return ErrUnsupported }
 
 var (
 	_ ChatClient = blueskyChat{}

@@ -17,4 +17,7 @@
     <string name="restore_failed">تعذّرت إعادة توصيل ما يلي؛ وصّلها مجددًا من الشبكات: %1$s</string>
     <string name="restore_relink">لا يمكن استعادة %1$s من نسخة احتياطية (تبقى مفاتيح التشفير على هاتفك). اربطها مجددًا من الشبكات.</string>
     <string name="notification_new_message">رسالة جديدة</string>
+    <string name="captcha_title">يريد %1$s التحقق من أنك إنسان</string>
+    <string name="captcha_text">حلّه للمتابعة. سيكمل HowYouDoin تلقائيًا بعد ذلك.</string>
+    <string name="captcha_cancel">إلغاء</string>
 </resources>

@@ -17,4 +17,7 @@
     <string name="restore_failed">Não foi possível reconectar; conecte de novo em Redes: %1$s</string>
     <string name="restore_relink">%1$s não podem voltar de um backup (as chaves de criptografia ficam no seu celular). Vincule de novo em Redes.</string>
     <string name="notification_new_message">Nova mensagem</string>
+    <string name="captcha_title">%1$s quer confirmar que você é humano</string>
+    <string name="captcha_text">Resolva para continuar. O HowYouDoin segue sozinho depois.</string>
+    <string name="captcha_cancel">Cancelar</string>
 </resources>

@@ -6,6 +6,8 @@ package com.devvalor.howyoudoing.app.ondevice
 import com.devvalor.howyoudoing.core.domain.media.Attachment
 import com.devvalor.howyoudoing.core.domain.media.MessageRef
 import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
+import com.devvalor.howyoudoing.core.domain.ondevice.CaptchaChallenge
+import com.devvalor.howyoudoing.core.domain.ondevice.CaptchaSolver
 import com.devvalor.howyoudoing.core.domain.ondevice.FoundPerson
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceHistoryError
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceInstagram
@@ -86,6 +88,9 @@ interface NativeMessengerClient {
 
     /** Looks these contacts up again for fresh profile pictures (comma-separated IDs). */
     fun fetchAvatars(contactIds: String) = Unit
+
+    /** The token of the CAPTCHA the last call failed for (see [captchaChallenge]); the call is then made again. */
+    fun answerCaptcha(token: String): Unit = throw UnsupportedOperationException("No CAPTCHA here")
     fun sendMediaFile(
         threadKey: String, isEncrypted: Boolean, isGroup: Boolean, path: String, mimeType: String, fileName: String,
         caption: String, width: Long, height: Long
@@ -140,7 +145,8 @@ open class NativeOnDeviceMessenger(
     private val factory: NativeMessengerFactory,
     private val secrets: OnDeviceSecretStore,
     private val dataDir: OnDeviceDataDirectory,
-    private val scope: CoroutineScope
+    private val scope: CoroutineScope,
+    private val captchaSolver: CaptchaSolver? = null
 ) : OnDeviceMessenger {
 
     private val lock = Mutex()
@@ -407,19 +413,34 @@ open class NativeOnDeviceMessenger(
     override suspend fun startChatWith(personId: String): Result<String, DataError.Remote> =
         native("Starting a chat") { startChat(personId) }
 
-    /** Runs a native call off the main thread; exceptions become failures. */
+    /**
+     * Runs a native call off the main thread; exceptions become failures. A call the network wants a CAPTCHA for is
+     * shown to the user and, once solved, made again.
+     */
     private suspend fun <T> native(
         description: String,
         block: NativeMessengerClient.() -> T
     ): Result<T, DataError.Remote> {
         val current = client ?: return Result.Failure(DataError.Remote.SERVICE_UNAVAILABLE)
         return withContext(Dispatchers.IO) {
-            try {
-                Result.Success(current.block()).also { log("$description: ok") }
-            } catch (e: Exception) {
-                log("$description failed: ${e.message}")
-                Result.Failure(DataError.Remote.UNKNOWN)
+            var isAnswered = false
+            while (true) {
+                try {
+                    return@withContext Result.Success(current.block()).also { log("$description: ok") }
+                } catch (e: Exception) {
+                    val challenge = captchaChallenge(network, e.message).takeIf { !isAnswered }
+                    val token = challenge?.let { captchaSolver?.solve(it) }
+                    if (token == null) {
+                        log("$description failed: ${e.message}")
+                        return@withContext Result.Failure(DataError.Remote.UNKNOWN)
+                    }
+                    log("$description: CAPTCHA solved, trying again")
+                    runCatching { current.answerCaptcha(token) }
+                    isAnswered = true
+                }
             }
+            @Suppress("UNREACHABLE_CODE")
+            Result.Failure(DataError.Remote.UNKNOWN)
         }
     }
 
@@ -493,8 +514,24 @@ class NativeOnDeviceWebAccount(
     factory: NativeMessengerFactory,
     secrets: OnDeviceSecretStore,
     dataDir: OnDeviceDataDirectory,
-    scope: CoroutineScope
-) : NativeOnDeviceMessenger(factory, secrets, dataDir, scope)
+    scope: CoroutineScope,
+    captchaSolver: CaptchaSolver
+) : NativeOnDeviceMessenger(factory, secrets, dataDir, scope, captchaSolver)
+
+/** The CAPTCHA in a native error ("captcha_required:" and its JSON), or null for any other error. */
+internal fun captchaChallenge(network: ChatNetwork, message: String?): CaptchaChallenge? {
+    val json = message?.substringAfter("captcha_required:", missingDelimiterValue = "")?.takeIf { it.isNotEmpty() }
+        ?: return null
+    val obj = runCatching { Json.parseToJsonElement(json).jsonObject }.getOrNull() ?: return null
+    fun field(name: String) = obj[name]?.jsonPrimitive?.contentOrNull?.takeIf { it.isNotBlank() }
+    return CaptchaChallenge(
+        network = network,
+        service = field("service") ?: "hcaptcha",
+        siteKey = field("siteKey") ?: return null,
+        rqData = field("rqData"),
+        pageUrl = field("pageUrl") ?: return null
+    )
+}
 
 /** Reads SearchPeople's JSON array; anything that isn't one gives no one. */
 internal fun parsePeople(json: String): List<FoundPerson> =

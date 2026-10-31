@@ -927,6 +927,9 @@ var (
 	_ ChatClient      = (*Twitter)(nil)
 )
 
+// AnswerCaptcha: X doesn't ask for one here.
+func (*Twitter) AnswerCaptcha(_ string) error { return ErrUnsupported }
+
 // SearchPeople finds X accounts by name or @handle.
 func (t *Twitter) SearchPeople(query string) (string, error) {
 	client, err := t.current()

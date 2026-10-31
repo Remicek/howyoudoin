@@ -654,6 +654,7 @@ class AndroidChatClientFactory(private val goName: String) : NativeMessengerFact
             override fun searchPeople(query: String): String = c.searchPeople(query)
 
             override fun startChat(personId: String): String = c.startChat(personId)
+            override fun answerCaptcha(token: String) = c.answerCaptcha(token)
         }
     }
 

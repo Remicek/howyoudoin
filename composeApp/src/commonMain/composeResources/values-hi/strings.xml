@@ -17,4 +17,7 @@
     <string name="restore_failed">ये फिर से नहीं जुड़ सके; नेटवर्क में इन्हें फिर से जोड़ें: %1$s</string>
     <string name="restore_relink">%1$s बैकअप से वापस नहीं आ सकते (उनकी एन्क्रिप्शन कुंजियाँ आपके फ़ोन पर रहती हैं)। नेटवर्क में उन्हें फिर से लिंक करें।</string>
     <string name="notification_new_message">नया मैसेज</string>
+    <string name="captcha_title">%1$s जांचना चाहता है कि आप इंसान हैं</string>
+    <string name="captcha_text">आगे बढ़ने के लिए इसे हल करें। इसके बाद HowYouDoin खुद आगे बढ़ेगा।</string>
+    <string name="captcha_cancel">रद्द करें</string>
 </resources>

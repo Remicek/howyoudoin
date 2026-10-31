@@ -17,4 +17,7 @@
     <string name="restore_failed">Bunlar yeniden bağlanamadı; Ağlar bölümünden tekrar bağlayın: %1$s</string>
     <string name="restore_relink">%1$s yedekten geri gelemez (şifreleme anahtarları telefonunuzda kalır). Ağlar bölümünden yeniden bağlayın.</string>
     <string name="notification_new_message">Yeni mesaj</string>
+    <string name="captcha_title">%1$s insan olduğunuzu doğrulamak istiyor</string>
+    <string name="captcha_text">Devam etmek için bunu çözün. HowYouDoin ardından kendiliğinden devam eder.</string>
+    <string name="captcha_cancel">İptal</string>
 </resources>

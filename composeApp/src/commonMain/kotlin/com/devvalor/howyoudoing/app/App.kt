@@ -18,6 +18,7 @@ import com.devvalor.howyoudoing.settings.presentation.appearance.AppearanceViewM
 import com.devvalor.howyoudoing.settings.presentation.appearance.isDark
 import org.koin.compose.viewmodel.koinViewModel
 import com.devvalor.howyoudoing.app.backup.BackupOfferRoot
+import com.devvalor.howyoudoing.app.captcha.CaptchaRoot
 import com.devvalor.howyoudoing.app.backup.RestoreLoginsScreen
 import com.devvalor.howyoudoing.app.backup.RestoreLoginsViewModel
 import com.devvalor.howyoudoing.networks.presentation.navigation.NetworksRoutes
@@ -86,6 +87,8 @@ fun App(
                     })
                     // Once two networks are connected: offer to back up the logins
                     BackupOfferRoot()
+                    // A network asking for a CAPTCHA (Discord, for a friend request)
+                    CaptchaRoot()
                 }
             }
         }

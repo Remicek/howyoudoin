@@ -17,4 +17,7 @@
     <string name="restore_failed">Tych nie udało się połączyć ponownie; podłącz je jeszcze raz w Sieciach: %1$s</string>
     <string name="restore_relink">%1$s nie mogą wrócić z kopii zapasowej (ich klucze szyfrowania zostają na telefonie). Połącz je ponownie w Sieciach.</string>
     <string name="notification_new_message">Nowa wiadomość</string>
+    <string name="captcha_title">%1$s chce sprawdzić, czy jesteś człowiekiem</string>
+    <string name="captcha_text">Rozwiąż to, aby kontynuować. HowYouDoin dokończy resztę samo.</string>
+    <string name="captcha_cancel">Anuluj</string>
 </resources>

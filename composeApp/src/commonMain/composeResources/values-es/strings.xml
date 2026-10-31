@@ -17,4 +17,7 @@
     <string name="restore_failed">No se pudieron reconectar; vuelve a conectarlos en Redes: %1$s</string>
     <string name="restore_relink">%1$s no se pueden recuperar de una copia de seguridad (sus claves de cifrado se quedan en tu teléfono). Vuelve a vincularlos en Redes.</string>
     <string name="notification_new_message">Mensaje nuevo</string>
+    <string name="captcha_title">%1$s quiere comprobar que eres humano</string>
+    <string name="captcha_text">Resuélvelo para continuar. HowYouDoin seguirá solo cuando termines.</string>
+    <string name="captcha_cancel">Cancelar</string>
 </resources>

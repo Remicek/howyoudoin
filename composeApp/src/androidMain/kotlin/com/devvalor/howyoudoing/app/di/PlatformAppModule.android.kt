@@ -148,7 +148,8 @@ actual val platformAppModule: Module = module {
                 factory = AndroidChatClientFactory(network.goName),
                 secrets = KeystoreSecretStore(androidContext(), network.dataDir),
                 dataDir = AndroidDataDirectory(androidContext(), network.dataDir),
-                scope = get()
+                scope = get(),
+                captchaSolver = get()
             )
         }
     }

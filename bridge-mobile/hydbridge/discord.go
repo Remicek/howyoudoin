@@ -36,6 +36,9 @@ type Discord struct {
 	lock    sync.Mutex
 	session *discordgo.Session
 	selfID  string
+	// The CAPTCHA Discord last asked for, and the user's answer to it for the request that's tried again
+	captcha       *discordCaptcha
+	captchaAnswer string
 
 	// Channel ID → *discordgo.Channel (DMs and group DMs only)
 	channels sync.Map
@@ -505,9 +508,9 @@ func (d *Discord) send(channelID string, data *discordgo.MessageSend) (string, e
 	}
 	// The nonce comes back on the echo, so the app matches it to what it showed while sending
 	data.Nonce = strconv.FormatInt((time.Now().UnixMilli()-discordEpochMillis)<<22, 10)
-	msg, err := session.ChannelMessageSendComplex(channelID, data)
+	msg, err := session.ChannelMessageSendComplex(channelID, data, d.captchaOptions()...)
 	if err != nil {
-		return "", err
+		return "", d.checkCaptcha(err)
 	}
 	return firstNonEmpty(data.Nonce, msg.ID), nil
 }
@@ -678,9 +681,9 @@ func (d *Discord) StartChat(personID string) (string, error) {
 			return "", err
 		}
 	}
-	ch, err := session.UserChannelCreate(userID)
+	ch, err := session.UserChannelCreate(userID, d.captchaOptions()...)
 	if err != nil {
-		return "", err
+		return "", d.checkCaptcha(err)
 	}
 	d.emitChannel(ch, "")
 	return ch.ID, nil
@@ -690,7 +693,10 @@ func (d *Discord) StartChat(personID string) (string, error) {
 func (d *Discord) addFriend(session *discordgo.Session, username string) (string, error) {
 	body := map[string]any{"username": username, "discriminator": nil}
 	if _, err := session.RequestWithBucketID("POST", discordgo.EndpointRelationships(), body,
-		discordgo.EndpointRelationships()); err != nil {
+		discordgo.EndpointRelationships(), d.captchaOptions()...); err != nil {
+		if err := d.checkCaptcha(err); errors.Is(err, errCaptchaRequired) {
+			return "", err
+		}
 		var restErr *discordgo.RESTError
 		if errors.As(err, &restErr) && restErr.Message != nil && restErr.Message.Message != "" {
 			return "", fmt.Errorf("Discord didn't send the friend request: %s", restErr.Message.Message)
@@ -716,4 +722,72 @@ func (d *Discord) addFriend(session *discordgo.Session, username string) (string
 		}
 	}
 	return "", fmt.Errorf("no Discord user %s", username)
+}
+
+// --- CAPTCHA ---
+
+// errCaptchaRequired starts the error of a request Discord wants a CAPTCHA for; the rest is the CAPTCHA as JSON
+// ({"service", "siteKey", "rqData"}). The app shows it and calls AnswerCaptcha, then makes the request again.
+var errCaptchaRequired = errors.New("captcha_required")
+
+// discordCaptcha is what Discord sends with a captcha-required error (an hCaptcha to show on discord.com).
+type discordCaptcha struct {
+	Keys      []string `json:"captcha_key"`
+	SiteKey   string   `json:"captcha_sitekey"`
+	Service   string   `json:"captcha_service"`
+	SessionID string   `json:"captcha_session_id"`
+	RqData    string   `json:"captcha_rqdata"`
+	RqToken   string   `json:"captcha_rqtoken"`
+}
+
+// checkCaptcha turns Discord's captcha-required error into errCaptchaRequired (remembering the CAPTCHA for the
+// answer); other errors are returned as they are.
+func (d *Discord) checkCaptcha(err error) error {
+	var restErr *discordgo.RESTError
+	if !errors.As(err, &restErr) {
+		return err
+	}
+	var captcha discordCaptcha
+	if json.Unmarshal(restErr.ResponseBody, &captcha) != nil || captcha.SiteKey == "" ||
+		!slices.Contains(captcha.Keys, "captcha-required") {
+		return err
+	}
+	d.lock.Lock()
+	d.captcha = &captcha
+	d.captchaAnswer = ""
+	d.lock.Unlock()
+	data, _ := json.Marshal(map[string]string{
+		"service": captcha.Service, "siteKey": captcha.SiteKey, "rqData": captcha.RqData, "pageUrl": "https://discord.com/",
+	})
+	return fmt.Errorf("%w:%s", errCaptchaRequired, data)
+}
+
+// AnswerCaptcha takes the token of the solved CAPTCHA; the next request sends it along.
+func (d *Discord) AnswerCaptcha(token string) error {
+	d.lock.Lock()
+	defer d.lock.Unlock()
+	if d.captcha == nil {
+		return errors.New("Discord didn't ask for a CAPTCHA")
+	}
+	d.captchaAnswer = token
+	return nil
+}
+
+// captchaOptions are the headers carrying a CAPTCHA answer (used once), as Discord's web client sends them.
+func (d *Discord) captchaOptions() []discordgo.RequestOption {
+	d.lock.Lock()
+	defer d.lock.Unlock()
+	if d.captcha == nil || d.captchaAnswer == "" {
+		return nil
+	}
+	options := []discordgo.RequestOption{discordgo.WithHeader("X-Captcha-Key", d.captchaAnswer)}
+	if d.captcha.RqToken != "" {
+		options = append(options, discordgo.WithHeader("X-Captcha-Rqtoken", d.captcha.RqToken))
+	}
+	if d.captcha.SessionID != "" {
+		options = append(options, discordgo.WithHeader("X-Captcha-Session-Id", d.captcha.SessionID))
+	}
+	d.captcha = nil
+	d.captchaAnswer = ""
+	return options
 }

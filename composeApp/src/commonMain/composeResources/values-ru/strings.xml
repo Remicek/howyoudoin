@@ -17,4 +17,7 @@
     <string name="restore_failed">Не удалось подключить снова; подключите их ещё раз в разделе «Сети»: %1$s</string>
     <string name="restore_relink">%1$s не восстанавливаются из резервной копии (их ключи шифрования остаются на телефоне). Привяжите их снова в разделе «Сети».</string>
     <string name="notification_new_message">Новое сообщение</string>
+    <string name="captcha_title">%1$s хочет убедиться, что вы человек</string>
+    <string name="captcha_text">Пройдите проверку, чтобы продолжить. Дальше HowYouDoin продолжит сам.</string>
+    <string name="captcha_cancel">Отмена</string>
 </resources>

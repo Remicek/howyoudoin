@@ -17,4 +17,7 @@
     <string name="restore_failed">These couldn't be reconnected; connect them again in Networks: %1$s</string>
     <string name="restore_relink">%1$s can't come back from a backup (their encryption keys stay on your phone). Link them again in Networks.</string>
     <string name="notification_new_message">New message</string>
+    <string name="captcha_title">%1$s wants to check you're human</string>
+    <string name="captcha_text">Solve this to continue. HowYouDoin goes on by itself once it's done.</string>
+    <string name="captcha_cancel">Cancel</string>
 </resources>

@@ -17,4 +17,7 @@
     <string name="restore_failed">次は再接続できませんでした。ネットワークでもう一度接続してください: %1$s</string>
     <string name="restore_relink">%1$s はバックアップから戻せません（暗号鍵はスマホに残ります）。ネットワークでリンクし直してください。</string>
     <string name="notification_new_message">新着メッセージ</string>
+    <string name="captcha_title">%1$s が人間かどうか確認しています</string>
+    <string name="captcha_text">続けるには解いてください。完了すると HowYouDoin が自動で続けます。</string>
+    <string name="captcha_cancel">キャンセル</string>
 </resources>

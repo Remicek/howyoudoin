@@ -17,4 +17,7 @@
     <string name="restore_failed">Ini tidak dapat disambungkan ulang; hubungkan lagi di Jaringan: %1$s</string>
     <string name="restore_relink">%1$s tidak bisa dipulihkan dari cadangan (kunci enkripsinya tetap di ponsel Anda). Tautkan lagi di Jaringan.</string>
     <string name="notification_new_message">Pesan baru</string>
+    <string name="captcha_title">%1$s ingin memastikan Anda manusia</string>
+    <string name="captcha_text">Selesaikan ini untuk melanjutkan. HowYouDoin akan lanjut sendiri setelahnya.</string>
+    <string name="captcha_cancel">Batal</string>
 </resources>

@@ -17,4 +17,7 @@
     <string name="restore_failed">Diese konnten nicht wieder verbunden werden; verbinde sie unter Netzwerke erneut: %1$s</string>
     <string name="restore_relink">%1$s können nicht aus einer Sicherung zurückkommen (ihre Verschlüsselungsschlüssel bleiben auf deinem Handy). Verknüpfe sie unter Netzwerke neu.</string>
     <string name="notification_new_message">Neue Nachricht</string>
+    <string name="captcha_title">%1$s möchte prüfen, ob du ein Mensch bist</string>
+    <string name="captcha_text">Löse das, um fortzufahren. HowYouDoin macht danach von selbst weiter.</string>
+    <string name="captcha_cancel">Abbrechen</string>
 </resources>
