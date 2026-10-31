@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.devvalor.howyoudoing.chat.domain.ChatContact
 import com.devvalor.howyoudoing.chat.domain.ChatRepository
+import com.devvalor.howyoudoing.core.domain.ondevice.ConnectionMonitor
 import com.devvalor.howyoudoing.chat.domain.MediaRequest
 import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
 import com.devvalor.howyoudoing.core.domain.util.DataError
@@ -61,6 +62,7 @@ sealed interface ContactsEvent {
  */
 class ContactsViewModel(
     private val chatRepository: ChatRepository,
+    connectionMonitor: ConnectionMonitor,
     isNewMessage: Boolean
 ) : ViewModel() {
 
@@ -78,8 +80,14 @@ class ContactsViewModel(
         val error: UiText? = null
     )
 
-    val state = combine(ui, chatRepository.observeContacts(), search) { s, all, searched ->
-        val networks = all.map { it.network }.distinct().sortedBy { it.ordinal }
+    val state = combine(
+        ui,
+        chatRepository.observeContacts(),
+        search,
+        connectionMonitor.linkedNetworks
+    ) { s, all, searched, linked ->
+        // A network just connected has no contacts yet, but it can still be written to
+        val networks = (all.map { it.network } + linked).distinct().sortedBy { it.ordinal }
         // With one network there's nothing to choose
         val network = s.network ?: networks.singleOrNull()?.takeIf { s.isNewMessage }
         val query = s.query.trim()

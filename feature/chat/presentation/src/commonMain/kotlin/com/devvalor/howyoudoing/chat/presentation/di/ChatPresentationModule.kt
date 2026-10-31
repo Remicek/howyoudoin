@@ -12,5 +12,5 @@ val chatPresentationModule = module {
     viewModelOf(::InboxViewModel)
     viewModelOf(::ConversationViewModel)
     viewModelOf(::MatrixKeysViewModel)
-    viewModel { (isNewMessage: Boolean) -> ContactsViewModel(get(), isNewMessage) }
+    viewModel { (isNewMessage: Boolean) -> ContactsViewModel(get(), get(), isNewMessage) }
 }
