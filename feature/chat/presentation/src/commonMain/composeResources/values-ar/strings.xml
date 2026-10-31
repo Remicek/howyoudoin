@@ -140,6 +140,8 @@
     <string name="problem_logged_out_text">وصّله مجددًا من الشبكات لتستمر في تلقي رسائله.</string>
     <string name="problem_reconnecting_text">لم يعد الاتصال بعد 10 دقائق من المحاولة. انقر على إعادة الاتصال، أو سجّل الدخول من جديد في الشبكات إن لم ينفع ذلك.</string>
     <string name="problem_expired_text">افصله من الشبكات ثم سجّل الدخول مجددًا.</string>
+    <string name="problem_unverified_title">لا يمكن إرسال الرسائل عبر %1$s بعد</string>
+    <string name="problem_unverified_text">أكّد البريد الإلكتروني أو رقم الهاتف للحساب في تطبيق %1$s أو موقعه، ثم أعد الإرسال.</string>
     <string name="problems_title">غير متصلة: %1$s</string>
     <string name="problems_text">قد تتأخر الرسائل الجديدة منها. انقر لمعرفة المشكلة في الشبكات.</string>
     <string name="problems_reconnect">إعادة الاتصال</string>

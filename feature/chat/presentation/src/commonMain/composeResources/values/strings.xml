@@ -151,6 +151,8 @@
     <string name="problem_logged_out_text">Connect it again in Networks to keep getting its messages.</string>
     <string name="problem_reconnecting_text">Still not back after 10 minutes of trying. Tap Reconnect, or log in again in Networks if that doesn't help.</string>
     <string name="problem_expired_text">Disconnect it in Networks and log in again.</string>
+    <string name="problem_unverified_title">%1$s can't send messages yet</string>
+    <string name="problem_unverified_text">Verify the account's email or phone in %1$s's own app or website, then send again.</string>
     <string name="problems_title">Not connected: %1$s</string>
     <string name="problems_text">New messages from these may be delayed. Tap to see what's wrong in Networks.</string>
     <string name="problems_reconnect">Reconnect</string>

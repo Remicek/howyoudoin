@@ -140,6 +140,8 @@
     <string name="problem_logged_out_text">Reconnectez-le dans Réseaux pour continuer à recevoir ses messages.</string>
     <string name="problem_reconnecting_text">Toujours pas de retour après 10 minutes d'essais. Touchez Reconnecter, ou reconnectez-vous dans Réseaux si cela ne suffit pas.</string>
     <string name="problem_expired_text">Déconnectez-le dans Réseaux et reconnectez-vous.</string>
+    <string name="problem_unverified_title">%1$s ne peut pas encore envoyer de messages</string>
+    <string name="problem_unverified_text">Vérifiez l'e-mail ou le téléphone du compte dans l'app ou sur le site de %1$s, puis renvoyez.</string>
     <string name="problems_title">Non connectés : %1$s</string>
     <string name="problems_text">Les nouveaux messages de ces réseaux peuvent être retardés. Touchez pour voir le problème dans Réseaux.</string>
     <string name="problems_reconnect">Reconnecter</string>

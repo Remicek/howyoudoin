@@ -140,6 +140,8 @@
     <string name="problem_logged_out_text">Hubungkan lagi di Jaringan agar tetap menerima pesannya.</string>
     <string name="problem_reconnecting_text">Masih belum kembali setelah mencoba 10 menit. Ketuk Sambungkan ulang, atau masuk lagi di Jaringan jika tidak membantu.</string>
     <string name="problem_expired_text">Putuskan di Jaringan lalu masuk lagi.</string>
+    <string name="problem_unverified_title">%1$s belum bisa mengirim pesan</string>
+    <string name="problem_unverified_text">Verifikasi email atau telepon akun di aplikasi atau situs %1$s, lalu kirim lagi.</string>
     <string name="problems_title">Tidak tersambung: %1$s</string>
     <string name="problems_text">Pesan baru dari sini mungkin tertunda. Ketuk untuk melihat masalahnya di Jaringan.</string>
     <string name="problems_reconnect">Sambungkan ulang</string>

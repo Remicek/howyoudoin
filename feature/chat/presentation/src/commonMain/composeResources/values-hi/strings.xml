@@ -140,6 +140,8 @@
     <string name="problem_logged_out_text">इसके मैसेज मिलते रहें, इसके लिए नेटवर्क में इसे फिर से जोड़ें।</string>
     <string name="problem_reconnecting_text">10 मिनट कोशिश के बाद भी वापस नहीं आया। फिर से कनेक्ट करें पर टैप करें, या न हो तो नेटवर्क में फिर से लॉग इन करें।</string>
     <string name="problem_expired_text">नेटवर्क में इसे हटाएँ और फिर से लॉग इन करें।</string>
+    <string name="problem_unverified_title">%1$s से अभी संदेश नहीं भेजे जा सकते</string>
+    <string name="problem_unverified_text">%1$s के ऐप या वेबसाइट में खाते का ईमेल या फ़ोन सत्यापित करें, फिर दोबारा भेजें।</string>
     <string name="problems_title">कनेक्ट नहीं: %1$s</string>
     <string name="problems_text">इनके नए संदेशों में देरी हो सकती है। नेटवर्क में समस्या देखने के लिए टैप करें।</string>
     <string name="problems_reconnect">फिर से कनेक्ट करें</string>

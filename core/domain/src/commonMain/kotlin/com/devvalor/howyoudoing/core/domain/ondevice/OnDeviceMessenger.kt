@@ -185,7 +185,8 @@ sealed interface OnDeviceHistoryError : com.devvalor.howyoudoing.core.domain.uti
 sealed interface OnDeviceMessengerState {
     data object NotLinked : OnDeviceMessengerState
     data object Connecting : OnDeviceMessengerState
-    data class Connected(val accountName: String?) : OnDeviceMessengerState
+    /** [needsVerification]: the network won't send for this account until its email or phone is verified. */
+    data class Connected(val accountName: String?, val needsVerification: Boolean = false) : OnDeviceMessengerState
     data class Failed(val message: String) : OnDeviceMessengerState
 }
 

@@ -140,6 +140,8 @@
     <string name="problem_logged_out_text">Mesajlarını almaya devam etmek için Ağlar bölümünden yeniden bağlayın.</string>
     <string name="problem_reconnecting_text">10 dakikalık denemeden sonra hâlâ bağlanmadı. Yeniden bağlan'a dokunun ya da işe yaramazsa Ağlar'da yeniden giriş yapın.</string>
     <string name="problem_expired_text">Ağlar bölümünden bağlantısını kesip yeniden giriş yapın.</string>
+    <string name="problem_unverified_title">%1$s henüz mesaj gönderemiyor</string>
+    <string name="problem_unverified_text">Hesabın e-postasını veya telefonunu %1$s uygulamasında ya da web sitesinde doğrulayın, sonra yeniden gönderin.</string>
     <string name="problems_title">Bağlı değil: %1$s</string>
     <string name="problems_text">Bunlardan gelen yeni mesajlar gecikebilir. Sorunu Ağlar'da görmek için dokunun.</string>
     <string name="problems_reconnect">Yeniden bağlan</string>

@@ -160,4 +160,15 @@ class ConnectionMonitorTest {
         set(slack, OnDeviceMessengerState.NotLinked)
         assertEquals(setOf(ChatNetwork.WHATSAPP), monitor.linkedNetworks.value)
     }
+
+    @Test
+    fun anUnverifiedAccountIsReportedUntilItSends() = runTest {
+        val monitor = monitor()
+        set(slack, OnDeviceMessengerState.Connected("Remi"))
+        set(slack, OnDeviceMessengerState.Connected("Remi", needsVerification = true))
+        assertEquals(ConnectionProblem.Kind.UNVERIFIED, monitor.problems.value.single().kind)
+
+        set(slack, OnDeviceMessengerState.Connected("Remi"))
+        assertTrue(monitor.problems.value.isEmpty())
+    }
 }

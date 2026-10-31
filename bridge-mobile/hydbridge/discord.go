@@ -14,6 +14,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/bwmarrin/discordgo"
@@ -39,6 +40,8 @@ type Discord struct {
 	// The CAPTCHA Discord last asked for, and the user's answer to it for the request that's tried again
 	captcha       *discordCaptcha
 	captchaAnswer string
+	// Discord refuses to send for an account without a verified email or phone; typing isn't tried meanwhile
+	needsVerification atomic.Bool
 
 	// Channel ID → *discordgo.Channel (DMs and group DMs only)
 	channels sync.Map
@@ -509,6 +512,7 @@ func (d *Discord) send(channelID string, data *discordgo.MessageSend) (string, e
 	// The nonce comes back on the echo, so the app matches it to what it showed while sending
 	data.Nonce = strconv.FormatInt((time.Now().UnixMilli()-discordEpochMillis)<<22, 10)
 	msg, err := session.ChannelMessageSendComplex(channelID, data, d.captchaOptions()...)
+	d.noteVerification(err == nil, err)
 	if err != nil {
 		return "", d.checkCaptcha(err)
 	}
@@ -572,14 +576,16 @@ func (d *Discord) MarkRead(channelID, messageID string) error {
 
 // SetTyping shows "typing…" for a few seconds.
 func (d *Discord) SetTyping(channelID string, isTyping bool) error {
-	if !isTyping {
+	if !isTyping || d.needsVerification.Load() {
 		return nil
 	}
 	session, err := d.current()
 	if err != nil {
 		return err
 	}
-	return session.ChannelTyping(channelID)
+	err = session.ChannelTyping(channelID)
+	d.noteVerification(false, err)
+	return err
 }
 
 // SendMediaFile uploads a file into a channel and returns the nonce of its message.
@@ -722,6 +728,24 @@ func (d *Discord) addFriend(session *discordgo.Session, username string) (string
 		}
 	}
 	return "", fmt.Errorf("no Discord user %s", username)
+}
+
+// --- account ---
+
+// discordUnverifiedCode is Discord's "You need to verify your account in order to perform this action".
+const discordUnverifiedCode = 40002
+
+// noteVerification tells the app when Discord starts or stops refusing for an unverified account: err is that
+// refusal, or sent is true once a message went through.
+func (d *Discord) noteVerification(sent bool, err error) {
+	var restErr *discordgo.RESTError
+	refused := errors.As(err, &restErr) && restErr.Message != nil && restErr.Message.Code == discordUnverifiedCode
+	if !sent && !refused {
+		return
+	}
+	if d.needsVerification.Swap(refused) != refused {
+		d.emit(map[string]any{"type": "account", "needsVerification": refused})
+	}
 }
 
 // --- CAPTCHA ---

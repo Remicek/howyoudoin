@@ -140,6 +140,8 @@
     <string name="problem_logged_out_text">Verbinde es unter Netzwerke neu, um weiter Nachrichten zu erhalten.</string>
     <string name="problem_reconnecting_text">Nach 10 Minuten noch nicht zurück. Tippe auf Neu verbinden oder melde dich in Netzwerke erneut an, falls das nicht hilft.</string>
     <string name="problem_expired_text">Trenne es unter Netzwerke und melde dich erneut an.</string>
+    <string name="problem_unverified_title">%1$s kann noch keine Nachrichten senden</string>
+    <string name="problem_unverified_text">Bestätige die E-Mail-Adresse oder Telefonnummer des Kontos in der App oder auf der Website von %1$s und sende dann erneut.</string>
     <string name="problems_title">Nicht verbunden: %1$s</string>
     <string name="problems_text">Neue Nachrichten von dort können sich verzögern. Tippe, um in Netzwerke zu sehen, was los ist.</string>
     <string name="problems_reconnect">Neu verbinden</string>

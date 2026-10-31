@@ -13,6 +13,8 @@ import howyoudoin.feature.chat.presentation.generated.resources.problem_logged_o
 import howyoudoin.feature.chat.presentation.generated.resources.problem_logged_out_title
 import howyoudoin.feature.chat.presentation.generated.resources.problem_reconnecting_text
 import howyoudoin.feature.chat.presentation.generated.resources.problem_reconnecting_title
+import howyoudoin.feature.chat.presentation.generated.resources.problem_unverified_text
+import howyoudoin.feature.chat.presentation.generated.resources.problem_unverified_title
 import howyoudoin.feature.chat.presentation.generated.resources.problems_text
 import howyoudoin.feature.chat.presentation.generated.resources.problems_title
 
@@ -24,6 +26,7 @@ val ConnectionProblem.title: UiText
             Kind.LOGGED_OUT -> Res.string.problem_logged_out_title
             Kind.RECONNECTING -> Res.string.problem_reconnecting_title
             Kind.LOGIN_EXPIRED -> Res.string.problem_expired_title
+            Kind.UNVERIFIED -> Res.string.problem_unverified_title
         },
         arrayOf(network.displayName)
     )
@@ -35,6 +38,7 @@ val ConnectionProblem.text: UiText
         Kind.LOGGED_OUT -> UiText.Resource(Res.string.problem_logged_out_text)
         Kind.RECONNECTING -> UiText.Resource(Res.string.problem_reconnecting_text)
         Kind.LOGIN_EXPIRED -> UiText.Resource(Res.string.problem_expired_text)
+        Kind.UNVERIFIED -> UiText.Resource(Res.string.problem_unverified_text, arrayOf(network.displayName))
     }
 
 /** Several networks at once are named together in one banner; one network keeps its own title and reason. */

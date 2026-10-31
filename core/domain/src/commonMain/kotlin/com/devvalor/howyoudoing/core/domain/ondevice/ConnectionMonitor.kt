@@ -31,7 +31,10 @@ data class ConnectionProblem(val network: ChatNetwork, val kind: Kind, val detai
         RECONNECTING,
 
         /** The network no longer accepts the saved login; it has to be logged in again. */
-        LOGIN_EXPIRED
+        LOGIN_EXPIRED,
+
+        /** Connected, but the network won't send until the account's email or phone is verified (Discord). */
+        UNVERIFIED
     }
 }
 
@@ -105,7 +108,11 @@ class ConnectionMonitor(
                 is OnDeviceMessengerState.Connected -> {
                     wasConnected = true
                     disconnecting -= network
-                    clear(network)
+                    if (state.needsVerification) {
+                        report(ConnectionProblem(network, ConnectionProblem.Kind.UNVERIFIED))
+                    } else {
+                        clear(network)
+                    }
                 }
 
                 is OnDeviceMessengerState.Failed -> report(

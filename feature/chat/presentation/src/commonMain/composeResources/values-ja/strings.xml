@@ -140,6 +140,8 @@
     <string name="problem_logged_out_text">メッセージを受け取り続けるには、ネットワークで接続し直してください。</string>
     <string name="problem_reconnecting_text">10 分間試しても復旧しません。「再接続」をタップするか、解決しない場合は「ネットワーク」で再ログインしてください。</string>
     <string name="problem_expired_text">ネットワークで接続を解除し、もう一度ログインしてください。</string>
+    <string name="problem_unverified_title">%1$s ではまだメッセージを送信できません</string>
+    <string name="problem_unverified_text">%1$s のアプリまたはウェブサイトでアカウントのメールアドレスか電話番号を認証してから、もう一度送信してください。</string>
     <string name="problems_title">未接続: %1$s</string>
     <string name="problems_text">これらの新しいメッセージが遅れることがあります。タップして「ネットワーク」で原因を確認できます。</string>
     <string name="problems_reconnect">再接続</string>

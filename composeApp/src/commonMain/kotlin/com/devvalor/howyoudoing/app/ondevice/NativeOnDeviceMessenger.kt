@@ -37,6 +37,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.booleanOrNull
+import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
@@ -447,12 +448,22 @@ open class NativeOnDeviceMessenger(
     /** The account's name, from the "self" event of the first connect; reconnects don't send it again. */
     private var accountName: String? = null
 
+    /** The network refuses to send until the account is verified (Discord). */
+    private var needsVerification = false
+
     private fun onNativeEvent(json: String) {
         val event = runCatching { Json.parseToJsonElement(json).jsonObject }.getOrNull() ?: return
         when (event["type"]?.jsonPrimitive?.contentOrNull) {
             "self" -> {
                 accountName = event["name"]?.jsonPrimitive?.contentOrNull
-                _state.value = OnDeviceMessengerState.Connected(accountName)
+                _state.value = OnDeviceMessengerState.Connected(accountName, needsVerification)
+            }
+
+            "account" -> {
+                needsVerification = event["needsVerification"]?.jsonPrimitive?.booleanOrNull == true
+                (_state.value as? OnDeviceMessengerState.Connected)?.let {
+                    _state.value = it.copy(needsVerification = needsVerification)
+                }
             }
 
             "state" -> when (
@@ -466,7 +477,7 @@ open class NativeOnDeviceMessenger(
 
                 // Back after a dropped connection (the first connect says so with "self")
                 "connected" -> if (_state.value == OnDeviceMessengerState.Connecting && client != null) {
-                    _state.value = OnDeviceMessengerState.Connected(accountName)
+                    _state.value = OnDeviceMessengerState.Connected(accountName, needsVerification)
                 }
             }
         }

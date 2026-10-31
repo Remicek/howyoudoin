@@ -41,3 +41,27 @@ func TestDiscordCaptcha(t *testing.T) {
 		t.Errorf("an answer nobody asked for: %v", err)
 	}
 }
+
+func TestDiscordVerification(t *testing.T) {
+	listener := &recordingListener{}
+	d := &Discord{listener: listener}
+	unverified := &discordgo.RESTError{Message: &discordgo.APIErrorMessage{Code: discordUnverifiedCode}}
+
+	d.noteVerification(false, unverified)
+	d.noteVerification(false, unverified)
+	if !d.needsVerification.Load() || len(listener.events) != 1 {
+		t.Fatalf("after refusals: %v, events %v", d.needsVerification.Load(), listener.events)
+	}
+	if err := d.SetTyping("channel", true); err != nil {
+		t.Errorf("typing while unverified: %v", err)
+	}
+	// Other errors leave it as it is; a sent message clears it
+	d.noteVerification(false, errors.New("offline"))
+	d.noteVerification(true, nil)
+	if d.needsVerification.Load() || len(listener.events) != 2 {
+		t.Errorf("after sending: %v, events %v", d.needsVerification.Load(), listener.events)
+	}
+	if event := listener.events[1]; event["type"] != "account" || event["needsVerification"] != false {
+		t.Errorf("event = %v", event)
+	}
+}

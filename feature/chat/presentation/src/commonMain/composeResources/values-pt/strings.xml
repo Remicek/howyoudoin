@@ -140,6 +140,8 @@
     <string name="problem_logged_out_text">Conecte de novo em Redes para continuar recebendo as mensagens.</string>
     <string name="problem_reconnecting_text">Ainda sem conexão após 10 minutos de tentativas. Toque em Reconectar ou entre de novo em Redes se isso não ajudar.</string>
     <string name="problem_expired_text">Desconecte em Redes e entre de novo.</string>
+    <string name="problem_unverified_title">%1$s ainda não pode enviar mensagens</string>
+    <string name="problem_unverified_text">Verifique o e-mail ou o telefone da conta no app ou site do %1$s e envie de novo.</string>
     <string name="problems_title">Sem conexão: %1$s</string>
     <string name="problems_text">Novas mensagens delas podem atrasar. Toque para ver o que houve em Redes.</string>
     <string name="problems_reconnect">Reconectar</string>
