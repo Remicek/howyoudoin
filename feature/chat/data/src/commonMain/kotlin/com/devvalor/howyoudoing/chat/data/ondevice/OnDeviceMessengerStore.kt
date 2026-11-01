@@ -162,9 +162,10 @@ class OnDeviceMessengerStore(
 
     init {
         scope.launch {
-            // The inbox from the last run, so chats known only from live messages survive restarts
-            cache.read()?.let { saved ->
-                runCatching { cacheJson.decodeFromString<Snapshot>(saved) }.getOrNull()?.let { _snapshot.value = it }
+            // The inbox from the last run, so chats known only from live messages survive restarts. A failed read
+            // (e.g. the cache can't be decrypted) must still mark it loaded, or the inbox waits on its spinner forever.
+            runCatching {
+                cache.read()?.let { saved -> cacheJson.decodeFromString<Snapshot>(saved).let { _snapshot.value = it } }
             }
             isLoaded.value = true
             // Events (replayed from the connect) go on top of it
