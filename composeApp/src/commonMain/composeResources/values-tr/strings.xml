@@ -20,4 +20,8 @@
     <string name="captcha_title">%1$s insan olduğunuzu doğrulamak istiyor</string>
     <string name="captcha_text">Devam etmek için bunu çözün. HowYouDoin ardından kendiliğinden devam eder.</string>
     <string name="captcha_cancel">İptal</string>
+    <string name="background_title">Mesajlar hemen gelsin mi?</string>
+    <string name="background_text">Telefonu kullanmadığınızda Android HowYouDoin'i duraklatabilir ve mesajlarınız gecikmeli gelir. Ağlarınızın bağlı kalması için arka planda çalışmasına izin verin. Biraz pil kullanır.</string>
+    <string name="background_allow">İzin ver</string>
+    <string name="background_not_now">Şimdi değil</string>
 </resources>

@@ -20,4 +20,8 @@
     <string name="captcha_title">%1$s が人間かどうか確認しています</string>
     <string name="captcha_text">続けるには解いてください。完了すると HowYouDoin が自動で続けます。</string>
     <string name="captcha_cancel">キャンセル</string>
+    <string name="background_title">メッセージをすぐに受け取りますか？</string>
+    <string name="background_text">スマートフォンを使っていない間、Android が HowYouDoin を一時停止することがあり、メッセージの到着が遅れます。バックグラウンドでの実行を許可すると、ネットワークの接続が保たれます。バッテリーを少し使います。</string>
+    <string name="background_allow">許可</string>
+    <string name="background_not_now">後で</string>
 </resources>

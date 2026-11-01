@@ -78,6 +78,23 @@ class ConnectionMonitor(
         scope.launch { clear(network) }
     }
 
+    /**
+     * Starts over the networks that lost their connection and haven't got it back (reconnecting, or failed), e.g. as
+     * soon as the phone is online again rather than at their next retry. Ones connecting for the first time are left
+     * alone.
+     */
+    fun reconnectDropped() {
+        scope.launch {
+            val failed = _problems.value
+                .filter { it.kind == ConnectionProblem.Kind.FAILED || it.kind == ConnectionProblem.Kind.RECONNECTING }
+                .map { it.network }
+            for (network in (reconnectTimers.keys + failed).toSet()) {
+                val client = clients.firstOrNull { it.network == network } ?: continue
+                scope.launch { client.reconnect() }
+            }
+        }
+    }
+
     /** The user asked to reconnect the networks that are stuck reconnecting or failed: each starts over. */
     fun reconnect() {
         scope.launch {

@@ -20,4 +20,8 @@
     <string name="captcha_title">%1$s quer confirmar que você é humano</string>
     <string name="captcha_text">Resolva para continuar. O HowYouDoin segue sozinho depois.</string>
     <string name="captcha_cancel">Cancelar</string>
+    <string name="background_title">Receber mensagens na hora?</string>
+    <string name="background_text">Quando você não está usando o celular, o Android pode pausar o HowYouDoin e as mensagens chegam atrasadas. Deixe-o rodar em segundo plano para manter suas redes conectadas. Usa um pouco de bateria.</string>
+    <string name="background_allow">Permitir</string>
+    <string name="background_not_now">Agora não</string>
 </resources>

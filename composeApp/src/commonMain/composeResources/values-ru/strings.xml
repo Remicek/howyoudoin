@@ -20,4 +20,8 @@
     <string name="captcha_title">%1$s хочет убедиться, что вы человек</string>
     <string name="captcha_text">Пройдите проверку, чтобы продолжить. Дальше HowYouDoin продолжит сам.</string>
     <string name="captcha_cancel">Отмена</string>
+    <string name="background_title">Получать сообщения сразу?</string>
+    <string name="background_text">Когда вы не пользуетесь телефоном, Android может приостанавливать HowYouDoin, и сообщения приходят с опозданием. Разрешите работу в фоне, чтобы сети оставались подключёнными. Это расходует немного заряда.</string>
+    <string name="background_allow">Разрешить</string>
+    <string name="background_not_now">Не сейчас</string>
 </resources>

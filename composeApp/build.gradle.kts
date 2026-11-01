@@ -74,6 +74,7 @@ kotlin {
             implementation(libs.androidx.activity.compose)
             implementation(libs.koin.android)
             implementation(libs.androidx.biometric)
+            implementation(libs.androidx.work.runtime)
             implementation(libs.stream.webrtc.android)
             implementation(libs.jetbrains.compose.material.icons.extended)
             // On-device Messenger bridge, built by bridge-mobile/scripts/build-android.sh (not in git)

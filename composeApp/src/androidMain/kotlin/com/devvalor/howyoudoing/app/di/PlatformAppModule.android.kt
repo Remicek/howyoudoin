@@ -63,6 +63,9 @@ import org.koin.dsl.module
 import com.devvalor.howyoudoing.app.backup.AndroidLoginBackup
 import com.devvalor.howyoudoing.core.domain.auth.MATRIX_ACCOUNT_SESSION
 import com.devvalor.howyoudoing.core.domain.backup.LoginBackup
+import com.devvalor.howyoudoing.core.domain.ondevice.BackgroundDelivery
+import com.devvalor.howyoudoing.app.ondevice.AndroidBackgroundDelivery
+import com.devvalor.howyoudoing.app.ondevice.OnlineReconnector
 import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceMatrix
 import java.io.File
@@ -87,6 +90,8 @@ actual val platformAppModule: Module = module {
     }
     single<MessageNotificationPresenter> { AndroidNotificationPresenter(androidContext()) }
     single(createdAtStart = true) { IncomingMessageNotifier(get(), get(), get(), get(), get(), get()) }
+    single<BackgroundDelivery> { AndroidBackgroundDelivery(androidContext()) }
+    single(createdAtStart = true) { OnlineReconnector(androidContext(), get(), get()) }
     single(createdAtStart = true) {
         OnDeviceConnectionKeeper(
             context = androidContext(),

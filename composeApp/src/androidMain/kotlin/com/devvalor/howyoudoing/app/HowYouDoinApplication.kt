@@ -1,5 +1,6 @@
 package com.devvalor.howyoudoing.app
 
+import com.devvalor.howyoudoing.app.ondevice.ConnectionWatchdogWorker
 import android.app.Application
 import com.devvalor.howyoudoing.app.di.initKoin
 import com.devvalor.howyoudoing.app.ondevice.StorageKey
@@ -17,5 +18,7 @@ class HowYouDoinApplication : Application() {
             androidContext(this@HowYouDoinApplication)
             androidLogger()
         }
+        // Brings the connections back if Android stopped the app and didn't restart it
+        ConnectionWatchdogWorker.schedule(this)
     }
 }

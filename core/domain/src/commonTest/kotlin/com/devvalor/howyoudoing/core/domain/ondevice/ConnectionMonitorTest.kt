@@ -171,4 +171,19 @@ class ConnectionMonitorTest {
         set(slack, OnDeviceMessengerState.Connected("Remi"))
         assertTrue(monitor.problems.value.isEmpty())
     }
+
+    @Test
+    fun onlyDroppedNetworksStartOverWhenBackOnline() = runTest {
+        val monitor = monitor()
+        // Connecting for the first time: left alone
+        set(whatsApp, OnDeviceMessengerState.Connecting)
+        // Lost its connection
+        set(slack, OnDeviceMessengerState.Connected("Team"))
+        set(slack, OnDeviceMessengerState.Connecting)
+
+        monitor.reconnectDropped()
+        runCurrent()
+        assertEquals(0, whatsApp.reconnects)
+        assertEquals(1, slack.reconnects)
+    }
 }

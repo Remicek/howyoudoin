@@ -188,6 +188,11 @@ class OnDeviceConnectionKeeper(
         OnDeviceConnectionService.start(appContext, text(active.value))
     }
 
+    /** Starts the service if something is linked and it isn't running (e.g. after Android stopped the app). */
+    fun ensureRunning() {
+        if (active.value.isNotEmpty()) OnDeviceConnectionService.start(appContext, text(active.value))
+    }
+
     fun text(active: List<String>) =
         if (active.isEmpty()) appContext.getString(R.string.connections_connecting) else appContext.getString(
             R.string.connections_connected,

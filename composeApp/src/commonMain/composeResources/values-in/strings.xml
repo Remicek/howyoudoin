@@ -20,4 +20,8 @@
     <string name="captcha_title">%1$s ingin memastikan Anda manusia</string>
     <string name="captcha_text">Selesaikan ini untuk melanjutkan. HowYouDoin akan lanjut sendiri setelahnya.</string>
     <string name="captcha_cancel">Batal</string>
+    <string name="background_title">Terima pesan langsung?</string>
+    <string name="background_text">Saat ponsel tidak dipakai, Android bisa menjeda HowYouDoin sehingga pesan datang terlambat. Izinkan berjalan di latar belakang agar jaringan Anda tetap tersambung. Ini memakai sedikit baterai.</string>
+    <string name="background_allow">Izinkan</string>
+    <string name="background_not_now">Nanti saja</string>
 </resources>

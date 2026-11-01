@@ -18,6 +18,7 @@ import com.devvalor.howyoudoing.settings.presentation.appearance.AppearanceViewM
 import com.devvalor.howyoudoing.settings.presentation.appearance.isDark
 import org.koin.compose.viewmodel.koinViewModel
 import com.devvalor.howyoudoing.app.backup.BackupOfferRoot
+import com.devvalor.howyoudoing.app.background.BackgroundOfferRoot
 import com.devvalor.howyoudoing.app.captcha.CaptchaRoot
 import com.devvalor.howyoudoing.app.backup.RestoreLoginsScreen
 import com.devvalor.howyoudoing.app.backup.RestoreLoginsViewModel
@@ -89,6 +90,8 @@ fun App(
                     BackupOfferRoot()
                     // A network asking for a CAPTCHA (Discord, for a friend request)
                     CaptchaRoot()
+                    // Once a network is connected: ask to keep running in the background
+                    BackgroundOfferRoot()
                 }
             }
         }

@@ -20,4 +20,8 @@
     <string name="captcha_title">%1$s wants to check you're human</string>
     <string name="captcha_text">Solve this to continue. HowYouDoin goes on by itself once it's done.</string>
     <string name="captcha_cancel">Cancel</string>
+    <string name="background_title">Get messages right away?</string>
+    <string name="background_text">While your phone isn't in use, Android can pause HowYouDoin, and then your messages arrive late. Let it run in the background to keep your networks connected. It uses a little battery.</string>
+    <string name="background_allow">Allow</string>
+    <string name="background_not_now">Not now</string>
 </resources>

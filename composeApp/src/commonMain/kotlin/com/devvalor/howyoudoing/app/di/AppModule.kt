@@ -3,6 +3,7 @@ package com.devvalor.howyoudoing.app.di
 import com.devvalor.howyoudoing.app.MainViewModel
 import com.devvalor.howyoudoing.app.backup.RestoreLoginsViewModel
 import com.devvalor.howyoudoing.app.backup.BackupOfferViewModel
+import com.devvalor.howyoudoing.app.background.BackgroundOfferViewModel
 import com.devvalor.howyoudoing.app.ondevice.MatrixAccount
 import com.devvalor.howyoudoing.core.domain.auth.MATRIX_ACCOUNT_SESSION
 import com.devvalor.howyoudoing.core.domain.ondevice.CaptchaSolver
@@ -18,6 +19,7 @@ val appModule = module {
     viewModelOf(::MainViewModel)
     viewModelOf(::RestoreLoginsViewModel)
     viewModelOf(::BackupOfferViewModel)
+    viewModelOf(::BackgroundOfferViewModel)
     single<OnDeviceMatrix>(createdAtStart = true) { MatrixAccount(get(), get(named(MATRIX_ACCOUNT_SESSION)), get()) }
     singleOf(::OnDeviceAccounts)
     singleOf(::CaptchaSolver)
