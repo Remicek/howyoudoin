@@ -1,3 +1,4 @@
+import java.security.MessageDigest
 import java.security.SecureRandom
 import java.util.Properties
 
@@ -55,15 +56,32 @@ android {
         // End-to-end tests (src/androidInstrumentedTest); each test starts from a freshly cleared app
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         testInstrumentationRunnerArguments["clearPackageData"] = "true"
-        // Telegram's keys go into the app XOR-ed with a random pad (see TelegramKeys), so they aren't readable text in
-        // the APK. That only stops casual copying: an app's own API keys can always be dug out of it.
+        // Telegram's keys go into the app XOR-ed with a pad, so they aren't readable text in the APK. The pad isn't
+        // stored: it's hashed from a random salt at runtime (see builtInTelegramKeys), the same way here, so a
+        // decompiled APK has only the masked bytes, the salt and a hash loop (not two blobs to XOR). This stops
+        // casual copying and automated scanners; an app's own API keys can always be dug out of it by someone set on
+        // it (only a server the keys never leave would prevent that).
         val telegramKeys = "${localProperties.getProperty("telegram.apiId")?.trim().orEmpty()}:" +
             localProperties.getProperty("telegram.apiHash")?.trim().orEmpty()
-        val pad = ByteArray(telegramKeys.length).also { SecureRandom().nextBytes(it) }
-        val masked = telegramKeys.toByteArray().mapIndexed { i, b -> (b.toInt() xor pad[i].toInt()).toByte() }
+        val telegramBytes = telegramKeys.toByteArray()
+        val salt = ByteArray(32).also { SecureRandom().nextBytes(it) }
+        fun derivePad(salt: ByteArray, len: Int): ByteArray {
+            val digest = MessageDigest.getInstance("SHA-256")
+            val out = ByteArray(len)
+            var block = ByteArray(0)
+            var i = 0
+            while (i < len) {
+                block = digest.digest(salt + block)
+                var j = 0
+                while (i < len && j < block.size) out[i++] = block[j++]
+            }
+            return out
+        }
+        val pad = derivePad(salt, telegramBytes.size)
+        val masked = telegramBytes.mapIndexed { i, b -> (b.toInt() xor pad[i].toInt()).toByte() }
         fun hex(bytes: List<Byte>) = bytes.joinToString("") { "%02x".format(it) }
         buildConfigField("String", "TELEGRAM_KEYS", "\"${hex(masked)}\"")
-        buildConfigField("String", "TELEGRAM_KEYS_PAD", "\"${hex(pad.toList())}\"")
+        buildConfigField("String", "TELEGRAM_KEYS_SALT", "\"${hex(salt.toList())}\"")
     }
 }
 

@@ -34,13 +34,31 @@ class AndroidTelegramApiKeys(context: Context) : TelegramApiKeys {
         ?.let { TelegramApiKeys.parse(it[0], it.getOrElse(1) { "" }) }
 }
 
-/** The app's own keys, kept XOR-ed with a random pad in BuildConfig (see composeApp/build.gradle.kts). */
+/**
+ * The app's own keys, XOR-ed in BuildConfig with a pad that isn't stored: it's hashed from a random salt (the same
+ * way build.gradle made the masked bytes), so a decompiled APK has only the masked bytes, the salt and this loop.
+ */
 internal fun builtInTelegramKeys(): OwnTelegramKeys? {
     val masked = BuildConfig.TELEGRAM_KEYS.hexBytes()
-    val pad = BuildConfig.TELEGRAM_KEYS_PAD.hexBytes()
-    if (masked.isEmpty() || masked.size != pad.size) return null
+    val salt = BuildConfig.TELEGRAM_KEYS_SALT.hexBytes()
+    if (masked.isEmpty() || salt.isEmpty()) return null
+    val pad = derivePad(salt, masked.size)
     val keys = String(ByteArray(masked.size) { (masked[it].toInt() xor pad[it].toInt()).toByte() })
     return keys.split(":", limit = 2).let { TelegramApiKeys.parse(it[0], it.getOrElse(1) { "" }) }
+}
+
+/** The XOR pad: SHA-256 of the salt, chained to [len] bytes. Must match build.gradle's derivePad exactly. */
+private fun derivePad(salt: ByteArray, len: Int): ByteArray {
+    val digest = java.security.MessageDigest.getInstance("SHA-256")
+    val out = ByteArray(len)
+    var block = ByteArray(0)
+    var i = 0
+    while (i < len) {
+        block = digest.digest(salt + block)
+        var j = 0
+        while (i < len && j < block.size) out[i++] = block[j++]
+    }
+    return out
 }
 
 private const val HEX = 16
