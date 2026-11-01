@@ -22,6 +22,11 @@ actual fun CaptchaWebView(challenge: CaptchaChallenge, onSolved: (String) -> Uni
             WebView(context).apply {
                 settings.javaScriptEnabled = true
                 settings.domStorageEnabled = true
+                // Runs remote hCaptcha JS next to a JS bridge: keep it off the device's files
+                settings.allowFileAccess = false
+                settings.allowContentAccess = false
+                settings.allowFileAccessFromFileURLs = false
+                settings.allowUniversalAccessFromFileURLs = false
                 setBackgroundColor(android.graphics.Color.TRANSPARENT)
                 addJavascriptInterface(
                     object {
