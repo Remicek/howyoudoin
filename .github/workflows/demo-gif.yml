@@ -70,7 +70,7 @@ jobs:
             -loop 0 demo/demo.gif
           ls -l demo
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: demo-gif
           path: demo/

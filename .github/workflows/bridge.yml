@@ -57,7 +57,7 @@ jobs:
           bridge-mobile/scripts/fetch-bridges.sh
           bridge-mobile/scripts/build-android.sh
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: hydbridge
           path: |
