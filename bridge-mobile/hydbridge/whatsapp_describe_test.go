@@ -58,3 +58,13 @@ func TestWhatsAppUnknownMessagesShowTheirText(t *testing.T) {
 		t.Errorf("quoted text leaked: %q", kind)
 	}
 }
+
+// Businesses' one-time passcodes reach linked devices only as a placeholder; they say so instead of "unsupported".
+func TestWhatsAppOneTimeCodePlaceholder(t *testing.T) {
+	msg := &waE2E.Message{PlaceholderMessage: &waE2E.PlaceholderMessage{
+		Type: waE2E.PlaceholderMessage_MASK_LINKED_DEVICES.Enum(),
+	}}
+	if kind, text := describeWAMessage(msg); kind != "text" || text != waOneTimeCodeNotice {
+		t.Errorf("got %q %q", kind, text)
+	}
+}

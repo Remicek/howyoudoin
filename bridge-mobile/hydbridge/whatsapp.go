@@ -456,7 +456,8 @@ func (w *WhatsApp) emitWAMessage(evt *events.Message, live bool) {
 	if kind == "" {
 		return
 	} else if kind == "other" {
-		w.log.Info().Strs("fields", waSetFields(msg)).Msg("WhatsApp message type not shown yet")
+		// Debug events reach the app's log (the bridge's own logger only keeps errors)
+		w.emit(map[string]any{"type": "debug", "event": "unsupported_message", "fields": waSetFields(msg)})
 	}
 	event := map[string]any{
 		"type": "message", "threadKey": chat, "id": evt.Info.ID, "otid": evt.Info.ID, "senderId": sender, "text": text,
@@ -531,6 +532,10 @@ func describeWAMessage(msg *waE2E.Message) (kind, text string) {
 		return describeWAMessage(msg.GetViewOnceMessageV2Extension().GetMessage())
 	case msg.GetDocumentWithCaptionMessage() != nil:
 		return describeWAMessage(msg.GetDocumentWithCaptionMessage().GetMessage())
+	case msg.GetPlaceholderMessage() != nil &&
+		msg.GetPlaceholderMessage().GetType() == waE2E.PlaceholderMessage_MASK_LINKED_DEVICES:
+		// WhatsApp never sends one-time passcodes (businesses' login codes) to linked devices, only this placeholder
+		return "text", waOneTimeCodeNotice
 	default:
 		if text := describeWARichMessage(msg); text != "" {
 			return "text", text
