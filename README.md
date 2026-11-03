@@ -36,6 +36,64 @@ Status: experimental, Android only for now. (An iOS build exists in the code but
 - Try everything in demo mode without connecting an account
 - Optional: connect through your own Matrix homeserver with mautrix bridges instead (server mode)
 
+## How it works
+
+HowYouDoin speaks the [Matrix](https://matrix.org) protocol and uses [mautrix](https://github.com/mautrix)
+bridges to translate each network to and from it. In the **default mode** those bridges run **on the phone**,
+compiled into a single Go library (`hydbridge`), so there is no server in the middle — messages go straight
+from your device to each network, and everything is stored encrypted on the device. In the optional **server
+mode** the app instead connects to your own Matrix homeserver running the same bridges.
+
+```mermaid
+flowchart TD
+    UI["Android app · Compose Multiplatform UI<br/>+ Kotlin Multiplatform shared logic"]
+    MX["Embedded Matrix client<br/>login · sync · end-to-end crypto"]
+    UI --> MX
+
+    subgraph DEVICE["On your phone — default mode"]
+        BR["hydbridge (Go)<br/>mautrix bridges: Meta · Telegram · Signal<br/>Slack · LinkedIn · Google · X"]
+        STORE["Encrypted on-device storage<br/>SQLCipher databases · Android Keystore · DataStore"]
+        BR --- STORE
+    end
+
+    MX --> BR
+    BR --> NET["Messaging networks<br/>WhatsApp · Messenger · Instagram · Telegram · Signal<br/>Slack · LinkedIn · Discord · X · Bluesky · Google"]
+
+    MX -. "server mode (optional)" .-> HS["Your own Matrix homeserver<br/>+ mautrix bridges"]
+    HS --> NET
+```
+
+## Install
+
+**Requires Android 8.0 (API 26) or newer.**
+
+- **Google Play:** coming soon.
+- **APK (sideload):** download `howyoudoin-<version>.apk` from the
+  [latest release](https://github.com/Remicek/howyoudoin/releases/latest), allow your browser or file manager
+  to install from unknown sources when prompted, then open it. Play Protect may warn simply because the app
+  was installed from outside the Play Store.
+- **From source:** see [Building](#building) below.
+
+You can try everything in **demo mode** first, without connecting any account.
+
+## Limitations
+
+- **Unofficial.** None of these networks officially allow third-party clients. They may rate-limit, log out, or
+  **ban** an account that uses one. Use it at your own risk — ideally not on an account you can't afford to lose.
+- **Android only.** The iOS code exists but isn't released (see [iOS](#ios)).
+- **Experimental**, with rough edges. Discord is **untested with real accounts** so far.
+- **Delivery relies on a background connection, not push servers.** Aggressive battery optimisation can delay
+  notifications (the app asks to be exempted), and running the bridges on-device uses some battery and mobile data.
+- **Feature support varies by network.** Voice and video calls work only with Matrix contacts; reactions, edits,
+  receipts and the like appear only where a network supports them. See [docs/networks.md](docs/networks.md).
+- **Web-login networks** (Messenger, Instagram, Slack, LinkedIn, Discord, X) sign in through their own websites;
+  those sessions can expire and need signing in again.
+- **Encryption is each network's own.** Chats are only as private as the network makes them — the networks still
+  see the metadata, and the messages unless they are end-to-end encrypted. HowYouDoin adds no extra end-to-end
+  layer of its own beyond what Matrix and the bridges already provide.
+- **No cloud backup of your chats.** History stays on the phone; only your logins can be backed up, and only
+  through your device's own end-to-end-encrypted Google backup.
+
 ## Building
 
 Requirements: JDK 17+, the Android SDK and NDK, Go (see `bridge-mobile/go.mod`) with `gomobile`/`gobind`, and for
