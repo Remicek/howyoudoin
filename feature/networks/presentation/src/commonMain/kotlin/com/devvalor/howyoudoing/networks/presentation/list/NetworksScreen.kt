@@ -37,6 +37,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.material3.AlertDialog
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -297,19 +299,20 @@ private fun NetworkCardAction(
     val network = item.network
     when (item.status) {
         NetworkStatus.Loading if onDevice != OnDeviceMessengerState.NotLinked -> Unit
-        NetworkStatus.Loading -> CircularProgressIndicator(
-            modifier = Modifier.size(20.dp),
-            strokeWidth = 2.dp
-        )
+        NetworkStatus.Loading -> ActionSlot {
+            CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+        }
 
         NetworkStatus.ComingSoon -> Unit
         // Already linked on this phone (one account per network there): the row below disconnects it,
         // and a second Connect would only start the same link again. A failed link keeps the button.
         else if onDevice is OnDeviceMessengerState.Connected ||
             onDevice == OnDeviceMessengerState.Connecting -> Unit
-        else -> FilledTonalButton(onClick = { onAction(NetworksAction.OnConnectClick(network)) }) {
-            val hasLogins = item.status is NetworkStatus.Ready && item.status.logins.isNotEmpty()
-            Text(stringResource(if (hasLogins) Res.string.networks_add else Res.string.networks_connect))
+        else -> ActionSlot {
+            FilledTonalButton(onClick = { onAction(NetworksAction.OnConnectClick(network)) }) {
+                val hasLogins = item.status is NetworkStatus.Ready && item.status.logins.isNotEmpty()
+                Text(stringResource(if (hasLogins) Res.string.networks_add else Res.string.networks_connect))
+            }
         }
     }
 }
@@ -338,13 +341,28 @@ private fun LoginRow(login: NetworkLogin, onDisconnect: () -> Unit) {
                 )
             }
         }
-        TextButton(onClick = onDisconnect) {
-            Icon(Icons.Rounded.LinkOff, contentDescription = null, modifier = Modifier.size(16.dp))
-            Spacer(Modifier.width(HowYouDoinSpacing.xs))
-            Text(stringResource(Res.string.networks_disconnect))
+        ActionSlot {
+            TextButton(onClick = onDisconnect) {
+                Icon(Icons.Rounded.LinkOff, contentDescription = null, modifier = Modifier.size(16.dp))
+                Spacer(Modifier.width(HowYouDoinSpacing.xs))
+                Text(stringResource(Res.string.networks_disconnect))
+            }
         }
     }
 }
+
+/**
+ * The column at a card's right edge that holds Connect and every Disconnect, centered in a common width so the
+ * buttons line up whatever their labels (a longer translation just widens its own slot).
+ */
+@Composable
+private fun ActionSlot(content: @Composable () -> Unit) {
+    Box(modifier = Modifier.widthIn(min = ACTION_SLOT_MIN_WIDTH), contentAlignment = Alignment.Center) {
+        content()
+    }
+}
+
+private val ACTION_SLOT_MIN_WIDTH = 128.dp
 
 /** Bridge login states ("CONNECTED", "ERROR: …") in words; states we don't know are shown as they come. */
 @Composable
