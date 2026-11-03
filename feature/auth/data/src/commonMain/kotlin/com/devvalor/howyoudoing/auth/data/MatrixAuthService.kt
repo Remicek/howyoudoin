@@ -41,7 +41,12 @@ class MatrixAuthService(
             }
         }.map { response ->
             AuthInfo(
-                homeserverUrl = response.wellKnown?.homeserver?.baseUrl?.trimEnd('/') ?: baseUrl,
+                // The login response can override the homeserver URL for all later authenticated calls; only honor
+                // an https override, else keep the already-resolved base, so a server can't point the token at an
+                // http or internal host.
+                homeserverUrl = response.wellKnown?.homeserver?.baseUrl?.trimEnd('/')
+                    ?.takeIf { it.startsWith("https://") }
+                    ?: baseUrl,
                 userId = response.userId,
                 accessToken = response.accessToken,
                 deviceId = response.deviceId

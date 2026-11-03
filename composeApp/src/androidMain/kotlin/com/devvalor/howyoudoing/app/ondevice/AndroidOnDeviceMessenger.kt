@@ -147,7 +147,12 @@ class AndroidInboxCache(context: Context, directory: String = "on_device_messeng
     override fun write(value: String) {
         val tmp = File(file.parentFile, "inbox.json.tmp")
         tmp.writeText(value)
-        tmp.renameTo(file)
+        // If the atomic rename fails, write in place and drop the orphan temp, so the cache is never left stale
+        // with a leftover .tmp beside it.
+        if (!tmp.renameTo(file)) {
+            file.writeText(value)
+            tmp.delete()
+        }
     }
 
     override fun clear() {

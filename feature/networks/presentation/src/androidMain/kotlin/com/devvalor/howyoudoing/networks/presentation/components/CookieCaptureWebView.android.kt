@@ -49,6 +49,12 @@ actual fun CookieCaptureWebView(
                     ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
                 settings.javaScriptEnabled = true
                 settings.domStorageEnabled = true
+                // This web view holds live login cookies, so deny it any access to local files or content providers
+                // (defense in depth; parity with the CAPTCHA web view). It only ever loads remote https login pages.
+                settings.allowFileAccess = false
+                settings.allowContentAccess = false
+                settings.allowFileAccessFromFileURLs = false
+                settings.allowUniversalAccessFromFileURLs = false
                 // Bridges ask for a desktop user agent (the session is reused with it), so the site
                 // serves its desktop layout: zoom out to fit the screen and allow pinch-zoom.
                 settings.useWideViewPort = true

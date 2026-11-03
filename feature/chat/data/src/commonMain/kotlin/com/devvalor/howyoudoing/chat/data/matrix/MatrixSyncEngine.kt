@@ -4,6 +4,7 @@ import com.devvalor.howyoudoing.chat.data.matrix.dto.InvitedRoomDto
 import com.devvalor.howyoudoing.chat.data.matrix.dto.SendEventResponseDto
 import com.devvalor.howyoudoing.chat.domain.Attachment
 import com.devvalor.howyoudoing.chat.domain.MediaRequest
+import io.ktor.http.encodeURLPathPart
 import kotlinx.serialization.json.JsonObjectBuilder
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
@@ -92,6 +93,17 @@ class MatrixSyncEngine(
 
     private val _rooms = MutableStateFlow<Map<String, RoomCache>>(emptyMap())
     val rooms: StateFlow<Map<String, RoomCache>> = _rooms.asStateFlow()
+
+    // A Matrix room's encryption can never be turned off (the spec forbids it), so once we have ever seen a room
+    // encrypted we refuse to send plaintext to it, even if a malicious or compromised homeserver later drops the
+    // m.room.encryption state from /sync to force a silent downgrade.
+    private val everEncrypted = MutableStateFlow<Set<String>>(emptySet())
+
+    private fun isRoomEncrypted(roomId: String): Boolean {
+        val current = _rooms.value[roomId]?.stateEvent(ENCRYPTION_STATE) != null
+        if (current) everEncrypted.update { it + roomId }
+        return current || roomId in everEncrypted.value
+    }
 
     private val _syncState = MutableStateFlow(SyncState.IDLE)
     val syncState: StateFlow<SyncState> = _syncState.asStateFlow()
@@ -223,6 +235,9 @@ class MatrixSyncEngine(
             }
             updated
         }
+        // Remember which rooms are encrypted, so a later /sync that omits m.room.encryption can't downgrade them.
+        val encryptedNow = _rooms.value.filterValues { it.stateEvent(ENCRYPTION_STATE) != null }.keys
+        if (encryptedNow.isNotEmpty()) everEncrypted.update { existing -> existing + encryptedNow }
         _invites.update { current ->
             val kept = if (isInitial) emptyMap() else current - rooms.join.keys - rooms.leave.keys
             kept + rooms.invite.mapValues { (roomId, invite) -> invite.toInvite(roomId, session.userId) }
@@ -401,7 +416,7 @@ class MatrixSyncEngine(
         transactionId: String,
         content: JsonObject
     ): Result<SendEventResponseDto, DataError.Remote> {
-        val isEncrypted = _rooms.value[roomId]?.stateEvent(ENCRYPTION_STATE) != null
+        val isEncrypted = isRoomEncrypted(roomId)
         val roomCrypto = crypto
         return when {
             !isEncrypted -> api.sendEvent(session, roomId, type, transactionId, content)
@@ -492,7 +507,7 @@ class MatrixSyncEngine(
             now(),
             attachmentMimeType = attachment.mimeType
         )
-        val isEncrypted = _rooms.value[roomId]?.stateEvent(ENCRYPTION_STATE) != null
+        val isEncrypted = isRoomEncrypted(roomId)
         return sendWithLocalEcho(roomId, placeholder) { session, txn ->
             // In an encrypted room only the ciphertext is uploaded; the key travels in the (encrypted) event
             val encrypted = if (isEncrypted) {
@@ -622,11 +637,14 @@ class MatrixSyncEngine(
         val session = _session.value ?: return null
         val (server, mediaId) = mxcUrl.removePrefix("mxc://").split("/", limit = 2).takeIf { it.size == 2 }
             ?: return null
+        // Encode the server/id from the (event-supplied) mxc URL so they can't inject extra path or query parts.
+        val safeServer = server.encodeURLPathPart()
+        val safeMediaId = mediaId.encodeURLPathPart()
         val path =
             if (thumbnail) {
-                "thumbnail/$server/$mediaId?width=800&height=800&method=scale"
+                "thumbnail/$safeServer/$safeMediaId?width=800&height=800&method=scale"
             } else {
-                "download/$server/$mediaId"
+                "download/$safeServer/$safeMediaId"
             }
         return MediaRequest(
             url = "${session.homeserverUrl}/_matrix/client/v1/media/$path",

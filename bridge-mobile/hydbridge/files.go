@@ -12,6 +12,27 @@ import (
 	"sync/atomic"
 )
 
+// errWriteLimit is returned by limitedWriter once a download exceeds its cap, so a server that lies about a file's
+// size (or streams without one) can't fill the disk.
+var errWriteLimit = errors.New("download exceeds the size limit")
+
+// limitedWriter forwards to w until more than limit bytes have been written, then fails the write. Used for streamed
+// downloads where we can't check the length up front.
+type limitedWriter struct {
+	w       interface{ Write([]byte) (int, error) }
+	written int64
+	limit   int64
+}
+
+func (l *limitedWriter) Write(p []byte) (int, error) {
+	if l.written+int64(len(p)) > l.limit {
+		return 0, errWriteLimit
+	}
+	n, err := l.w.Write(p)
+	l.written += int64(n)
+	return n, err
+}
+
 // partPath is a temporary name next to path for one writer. Downloads go there and are renamed into place when
 // complete, so a file at path is always whole: a second download of the same media (e.g. our own sent photo, seen
 // both as the send's echo and as the network's update) never shows a half-written file.

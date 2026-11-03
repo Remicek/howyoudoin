@@ -30,7 +30,8 @@ import java.io.File
 
 /**
  * Keeps the restorable logins in one file, files/login-backup/logins.json, which is all the backup rules
- * (res/xml/backup_rules.xml, data_extraction_rules.xml) let Android back up, and only end-to-end encrypted. The
+ * (res/xml/backup_rules.xml, data_extraction_rules.xml) let Android back up: to the cloud only in an end-to-end
+ * encrypted backup (tied to the user's screen lock), and in a local device-to-device transfer to a new phone. The
  * file is rewritten while backup is on (the default) and deleted when it's off. After a restore it isn't touched until
  * the user decided what to do with it (a marker in no-backup storage, so it doesn't come back with the restore). The
  * file format and what to offer are in SavedLogins.kt.

@@ -590,7 +590,8 @@ func (s *Slack) downloadFile(channelID, ts, kind string, file *slack.File) {
 			return
 		}
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
-		err = s.client.GetFileContext(ctx, firstNonEmpty(file.URLPrivateDownload, file.URLPrivate), out)
+		// Cap the stream: file.Size is server-reported, so don't trust it to bound the actual download.
+		err = s.client.GetFileContext(ctx, firstNonEmpty(file.URLPrivateDownload, file.URLPrivate), &limitedWriter{w: out, limit: slackMaxDownloadBytes})
 		cancel()
 		if closeErr := out.Close(); err == nil {
 			err = closeErr
