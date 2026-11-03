@@ -50,6 +50,7 @@
     <string name="type_encrypted">🔒 एन्क्रिप्टेड मैसेज</string>
     <string name="type_unsupported">⚠️ इस तरह का मैसेज अभी सपोर्ट नहीं है</string>
     <string name="type_unsupported_short">असमर्थित मैसेज</string>
+    <string name="type_one_time_code">🔒 वन-टाइम कोड। आपकी सुरक्षा के लिए WhatsApp इसे सिर्फ़ आपके फ़ोन पर दिखाता है।</string>
     <string name="typing_one_to_one">टाइप कर रहे हैं…</string>
     <string name="typing_one">%1$s टाइप कर रहे हैं…</string>
     <string name="matrixkeys_matrix_device_verified">Matrix डिवाइस सत्यापित हुआ</string>

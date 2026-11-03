@@ -22,6 +22,7 @@ import howyoudoin.feature.chat.presentation.generated.resources.type_file
 import howyoudoin.feature.chat.presentation.generated.resources.type_file_named
 import howyoudoin.feature.chat.presentation.generated.resources.type_sticker
 import howyoudoin.feature.chat.presentation.generated.resources.type_encrypted
+import howyoudoin.feature.chat.presentation.generated.resources.type_one_time_code
 import howyoudoin.feature.chat.presentation.generated.resources.type_unsupported
 import howyoudoin.feature.chat.presentation.generated.resources.type_unsupported_short
 import howyoudoin.feature.chat.presentation.generated.resources.typing_one_to_one
@@ -142,5 +143,6 @@ private fun Message.displayBody(): UiText = when (type) {
     MessageType.STICKER -> UiText.Resource(Res.string.type_sticker)
     MessageType.ENCRYPTED -> UiText.Resource(Res.string.type_encrypted)
     MessageType.UNSUPPORTED -> UiText.Resource(Res.string.type_unsupported)
+    MessageType.ONE_TIME_CODE -> UiText.Resource(Res.string.type_one_time_code)
     MessageType.OTHER -> if (body.isBlank()) UiText.Resource(Res.string.type_unsupported_short) else body.asUiText()
 }

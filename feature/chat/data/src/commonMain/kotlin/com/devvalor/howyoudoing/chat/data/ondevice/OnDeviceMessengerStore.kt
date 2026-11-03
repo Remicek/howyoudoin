@@ -692,6 +692,7 @@ class OnDeviceMessengerStore(
         kind == "file" -> MessageType.FILE
         kind == "sticker" -> MessageType.STICKER
         kind == "text" -> MessageType.TEXT
+        kind == "otp" -> MessageType.ONE_TIME_CODE
         else -> MessageType.OTHER
     }
 

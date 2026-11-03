@@ -50,6 +50,7 @@
     <string name="type_encrypted">🔒 Şifreli mesaj</string>
     <string name="type_unsupported">⚠️ Bu mesaj türü henüz desteklenmiyor</string>
     <string name="type_unsupported_short">Desteklenmeyen mesaj</string>
+    <string name="type_one_time_code">🔒 Tek kullanımlık kod. Güvenliğiniz için WhatsApp bunu yalnızca telefonunuzda gösterir.</string>
     <string name="typing_one_to_one">yazıyor…</string>
     <string name="typing_one">%1$s yazıyor…</string>
     <string name="matrixkeys_matrix_device_verified">Matrix cihazı doğrulandı</string>

@@ -50,6 +50,7 @@
     <string name="type_encrypted">🔒 Pesan terenkripsi</string>
     <string name="type_unsupported">⚠️ Jenis pesan ini belum didukung</string>
     <string name="type_unsupported_short">Pesan tidak didukung</string>
+    <string name="type_one_time_code">🔒 Kode sekali pakai. Demi keamanan Anda, WhatsApp hanya menampilkannya di ponsel Anda.</string>
     <string name="typing_one_to_one">mengetik…</string>
     <string name="typing_one">%1$s sedang mengetik…</string>
     <string name="matrixkeys_matrix_device_verified">Perangkat Matrix terverifikasi</string>

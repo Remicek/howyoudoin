@@ -50,6 +50,7 @@
     <string name="type_encrypted">🔒 暗号化されたメッセージ</string>
     <string name="type_unsupported">⚠️ この種類のメッセージにはまだ対応していません</string>
     <string name="type_unsupported_short">未対応のメッセージ</string>
+    <string name="type_one_time_code">🔒 ワンタイムコード。セキュリティのため、WhatsApp はこのコードをお使いのスマートフォンにのみ表示します。</string>
     <string name="typing_one_to_one">入力中…</string>
     <string name="typing_one">%1$s さんが入力中…</string>
     <string name="matrixkeys_matrix_device_verified">Matrix デバイスを認証しました</string>

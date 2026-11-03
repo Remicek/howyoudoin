@@ -471,7 +471,7 @@ func (w *WhatsApp) emitWAMessage(evt *events.Message, live bool) {
 	} else if seconds := msg.GetVideoMessage().GetSeconds(); seconds > 0 {
 		event["durationMs"] = int64(seconds) * 1000
 	}
-	isMedia := kind != "text" && kind != "other" && kind != "location"
+	isMedia := kind != "text" && kind != "other" && kind != "location" && kind != "otp"
 	// History can be long, so from it only photos and stickers are downloaded right away; the rest carries a
 	// reference the app hands back to DownloadMedia when the user opens it
 	downloadNow := isMedia && (live || kind == "image" || kind == "sticker")
@@ -534,8 +534,9 @@ func describeWAMessage(msg *waE2E.Message) (kind, text string) {
 		return describeWAMessage(msg.GetDocumentWithCaptionMessage().GetMessage())
 	case msg.GetPlaceholderMessage() != nil &&
 		msg.GetPlaceholderMessage().GetType() == waE2E.PlaceholderMessage_MASK_LINKED_DEVICES:
-		// WhatsApp never sends one-time passcodes (businesses' login codes) to linked devices, only this placeholder
-		return "text", waOneTimeCodeNotice
+		// WhatsApp never sends one-time passcodes (businesses' login codes) to linked devices, only this placeholder;
+		// the app says so in the user's language
+		return "otp", ""
 	default:
 		if text := describeWARichMessage(msg); text != "" {
 			return "text", text

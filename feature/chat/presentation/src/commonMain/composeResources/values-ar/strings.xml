@@ -50,6 +50,7 @@
     <string name="type_encrypted">🔒 رسالة مشفّرة</string>
     <string name="type_unsupported">⚠️ هذا النوع من الرسائل غير مدعوم بعد</string>
     <string name="type_unsupported_short">رسالة غير مدعومة</string>
+    <string name="type_one_time_code">🔒 رمز لمرة واحدة. حفاظًا على أمانك، يعرضه واتساب على هاتفك فقط.</string>
     <string name="typing_one_to_one">يكتب…</string>
     <string name="typing_one">%1$s يكتب…</string>
     <string name="matrixkeys_matrix_device_verified">تم التحقق من جهاز Matrix</string>

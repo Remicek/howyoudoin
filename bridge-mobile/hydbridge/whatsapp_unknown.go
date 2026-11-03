@@ -11,9 +11,6 @@ import (
 // business message whose text sits in a field we don't list (e.g. login-code templates). These two fall-backs keep
 // such messages readable instead of "unsupported".
 
-// waOneTimeCodeNotice stands in for a business's one-time passcode, which WhatsApp shows only on the phone itself.
-const waOneTimeCodeNotice = "🔒 One-time code. For your security, WhatsApp shows it only on your phone."
-
 // waWrappedMessage is the message inside the first FutureProofMessage wrapper set on msg, or nil.
 func waWrappedMessage(msg *waE2E.Message) *waE2E.Message {
 	var inner *waE2E.Message

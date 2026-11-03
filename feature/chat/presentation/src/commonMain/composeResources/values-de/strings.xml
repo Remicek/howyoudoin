@@ -50,6 +50,7 @@
     <string name="type_encrypted">🔒 Verschlüsselte Nachricht</string>
     <string name="type_unsupported">⚠️ Dieser Nachrichtentyp wird noch nicht unterstützt</string>
     <string name="type_unsupported_short">Nicht unterstützte Nachricht</string>
+    <string name="type_one_time_code">🔒 Einmalcode. Zu deiner Sicherheit zeigt WhatsApp ihn nur auf deinem Handy an.</string>
     <string name="typing_one_to_one">schreibt…</string>
     <string name="typing_one">%1$s schreibt…</string>
     <string name="matrixkeys_matrix_device_verified">Matrix-Gerät verifiziert</string>

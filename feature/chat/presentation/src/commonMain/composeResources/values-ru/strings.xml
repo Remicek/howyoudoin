@@ -50,6 +50,7 @@
     <string name="type_encrypted">🔒 Зашифрованное сообщение</string>
     <string name="type_unsupported">⚠️ Этот тип сообщений пока не поддерживается</string>
     <string name="type_unsupported_short">Неподдерживаемое сообщение</string>
+    <string name="type_one_time_code">🔒 Одноразовый код. В целях безопасности WhatsApp показывает его только на вашем телефоне.</string>
     <string name="typing_one_to_one">печатает…</string>
     <string name="typing_one">%1$s печатает…</string>
     <string name="matrixkeys_matrix_device_verified">Устройство Matrix подтверждено</string>

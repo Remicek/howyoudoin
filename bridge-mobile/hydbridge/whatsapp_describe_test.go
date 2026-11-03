@@ -59,12 +59,12 @@ func TestWhatsAppUnknownMessagesShowTheirText(t *testing.T) {
 	}
 }
 
-// Businesses' one-time passcodes reach linked devices only as a placeholder; they say so instead of "unsupported".
+// Businesses' one-time passcodes reach linked devices only as a placeholder: kind "otp", which the app explains.
 func TestWhatsAppOneTimeCodePlaceholder(t *testing.T) {
 	msg := &waE2E.Message{PlaceholderMessage: &waE2E.PlaceholderMessage{
 		Type: waE2E.PlaceholderMessage_MASK_LINKED_DEVICES.Enum(),
 	}}
-	if kind, text := describeWAMessage(msg); kind != "text" || text != waOneTimeCodeNotice {
+	if kind, text := describeWAMessage(msg); kind != "otp" || text != "" {
 		t.Errorf("got %q %q", kind, text)
 	}
 }

@@ -50,6 +50,7 @@
     <string name="type_encrypted">🔒 Message chiffré</string>
     <string name="type_unsupported">⚠️ Ce type de message n'est pas encore pris en charge</string>
     <string name="type_unsupported_short">Message non pris en charge</string>
+    <string name="type_one_time_code">🔒 Code à usage unique. Pour votre sécurité, WhatsApp ne l'affiche que sur votre téléphone.</string>
     <string name="typing_one_to_one">écrit…</string>
     <string name="typing_one">%1$s écrit…</string>
     <string name="matrixkeys_matrix_device_verified">Appareil Matrix vérifié</string>

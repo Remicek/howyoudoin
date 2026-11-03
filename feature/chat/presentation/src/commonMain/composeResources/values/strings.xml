@@ -52,6 +52,7 @@
     <string name="type_encrypted">🔒 Encrypted message</string>
     <string name="type_unsupported">⚠️ This message type isn't supported yet</string>
     <string name="type_unsupported_short">Unsupported message</string>
+    <string name="type_one_time_code">🔒 One-time code. For your security, WhatsApp shows it only on your phone.</string>
     <string name="typing_one_to_one">typing…</string>
     <!-- %1$s first name -->
     <string name="typing_one">%1$s is typing…</string>

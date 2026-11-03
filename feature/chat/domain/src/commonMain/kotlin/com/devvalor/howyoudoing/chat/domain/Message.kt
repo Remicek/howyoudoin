@@ -65,6 +65,9 @@ enum class MessageType {
 
     /** Something the bridge couldn't convert (e.g. a Messenger-only attachment type). */
     UNSUPPORTED,
+
+    /** A business's one-time login code: WhatsApp shows it only on the phone, not on linked devices. */
+    ONE_TIME_CODE,
     OTHER
 }
 
