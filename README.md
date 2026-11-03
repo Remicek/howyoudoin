@@ -161,6 +161,11 @@ Notably mautrix-meta, -signal, -gmessages, -gvoice, -linkedin and -twitter and l
 MPL-2.0, the Telegram MTProto library (a gotd fork) is MIT and discordgo is BSD-3-Clause. Because of the AGPL components, anyone distributing a modified version must also
 offer its source code.
 
+The bridge sources those builds are compiled from — each at the commit `fetch-bridges.sh` pins, with the
+`bridge-mobile/patches/` applied — are mirrored and frozen at
+[Remicek/howyoudoin-bridges](https://github.com/Remicek/howyoudoin-bridges), so the complete AGPL corresponding
+source stays available even if an upstream repository changes.
+
 ### iOS
 
 The iOS app shares most of the code but isn't released: Apple's App Store terms conflict with the AGPL, and iOS
