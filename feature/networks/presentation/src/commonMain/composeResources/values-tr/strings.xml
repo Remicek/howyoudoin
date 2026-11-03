@@ -22,7 +22,6 @@
     <string name="qrcode_login_qr_code">Giriş QR kodu</string>
     <string name="networks_networks">Ağlar</string>
     <string name="networks_connect_your_chat_accounts_they">Sohbet hesaplarınızı bağlayın. Doğrudan bu telefondan bağlanırlar; sunucu köprüsü isteğe bağlıdır.</string>
-    <string name="networks_disconnect_and_delete">Bağlantıyı kes ve sil</string>
     <string name="networks_cancel">İptal</string>
     <string name="networks_disconnect">Bağlantıyı kes</string>
     <string name="networks_your_account_could_be_blocked">Hesabınız engellenebilir</string>

@@ -22,7 +22,6 @@
     <string name="qrcode_login_qr_code">Código QR de login</string>
     <string name="networks_networks">Redes</string>
     <string name="networks_connect_your_chat_accounts_they">Conecte suas contas de chat. Elas se conectam direto deste celular; uma ponte em servidor é opcional.</string>
-    <string name="networks_disconnect_and_delete">Desconectar e apagar</string>
     <string name="networks_cancel">Cancelar</string>
     <string name="networks_disconnect">Desconectar</string>
     <string name="networks_your_account_could_be_blocked">Sua conta pode ser bloqueada</string>

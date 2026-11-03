@@ -22,7 +22,6 @@
     <string name="qrcode_login_qr_code">رمز QR لتسجيل الدخول</string>
     <string name="networks_networks">الشبكات</string>
     <string name="networks_connect_your_chat_accounts_they">وصّل حسابات المحادثة. تتصل مباشرةً من هذا الهاتف؛ وجسر الخادم اختياري.</string>
-    <string name="networks_disconnect_and_delete">فصل وحذف</string>
     <string name="networks_cancel">إلغاء</string>
     <string name="networks_disconnect">فصل</string>
     <string name="networks_your_account_could_be_blocked">قد يُحظر حسابك</string>

@@ -22,7 +22,6 @@
     <string name="qrcode_login_qr_code">ログイン用 QR コード</string>
     <string name="networks_networks">ネットワーク</string>
     <string name="networks_connect_your_chat_accounts_they">チャットアカウントを接続します。このスマホから直接接続され、サーバーブリッジは任意です。</string>
-    <string name="networks_disconnect_and_delete">接続を解除して削除</string>
     <string name="networks_cancel">キャンセル</string>
     <string name="networks_disconnect">接続を解除</string>
     <string name="networks_your_account_could_be_blocked">アカウントがブロックされる可能性があります</string>

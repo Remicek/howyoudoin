@@ -22,7 +22,6 @@
     <string name="qrcode_login_qr_code">Kode QR untuk masuk</string>
     <string name="networks_networks">Jaringan</string>
     <string name="networks_connect_your_chat_accounts_they">Hubungkan akun chat Anda. Akun tersambung langsung dari ponsel ini; bridge server bersifat opsional.</string>
-    <string name="networks_disconnect_and_delete">Putuskan dan hapus</string>
     <string name="networks_cancel">Batal</string>
     <string name="networks_disconnect">Putuskan</string>
     <string name="networks_your_account_could_be_blocked">Akun Anda bisa diblokir</string>

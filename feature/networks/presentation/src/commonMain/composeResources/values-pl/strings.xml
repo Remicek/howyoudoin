@@ -22,7 +22,6 @@
     <string name="qrcode_login_qr_code">Kod QR do logowania</string>
     <string name="networks_networks">Sieci</string>
     <string name="networks_connect_your_chat_accounts_they">Podłącz swoje konta czatowe. Łączą się bezpośrednio z tego telefonu; mostek na serwerze jest opcjonalny.</string>
-    <string name="networks_disconnect_and_delete">Odłącz i usuń</string>
     <string name="networks_cancel">Anuluj</string>
     <string name="networks_disconnect">Odłącz</string>
     <string name="networks_your_account_could_be_blocked">Twoje konto może zostać zablokowane</string>

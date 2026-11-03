@@ -22,7 +22,6 @@
     <string name="qrcode_login_qr_code">Login QR code</string>
     <string name="networks_networks">Networks</string>
     <string name="networks_connect_your_chat_accounts_they">Connect your chat accounts. They connect directly from this phone; a server bridge is optional.</string>
-    <string name="networks_disconnect_and_delete">Disconnect and delete</string>
     <string name="networks_cancel">Cancel</string>
     <string name="networks_disconnect">Disconnect</string>
     <string name="networks_your_account_could_be_blocked">Your account could be blocked</string>

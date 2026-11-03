@@ -22,7 +22,6 @@
     <string name="qrcode_login_qr_code">लॉगिन QR कोड</string>
     <string name="networks_networks">नेटवर्क</string>
     <string name="networks_connect_your_chat_accounts_they">अपने चैट खाते जोड़ें। वे सीधे इसी फ़ोन से जुड़ते हैं; सर्वर ब्रिज वैकल्पिक है।</string>
-    <string name="networks_disconnect_and_delete">हटाएँ और मिटाएँ</string>
     <string name="networks_cancel">रद्द करें</string>
     <string name="networks_disconnect">हटाएँ</string>
     <string name="networks_your_account_could_be_blocked">आपका खाता ब्लॉक हो सकता है</string>

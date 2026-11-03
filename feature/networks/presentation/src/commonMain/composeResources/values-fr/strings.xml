@@ -22,7 +22,6 @@
     <string name="qrcode_login_qr_code">Code QR de connexion</string>
     <string name="networks_networks">Réseaux</string>
     <string name="networks_connect_your_chat_accounts_they">Connectez vos comptes de messagerie. Ils se connectent directement depuis ce téléphone ; une passerelle serveur est facultative.</string>
-    <string name="networks_disconnect_and_delete">Déconnecter et supprimer</string>
     <string name="networks_cancel">Annuler</string>
     <string name="networks_disconnect">Déconnecter</string>
     <string name="networks_your_account_could_be_blocked">Votre compte pourrait être bloqué</string>

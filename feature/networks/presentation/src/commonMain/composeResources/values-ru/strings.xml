@@ -22,7 +22,6 @@
     <string name="qrcode_login_qr_code">QR-код для входа</string>
     <string name="networks_networks">Сети</string>
     <string name="networks_connect_your_chat_accounts_they">Подключите аккаунты мессенджеров. Они подключаются прямо с этого телефона; мост на сервере необязателен.</string>
-    <string name="networks_disconnect_and_delete">Отключить и удалить</string>
     <string name="networks_cancel">Отмена</string>
     <string name="networks_disconnect">Отключить</string>
     <string name="networks_your_account_could_be_blocked">Ваш аккаунт могут заблокировать</string>

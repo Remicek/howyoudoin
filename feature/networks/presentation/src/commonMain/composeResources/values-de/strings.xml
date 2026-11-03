@@ -22,7 +22,6 @@
     <string name="qrcode_login_qr_code">Anmelde-QR-Code</string>
     <string name="networks_networks">Netzwerke</string>
     <string name="networks_connect_your_chat_accounts_they">Verbinde deine Chat-Konten. Sie verbinden sich direkt von diesem Handy; eine Server-Bridge ist optional.</string>
-    <string name="networks_disconnect_and_delete">Trennen und löschen</string>
     <string name="networks_cancel">Abbrechen</string>
     <string name="networks_disconnect">Trennen</string>
     <string name="networks_your_account_could_be_blocked">Dein Konto könnte gesperrt werden</string>

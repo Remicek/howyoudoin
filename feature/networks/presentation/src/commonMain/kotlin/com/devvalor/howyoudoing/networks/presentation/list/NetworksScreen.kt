@@ -25,7 +25,6 @@ import org.jetbrains.compose.resources.stringResource
 import howyoudoin.feature.networks.presentation.generated.resources.networks_cancel
 import howyoudoin.feature.networks.presentation.generated.resources.networks_connect_your_chat_accounts_they
 import howyoudoin.feature.networks.presentation.generated.resources.networks_disconnect
-import howyoudoin.feature.networks.presentation.generated.resources.networks_disconnect_and_delete
 import howyoudoin.feature.networks.presentation.generated.resources.networks_howyoudoin_is_unofficial_whatsapp_messenger
 import howyoudoin.feature.networks.presentation.generated.resources.networks_i_understand_continue
 import howyoudoin.feature.networks.presentation.generated.resources.networks_networks
@@ -255,7 +254,7 @@ private fun NetworkCard(
                                 onAction(NetworksAction.OnDisconnectOnDeviceClick(network))
                             }) {
                                 Text(
-                                    stringResource(Res.string.networks_disconnect_and_delete),
+                                    stringResource(Res.string.networks_disconnect),
                                     color = MaterialTheme.colorScheme.error
                                 )
                             }
