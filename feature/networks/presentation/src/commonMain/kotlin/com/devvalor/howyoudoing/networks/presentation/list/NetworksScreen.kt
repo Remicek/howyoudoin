@@ -226,19 +226,7 @@ private fun NetworkCard(
                     )
                     UntestedNote(network)
                 }
-                when (item.status) {
-                    NetworkStatus.Loading if onDevice != OnDeviceMessengerState.NotLinked -> Unit
-                    NetworkStatus.Loading -> CircularProgressIndicator(
-                        modifier = Modifier.size(20.dp),
-                        strokeWidth = 2.dp
-                    )
-
-                    NetworkStatus.ComingSoon -> Unit
-                    else -> FilledTonalButton(onClick = { onAction(NetworksAction.OnConnectClick(network)) }) {
-                        val hasLogins = item.status is NetworkStatus.Ready && item.status.logins.isNotEmpty()
-                        Text(stringResource(if (hasLogins) Res.string.networks_add else Res.string.networks_connect))
-                    }
-                }
+                NetworkCardAction(item, onDevice, onAction)
             }
             if (item.status is NetworkStatus.Ready && item.status.logins.isNotEmpty()) {
                 Spacer(Modifier.height(HowYouDoinSpacing.sm))
@@ -295,6 +283,33 @@ private fun NetworkCard(
                     onDisconnect = { confirmDisconnect = true },
                 )
             }
+        }
+    }
+}
+
+/** The card's button: Connect (or Add another server login), a spinner while loading, or nothing. */
+@Composable
+private fun NetworkCardAction(
+    item: NetworkItemUi,
+    onDevice: OnDeviceMessengerState,
+    onAction: (NetworksAction) -> Unit,
+) {
+    val network = item.network
+    when (item.status) {
+        NetworkStatus.Loading if onDevice != OnDeviceMessengerState.NotLinked -> Unit
+        NetworkStatus.Loading -> CircularProgressIndicator(
+            modifier = Modifier.size(20.dp),
+            strokeWidth = 2.dp
+        )
+
+        NetworkStatus.ComingSoon -> Unit
+        // Already linked on this phone (one account per network there): the row below disconnects it,
+        // and a second Connect would only start the same link again. A failed link keeps the button.
+        else if onDevice is OnDeviceMessengerState.Connected ||
+            onDevice == OnDeviceMessengerState.Connecting -> Unit
+        else -> FilledTonalButton(onClick = { onAction(NetworksAction.OnConnectClick(network)) }) {
+            val hasLogins = item.status is NetworkStatus.Ready && item.status.logins.isNotEmpty()
+            Text(stringResource(if (hasLogins) Res.string.networks_add else Res.string.networks_connect))
         }
     }
 }

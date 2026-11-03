@@ -51,6 +51,7 @@ class SessionAwareBridgeRepository(
     override fun observeIsConfigured(network: ChatNetwork): Flow<Boolean> = select { observeIsConfigured(network) }
     override fun observeBridgeUrl(network: ChatNetwork): Flow<String?> = select { observeBridgeUrl(network) }
     override suspend fun setBridgeUrl(network: ChatNetwork, url: String) = current().setBridgeUrl(network, url)
+    override suspend fun hasBridgeServer(): Boolean = current().hasBridgeServer()
 
     override suspend fun getStatus(network: ChatNetwork): Result<BridgeStatus, DataError.Remote> =
         current().getStatus(network)
