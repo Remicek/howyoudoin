@@ -1,6 +1,7 @@
 package com.devvalor.howyoudoing.networks.presentation.components
 
 import android.annotation.SuppressLint
+import com.devvalor.howyoudoing.core.presentation.LockPortraitOnPhones
 import android.graphics.Bitmap
 import android.view.ViewGroup
 import android.webkit.CookieManager
@@ -36,6 +37,8 @@ actual fun CookieCaptureWebView(
     waitForUrl: String?,
     allowedHosts: Set<String>,
 ) {
+    // Sign-in pages are laid out for a portrait phone (and zoomed to their form); landscape squeezes them
+    LockPortraitOnPhones()
     val currentOnCookiesCaptured by rememberUpdatedState(onCookiesCaptured)
     val webViewHolder = remember { arrayOfNulls<WebView>(1) }
     // Cookies left from an earlier login (e.g. one that has since expired) would be captured before the user logs

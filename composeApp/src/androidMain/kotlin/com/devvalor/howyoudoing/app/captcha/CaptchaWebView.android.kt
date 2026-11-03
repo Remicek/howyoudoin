@@ -1,5 +1,6 @@
 package com.devvalor.howyoudoing.app.captcha
 
+import com.devvalor.howyoudoing.core.presentation.LockPortraitOnPhones
 import android.annotation.SuppressLint
 import android.os.Handler
 import android.os.Looper
@@ -15,6 +16,7 @@ import com.devvalor.howyoudoing.core.domain.ondevice.CaptchaChallenge
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
 actual fun CaptchaWebView(challenge: CaptchaChallenge, onSolved: (String) -> Unit, modifier: Modifier) {
+    LockPortraitOnPhones()
     val currentOnSolved by rememberUpdatedState(onSolved)
     AndroidView(
         modifier = modifier,
