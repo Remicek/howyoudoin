@@ -12,6 +12,17 @@ import (
 	"sync/atomic"
 )
 
+// safeMediaName makes an already separator-free, server-supplied ID safe as a single file name in a media dir: the
+// replacers at each call site strip '/', but "", "." and ".." would still resolve to the media dir itself or its
+// parent (path traversal), so those are prefixed. Other names are returned unchanged, keeping existing cache paths.
+func safeMediaName(name string) string {
+	switch name {
+	case "", ".", "..":
+		return "_" + name
+	}
+	return name
+}
+
 // errWriteLimit is returned by limitedWriter once a download exceeds its cap, so a server that lies about a file's
 // size (or streams without one) can't fill the disk.
 var errWriteLimit = errors.New("download exceeds the size limit")

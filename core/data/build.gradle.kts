@@ -16,6 +16,12 @@ kotlin {
             }
         }
 
+        commonTest {
+            dependencies {
+                implementation(libs.kotlinx.coroutines.test)
+            }
+        }
+
         androidMain {
             dependencies {
                 implementation(libs.ktor.client.okhttp)

@@ -45,21 +45,31 @@ fun cookieLoginAllowedHosts(network: ChatNetwork): Set<String> = when (network) 
     else -> emptySet()
 }
 
-/** The host of an http(s) [url], lower-cased, without userinfo or port; null if it has none. */
+/**
+ * The host of an http(s) [url], lower-cased, without userinfo or port; null if it has none. Mirrors how browsers
+ * split a special-scheme URL: a backslash ends the authority like a slash does, and userinfo runs up to the *last* '@'
+ * of the authority, so "https://evil.example\@messenger.com/" yields evil.example, as the web view would load it.
+ */
 internal fun hostOf(url: String): String? {
-    val authority = url.substringAfter("://", missingDelimiterValue = "")
-        .substringBefore('/').substringBefore('?').substringBefore('#')
-    val host = authority.substringAfter('@').substringBefore(':').lowercase()
+    val authority = url.trim().substringAfter("://", missingDelimiterValue = "")
+        .substringBefore('/').substringBefore('\\').substringBefore('?').substringBefore('#')
+    val host = authority.substringAfterLast('@').substringBefore(':').lowercase()
     return host.ifEmpty { null }
 }
 
+/** The lower-cased scheme of [url] (leading/trailing whitespace ignored, as browsers do), or null if it has none. */
+private fun schemeOf(url: String): String? =
+    url.trim().substringBefore(':', missingDelimiterValue = "").lowercase().takeIf { it.isNotEmpty() }
+
 /**
- * Whether the web view may navigate to [url]. An empty [allowedHosts] allows anything. Non-http(s) schemes (e.g.
- * slack://) are left to [webFallbackFor]. An http(s) host is allowed when it equals, or is a subdomain of, an entry.
+ * Whether the web view may navigate to [url]. An empty [allowedHosts] allows anything. Otherwise only http(s) URLs
+ * whose host equals, or is a subdomain of, an entry are allowed: any other scheme (data:, javascript:, file:, …)
+ * could render arbitrary content in the app's login chrome, so it's refused. App links (slack://) never reach this
+ * check; the web view client routes them through [webFallbackFor] first.
  */
 internal fun isNavigationAllowed(url: String, allowedHosts: Set<String>): Boolean {
     if (allowedHosts.isEmpty()) return true
-    if (!url.startsWith("http://") && !url.startsWith("https://")) return true
+    if (schemeOf(url) !in setOf("http", "https")) return false
     val host = hostOf(url) ?: return false
     return allowedHosts.any { host == it || host.endsWith(".$it") }
 }

@@ -166,10 +166,10 @@ index 615b36b..40b14da 100644
  	ThreadJID                    int64      `index:"1" json:",omitempty"`
 diff --git a/pkg/connector/history_provisioning.go b/pkg/connector/history_provisioning.go
 new file mode 100644
-index 0000000..dfe09f4
+index 0000000..59f03dc
 --- /dev/null
 +++ b/pkg/connector/history_provisioning.go
-@@ -0,0 +1,175 @@
+@@ -0,0 +1,197 @@
 +package connector
 +
 +// HowYouDoin addition: restore end-to-end encrypted Messenger history with the secure storage PIN at any time,
@@ -186,6 +186,7 @@ index 0000000..dfe09f4
 +	"encoding/json"
 +	"errors"
 +	"net/http"
++	"sync"
 +
 +	"maunium.net/go/mautrix"
 +	"maunium.net/go/mautrix/bridgev2"
@@ -205,7 +206,11 @@ index 0000000..dfe09f4
 +	errHistoryInvalid  = mautrix.RespError{ErrCode: "M_INVALID_PARAM", Err: "Enter your six-digit PIN", StatusCode: http.StatusBadRequest}
 +	errHistoryNotMeta  = mautrix.RespError{ErrCode: "M_BAD_STATE", Err: "Encrypted history is only available for Messenger logins", StatusCode: http.StatusBadRequest}
 +	errHistoryRelogin  = mautrix.RespError{ErrCode: "FI.MAU.META.TOKEN_INVALIDATED", Err: "The Messenger session expired, sign in again", StatusCode: http.StatusUnauthorized}
++	errHistoryBusy     = mautrix.RespError{ErrCode: "FI.MAU.META.HISTORY_BUSY", Err: "Encrypted history is already being restored", StatusCode: http.StatusConflict}
 +)
++
++// historyRestoresInFlight holds the IDs of logins whose history restore (or the room rebuild after it) is running.
++var historyRestoresInFlight sync.Map
 +
 +func (m *MetaConnector) registerHistoryProvisioning() {
 +	withProv, ok := m.Bridge.Matrix.(bridgev2.MatrixConnectorWithProvisioning)
@@ -247,16 +252,33 @@ index 0000000..dfe09f4
 +		}
 +		pin := []byte(req.PIN)
 +		req.PIN = ""
-+		if !client.canBackfillEncrypted() {
-+			if err := (&MessengerHistoryLogin{}).restoreHistory(r.Context(), client, pin); err != nil {
-+				writeHistoryError(w, client, err, "Failed to restore Messenger encrypted history")
-+				return
-+			} else if !client.canBackfillEncrypted() {
-+				writeHistoryError(w, client, errors.New("history enrollment is unconfirmed"), "Messenger history enrollment unconfirmed")
-+				return
-+			}
++		// One restore per login at a time: a second request (a retry, a double tap) would spend another PIN attempt
++		// and start a second rebuild that deletes the rooms the first one is recreating.
++		if _, busy := historyRestoresInFlight.LoadOrStore(client.UserLogin.ID, struct{}{}); busy {
++			errHistoryBusy.Write(w)
++			return
 +		}
-+		go client.rebuildEncryptedPortals(context.WithoutCancel(r.Context()))
++		release := func() { historyRestoresInFlight.Delete(client.UserLogin.ID) }
++		if client.canBackfillEncrypted() {
++			// Already restored, and the encrypted rooms were rebuilt then: rebuilding again would only throw every
++			// encrypted room away and backfill it once more.
++			release()
++			writeJSON(w, http.StatusOK, map[string]bool{"restored": true})
++			return
++		}
++		if err := (&MessengerHistoryLogin{}).restoreHistory(r.Context(), client, pin); err != nil {
++			release()
++			writeHistoryError(w, client, err, "Failed to restore Messenger encrypted history")
++			return
++		} else if !client.canBackfillEncrypted() {
++			release()
++			writeHistoryError(w, client, errors.New("history enrollment is unconfirmed"), "Messenger history enrollment unconfirmed")
++			return
++		}
++		go func() {
++			defer release()
++			client.rebuildEncryptedPortals(context.WithoutCancel(r.Context()))
++		}()
 +		writeJSON(w, http.StatusOK, map[string]bool{"restored": true})
 +	})
 +}

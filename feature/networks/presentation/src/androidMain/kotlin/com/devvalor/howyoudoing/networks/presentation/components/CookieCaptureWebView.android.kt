@@ -126,8 +126,10 @@ private fun loginWebViewClient(allowedHosts: Set<String>): WebViewClient = objec
     override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
         val target = request.url.toString()
         if (target.startsWith("https://") || target.startsWith("http://")) {
-            // Cancel navigation to a host the login flow shouldn't reach (empty allowlist = any host).
-            return !isNavigationAllowed(target, allowedHosts)
+            // Cancel navigation to a host the login flow shouldn't reach (empty allowlist = any host). Only the
+            // top-level page is pinned: sign-in pages embed third-party frames (hCaptcha on Discord, Arkose on
+            // X/LinkedIn, reCAPTCHA on Meta) that must load, and a frame can't replace the page the user sees.
+            return request.isForMainFrame && !isNavigationAllowed(target, allowedHosts)
         }
         // Links only an app can open (slack://…) would end on an error page.
         webFallbackFor(target)?.let(view::loadUrl)
