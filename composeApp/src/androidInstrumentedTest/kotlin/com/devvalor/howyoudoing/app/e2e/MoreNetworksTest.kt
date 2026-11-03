@@ -16,6 +16,7 @@ import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestRule
@@ -56,7 +57,11 @@ class MoreNetworksTest {
     /**
      * Bluesky's real server turns down a made-up app password, and the app says so (or that it's had too many sign-ins
      * to try, after several runs in a row).
+     *
+     * Quarantined from CI: it reaches Bluesky's live server, so it flakes on network timeouts and rate limits and
+     * reddens otherwise-green runs. Remove @Ignore to run it locally against the real server.
      */
+    @Ignore("Live Bluesky sign-in: flaky in CI (network timeouts / rate limits). Run locally when needed.")
     @Test
     fun blueskySignInReportsAWrongAppPassword() {
         openNetworks()
