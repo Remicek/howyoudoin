@@ -142,13 +142,13 @@
     <string name="settings_log_out">Log out</string>
     <string name="settings_log_out_sub">Leave this session and go back to the welcome screen</string>
     <string name="settings_telegram_keys">Telegram API keys</string>
-    <string name="telegram_keys_intro">HowYouDoin connects to Telegram with its own API keys. If you\'d rather use yours, create them at my.telegram.org (API development tools) and enter them here. They\'re kept on this phone, encrypted.</string>
-    <string name="telegram_keys_using_builtin">Using HowYouDoin\'s keys</string>
+    <string name="telegram_keys_intro">HowYouDoin connects to Telegram with its own API keys. If you'd rather use yours, create them at my.telegram.org (API development tools) and enter them here. They're kept on this phone, encrypted.</string>
+    <string name="telegram_keys_using_builtin">Using HowYouDoin's keys</string>
     <string name="telegram_keys_using_own">Using your own keys</string>
     <string name="telegram_keys_id">api_id</string>
     <string name="telegram_keys_hash">api_hash</string>
     <string name="telegram_keys_save">Save</string>
-    <string name="telegram_keys_use_builtin">Use HowYouDoin\'s keys</string>
+    <string name="telegram_keys_use_builtin">Use HowYouDoin's keys</string>
     <string name="telegram_keys_saved">Restart HowYouDoin to use these keys. If Telegram is connected, disconnect it and connect again.</string>
     <string name="telegram_keys_invalid">Enter the api_id (a number) and the api_hash (32 letters and digits) from my.telegram.org.</string>
 </resources>

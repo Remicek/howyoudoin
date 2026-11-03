@@ -171,7 +171,7 @@
     <string name="contacts_only_known">Each network is searched too: by name or username, and on WhatsApp and Signal by phone number with the country code.</string>
     <string name="contacts_on_network">On %1$s</string>
     <string name="contacts_searching">Searching %1$s…</string>
-    <string name="contacts_search_failed">Couldn\'t search %1$s. Check the connection and try again.</string>
+    <string name="contacts_search_failed">Couldn't search %1$s. Check the connection and try again.</string>
     <string name="contacts_cannot_start">Starting a new chat on %1$s isn't possible from the app yet.</string>
     <string name="contacts_start_not_connected">%1$s isn't connected right now. Try again once it's back.</string>
     <string name="contacts_start_offline">Couldn't reach %1$s. Check the internet connection and try again.</string>

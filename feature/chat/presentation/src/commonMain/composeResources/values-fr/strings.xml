@@ -167,7 +167,7 @@
     <string name="contacts_search">Rechercher des personnes</string>
     <string name="contacts_choose_network">Où voulez-vous écrire ?</string>
     <string name="contacts_none">Personne trouvé</string>
-    <string name="contacts_only_known">Chaque réseau est aussi recherché : par nom ou identifiant, et sur WhatsApp et Signal par numéro de téléphone avec l\'indicatif du pays.</string>
+    <string name="contacts_only_known">Chaque réseau est aussi recherché : par nom ou identifiant, et sur WhatsApp et Signal par numéro de téléphone avec l'indicatif du pays.</string>
     <string name="contacts_on_network">Sur %1$s</string>
     <string name="contacts_searching">Recherche sur %1$s…</string>
     <string name="contacts_search_failed">Impossible de rechercher sur %1$s. Vérifie la connexion et réessaie.</string>

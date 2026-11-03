@@ -165,10 +165,10 @@
     <string name="contacts_search">Kişi ara</string>
     <string name="contacts_choose_network">Nereye yazmak istiyorsunuz?</string>
     <string name="contacts_none">Kimse bulunamadı</string>
-    <string name="contacts_only_known">Her ağda da arama yapılır: ad veya kullanıcı adıyla, WhatsApp ve Signal\'da ise ülke koduyla birlikte telefon numarasıyla.</string>
-    <string name="contacts_on_network">%1$s\'ta</string>
-    <string name="contacts_searching">%1$s\'ta aranıyor…</string>
-    <string name="contacts_search_failed">%1$s\'ta arama yapılamadı. Bağlantıyı kontrol edip tekrar dene.</string>
+    <string name="contacts_only_known">Her ağda da arama yapılır: ad veya kullanıcı adıyla, WhatsApp ve Signal'da ise ülke koduyla birlikte telefon numarasıyla.</string>
+    <string name="contacts_on_network">%1$s'ta</string>
+    <string name="contacts_searching">%1$s'ta aranıyor…</string>
+    <string name="contacts_search_failed">%1$s'ta arama yapılamadı. Bağlantıyı kontrol edip tekrar dene.</string>
     <string name="contacts_cannot_start">%1$s üzerinde yeni sohbet başlatmak uygulamadan henüz mümkün değil.</string>
     <string name="contacts_start_not_connected">%1$s şu anda bağlı değil. Geri geldiğinde tekrar deneyin.</string>
     <string name="contacts_start_offline">%1$s ile bağlantı kurulamadı. İnternet bağlantısını kontrol edip tekrar deneyin.</string>
