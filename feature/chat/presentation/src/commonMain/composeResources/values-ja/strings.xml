@@ -154,7 +154,6 @@
     <string name="home_chats">チャット</string>
     <string name="home_contacts">連絡先</string>
     <string name="home_settings">設定</string>
-    <string name="inbox_new">新規</string>
     <string name="inbox_new_message">新しいメッセージ</string>
     <string name="inbox_add_network">ネットワークを追加</string>
     <string name="inbox_search">検索</string>

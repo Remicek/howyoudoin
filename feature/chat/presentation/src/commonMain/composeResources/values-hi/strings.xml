@@ -156,7 +156,6 @@
     <string name="home_chats">चैट</string>
     <string name="home_contacts">संपर्क</string>
     <string name="home_settings">सेटिंग्स</string>
-    <string name="inbox_new">नया</string>
     <string name="inbox_new_message">नया संदेश</string>
     <string name="inbox_add_network">नेटवर्क जोड़ें</string>
     <string name="inbox_search">खोजें</string>

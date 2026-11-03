@@ -160,7 +160,6 @@
     <string name="home_chats">Чаты</string>
     <string name="home_contacts">Контакты</string>
     <string name="home_settings">Настройки</string>
-    <string name="inbox_new">Создать</string>
     <string name="inbox_new_message">Новое сообщение</string>
     <string name="inbox_add_network">Добавить сеть</string>
     <string name="inbox_search">Поиск</string>

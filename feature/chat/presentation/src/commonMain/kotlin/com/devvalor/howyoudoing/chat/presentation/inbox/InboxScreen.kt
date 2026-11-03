@@ -4,7 +4,6 @@ import howyoudoin.feature.chat.presentation.generated.resources.inbox_more_filte
 import howyoudoin.feature.chat.presentation.generated.resources.inbox_search
 import howyoudoin.feature.chat.presentation.generated.resources.inbox_add_network
 import howyoudoin.feature.chat.presentation.generated.resources.inbox_new_message
-import howyoudoin.feature.chat.presentation.generated.resources.inbox_new
 import howyoudoin.feature.chat.presentation.generated.resources.home_chats
 import com.devvalor.howyoudoing.chat.presentation.components.HomeTab
 import com.devvalor.howyoudoing.chat.presentation.components.HomeBottomBar
@@ -13,7 +12,6 @@ import com.devvalor.howyoudoing.core.designsystem.theme.AppLogo
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.MoreHoriz
 import androidx.compose.material.icons.rounded.Edit
-import androidx.compose.material.icons.rounded.Add
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.Role
@@ -261,11 +259,10 @@ fun InboxScreen(
     }
 }
 
-/** The logo and name, then "+" (a new message, or another network) and search. */
+/** The logo and name, then direct buttons: add a network, a new message, and search. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun InboxTopBar(onNewMessage: () -> Unit, onAddNetwork: () -> Unit, onSearch: () -> Unit) {
-    var isNewMenuOpen by remember { mutableStateOf(false) }
     TopAppBar(
         title = {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -275,28 +272,11 @@ private fun InboxTopBar(onNewMessage: () -> Unit, onAddNetwork: () -> Unit, onSe
             }
         },
         actions = {
-            Box {
-                IconButton(onClick = { isNewMenuOpen = true }) {
-                    Icon(Icons.Rounded.Add, contentDescription = stringResource(Res.string.inbox_new))
-                }
-                DropdownMenu(expanded = isNewMenuOpen, onDismissRequest = { isNewMenuOpen = false }) {
-                    DropdownMenuItem(
-                        text = { Text(stringResource(Res.string.inbox_new_message)) },
-                        leadingIcon = { Icon(Icons.Rounded.Edit, contentDescription = null) },
-                        onClick = {
-                            isNewMenuOpen = false
-                            onNewMessage()
-                        },
-                    )
-                    DropdownMenuItem(
-                        text = { Text(stringResource(Res.string.inbox_add_network)) },
-                        leadingIcon = { Icon(Icons.Rounded.Hub, contentDescription = null) },
-                        onClick = {
-                            isNewMenuOpen = false
-                            onAddNetwork()
-                        },
-                    )
-                }
+            IconButton(onClick = onAddNetwork) {
+                Icon(Icons.Rounded.Hub, contentDescription = stringResource(Res.string.inbox_add_network))
+            }
+            IconButton(onClick = onNewMessage) {
+                Icon(Icons.Rounded.Edit, contentDescription = stringResource(Res.string.inbox_new_message))
             }
             IconButton(onClick = onSearch) {
                 Icon(Icons.Rounded.Search, contentDescription = stringResource(Res.string.inbox_search))
