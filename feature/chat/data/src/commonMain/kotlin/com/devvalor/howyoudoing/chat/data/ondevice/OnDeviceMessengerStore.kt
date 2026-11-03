@@ -47,6 +47,9 @@ interface OnDeviceInboxCache {
 }
 
 /** Builds chats and messages from [OnDeviceMessenger] events. Chat IDs are [chatIdPrefix] + thread key. */
+// Like the repositories and sync engines, this store exposes one function per chat operation; the count
+// is inherent to the surface, not a sign the class is doing too much.
+@Suppress("TooManyFunctions")
 @OptIn(ExperimentalTime::class, FlowPreview::class)
 class OnDeviceMessengerStore(
     private val messenger: OnDeviceMessenger,

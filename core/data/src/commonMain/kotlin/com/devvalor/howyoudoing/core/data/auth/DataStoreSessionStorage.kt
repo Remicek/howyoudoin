@@ -15,9 +15,15 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.json.Json
 
-/** A session kept in DataStore under [keyName]; the app's own session uses the default key. */
+/**
+ * A session kept in DataStore under [keyName]; the app's own session uses the default key. The
+ * serialized session (which holds the access token) is encrypted at rest with [cipher], a
+ * device-bound key on Android. Values written by an older build were stored in the clear; they are
+ * read transparently (see [decode]) and re-encrypted the next time the session is written.
+ */
 class DataStoreSessionStorage(
     private val dataStore: DataStore<Preferences>,
+    private val cipher: SecretCipher,
     keyName: String = "KEY_AUTH_INFO"
 ) : SessionStorage {
 
@@ -29,12 +35,7 @@ class DataStoreSessionStorage(
 
     override fun observeAuthInfo(): Flow<AuthInfo?> {
         return dataStore.data
-            .map { preferences ->
-                val serializedJson = preferences[authInfoKey]
-                serializedJson?.let {
-                    json.decodeFromString<AuthInfoSerializable>(it).toDomain()
-                }
-            }
+            .map { preferences -> preferences[authInfoKey]?.let(::decode) }
             .distinctUntilChanged()
     }
 
@@ -46,9 +47,15 @@ class DataStoreSessionStorage(
             return
         }
 
-        val serialized = json.encodeToString(info.toSerializable())
+        val serialized = cipher.encrypt(json.encodeToString(info.toSerializable()))
         dataStore.edit { prefs ->
             prefs[authInfoKey] = serialized
         }
+    }
+
+    /** Decrypts the stored value, falling back to the raw string for sessions written before encryption. */
+    private fun decode(stored: String): AuthInfo? {
+        val plaintext = cipher.decrypt(stored) ?: stored
+        return runCatching { json.decodeFromString<AuthInfoSerializable>(plaintext).toDomain() }.getOrNull()
     }
 }

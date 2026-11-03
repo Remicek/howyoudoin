@@ -555,12 +555,15 @@ internal fun captchaChallenge(network: ChatNetwork, message: String?): CaptchaCh
         ?: return null
     val obj = runCatching { Json.parseToJsonElement(json).jsonObject }.getOrNull() ?: return null
     fun field(name: String) = obj[name]?.jsonPrimitive?.contentOrNull?.takeIf { it.isNotBlank() }
+    val siteKey = field("siteKey")
+    val pageUrl = field("pageUrl")
+    if (siteKey == null || pageUrl == null) return null
     return CaptchaChallenge(
         network = network,
         service = field("service") ?: "hcaptcha",
-        siteKey = field("siteKey") ?: return null,
+        siteKey = siteKey,
         rqData = field("rqData"),
-        pageUrl = field("pageUrl") ?: return null
+        pageUrl = pageUrl
     )
 }
 

@@ -56,17 +56,22 @@ change.
 These are real but need a product decision, a library change, a data migration,
 or a version-specific check that shouldn't be guessed blind.
 
-- **CookieCaptureWebView has no navigation host-allowlist (MED).** A malicious
-  bridge could supply a phishing `url` shown in trusted app chrome. A strict
-  allowlist would break legitimate multi-domain SSO logins (Slack→IdP, Google
-  accounts, workspace domains). Needs a per-network expected-host list maintained
-  next to the hardcoded login URLs. (JS injection is already impossible — extract
-  scripts are hardcoded, not bridge-supplied; cleartext is globally blocked.)
-- **HTTP redirect may replay `Authorization`/password cross-host (MED, PLAUSIBLE).**
-  `HttpClientFactory` sets no redirect policy. Recommend installing `HttpRedirect`
-  to drop `Authorization` on host change (or disabling auto-redirect for
-  authenticated calls). Needs confirmation of Ktor 3.2.3's default header-stripping
-  before changing.
+- **CookieCaptureWebView navigation host-allowlist (MED) — FIXED.** The web view now
+  pins navigation to a per-network allowlist (`cookieLoginAllowedHosts`): the initial
+  (possibly server-supplied) URL, `shouldOverrideUrlLoading`, and an `onPageStarted`
+  safety net all reject off-list http(s) hosts. Slack is intentionally unrestricted
+  (empty set) because its workspaces sign in through arbitrary enterprise SSO that
+  can't be enumerated — the other seven networks (Messenger, Instagram, LinkedIn,
+  Discord, X, Google Voice, Google Messages) are pinned. Verified: 10 unit tests on
+  the matcher (`NavigationAllowlistTest`) and the on-device `webLoginsOpenTheirSignInPage`
+  instrumented test (LinkedIn + X sign-in pages still load through the allowlist).
+- **HTTP redirect replaying `Authorization`/password cross-host — VERIFIED SAFE, no change.**
+  Checked the Ktor 3.2.3 `ktor-client-core` bytecode: `HttpRedirect` compares the
+  request and redirect-target authorities and, when they differ, calls
+  `remove(HttpHeaders.Authorization)` (log line "Removing Authorization header from
+  redirect for …"). `allowHttpsDowngrade` defaults to false, and login is a POST, which
+  `checkHttpMethod` (default true) does not auto-redirect. So the framework default
+  already drops the token cross-host and won't downgrade to http. No policy needed.
 - **No per-device Matrix verification/trust enforcement (MED, library).** Trust
   decisions live in `mautrix-go`; the app only surfaces own-device status. Needs
   per-sender trust in the model/UI and a "block unverified devices" option.
@@ -77,8 +82,12 @@ or a version-specific check that shouldn't be guessed blind.
   every existing stored PIN hash (lockout) — version the hash (store its iteration
   count) first, then raise it. Marginal benefit for a numeric PIN whose hash isn't
   backed up.
-- **Matrix access token stored in plaintext DataStore (LOW).** Not in any backup;
-  recommend Keystore-wrapping it as the crypto pickle key already is.
+- **Matrix access token stored in plaintext DataStore (LOW) — FIXED.** The stored
+  session (which holds the access token) is now encrypted at rest with a new
+  `SecretCipher`: on Android an AES-256-GCM key bound to the Keystore
+  (`KeystoreSecretCipher`), wired through `DataStoreSessionStorage`. Sessions written
+  by older builds are read transparently and re-encrypted on the next write, so no one
+  is logged out. The session is not in any backup, so a device-bound key is safe.
 - **Unbounded media/sync response allocation (LOW).** A hostile homeserver can OOM
   the app; cap content length / stream large media (mind the long-poll sync size).
 - **Auto-join keyed on inviter MXID pattern + fragile `is_direct` string compare

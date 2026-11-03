@@ -11,7 +11,8 @@ class CaptchaChallengeTest {
     fun readsTheCaptchaFromTheNativeError() {
         val challenge = captchaChallenge(
             ChatNetwork.DISCORD,
-            """captcha_required:{"pageUrl":"https://discord.com/","rqData":"data","service":"hcaptcha","siteKey":"site"}"""
+            """captcha_required:{"pageUrl":"https://discord.com/",""" +
+                """"rqData":"data","service":"hcaptcha","siteKey":"site"}"""
         )!!
         assertEquals("site", challenge.siteKey)
         assertEquals("data", challenge.rqData)

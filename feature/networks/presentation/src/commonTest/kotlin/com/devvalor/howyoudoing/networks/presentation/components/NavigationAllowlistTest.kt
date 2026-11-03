@@ -1,0 +1,71 @@
+package com.devvalor.howyoudoing.networks.presentation.components
+
+import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
+
+class NavigationAllowlistTest {
+
+    private val meta = cookieLoginAllowedHosts(ChatNetwork.MESSENGER)
+
+    @Test
+    fun exactHostIsAllowed() {
+        assertTrue(isNavigationAllowed("https://messenger.com/login", meta))
+    }
+
+    @Test
+    fun subdomainOfAnAllowedHostIsAllowed() {
+        assertTrue(isNavigationAllowed("https://www.messenger.com/", meta))
+        assertTrue(isNavigationAllowed("https://m.facebook.com/login.php", meta))
+    }
+
+    @Test
+    fun anUnrelatedHostIsBlocked() {
+        assertFalse(isNavigationAllowed("https://evil.example.com/messenger.com", meta))
+    }
+
+    @Test
+    fun aLookalikeSuffixIsNotTreatedAsASubdomain() {
+        // "notfacebook.com" ends with "facebook.com" as text but is a different registrable domain.
+        assertFalse(isNavigationAllowed("https://notfacebook.com/", meta))
+    }
+
+    @Test
+    fun userinfoCannotSmuggleAnAllowedHost() {
+        assertFalse(isNavigationAllowed("https://messenger.com@evil.example.com/", meta))
+    }
+
+    @Test
+    fun portIsIgnoredWhenMatching() {
+        assertTrue(isNavigationAllowed("https://messenger.com:443/login", meta))
+    }
+
+    @Test
+    fun nonHttpSchemesAreLeftToTheAppLinkHandler() {
+        assertTrue(isNavigationAllowed("slack://T0CCF7R9F08/magic-login/1", meta))
+    }
+
+    @Test
+    fun anEmptyAllowlistPermitsAnyHost() {
+        val slack = cookieLoginAllowedHosts(ChatNetwork.SLACK)
+        assertTrue(slack.isEmpty())
+        assertTrue(isNavigationAllowed("https://anything.example.com/", slack))
+    }
+
+    @Test
+    fun bothGoogleLoginsPinTheSameGoogleHosts() {
+        val voice = cookieLoginAllowedHosts(ChatNetwork.GOOGLE_VOICE)
+        val messages = cookieLoginAllowedHosts(ChatNetwork.GOOGLE_MESSAGES)
+        assertEquals(voice, messages)
+        assertTrue(isNavigationAllowed("https://accounts.google.com/signin", voice))
+        assertTrue(isNavigationAllowed("https://voice.google.com/u/0/messages", voice))
+    }
+
+    @Test
+    fun hostOfParsesTheRegistrableAuthority() {
+        assertEquals("x.com", hostOf("https://x.com/i/flow/login?lang=en"))
+        assertEquals("accounts.google.com", hostOf("https://accounts.google.com:443/signin#frag"))
+    }
+}

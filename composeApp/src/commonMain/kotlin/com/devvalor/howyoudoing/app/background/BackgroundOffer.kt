@@ -26,9 +26,16 @@ import org.koin.compose.viewmodel.koinViewModel
  * Once a network is connected, asks to let the app run in the background (if the phone would otherwise pause it), so
  * messages arrive while the phone isn't in use. Asks again if that's taken away later, unless the user said not now.
  */
-class BackgroundOfferViewModel(private val delivery: BackgroundDelivery, monitor: ConnectionMonitor) : ViewModel() {
+class BackgroundOfferViewModel(
+    private val delivery: BackgroundDelivery,
+    monitor: ConnectionMonitor,
+) : ViewModel() {
 
-    val isVisible = combine(delivery.isAllowed, delivery.isDeclined, monitor.linkedNetworks) { allowed, declined, linked ->
+    val isVisible = combine(
+        delivery.isAllowed,
+        delivery.isDeclined,
+        monitor.linkedNetworks,
+    ) { allowed, declined, linked ->
         !allowed && !declined && linked.isNotEmpty()
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
 

@@ -94,6 +94,7 @@ import com.devvalor.howyoudoing.networks.domain.DisplayType
 import com.devvalor.howyoudoing.networks.domain.InputFieldType
 import com.devvalor.howyoudoing.networks.domain.LoginInputField
 import com.devvalor.howyoudoing.networks.presentation.components.CookieCaptureWebView
+import com.devvalor.howyoudoing.networks.presentation.components.cookieLoginAllowedHosts
 import com.devvalor.howyoudoing.networks.presentation.components.PairingCode
 import com.devvalor.howyoudoing.networks.presentation.components.QrCode
 import com.devvalor.howyoudoing.networks.presentation.components.phone.PhoneNumberInput
@@ -545,6 +546,7 @@ private fun CookiesStep(
                 modifier = Modifier.fillMaxWidth().weight(1f),
                 extractScript = step.extractScript,
                 waitForUrl = step.waitForUrl,
+                allowedHosts = cookieLoginAllowedHosts(network),
             )
         }
     }

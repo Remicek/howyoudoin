@@ -20,7 +20,9 @@ val coreDataModule = module {
     includes(platformCoreDataModule)
     single { HttpClientFactory.create(get<HttpClientEngine>(), logRequests = get<BuildInfo>().isDebug()) }
     single<CoroutineScope> { CoroutineScope(SupervisorJob() + Dispatchers.Default) }
-    single { DataStoreSessionStorage(get()) } bind SessionStorage::class
+    single { DataStoreSessionStorage(get(), get()) } bind SessionStorage::class
     // A Matrix account connected as one of the networks, next to (or without) the app's own server session
-    single<SessionStorage>(named(MATRIX_ACCOUNT_SESSION)) { DataStoreSessionStorage(get(), "KEY_MATRIX_ACCOUNT") }
+    single<SessionStorage>(named(MATRIX_ACCOUNT_SESSION)) {
+        DataStoreSessionStorage(get(), get(), keyName = "KEY_MATRIX_ACCOUNT")
+    }
 }

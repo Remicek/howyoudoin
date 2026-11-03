@@ -2,6 +2,7 @@ package com.devvalor.howyoudoing.networks.presentation.components
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
 
 /**
  * Shows [url] so the user can log in on the network's own website, then reports the site's cookies once all of
@@ -10,6 +11,10 @@ import androidx.compose.ui.Modifier
  *
  * [extractScript], if given, runs in the page on every poll and
  * returns a JSON object (as a string) of more values, e.g. a token from the page's storage; they count as cookies.
+ *
+ * [allowedHosts] pins which hosts the web view may navigate to (see [cookieLoginAllowedHosts]); an empty set means
+ * no restriction. This matters because the login [url] can come from the (untrusted) bridge server: without it a
+ * malicious server could point the view at a phishing page shown in the app's trusted login chrome.
  */
 @Composable
 expect fun CookieCaptureWebView(
@@ -20,7 +25,44 @@ expect fun CookieCaptureWebView(
     modifier: Modifier = Modifier,
     extractScript: String? = null,
     waitForUrl: String? = null,
+    allowedHosts: Set<String> = emptySet(),
 )
+
+/**
+ * The hosts each network's cookie login legitimately visits (the sign-in page plus its auth/CDN hops), matched by
+ * suffix. An empty set means "don't restrict": Slack workspaces sign in through arbitrary enterprise SSO providers
+ * that can't be enumerated, so pinning them would break those logins.
+ */
+fun cookieLoginAllowedHosts(network: ChatNetwork): Set<String> = when (network) {
+    ChatNetwork.MESSENGER -> setOf("messenger.com", "facebook.com", "fbcdn.net")
+    ChatNetwork.INSTAGRAM -> setOf("instagram.com", "facebook.com", "cdninstagram.com")
+    ChatNetwork.LINKEDIN -> setOf("linkedin.com", "licdn.com")
+    ChatNetwork.DISCORD -> setOf("discord.com", "discordapp.com")
+    ChatNetwork.TWITTER -> setOf("x.com", "twitter.com", "twimg.com")
+    // Both Google logins go through accounts.google.com (a *.google.com host) and Google's shared asset domains.
+    ChatNetwork.GOOGLE_VOICE, ChatNetwork.GOOGLE_MESSAGES ->
+        setOf("google.com", "gstatic.com", "googleusercontent.com", "youtube.com")
+    else -> emptySet()
+}
+
+/** The host of an http(s) [url], lower-cased, without userinfo or port; null if it has none. */
+internal fun hostOf(url: String): String? {
+    val authority = url.substringAfter("://", missingDelimiterValue = "")
+        .substringBefore('/').substringBefore('?').substringBefore('#')
+    val host = authority.substringAfter('@').substringBefore(':').lowercase()
+    return host.ifEmpty { null }
+}
+
+/**
+ * Whether the web view may navigate to [url]. An empty [allowedHosts] allows anything. Non-http(s) schemes (e.g.
+ * slack://) are left to [webFallbackFor]. An http(s) host is allowed when it equals, or is a subdomain of, an entry.
+ */
+internal fun isNavigationAllowed(url: String, allowedHosts: Set<String>): Boolean {
+    if (allowedHosts.isEmpty()) return true
+    if (!url.startsWith("http://") && !url.startsWith("https://")) return true
+    val host = hostOf(url) ?: return false
+    return allowedHosts.any { host == it || host.endsWith(".$it") }
+}
 
 internal const val COOKIE_POLL_INTERVAL_MILLIS = 1_000L
 
