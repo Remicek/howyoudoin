@@ -1,10 +1,32 @@
 # HowYouDoin — Release & Follow-ups TODO
 
-_Last updated: 2026-11-02_
+_Last updated: 2026-11-03_
 
 This is the running checklist of things left to do, so it can be picked up quickly
 in any session. Google Play marketing assets live outside this repo at
 `/Users/remik/StudioProjects/GooglePlay/HowYouDoin/` (see its `README.md`).
+
+> **iOS is not shipped** — ignore iOS-only findings and tasks.
+
+---
+
+## Worth doing before release — priority order
+
+1. **Host the privacy policy** and paste the URL into the Play listing (blocks submission).
+2. **Complete the Data safety form + content rating** in the Play Console (blocks submission).
+3. **Upload the promo video to YouTube**, paste the link (Play needs a URL, not a file).
+4. **Green CI on `main`.** Fix or quarantine the flaky live-Bluesky E2E test so the
+   release build is signed off a green run.
+5. **Clear the detekt gate on `main`.** 7 pre-existing findings fail the zero-baseline
+   gate (see Code follow-ups). Either fix them or add a baseline before tagging a build.
+6. **Security: two cheap wins** from the review (see `SECURITY_REVIEW.md`):
+   - Keystore-wrap the Matrix access token (currently plaintext DataStore; self-contained).
+   - Add the `HttpRedirect` policy to strip `Authorization` on cross-host redirects
+     (after confirming Ktor 3.2.3's default).
+7. **Security: decide on the WebView host-allowlist** (Medium-on-paper / Low-in-practice —
+   needs a malicious homeserver to trigger). Not a release blocker; schedule it.
+8. **Final release build + signing**: verify the release keystore, versionCode/versionName
+   bump, R8/shrink config, and a clean `assembleRelease` / bundle.
 
 ---
 
@@ -31,15 +53,19 @@ in any session. Google Play marketing assets live outside this repo at
 
 ## Code / repo follow-ups
 
-- [ ] **Fix over-escaped apostrophe in a settings string.** It renders literally as
-      `Using HowYouDoin\'s keys` — the `\'` in the string resource should be a plain
-      apostrophe. (Patched in the screenshot only; the app resource still has it.)
-- [ ] **GitHub CI red X.** Actions run `41298831404` failed on one flaky E2E test,
-      `MoreNetworksTest > blueskySignInReportsAWrongAppPassword` (does a live Bluesky
-      sign-in, timed out). Build/bridge/unit jobs passed; not gitleaks, not the
-      Telegram-key commit. Rerun with `gh run rerun 41298831404 --failed` if desired.
+- [x] **Over-escaped apostrophes fixed.** 22 composeResources strings used `\'`, which
+      Compose Multiplatform renders literally; changed to bare `'` (commit `ee2f936`).
+- [x] **Deep security & correctness review done** — see `SECURITY_REVIEW.md`. 8 fixes
+      landed on `main` (commit `e21a40e`); remaining items tracked above (#6, #7).
+- [ ] **detekt gate red on `main`** (zero-baseline, so every finding fails). 7
+      pre-existing findings, none from the review: `OnDeviceMessengerStore.kt`
+      (TooManyFunctions), `NativeOnDeviceMessenger.kt` (ReturnCount),
+      `BackgroundKeepAlive.kt` (MaxLineLength, MagicNumber), `BackgroundOffer.kt` /
+      `InboxScreen.kt` / `CaptchaChallengeTest.kt` (MaxLineLength). Fix or baseline.
+- [ ] **GitHub CI red X.** A flaky E2E test `MoreNetworksTest >
+      blueskySignInReportsAWrongAppPassword` (live Bluesky sign-in, timed out) fails
+      the run. Build/bridge/unit jobs pass. Rerun `--failed`, or mark it non-blocking.
 
 ## Notes / decisions
-- **Bitbucket (`origin`) left untouched** on purpose — it has an unrelated history
-  (~80 commits of different work) with no merge-base against GitHub `main`. Not
-  force-pushed. GitHub `github/main` is the tracked upstream and is up to date.
+- **GitHub is the only remote used** (`git@github.com:Remicek/howyoudoin.git`).
+  Bitbucket (`origin`) is left untouched — unrelated ~80-commit history, no merge-base.
