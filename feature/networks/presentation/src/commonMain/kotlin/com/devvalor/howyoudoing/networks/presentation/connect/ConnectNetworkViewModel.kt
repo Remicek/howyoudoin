@@ -99,11 +99,14 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+// One screen drives every network's login (server bridge, on-device link, pairing, cookies, CAPTCHA), so the size is
+// the sum of those flows; splitting it per flow is the follow-up, not a one-line change.
+@Suppress("LargeClass")
 class ConnectNetworkViewModel(
     savedStateHandle: SavedStateHandle,
     private val bridgeRepository: BridgeRepository,
     private val deviceRegion: DeviceRegionProvider,
-    developerOptions: DeveloperOptions,
+    private val developerOptions: DeveloperOptions,
     private val onDevice: OnDeviceAccounts
 ) : ViewModel() {
 
@@ -121,7 +124,8 @@ class ConnectNetworkViewModel(
     private var hasLoadedInitialData = false
     private var stepJob: Job? = null
 
-    private val initialState = ConnectNetworkState(network = network, canEditBridgeUrl = developerOptions.isEnabled())
+    // The bridge URL override is shown once we know there's a bridge server to point at (see loadFlows)
+    private val initialState = ConnectNetworkState(network = network)
     private val _state = MutableStateFlow(initialState)
     val state = _state
         .onStart {
@@ -210,7 +214,16 @@ class ConnectNetworkViewModel(
     private fun loadFlows() {
         stepJob?.cancel()
         stepJob = viewModelScope.launch {
-            _state.update { it.copy(phase = ConnectPhase.Loading, error = null, isSubmitting = false) }
+            // Developer builds can point a network at another bridge server; on-device and demo sessions have none
+            val canEditBridgeUrl = developerOptions.isEnabled() && bridgeRepository.hasBridgeServer()
+            _state.update {
+                it.copy(
+                    phase = ConnectPhase.Loading,
+                    error = null,
+                    isSubmitting = false,
+                    canEditBridgeUrl = canEditBridgeUrl
+                )
+            }
             // Networks without a server bridge (Instagram) can only be connected on the device
             if (!network.isSupported) {
                 _state.update { it.copy(phase = ConnectPhase.ChooseFlow(onDeviceFlows())) }

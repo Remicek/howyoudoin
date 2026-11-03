@@ -12,6 +12,9 @@ interface BridgeRepository {
     fun observeBridgeUrl(network: ChatNetwork): Flow<String?>
     suspend fun setBridgeUrl(network: ChatNetwork, url: String)
 
+    /** Whether there is a bridge server whose URL [setBridgeUrl] changes (not for on-device or demo sessions). */
+    suspend fun hasBridgeServer(): Boolean = true
+
     suspend fun getStatus(network: ChatNetwork): Result<BridgeStatus, DataError.Remote>
 
     suspend fun startLogin(network: ChatNetwork, flowId: String): Result<BridgeLoginStep, DataError.Remote>

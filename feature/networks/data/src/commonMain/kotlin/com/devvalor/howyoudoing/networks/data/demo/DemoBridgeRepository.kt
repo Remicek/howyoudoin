@@ -36,6 +36,7 @@ class DemoBridgeRepository : BridgeRepository {
     override fun observeIsConfigured(network: ChatNetwork): Flow<Boolean> = flowOf(true)
     override fun observeBridgeUrl(network: ChatNetwork): Flow<String?> = flowOf("demo")
     override suspend fun setBridgeUrl(network: ChatNetwork, url: String) = Unit
+    override suspend fun hasBridgeServer(): Boolean = false
 
     override suspend fun getStatus(network: ChatNetwork): Result<BridgeStatus, DataError.Remote> {
         delay(300.milliseconds)
