@@ -44,6 +44,7 @@ actual fun CookieCaptureWebView(
     modifier: Modifier,
     extractScript: String?,
     waitForUrl: String?,
+    allowedHosts: Set<String>,
 ) {
     val currentOnCookiesCaptured by rememberUpdatedState(onCookiesCaptured)
     val baseDomain = remember(url) {
@@ -67,7 +68,11 @@ actual fun CookieCaptureWebView(
                 modifiedSince = NSDate.dateWithTimeIntervalSince1970(0.0)
             ) {
                 isCleared = true
-                NSURL.URLWithString(url)?.let { webView.loadRequest(NSURLRequest.requestWithURL(it)) }
+                // The login URL can come from the (untrusted) bridge server; only open it if it's an allowed host.
+                // (iOS isn't shipped; a WKNavigationDelegate decidePolicy hook would be needed to also pin redirects.)
+                if (isNavigationAllowed(url, allowedHosts)) {
+                    NSURL.URLWithString(url)?.let { webView.loadRequest(NSURLRequest.requestWithURL(it)) }
+                }
             }
             webView
         },

@@ -1,6 +1,7 @@
 package com.devvalor.howyoudoing.networks.presentation.components
 
 import android.annotation.SuppressLint
+import android.graphics.Bitmap
 import android.view.ViewGroup
 import android.webkit.CookieManager
 import android.webkit.WebResourceRequest
@@ -33,6 +34,7 @@ actual fun CookieCaptureWebView(
     modifier: Modifier,
     extractScript: String?,
     waitForUrl: String?,
+    allowedHosts: Set<String>,
 ) {
     val currentOnCookiesCaptured by rememberUpdatedState(onCookiesCaptured)
     val webViewHolder = remember { arrayOfNulls<WebView>(1) }
@@ -65,28 +67,14 @@ actual fun CookieCaptureWebView(
                 userAgent?.let { settings.userAgentString = withWebViewChromeVersion(it, settings.userAgentString) }
                 CookieManager.getInstance().setAcceptCookie(true)
                 CookieManager.getInstance().setAcceptThirdPartyCookies(this, true)
-                webViewClient = object : WebViewClient() {
-                    // Links only an app can open (slack://…) would end on an error page
-                    override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
-                        val target = request.url.toString()
-                        if (target.startsWith("https://") || target.startsWith("http://")) return false
-                        webFallbackFor(target)?.let(view::loadUrl)
-                        return true
-                    }
-
-                    override fun onPageFinished(view: WebView, url: String?) {
-                        // The desktop page shows small at overview zoom: zoom in on its login form
-                        // (or the "Continue as …" prompt) once it has rendered
-                        view.postDelayed({ zoomToForm(view) }, FOCUS_DELAY_MILLIS)
-                    }
-                }
+                webViewClient = loginWebViewClient(allowedHosts)
                 // A fresh login: an earlier one's page storage would hand over its stale token (Slack keeps it in
                 // localStorage), which then doesn't match the new session cookie
                 WebStorage.getInstance().deleteAllData()
                 CookieManager.getInstance().removeAllCookies {
                     CookieManager.getInstance().flush()
                     isCleared = true
-                    loadUrl(url)
+                    loadIfAllowed(url, allowedHosts)
                 }
             }
         },
@@ -119,6 +107,42 @@ actual fun CookieCaptureWebView(
             }
             delay(COOKIE_POLL_INTERVAL_MILLIS)
         }
+    }
+}
+
+/**
+ * Loads [url] only if [allowedHosts] permits it. The login URL can come from the (untrusted) bridge server, so a
+ * disallowed host is simply not opened.
+ */
+private fun WebView.loadIfAllowed(url: String, allowedHosts: Set<String>) {
+    if (isNavigationAllowed(url, allowedHosts)) loadUrl(url)
+}
+
+/**
+ * The web view's client: keeps the login confined to [allowedHosts] (empty = no restriction), sends app-only links
+ * (slack://…) through [webFallbackFor], and zooms to the form once a page renders.
+ */
+private fun loginWebViewClient(allowedHosts: Set<String>): WebViewClient = object : WebViewClient() {
+    override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
+        val target = request.url.toString()
+        if (target.startsWith("https://") || target.startsWith("http://")) {
+            // Cancel navigation to a host the login flow shouldn't reach (empty allowlist = any host).
+            return !isNavigationAllowed(target, allowedHosts)
+        }
+        // Links only an app can open (slack://…) would end on an error page.
+        webFallbackFor(target)?.let(view::loadUrl)
+        return true
+    }
+
+    // Safety net for server-side redirects that don't surface through shouldOverrideUrlLoading.
+    override fun onPageStarted(view: WebView, url: String?, favicon: Bitmap?) {
+        if (url != null && !isNavigationAllowed(url, allowedHosts)) view.stopLoading()
+    }
+
+    override fun onPageFinished(view: WebView, url: String?) {
+        // The desktop page shows small at overview zoom: zoom in on its login form
+        // (or the "Continue as …" prompt) once it has rendered
+        view.postDelayed({ zoomToForm(view) }, FOCUS_DELAY_MILLIS)
     }
 }
 

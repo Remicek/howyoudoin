@@ -56,12 +56,15 @@ change.
 These are real but need a product decision, a library change, a data migration,
 or a version-specific check that shouldn't be guessed blind.
 
-- **CookieCaptureWebView has no navigation host-allowlist (MED).** A malicious
-  bridge could supply a phishing `url` shown in trusted app chrome. A strict
-  allowlist would break legitimate multi-domain SSO logins (Slack→IdP, Google
-  accounts, workspace domains). Needs a per-network expected-host list maintained
-  next to the hardcoded login URLs. (JS injection is already impossible — extract
-  scripts are hardcoded, not bridge-supplied; cleartext is globally blocked.)
+- **CookieCaptureWebView navigation host-allowlist (MED) — FIXED.** The web view now
+  pins navigation to a per-network allowlist (`cookieLoginAllowedHosts`): the initial
+  (possibly server-supplied) URL, `shouldOverrideUrlLoading`, and an `onPageStarted`
+  safety net all reject off-list http(s) hosts. Slack is intentionally unrestricted
+  (empty set) because its workspaces sign in through arbitrary enterprise SSO that
+  can't be enumerated — the other seven networks (Messenger, Instagram, LinkedIn,
+  Discord, X, Google Voice, Google Messages) are pinned. Verified: 10 unit tests on
+  the matcher (`NavigationAllowlistTest`) and the on-device `webLoginsOpenTheirSignInPage`
+  instrumented test (LinkedIn + X sign-in pages still load through the allowlist).
 - **HTTP redirect replaying `Authorization`/password cross-host — VERIFIED SAFE, no change.**
   Checked the Ktor 3.2.3 `ktor-client-core` bytecode: `HttpRedirect` compares the
   request and redirect-target authorities and, when they differ, calls

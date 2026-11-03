@@ -17,10 +17,11 @@ in any session. Google Play marketing assets live outside this repo at
 3. **Upload the promo video to YouTube**, paste the link (Play needs a URL, not a file).
 4. **Final release build + signing**: verify the release keystore, versionCode/versionName
    bump, R8/shrink config, and a clean `assembleRelease` / bundle.
-5. **Security: decide on the WebView host-allowlist** (Medium-on-paper / Low-in-practice —
-   needs a malicious homeserver to trigger). Not a release blocker; schedule it.
-
 ### Done since last update (branch `security-hardening-ci`)
+- [x] **WebView host-allowlist (option A).** Per-network `cookieLoginAllowedHosts` pins
+      the cookie-login web view to each network's known hosts; Slack stays unrestricted
+      (enterprise SSO). Verified with 10 unit tests + an on-device instrumented test
+      (LinkedIn/X sign-in pages still load). See `SECURITY_REVIEW.md`.
 - [x] **detekt gate green.** Fixed all 7 findings (line wraps, a magic-number constant,
       a return-count refactor, one scoped `@Suppress` with rationale). `./gradlew detekt`
       is now BUILD SUCCESSFUL.
