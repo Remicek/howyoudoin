@@ -16,5 +16,10 @@ kotlin {
                 implementation(libs.kotlinx.serialization.json)
             }
         }
+        androidMain {
+            dependencies {
+                implementation(libs.androidx.activity.compose)
+            }
+        }
     }
 }

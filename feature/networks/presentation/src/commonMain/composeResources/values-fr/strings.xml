@@ -170,6 +170,8 @@
     <string name="pairing_copy">Copier le code</string>
     <string name="pairing_copied">Copié</string>
     <string name="phone_hint">Choisissez votre pays, puis saisissez votre numéro sans l'indicatif du pays.</string>
+    <string name="phone_use_own_number">Utiliser le numéro de ce téléphone</string>
+    <string name="phone_own_number_unavailable">La carte SIM de ce téléphone ne fournit pas son numéro. Saisissez-le.</string>
     <string name="phone_incomplete">Ce numéro ne semble pas complet (%1$s).</string>
     <string name="phone_linked_as">Sera associé en tant que %1$s</string>
     <string name="phone_choose_country">Choisir un pays</string>

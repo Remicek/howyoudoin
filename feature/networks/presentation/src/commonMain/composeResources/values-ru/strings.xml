@@ -170,6 +170,8 @@
     <string name="pairing_copy">Копировать код</string>
     <string name="pairing_copied">Скопировано</string>
     <string name="phone_hint">Выберите страну, затем введите номер без кода страны.</string>
+    <string name="phone_use_own_number">Использовать номер этого телефона</string>
+    <string name="phone_own_number_unavailable">SIM-карта этого телефона не сообщает свой номер. Введите его.</string>
     <string name="phone_incomplete">Это не похоже на полный номер (%1$s).</string>
     <string name="phone_linked_as">Будет привязан как %1$s</string>
     <string name="phone_choose_country">Выберите страну</string>

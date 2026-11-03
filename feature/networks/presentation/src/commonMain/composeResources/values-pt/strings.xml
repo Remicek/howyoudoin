@@ -170,6 +170,8 @@
     <string name="pairing_copy">Copiar código</string>
     <string name="pairing_copied">Copiado</string>
     <string name="phone_hint">Escolha seu país e digite o número sem o código do país.</string>
+    <string name="phone_use_own_number">Usar o número deste telefone</string>
+    <string name="phone_own_number_unavailable">O chip deste telefone não informa o número. Digite-o.</string>
     <string name="phone_incomplete">Isso não parece um número completo de %1$s.</string>
     <string name="phone_linked_as">Será conectado como %1$s</string>
     <string name="phone_choose_country">Escolher país</string>

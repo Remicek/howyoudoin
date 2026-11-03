@@ -170,6 +170,8 @@
     <string name="pairing_copy">نسخ الرمز</string>
     <string name="pairing_copied">تم النسخ</string>
     <string name="phone_hint">اختر دولتك، ثم أدخل رقمك دون رمز الدولة.</string>
+    <string name="phone_use_own_number">استخدم رقم هذا الهاتف</string>
+    <string name="phone_own_number_unavailable">شريحة SIM في هذا الهاتف لا تشارك رقمها. اكتبه بنفسك.</string>
     <string name="phone_incomplete">لا يبدو هذا رقمًا كاملًا في %1$s.</string>
     <string name="phone_linked_as">سيُربط باسم %1$s</string>
     <string name="phone_choose_country">اختر الدولة</string>

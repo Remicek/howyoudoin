@@ -170,6 +170,8 @@
     <string name="pairing_copy">コードをコピー</string>
     <string name="pairing_copied">コピーしました</string>
     <string name="phone_hint">国を選び、国番号を除いた番号を入力してください。</string>
+    <string name="phone_use_own_number">この端末の電話番号を使う</string>
+    <string name="phone_own_number_unavailable">この端末のSIMは電話番号を提供していません。番号を入力してください。</string>
     <string name="phone_incomplete">%1$s の番号として完全ではないようです。</string>
     <string name="phone_linked_as">%1$s としてリンクされます</string>
     <string name="phone_choose_country">国を選択</string>

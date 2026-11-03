@@ -170,6 +170,8 @@
     <string name="pairing_copy">कोड कॉपी करें</string>
     <string name="pairing_copied">कॉपी हो गया</string>
     <string name="phone_hint">अपना देश चुनें, फिर देश कोड के बिना अपना नंबर डालें।</string>
+    <string name="phone_use_own_number">इस फ़ोन का नंबर इस्तेमाल करें</string>
+    <string name="phone_own_number_unavailable">इस फ़ोन का SIM अपना नंबर नहीं बताता। नंबर टाइप करें।</string>
     <string name="phone_incomplete">यह %1$s का पूरा नंबर नहीं लगता।</string>
     <string name="phone_linked_as">%1$s के रूप में लिंक होगा</string>
     <string name="phone_choose_country">देश चुनें</string>

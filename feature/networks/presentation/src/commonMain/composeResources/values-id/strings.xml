@@ -170,6 +170,8 @@
     <string name="pairing_copy">Salin kode</string>
     <string name="pairing_copied">Disalin</string>
     <string name="phone_hint">Pilih negara Anda, lalu masukkan nomor tanpa kode negara.</string>
+    <string name="phone_use_own_number">Gunakan nomor ponsel ini</string>
+    <string name="phone_own_number_unavailable">SIM di ponsel ini tidak membagikan nomornya. Ketik nomornya.</string>
     <string name="phone_incomplete">Itu sepertinya bukan nomor %1$s yang lengkap.</string>
     <string name="phone_linked_as">Akan ditautkan sebagai %1$s</string>
     <string name="phone_choose_country">Pilih negara</string>
