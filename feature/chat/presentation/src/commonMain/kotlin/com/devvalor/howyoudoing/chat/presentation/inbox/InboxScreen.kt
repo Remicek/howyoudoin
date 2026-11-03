@@ -337,7 +337,9 @@ private fun ConnectionProblems(
         ) {
             Column(Modifier.weight(1f).padding(end = HowYouDoinSpacing.md)) {
                 Row(horizontalArrangement = Arrangement.spacedBy(HowYouDoinSpacing.xs)) {
-                    problems.forEach { NetworkBadge(network = it.network, size = 24.dp, borderColor = Color.Transparent) }
+                    problems.forEach {
+                        NetworkBadge(network = it.network, size = 24.dp, borderColor = Color.Transparent)
+                    }
                 }
                 Spacer(Modifier.height(HowYouDoinSpacing.xs))
                 Text(

@@ -49,7 +49,10 @@ class AndroidBackgroundDelivery(context: Context) : BackgroundDelivery {
     // A messaging app that keeps its own connections is what this prompt is meant for
     @SuppressLint("BatteryLife")
     override fun requestAllowed() {
-        val prompt = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, Uri.parse("package:${context.packageName}"))
+        val prompt = Intent(
+            Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
+            Uri.parse("package:${context.packageName}"),
+        )
         val list = Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)
         for (intent in listOf(prompt, list)) {
             if (runCatching { context.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }.isSuccess) return
@@ -81,9 +84,10 @@ class ConnectionWatchdogWorker(context: Context, params: WorkerParameters) : Cor
 
     companion object {
         private const val NAME = "connection_watchdog"
+        private const val INTERVAL_MINUTES = 15L
 
         fun schedule(context: Context) {
-            val request = PeriodicWorkRequestBuilder<ConnectionWatchdogWorker>(15, TimeUnit.MINUTES)
+            val request = PeriodicWorkRequestBuilder<ConnectionWatchdogWorker>(INTERVAL_MINUTES, TimeUnit.MINUTES)
                 .setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build())
                 .build()
             WorkManager.getInstance(context).enqueueUniquePeriodicWork(NAME, ExistingPeriodicWorkPolicy.KEEP, request)
