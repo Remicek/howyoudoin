@@ -461,7 +461,7 @@ func (d *Discord) downloadAttachment(channelID, messageID, kind string, a *disco
 		return
 	}
 	// Sanitize the server-supplied attachment ID so it can't escape the media dir (path traversal).
-	path := filepath.Join(dir, strings.NewReplacer(":", "_", "/", "_", "|", "_").Replace(a.ID))
+	path := filepath.Join(dir, safeMediaName(strings.NewReplacer(":", "_", "/", "_", "|", "_").Replace(a.ID)))
 	if _, err := os.Stat(path); err != nil {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 		defer cancel()

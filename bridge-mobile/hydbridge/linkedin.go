@@ -495,7 +495,7 @@ func (l *LinkedIn) downloadMedia(threadKey, messageID, kind string, rc linkeding
 	if err := os.MkdirAll(dir, 0o700); err != nil {
 		return
 	}
-	path := filepath.Join(dir, strings.NewReplacer("/", "_", ":", "_", ",", "_", "(", "_", ")", "_").Replace(messageID))
+	path := filepath.Join(dir, safeMediaName(strings.NewReplacer("/", "_", ":", "_", ",", "_", "(", "_", ")", "_").Replace(messageID)))
 	if _, err := os.Stat(path); err != nil {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 		data, err := client.DownloadBytes(ctx, link)

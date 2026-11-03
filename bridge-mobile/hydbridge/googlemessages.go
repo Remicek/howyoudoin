@@ -511,7 +511,7 @@ func (g *GoogleMessages) downloadMedia(convID, messageID, kind string, media *gm
 	if err := os.MkdirAll(dir, 0o700); err != nil {
 		return
 	}
-	path := filepath.Join(dir, strings.NewReplacer("/", "_", ":", "_").Replace(messageID))
+	path := filepath.Join(dir, safeMediaName(strings.NewReplacer("/", "_", ":", "_").Replace(messageID)))
 	if _, err := os.Stat(path); err != nil {
 		data := media.MediaData
 		if len(data) == 0 {

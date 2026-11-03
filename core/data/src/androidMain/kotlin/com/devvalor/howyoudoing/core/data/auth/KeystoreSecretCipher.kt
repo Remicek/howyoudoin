@@ -26,6 +26,9 @@ class KeystoreSecretCipher(private val alias: String = DEFAULT_ALIAS) : SecretCi
         String(cipher.doFinal(sealed, IV_BYTES, sealed.size - IV_BYTES), Charsets.UTF_8)
     }.getOrNull()
 
+    // Synchronized: two first-time callers (the app and Matrix sessions share this cipher) would otherwise each
+    // generate a key under the same alias, and whatever the first one encrypted could never be decrypted again.
+    @Synchronized
     private fun key(): SecretKey {
         val keyStore = KeyStore.getInstance(KEYSTORE).apply { load(null) }
         (keyStore.getEntry(alias, null) as? KeyStore.SecretKeyEntry)?.let { return it.secretKey }

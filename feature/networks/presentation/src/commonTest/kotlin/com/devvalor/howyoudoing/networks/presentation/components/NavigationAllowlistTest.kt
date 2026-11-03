@@ -43,8 +43,29 @@ class NavigationAllowlistTest {
     }
 
     @Test
-    fun nonHttpSchemesAreLeftToTheAppLinkHandler() {
-        assertTrue(isNavigationAllowed("slack://T0CCF7R9F08/magic-login/1", meta))
+    fun nonHttpSchemesAreRefusedWhenPinned() {
+        assertFalse(isNavigationAllowed("data:text/html,<h1>Log in to Messenger</h1>", meta))
+        assertFalse(isNavigationAllowed("javascript:alert(1)", meta))
+        assertFalse(isNavigationAllowed("file:///sdcard/login.html", meta))
+    }
+
+    @Test
+    fun aBackslashCannotSmuggleAnAllowedHost() {
+        // Browsers end the authority at '\' for http(s), so this loads evil.example.
+        assertFalse(isNavigationAllowed("https://evil.example\\@messenger.com/", meta))
+    }
+
+    @Test
+    fun userinfoRunsToTheLastAt() {
+        assertFalse(isNavigationAllowed("https://messenger.com@x@evil.example.com/", meta))
+        assertTrue(isNavigationAllowed("https://evil.example@x@www.messenger.com/", meta))
+    }
+
+    @Test
+    fun schemeCaseAndSurroundingWhitespaceDoNotBypassTheCheck() {
+        assertFalse(isNavigationAllowed("HTTPS://evil.example.com/", meta))
+        assertFalse(isNavigationAllowed("  https://evil.example.com/", meta))
+        assertTrue(isNavigationAllowed("HTTPS://www.messenger.com/", meta))
     }
 
     @Test

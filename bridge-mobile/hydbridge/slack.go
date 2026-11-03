@@ -574,7 +574,7 @@ func (s *Slack) mediaPath(name string) (string, error) {
 	if err := os.MkdirAll(dir, 0o700); err != nil {
 		return "", err
 	}
-	return filepath.Join(dir, strings.NewReplacer("/", "_", ":", "_").Replace(name)), nil
+	return filepath.Join(dir, safeMediaName(strings.NewReplacer("/", "_", ":", "_").Replace(name))), nil
 }
 
 // downloadFile fetches an attachment (Slack's file links need the login) and points the app to the local copy.

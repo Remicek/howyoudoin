@@ -573,7 +573,7 @@ func (s *Signal) mediaPath(id string) (string, error) {
 	if err := os.MkdirAll(dir, 0o700); err != nil {
 		return "", err
 	}
-	return filepath.Join(dir, strings.NewReplacer(":", "_", "/", "_", "|", "_").Replace(id)), nil
+	return filepath.Join(dir, safeMediaName(strings.NewReplacer(":", "_", "/", "_", "|", "_").Replace(id))), nil
 }
 
 func (s *Signal) downloadToFile(pointer *signalpb.AttachmentPointer, path string) error {

@@ -2,6 +2,7 @@ package hydbridge
 
 import (
 	"bytes"
+	"errors"
 	"os"
 	"path/filepath"
 	"testing"
@@ -44,5 +45,27 @@ func TestSecretFiles(t *testing.T) {
 	}
 	if SetStorageKey([]byte("short")) == nil {
 		t.Fatal("a short key was accepted")
+	}
+}
+
+func TestSafeMediaNameKeepsTraversalNamesInTheDir(t *testing.T) {
+	for _, name := range []string{"", ".", ".."} {
+		if got := safeMediaName(name); got == name || filepath.Base(filepath.Join("/media", got)) != got {
+			t.Errorf("safeMediaName(%q) = %q, escapes the media dir", name, got)
+		}
+	}
+	if got := safeMediaName("1234567890"); got != "1234567890" {
+		t.Errorf("an ordinary ID changed: %q", got)
+	}
+}
+
+func TestLimitedWriterFailsPastTheLimit(t *testing.T) {
+	var buf bytes.Buffer
+	w := &limitedWriter{w: &buf, limit: 4}
+	if _, err := w.Write([]byte("abcd")); err != nil {
+		t.Fatalf("write within the limit failed: %v", err)
+	}
+	if _, err := w.Write([]byte("e")); !errors.Is(err, errWriteLimit) {
+		t.Fatalf("write past the limit: got %v, want errWriteLimit", err)
 	}
 }
