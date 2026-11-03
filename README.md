@@ -81,7 +81,7 @@ You can try everything in **demo mode** first, without connecting any account.
 - **Unofficial.** None of these networks officially allow third-party clients. They may rate-limit, log out, or
   **ban** an account that uses one. Use it at your own risk — ideally not on an account you can't afford to lose.
 - **Android only.** The iOS code exists but isn't released (see [iOS](#ios)).
-- **Experimental**, with rough edges. Discord is **untested with real accounts** so far.
+- **Experimental**, with rough edges.
 - **Delivery relies on a background connection, not push servers.** Aggressive battery optimisation can delay
   notifications (the app asks to be exempted), and running the bridges on-device uses some battery and mobile data.
 - **Feature support varies by network.** Voice and video calls work only with Matrix contacts; reactions, edits,

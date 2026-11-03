@@ -1,4 +1,5 @@
 [versions]
+play-services-auth = "21.4.0"
 androidx-work = "2.10.1"
 androidx-test-runner = "1.7.0"
 androidx-test-espresso = "3.7.0"
@@ -51,6 +52,7 @@ projectCompileSdkVersion = "36"
 projectVersionCode = "2"
 
 [libraries]
+play-services-auth = { module = "com.google.android.gms:play-services-auth", version.ref = "play-services-auth" }
 androidx-work-runtime = { module = "androidx.work:work-runtime-ktx", version.ref = "androidx-work" }
 androidx-test-runner = { module = "androidx.test:runner", version.ref = "androidx-test-runner" }
 androidx-test-espresso-core = { module = "androidx.test.espresso:espresso-core", version.ref = "androidx-test-espresso" }

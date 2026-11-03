@@ -78,7 +78,6 @@ fun PhoneNumberInput(
                 value = number,
                 onValueChange = onNumberChange,
                 label = { Text(label) },
-                placeholder = { Text("600 123 456") },
                 singleLine = true,
                 isError = showError,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone, imeAction = ImeAction.Done),

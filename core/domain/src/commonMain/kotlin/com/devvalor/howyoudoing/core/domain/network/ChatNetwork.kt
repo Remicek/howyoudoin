@@ -90,7 +90,6 @@ enum class ChatNetwork(
         isSupported = false,
         bridgeProtocolIds = setOf("discord"),
         ghostUserPrefixes = setOf("discord_"),
-        isUntested = true
     ),
     /** X's direct messages (X Chat), shown as "X". */
     TWITTER(

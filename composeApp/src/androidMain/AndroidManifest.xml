@@ -13,7 +13,7 @@
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
     <!-- Matrix audio and video calls -->
     <uses-permission android:name="android.permission.CAMERA" />
-    <!-- Only when the user taps "Use this phone's number" on a phone-number login, to fill in the SIM's number -->
+    <!-- Only if Google's number picker has nothing to offer, after "Use this phone's number", to read the SIM's number -->
     <uses-permission android:name="android.permission.READ_PHONE_NUMBERS" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
