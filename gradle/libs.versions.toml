@@ -1,6 +1,7 @@
 [versions]
 play-services-auth = "21.4.0"
 androidx-work = "2.10.1"
+androidx-concurrent = "1.2.0"
 androidx-test-runner = "1.7.0"
 androidx-test-espresso = "3.7.0"
 androidx-test-ext-junit = "1.3.0"
@@ -48,12 +49,14 @@ projectApplicationId = "com.devvalor.howyoudoing"
 projectVersionName = "1.0.1"
 projectMinSdkVersion = "26"
 projectTargetSdkVersion = "36"
-projectCompileSdkVersion = "36"
+projectCompileSdkVersion = "37"
+projectCompileSdkMinorVersion = "1"
 projectVersionCode = "2"
 
 [libraries]
 play-services-auth = { module = "com.google.android.gms:play-services-auth", version.ref = "play-services-auth" }
 androidx-work-runtime = { module = "androidx.work:work-runtime-ktx", version.ref = "androidx-work" }
+androidx-concurrent-futures = { module = "androidx.concurrent:concurrent-futures-ktx", version.ref = "androidx-concurrent" }
 androidx-test-runner = { module = "androidx.test:runner", version.ref = "androidx-test-runner" }
 androidx-test-espresso-core = { module = "androidx.test.espresso:espresso-core", version.ref = "androidx-test-espresso" }
 androidx-test-ext-junit = { module = "androidx.test.ext:junit", version.ref = "androidx-test-ext-junit" }

@@ -93,6 +93,9 @@ kotlin {
             implementation(libs.koin.android)
             implementation(libs.androidx.biometric)
             implementation(libs.androidx.work.runtime)
+            // WorkManager brings 1.1.0, the instrumented-test libraries need 1.2.0, and AGP pins the test classpath
+            // to the app's versions
+            implementation(libs.androidx.concurrent.futures)
             implementation(libs.stream.webrtc.android)
             implementation(libs.jetbrains.compose.material.icons.extended)
             // On-device Messenger bridge, built by bridge-mobile/scripts/build-android.sh (not in git)
