@@ -361,6 +361,10 @@ func (w *WhatsApp) handleHistorySync(evt *events.HistorySync) {
 			msg, err := w.client.ParseWebMessage(chat, item.GetMessage())
 			if err == nil {
 				w.emitWAMessage(msg, false)
+				// History messages carry a business's verified name beside the message, not in it
+				if bizName := item.GetMessage().GetVerifiedBizName(); bizName != "" && !msg.Info.IsFromMe {
+					w.emitContact(w.pnJID(msg.Info.Sender), bizName)
+				}
 			}
 		}
 	}
@@ -414,8 +418,9 @@ func (w *WhatsApp) emitWAMessage(evt *events.Message, live bool) {
 	if evt.Info.IsFromMe && w.client != nil && w.client.Store.ID != nil {
 		sender = w.client.Store.ID.ToNonAD().String()
 	}
-	if evt.Info.PushName != "" && !evt.Info.IsFromMe {
-		w.emitContact(w.pnJID(senderJID), evt.Info.PushName)
+	if !evt.Info.IsFromMe {
+		// A business's verified name ("X App") is what WhatsApp shows for it; else the sender's own push name
+		w.emitContact(w.pnJID(senderJID), firstNonEmpty(waVerifiedName(evt.Info.VerifiedName), evt.Info.PushName))
 	}
 	if reaction := msg.GetReactionMessage(); reaction != nil {
 		w.emit(map[string]any{"type": "reaction", "threadKey": chat, "targetId": reaction.GetKey().GetID(),
@@ -450,6 +455,8 @@ func (w *WhatsApp) emitWAMessage(evt *events.Message, live bool) {
 	kind, text := describeWAMessage(msg)
 	if kind == "" {
 		return
+	} else if kind == "other" {
+		w.log.Info().Strs("fields", waSetFields(msg)).Msg("WhatsApp message type not shown yet")
 	}
 	event := map[string]any{
 		"type": "message", "threadKey": chat, "id": evt.Info.ID, "otid": evt.Info.ID, "senderId": sender, "text": text,
@@ -528,6 +535,12 @@ func describeWAMessage(msg *waE2E.Message) (kind, text string) {
 		if text := describeWARichMessage(msg); text != "" {
 			return "text", text
 		}
+		if inner := waWrappedMessage(msg); inner != nil {
+			return describeWAMessage(inner)
+		}
+		if text := waReadableText(msg); text != "" {
+			return "text", text
+		}
 		return "other", ""
 	}
 }
@@ -584,6 +597,14 @@ func describeWARichMessage(msg *waE2E.Message) string {
 		return "👤 " + msg.GetContactsArrayMessage().GetDisplayName()
 	}
 	return ""
+}
+
+// waVerifiedName is a business account's verified name, or "".
+func waVerifiedName(name *types.VerifiedName) string {
+	if name == nil {
+		return ""
+	}
+	return name.Details.GetVerifiedName()
 }
 
 func firstNonNil[T any](values ...*T) *T {

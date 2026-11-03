@@ -34,3 +34,27 @@ func TestWhatsAppRichMessagesShowAsText(t *testing.T) {
 		t.Errorf("an empty message is %q", kind)
 	}
 }
+
+// Messages in a wrapper type we don't list, and types whose text is in fields we don't list (e.g. businesses'
+// login-code templates), still show as their text.
+func TestWhatsAppUnknownMessagesShowTheirText(t *testing.T) {
+	wrapped := &waE2E.Message{BotForwardedMessage: &waE2E.FutureProofMessage{
+		Message: &waE2E.Message{Conversation: proto.String("941212 is your verification code.")},
+	}}
+	if kind, text := describeWAMessage(wrapped); kind != "text" || text != "941212 is your verification code." {
+		t.Errorf("wrapped: got %q %q", kind, text)
+	}
+	invite := &waE2E.Message{NewsletterAdminInviteMessage: &waE2E.NewsletterAdminInviteMessage{
+		Caption: proto.String("Join as an admin"),
+	}}
+	if kind, text := describeWAMessage(invite); kind != "text" || text != "Join as an admin" {
+		t.Errorf("unknown type: got %q %q", kind, text)
+	}
+	// Text in a quoted message isn't this message's
+	quoting := &waE2E.Message{NewsletterAdminInviteMessage: &waE2E.NewsletterAdminInviteMessage{
+		ContextInfo: &waE2E.ContextInfo{QuotedMessage: &waE2E.Message{Conversation: proto.String("quoted")}},
+	}}
+	if kind, _ := describeWAMessage(quoting); kind != "other" {
+		t.Errorf("quoted text leaked: %q", kind)
+	}
+}
