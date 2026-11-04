@@ -113,6 +113,7 @@ class OnDeviceChatRepository(
         }.map { contacts -> contacts.sortedBy { it.name.lowercase() } }
 
     override suspend fun startChat(contact: ChatContact): Result<String, DataError.Remote> {
+        if (isMatrixAccountContact(contact)) return matrixAccount.startChat(contact)
         val existing = contact.chatId
         val source = sources.firstOrNull { it.client.network == contact.network && it.client.isSupported }
         val key = source?.client?.directChatKey(contact.id)
@@ -129,10 +130,20 @@ class OnDeviceChatRepository(
         }
     }
 
+    /** Someone on Matrix, reached through the Matrix account connected as a network (it has rooms of its own). */
+    private fun isMatrixAccountContact(contact: ChatContact): Boolean {
+        val chatId = contact.chatId
+        val isAccountChat = chatId == null || matrixAccount.owns(chatId)
+        return contact.network == ChatNetwork.MATRIX && matrixAccount.isConnected && isAccountChat
+    }
+
     override suspend fun searchPeople(
         network: ChatNetwork,
         query: String
     ): Result<List<ChatContact>, DataError.Remote> {
+        if (network == ChatNetwork.MATRIX && matrixAccount.isConnected) {
+            return matrixAccount.searchPeople(network, query)
+        }
         val source = sources.firstOrNull { it.client.network == network && it.client.isSupported }
             ?: return server.searchPeople(network, query)
         return when (val found = source.client.searchPeople(query)) {

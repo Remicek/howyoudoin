@@ -309,6 +309,14 @@ class MatrixSyncEngine(
             .asEmptyResult()
     }
 
+    // --- direct chats (MatrixDirectChats) ---
+
+    /** This device can encrypt, so new rooms can be end-to-end encrypted. */
+    val canEncrypt: Boolean get() = crypto != null
+
+    /** A room just created encrypted: never send plain text to it, even before a sync shows its encryption. */
+    fun rememberEncrypted(roomId: String) = everEncrypted.update { it + roomId }
+
     private fun InvitedRoomDto.toInvite(roomId: String, ownUserId: String): MatrixInvite {
         val events = inviteState?.events.orEmpty()
         val own = events.firstOrNull { it.type == "m.room.member" && it.stateKey == ownUserId }

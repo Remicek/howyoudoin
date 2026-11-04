@@ -107,7 +107,7 @@ val chatDataModule = module {
             cryptoFactory = getOrNull(), mediaCache = getOrNull()
         )
     }
-    single { MatrixAccountChats(MatrixChatRepository(get(named(MATRIX_ACCOUNT_ENGINE)))) }
+    single { MatrixAccountChats(MatrixChatRepository(get(named(MATRIX_ACCOUNT_ENGINE)), get())) }
     single<MatrixEncryption> { MatrixAccountEncryption(get(named(MATRIX_ACCOUNT_ENGINE))) }
     single<CallManager>(createdAtStart = true) {
         MatrixCallManager(

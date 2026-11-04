@@ -3,11 +3,14 @@ package com.devvalor.howyoudoing.chat.data
 import com.devvalor.howyoudoing.chat.data.mappers.toChat
 import com.devvalor.howyoudoing.chat.data.mappers.toMessages
 import com.devvalor.howyoudoing.chat.data.mappers.withSenderNames
+import com.devvalor.howyoudoing.chat.data.matrix.MatrixApi
+import com.devvalor.howyoudoing.chat.data.matrix.MatrixDirectChats
 import com.devvalor.howyoudoing.chat.data.matrix.MatrixInvite
 import com.devvalor.howyoudoing.chat.data.matrix.MatrixSyncEngine
 import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
 import com.devvalor.howyoudoing.chat.domain.Attachment
 import com.devvalor.howyoudoing.chat.domain.Chat
+import com.devvalor.howyoudoing.chat.domain.ChatContact
 import com.devvalor.howyoudoing.chat.domain.ChatRepository
 import com.devvalor.howyoudoing.chat.domain.MediaRequest
 import com.devvalor.howyoudoing.chat.domain.Message
@@ -24,8 +27,11 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 
 class MatrixChatRepository(
-    private val engine: MatrixSyncEngine
+    private val engine: MatrixSyncEngine,
+    api: MatrixApi
 ) : ChatRepository {
+
+    private val directChats = MatrixDirectChats(api, engine)
 
     override fun observeSyncState(): Flow<SyncState> =
         engine.syncState.onStart { engine.ensureStarted() }
@@ -64,6 +70,41 @@ class MatrixChatRepository(
 
     override fun hasMoreHistory(chatId: String): Flow<Boolean> =
         engine.rooms.map { it[chatId]?.hasMoreHistory ?: false }.distinctUntilChanged()
+
+    /** Whether an account is signed in (the Matrix account connected as a network may not be). */
+    val hasSession: Boolean get() = engine.session.value != null
+
+    override suspend fun searchPeople(
+        network: ChatNetwork,
+        query: String
+    ): Result<List<ChatContact>, DataError.Remote> {
+        val found = if (network == ChatNetwork.MATRIX) {
+            directChats.searchPeople(query)
+        } else {
+            Result.Failure(DataError.Remote.BAD_REQUEST)
+        }
+        return when (found) {
+            is Result.Failure -> found
+            is Result.Success -> Result.Success(
+                found.data.map { person ->
+                    ChatContact(
+                        id = person.userId,
+                        name = person.displayName ?: person.userId,
+                        network = ChatNetwork.MATRIX,
+                        avatarUrl = person.avatarUrl,
+                        chatId = directChats.directRoomWith(person.userId),
+                        handle = person.userId
+                    )
+                }
+            )
+        }
+    }
+
+    override suspend fun startChat(contact: ChatContact): Result<String, DataError.Remote> = when {
+        contact.chatId != null -> Result.Success(contact.chatId.orEmpty())
+        contact.network == ChatNetwork.MATRIX -> directChats.startDirectChat(contact.id)
+        else -> Result.Failure(DataError.Remote.BAD_REQUEST)
+    }
 
     override suspend fun loadOlderMessages(chatId: String): EmptyResult<DataError.Remote> =
         engine.loadOlder(chatId)

@@ -3,12 +3,15 @@ package com.devvalor.howyoudoing.chat.data.ondevice
 import com.devvalor.howyoudoing.chat.data.MatrixChatRepository
 import com.devvalor.howyoudoing.chat.domain.Attachment
 import com.devvalor.howyoudoing.chat.domain.Chat
+import com.devvalor.howyoudoing.chat.domain.ChatContact
 import com.devvalor.howyoudoing.chat.domain.ChatRepository
 import com.devvalor.howyoudoing.chat.domain.MediaRequest
 import com.devvalor.howyoudoing.chat.domain.Message
 import com.devvalor.howyoudoing.chat.domain.SyncState
 import com.devvalor.howyoudoing.core.domain.util.DataError
+import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
 import com.devvalor.howyoudoing.core.domain.util.EmptyResult
+import com.devvalor.howyoudoing.core.domain.util.Result
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -86,6 +89,31 @@ class MatrixAccountChats(private val matrix: MatrixChatRepository) : ChatReposit
 
     override suspend fun downloadMedia(mxcUrl: String): ByteArray? = matrix.downloadMedia(strip(mxcUrl))
     override suspend fun refresh() = matrix.refresh()
+
+    /** Whether the Matrix account is connected (signed in). */
+    val isConnected: Boolean get() = matrix.hasSession
+
+    override suspend fun searchPeople(
+        network: ChatNetwork,
+        query: String
+    ): Result<List<ChatContact>, DataError.Remote> =
+        when (val found = matrix.searchPeople(network, query)) {
+            is Result.Failure -> found
+            is Result.Success -> Result.Success(
+                found.data.map { contact ->
+                    contact.copy(
+                        avatarUrl = contact.avatarUrl?.prefixed(),
+                        chatId = contact.chatId?.let { PREFIX + it }
+                    )
+                }
+            )
+        }
+
+    override suspend fun startChat(contact: ChatContact): Result<String, DataError.Remote> =
+        when (val started = matrix.startChat(contact.copy(chatId = contact.chatId?.let(::strip)))) {
+            is Result.Failure -> started
+            is Result.Success -> Result.Success(PREFIX + started.data)
+        }
 
     companion object {
         const val PREFIX = "mxacct:"

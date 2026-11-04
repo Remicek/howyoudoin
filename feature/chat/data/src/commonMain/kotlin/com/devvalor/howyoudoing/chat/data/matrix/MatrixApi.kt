@@ -155,6 +155,50 @@ class MatrixApi(
         }
     }
 
+    /** The homeserver's user directory: people sharing a room with the user, or in public rooms. */
+    suspend fun searchUserDirectory(
+        session: AuthInfo,
+        term: String,
+        limit: Int
+    ): Result<JsonObject, DataError.Remote> = safeCall {
+        httpClient.post {
+            endpoint(session, "user_directory", "search")
+            setBody(buildJsonObject {
+                put("search_term", term)
+                put("limit", limit)
+            })
+        }
+    }
+
+    /** Someone's display name and avatar; fails with NOT_FOUND for a Matrix ID that doesn't exist. */
+    suspend fun profile(session: AuthInfo, userId: String): Result<JsonObject, DataError.Remote> = safeCall {
+        httpClient.get { endpoint(session, "profile", userId) }
+    }
+
+    /** Creates a room; the response has its `room_id`. */
+    suspend fun createRoom(session: AuthInfo, request: JsonObject): Result<JsonObject, DataError.Remote> = safeCall {
+        httpClient.post {
+            endpoint(session, "createRoom")
+            setBody(request)
+        }
+    }
+
+    /** The user's account data of [type] (e.g. `m.direct`); NOT_FOUND when there's none yet. */
+    suspend fun accountData(session: AuthInfo, type: String): Result<JsonObject, DataError.Remote> = safeCall {
+        httpClient.get { endpoint(session, "user", session.userId, "account_data", type) }
+    }
+
+    suspend fun setAccountData(
+        session: AuthInfo,
+        type: String,
+        content: JsonObject
+    ): Result<JsonObject, DataError.Remote> = safeCall {
+        httpClient.put {
+            endpoint(session, "user", session.userId, "account_data", type)
+            setBody(content)
+        }
+    }
+
     /** TURN servers for VoIP calls (`/voip/turnServer`). */
     suspend fun turnServer(session: AuthInfo): Result<TurnServerDto, DataError.Remote> = safeCall {
         httpClient.get { endpoint(session, "voip", "turnServer") }
