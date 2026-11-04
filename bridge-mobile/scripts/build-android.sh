@@ -39,8 +39,10 @@ for arch in ${HYDBRIDGE_ARCHS:-arm64}; do
     if [ ! -f "$libsignal_out/libsignal_ffi.a" ]; then
         (cd "$LIBSIGNAL" && RUSTFLAGS="-Ctarget-feature=-crt-static" cargo ndk -t "$abi" -P 26 build -p libsignal-ffi --release)
     fi
+    # -w drops the DWARF debug info but the symbol table stays: the app build moves it out of the shipped library
+    # into the bundle's debug symbols, for readable native crash stacks in Play
     CGO_LDFLAGS="-L$STATIC_CXX -L$libsignal_out" gomobile bind -target="android/$arch" -androidapi 26 -tags goolm \
-        -javapkg com.devvalor.howyoudoing.bridge -ldflags="-s -w" -o "$PARTS/$arch.aar" ./hydbridge
+        -javapkg com.devvalor.howyoudoing.bridge -ldflags="-w" -o "$PARTS/$arch.aar" ./hydbridge
     (cd "$PARTS" && mkdir -p merged && unzip -qo "$arch.aar" -d merged)
 done
 rm -f "$OUT"

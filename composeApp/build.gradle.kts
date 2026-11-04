@@ -14,6 +14,8 @@ val localProperties = Properties().apply {
 }
 
 android {
+    // Strips the native libraries and extracts their symbols for Play (same NDK as the bridge build)
+    ndkVersion = "29.0.14206865"
     buildFeatures {
         buildConfig = true
     }
@@ -45,7 +47,11 @@ android {
     // The network clients library is built for arm64 phones only; the CI's copy also has x86_64 for the emulator
     buildTypes {
         getByName("release") {
-            ndk { abiFilters += "arm64-v8a" }
+            ndk {
+                abiFilters += "arm64-v8a"
+                // The native libraries' symbol tables go into the bundle, so Play can show readable native crash stacks
+                debugSymbolLevel = "SYMBOL_TABLE"
+            }
             // Smaller APK, and the app's own code (with the masked Telegram keys) is harder to read
             isMinifyEnabled = true
             isShrinkResources = true

@@ -95,6 +95,11 @@ jobs:
             fi
           } > local.properties
 
+      - name: NDK (strips the native libraries and extracts their symbols for Play)
+        run: |
+          NDK_VERSION=$(sed -n 's/.*ndkVersion = "\(.*\)"/\1/p' composeApp/build.gradle.kts)
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install "ndk;$NDK_VERSION" > /dev/null
+
       - name: Unit tests
         run: ./gradlew testDebugUnitTest
 
