@@ -10,13 +10,31 @@ in any session. Google Play marketing assets live outside this repo at
 
 ---
 
-## Worth doing before release — priority order
+## Release status (2026-11-03)
 
-1. **Host the privacy policy** and paste the URL into the Play listing (blocks submission).
-2. **Complete the Data safety form + content rating** in the Play Console (blocks submission).
-3. **Upload the promo video to YouTube**, paste the link (Play needs a URL, not a file).
-4. **Final release build + signing**: verify the release keystore, versionCode/versionName
-   bump, R8/shrink config, and a clean `assembleRelease` / bundle.
+**Done**
+- [x] Play Console app created (Devvalor org account, `com.devvalor.howyoudoing`, free).
+      Play App Signing terms accepted — Google will hold the app signing key; our
+      `keys/howyoudoin-release.jks` is the **upload key**.
+- [x] Signed release bundle: `GooglePlay/HowYouDoin/release/howyoudoin-1.0.1-vc2.aab`
+      (built with `./gradlew :composeApp:bundleRelease`; `local.properties` now has the
+      `release.*` signing entries; upload cert SHA-256 `A0:DB:92:11:…:CE:DD`).
+- [x] Store listing (en-US) saved as draft: title, short + full description, icon,
+      feature graphic, 7 screenshots in order, YouTube promo video.
+- [x] Privacy policy URL (https://howyoudoin.app/privacy.html) and Ads = "no ads".
+- [x] Promo video on YouTube (unlisted): https://www.youtube.com/watch?v=H2h2FWsCjb8
+
+**Left for you (Play Console)** — answers prepared in `GooglePlay/HowYouDoin/play-console-answers.md`
+1. Upload the AAB (52 MB) to a release (Internal testing first is fine). On first upload
+   choose "Use Google-generated key" for Play App Signing.
+2. App access: form is filled (demo mode instructions) — tick the "full access" box, Add, Save.
+3. Content rating, Target audience, Data safety, Advertising ID (No), Government / Financial /
+   Health (No).
+4. After the AAB upload: Foreground service declaration (needs a short demo video) and
+   Full-screen intent (Calling).
+5. Store settings: category Communication + contact email.
+6. Optional: pl-PL listing translation (`listing/listing-pl.md`).
+
 ### Done since last update (branch `security-hardening-ci`)
 - [x] **WebView host-allowlist (option A).** Per-network `cookieLoginAllowedHosts` pins
       the cookie-login web view to each network's known hosts; Slack stays unrestricted
