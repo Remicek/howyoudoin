@@ -186,7 +186,15 @@ sealed interface OnDeviceMessengerState {
     data object NotLinked : OnDeviceMessengerState
     data object Connecting : OnDeviceMessengerState
     /** [needsVerification]: the network won't send for this account until its email or phone is verified. */
-    data class Connected(val accountName: String?, val needsVerification: Boolean = false) : OnDeviceMessengerState
+    /**
+     * [workspace]: for networks with workspaces (Slack), the one connected; [accountName] is then the user's name
+     * in it.
+     */
+    data class Connected(
+        val accountName: String?,
+        val needsVerification: Boolean = false,
+        val workspace: String? = null
+    ) : OnDeviceMessengerState
     data class Failed(val message: String) : OnDeviceMessengerState
 }
 

@@ -6,6 +6,11 @@ import howyoudoin.feature.networks.presentation.generated.resources.connect_brid
 import howyoudoin.feature.networks.presentation.generated.resources.connect_unofficial_telegram
 import howyoudoin.feature.networks.presentation.generated.resources.connect_matrix_open
 import howyoudoin.feature.networks.presentation.generated.resources.connect_unofficial
+import howyoudoin.feature.networks.presentation.generated.resources.connect_calls_in_app
+import howyoudoin.feature.networks.presentation.generated.resources.connect_calls_joined
+import howyoudoin.feature.networks.presentation.generated.resources.connect_calls_shown
+import howyoudoin.feature.networks.presentation.generated.resources.connect_calls_logged
+import howyoudoin.feature.networks.presentation.generated.resources.connect_calls_not_shown
 import howyoudoin.feature.networks.presentation.generated.resources.connect_phone_intro
 import howyoudoin.feature.networks.presentation.generated.resources.connect_restore_history
 import howyoudoin.feature.networks.presentation.generated.resources.connect_continue
@@ -57,6 +62,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.Call
+import androidx.compose.material.icons.rounded.PhoneDisabled
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.Visibility
 import androidx.compose.material.icons.rounded.VisibilityOff
@@ -94,6 +101,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.devvalor.howyoudoing.core.designsystem.components.NetworkBadge
 import com.devvalor.howyoudoing.core.designsystem.theme.HowYouDoinSpacing
+import com.devvalor.howyoudoing.core.domain.network.CallSupport
 import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
 import com.devvalor.howyoudoing.networks.domain.BridgeLoginFlow
 import com.devvalor.howyoudoing.networks.domain.BridgeLoginStep
@@ -325,6 +333,8 @@ private fun ChooseFlow(network: ChatNetwork, flows: List<BridgeLoginFlow>, onAct
         }
     }
     Spacer(Modifier.height(HowYouDoinSpacing.lg))
+    CallsNote(network)
+    Spacer(Modifier.height(HowYouDoinSpacing.md))
     Text(
         if (network == ChatNetwork.TELEGRAM) {
             stringResource(Res.string.connect_unofficial_telegram)
@@ -630,4 +640,29 @@ private fun cookieLoginInstructions(network: ChatNetwork): String = when (networ
     ChatNetwork.SLACK -> stringResource(Res.string.cookies_steps_slack)
     ChatNetwork.GOOGLE_MESSAGES, ChatNetwork.GOOGLE_VOICE -> stringResource(Res.string.cookies_steps_google)
     else -> stringResource(Res.string.cookies_steps, network.displayName)
+}
+
+/**
+ * What happens to the network's calls: answered here (Matrix), shown and notified, notified when one starts, only
+ * logged, or not shown.
+ */
+@Composable
+private fun CallsNote(network: ChatNetwork) {
+    val text = when (network.calls) {
+        CallSupport.IN_APP -> stringResource(Res.string.connect_calls_in_app)
+        CallSupport.SHOWN -> stringResource(Res.string.connect_calls_shown, network.displayName)
+        CallSupport.JOINED -> stringResource(Res.string.connect_calls_joined, network.displayName)
+        CallSupport.LOGGED -> stringResource(Res.string.connect_calls_logged, network.displayName)
+        CallSupport.NOT_SHOWN -> stringResource(Res.string.connect_calls_not_shown, network.displayName)
+    }
+    Row(verticalAlignment = Alignment.Top) {
+        Icon(
+            if (network.calls == CallSupport.NOT_SHOWN) Icons.Rounded.PhoneDisabled else Icons.Rounded.Call,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(16.dp),
+        )
+        Spacer(Modifier.width(HowYouDoinSpacing.sm))
+        Text(text, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
 }

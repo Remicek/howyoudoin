@@ -28,7 +28,7 @@ class AndroidNotificationPresenter(private val context: Context) : MessageNotifi
         )
     }
 
-    override fun show(chatId: String, title: String, text: String, timestampMs: Long) {
+    override fun show(chatId: String, title: String, text: String, timestampMs: Long, silent: Boolean) {
         if (!manager.areNotificationsEnabled()) return
         val open = PendingIntent.getActivity(
             context,
@@ -47,6 +47,7 @@ class AndroidNotificationPresenter(private val context: Context) : MessageNotifi
             .setShowWhen(true)
             .setContentIntent(open)
             .setAutoCancel(true)
+            .setSilent(silent)
             .setCategory(NotificationCompat.CATEGORY_MESSAGE)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .build()

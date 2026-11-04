@@ -17,8 +17,39 @@ data class Message(
     val isReadByOthers: Boolean = false,
     val isEdited: Boolean = false,
     /** A message that failed to send and can be sent again (text; attachments have to be picked again). */
-    val canRetry: Boolean = false
+    val canRetry: Boolean = false,
+    /** Set for [MessageType.CALL]: a call on the network, which rings in the network's own app. */
+    val call: CallInfo? = null
 )
+
+/** A call on a network HowYouDoin can't answer calls of (everything but Matrix): it's shown in the chat instead. */
+data class CallInfo(
+    val state: CallOutcome,
+    val isVideo: Boolean,
+    /** How long it lasted, when it was answered and the network says. */
+    val durationMillis: Long? = null
+)
+
+enum class CallOutcome {
+    /** Ringing now, in the network's app. */
+    INCOMING,
+    MISSED,
+    DECLINED,
+    ENDED,
+
+    /** A group call or huddle someone started, which can be joined from the network's app. */
+    STARTED;
+
+    companion object {
+        fun fromId(id: String): CallOutcome = when (id) {
+            "incoming" -> INCOMING
+            "missed" -> MISSED
+            "declined" -> DECLINED
+            "started" -> STARTED
+            else -> ENDED
+        }
+    }
+}
 
 /** The message this one replies to, as shown in the quote above it. */
 data class ReplyPreview(
@@ -68,6 +99,9 @@ enum class MessageType {
 
     /** A business's one-time login code: WhatsApp shows it only on the phone, not on linked devices. */
     ONE_TIME_CODE,
+
+    /** A call on the network ([Message.call] says which kind and how it went). */
+    CALL,
     OTHER
 }
 

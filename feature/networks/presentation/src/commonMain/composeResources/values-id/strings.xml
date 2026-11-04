@@ -149,6 +149,7 @@
     <string name="networks_disconnect_title">Putuskan %1$s?</string>
     <string name="networks_disconnect_body">Chat, foto, dan kunci enkripsinya dihapus dari ponsel ini. Akun %1$s Anda dan pesannya tetap seperti semula; Anda bisa menghubungkannya lagi kapan saja.</string>
     <string name="networks_on_device_name">%1$s · di perangkat ini</string>
+    <string name="networks_on_device_workspace">%1$s · ruang kerja %2$s · di perangkat ini</string>
     <string name="login_state_connected">Tersambung</string>
     <string name="login_state_connecting">Menghubungkan</string>
     <string name="login_state_error">Kesalahan: %1$s</string>
@@ -212,4 +213,9 @@
     <string name="connectnetwork_x">Masuk di x.com, lalu masukkan kode sandi X Chat; pesan terhubung dari ponsel ini.</string>
     <string name="x_passcode_instructions">Masukkan kode sandi X Chat, yaitu PIN yang Anda atur untuk Chat di X. Kode ini membuka pesan terenkripsi Anda di ponsel ini. X hanya mengizinkan beberapa kali salah sebelum mengunci Chat.</string>
     <string name="field_x_passcode">Kode sandi X Chat</string>
+    <string name="connect_calls_in_app">Panggilan suara dan video berfungsi langsung di HowYouDoin.</string>
+    <string name="connect_calls_shown">Panggilan hanya berdering di aplikasi %1$s, tetapi HowYouDoin memberi tahu Anda tentang panggilan suara dan video masuk dan menyimpan panggilan tak terjawab di chat.</string>
+    <string name="connect_calls_joined">HowYouDoin memberi tahu Anda saat seseorang memulai panggilan %1$s, yang Anda ikuti di aplikasi %1$s. Panggilan tetap ada di chat sesudahnya.</string>
+    <string name="connect_calls_logged">%1$s tidak memberi tahu aplikasi lain saat panggilan berdering. Panggilan tak terjawab dan yang selesai muncul di chat setelahnya.</string>
+    <string name="connect_calls_not_shown">HowYouDoin tidak dapat menampilkan panggilan %1$s atau memberi tahu Anda: %1$s tidak membagikannya ke aplikasi lain.</string>
 </resources>

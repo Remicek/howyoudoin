@@ -176,4 +176,16 @@
     <string name="contacts_start_rate_limited">%1$s अभी अनुरोध सीमित कर रहा है। कुछ मिनट बाद फिर से कोशिश करें।</string>
     <string name="contacts_start_failed">%1$s पर चैट शुरू नहीं हो सकी। फिर से कोशिश करें।</string>
     <string name="contacts_no_networks">लोगों को लिखने के लिए कोई नेटवर्क जोड़ें।</string>
+    <string name="call_incoming">📞 इनकमिंग कॉल · %1$s में जवाब दें</string>
+    <string name="call_incoming_video">📹 इनकमिंग वीडियो कॉल · %1$s में जवाब दें</string>
+    <string name="call_missed">📞 मिस्ड कॉल</string>
+    <string name="call_missed_video">📹 मिस्ड वीडियो कॉल</string>
+    <string name="call_declined">📞 अस्वीकार की गई कॉल</string>
+    <string name="call_declined_video">📹 अस्वीकार की गई वीडियो कॉल</string>
+    <string name="call_ended">📞 कॉल</string>
+    <string name="call_ended_video">📹 वीडियो कॉल</string>
+    <string name="call_ended_duration">📞 कॉल · %1$s</string>
+    <string name="call_ended_video_duration">📹 वीडियो कॉल · %1$s</string>
+    <string name="call_started">📞 एक कॉल शुरू हुई · %1$s में जुड़ें</string>
+    <string name="call_started_video">📹 एक वीडियो कॉल शुरू हुई · %1$s में जुड़ें</string>
 </resources>

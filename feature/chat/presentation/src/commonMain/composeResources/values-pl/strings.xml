@@ -180,4 +180,16 @@
     <string name="contacts_start_rate_limited">%1$s na razie ogranicza liczbę żądań. Spróbuj za kilka minut.</string>
     <string name="contacts_start_failed">Nie udało się rozpocząć czatu w %1$s. Spróbuj ponownie.</string>
     <string name="contacts_no_networks">Podłącz sieć, żeby pisać do ludzi.</string>
+    <string name="call_incoming">📞 Połączenie przychodzące · odbierz w aplikacji %1$s</string>
+    <string name="call_incoming_video">📹 Przychodzące połączenie wideo · odbierz w aplikacji %1$s</string>
+    <string name="call_missed">📞 Nieodebrane połączenie</string>
+    <string name="call_missed_video">📹 Nieodebrane połączenie wideo</string>
+    <string name="call_declined">📞 Odrzucone połączenie</string>
+    <string name="call_declined_video">📹 Odrzucone połączenie wideo</string>
+    <string name="call_ended">📞 Połączenie</string>
+    <string name="call_ended_video">📹 Połączenie wideo</string>
+    <string name="call_ended_duration">📞 Połączenie · %1$s</string>
+    <string name="call_ended_video_duration">📹 Połączenie wideo · %1$s</string>
+    <string name="call_started">📞 Rozpoczęto rozmowę · dołącz w aplikacji %1$s</string>
+    <string name="call_started_video">📹 Rozpoczęto rozmowę wideo · dołącz w aplikacji %1$s</string>
 </resources>

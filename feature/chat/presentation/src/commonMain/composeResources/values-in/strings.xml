@@ -174,4 +174,16 @@
     <string name="contacts_start_rate_limited">%1$s sedang membatasi permintaan. Coba lagi dalam beberapa menit.</string>
     <string name="contacts_start_failed">Tidak dapat memulai obrolan di %1$s. Coba lagi.</string>
     <string name="contacts_no_networks">Hubungkan jaringan untuk menulis ke orang lain.</string>
+    <string name="call_incoming">📞 Panggilan masuk · jawab di %1$s</string>
+    <string name="call_incoming_video">📹 Panggilan video masuk · jawab di %1$s</string>
+    <string name="call_missed">📞 Panggilan tak terjawab</string>
+    <string name="call_missed_video">📹 Panggilan video tak terjawab</string>
+    <string name="call_declined">📞 Panggilan ditolak</string>
+    <string name="call_declined_video">📹 Panggilan video ditolak</string>
+    <string name="call_ended">📞 Panggilan</string>
+    <string name="call_ended_video">📹 Panggilan video</string>
+    <string name="call_ended_duration">📞 Panggilan · %1$s</string>
+    <string name="call_ended_video_duration">📹 Panggilan video · %1$s</string>
+    <string name="call_started">📞 Panggilan dimulai · gabung di %1$s</string>
+    <string name="call_started_video">📹 Panggilan video dimulai · gabung di %1$s</string>
 </resources>

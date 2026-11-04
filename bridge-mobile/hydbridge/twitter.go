@@ -413,6 +413,8 @@ func (t *Twitter) handleEvent(ctx context.Context, raw types.TwitterEvent) bool 
 			"watermarkMs": twitterMillis(evt.Time)})
 	case *types.XChatTyping:
 		t.emitTyping(evt.ConversationID, evt.SenderID)
+	case *types.XChatCall:
+		t.emitCall(evt)
 	}
 	return true
 }

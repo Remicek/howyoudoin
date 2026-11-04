@@ -149,6 +149,7 @@
     <string name="networks_disconnect_title">Отключить %1$s?</string>
     <string name="networks_disconnect_body">Его чаты, фото и ключи шифрования будут удалены с этого телефона. Ваш аккаунт %1$s и его сообщения останутся без изменений; подключиться снова можно в любой момент.</string>
     <string name="networks_on_device_name">%1$s · на этом устройстве</string>
+    <string name="networks_on_device_workspace">%1$s · рабочее пространство %2$s · на этом устройстве</string>
     <string name="login_state_connected">Подключено</string>
     <string name="login_state_connecting">Подключение</string>
     <string name="login_state_error">Ошибка: %1$s</string>
@@ -218,4 +219,9 @@
     <string name="connectnetwork_x">Войдите на x.com и введите код доступа X Chat; сообщения подключаются с этого телефона.</string>
     <string name="x_passcode_instructions">Введите код доступа X Chat — PIN, который вы задали для чата в X. Он открывает ваши зашифрованные сообщения на этом телефоне. X даёт лишь несколько неверных попыток, затем блокирует чат.</string>
     <string name="field_x_passcode">Код доступа X Chat</string>
+    <string name="connect_calls_in_app">Голосовые и видеозвонки работают прямо в HowYouDoin.</string>
+    <string name="connect_calls_shown">Звонки звонят только в приложении %1$s, но HowYouDoin сообщит о входящих голосовых и видеозвонках и сохранит пропущенные в чате.</string>
+    <string name="connect_calls_joined">HowYouDoin сообщит, когда кто-то начнёт звонок в %1$s; присоединиться к нему можно в приложении %1$s. Звонки остаются в чате и после завершения.</string>
+    <string name="connect_calls_logged">%1$s не сообщает другим приложениям о входящем звонке. Пропущенные и завершённые звонки появятся в чате позже.</string>
+    <string name="connect_calls_not_shown">HowYouDoin не может показывать звонки %1$s или уведомлять о них: %1$s не передаёт их другим приложениям.</string>
 </resources>

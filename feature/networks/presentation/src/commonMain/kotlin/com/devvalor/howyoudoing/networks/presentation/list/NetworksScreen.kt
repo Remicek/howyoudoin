@@ -10,6 +10,7 @@ import howyoudoin.feature.networks.presentation.generated.resources.networks_add
 import howyoudoin.feature.networks.presentation.generated.resources.networks_disconnect_title
 import howyoudoin.feature.networks.presentation.generated.resources.networks_disconnect_body
 import howyoudoin.feature.networks.presentation.generated.resources.networks_on_device_name
+import howyoudoin.feature.networks.presentation.generated.resources.networks_on_device_workspace
 import howyoudoin.feature.networks.presentation.generated.resources.login_state_connected
 import howyoudoin.feature.networks.presentation.generated.resources.login_state_connecting
 import howyoudoin.feature.networks.presentation.generated.resources.login_state_error
@@ -270,10 +271,15 @@ private fun NetworkCard(
                 LoginRow(
                     login = NetworkLogin(
                         id = "on-device",
-                        name = stringResource(
-                            Res.string.networks_on_device_name,
-                            (onDevice as? OnDeviceMessengerState.Connected)?.accountName ?: network.displayName
-                        ),
+                        name = (onDevice as? OnDeviceMessengerState.Connected).let { connected ->
+                            val accountName = connected?.accountName ?: network.displayName
+                            val workspace = connected?.workspace
+                            if (workspace != null) {
+                                stringResource(Res.string.networks_on_device_workspace, accountName, workspace)
+                            } else {
+                                stringResource(Res.string.networks_on_device_name, accountName)
+                            }
+                        },
                         state = when (onDevice) {
                             is OnDeviceMessengerState.Connected -> "CONNECTED"
                             OnDeviceMessengerState.Connecting -> "CONNECTING"

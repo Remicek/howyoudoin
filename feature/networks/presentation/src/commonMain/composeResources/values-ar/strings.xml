@@ -149,6 +149,7 @@
     <string name="networks_disconnect_title">فصل %1$s؟</string>
     <string name="networks_disconnect_body">تُحذف محادثاته وصوره ومفاتيح التشفير من هذا الهاتف. يبقى حسابك في %1$s ورسائله كما هي؛ ويمكنك التوصيل مجددًا في أي وقت.</string>
     <string name="networks_on_device_name">%1$s · على هذا الجهاز</string>
+    <string name="networks_on_device_workspace">%1$s · مساحة العمل %2$s · على هذا الجهاز</string>
     <string name="login_state_connected">متصل</string>
     <string name="login_state_connecting">جارٍ الاتصال</string>
     <string name="login_state_error">خطأ: %1$s</string>
@@ -222,4 +223,9 @@
     <string name="connectnetwork_x">سجّل الدخول في x.com، ثم أدخل رمز مرور X Chat؛ تتصل الرسائل من هذا الهاتف.</string>
     <string name="x_passcode_instructions">أدخل رمز مرور X Chat، وهو رمز PIN الذي عيّنته للدردشة في X. يفتح رسائلك المشفّرة على هذا الهاتف. يسمح X بمحاولات خاطئة قليلة فقط قبل أن يقفل الدردشة.</string>
     <string name="field_x_passcode">رمز مرور X Chat</string>
+    <string name="connect_calls_in_app">تعمل المكالمات الصوتية ومكالمات الفيديو مباشرة في HowYouDoin.</string>
+    <string name="connect_calls_shown">ترنّ المكالمات في تطبيق %1$s فقط، لكن HowYouDoin ينبّهك إلى المكالمات الصوتية ومكالمات الفيديو الواردة ويحتفظ بالفائتة في المحادثة.</string>
+    <string name="connect_calls_joined">يُعلمك HowYouDoin عندما يبدأ أحدهم مكالمة على %1$s، وتنضم إليها من تطبيق %1$s. تبقى المكالمات في المحادثة بعد انتهائها.</string>
+    <string name="connect_calls_logged">لا يُعلم %1$s التطبيقات الأخرى عند رنين مكالمة. تظهر المكالمات الفائتة والمنتهية في المحادثة لاحقًا.</string>
+    <string name="connect_calls_not_shown">لا يمكن لـ HowYouDoin عرض مكالمات %1$s أو التنبيه إليها: لا يشاركها %1$s مع التطبيقات الأخرى.</string>
 </resources>

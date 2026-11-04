@@ -53,6 +53,9 @@ type Messenger struct {
 	// The connection's context, for setting up encrypted chats again; and whether that was already done once
 	connectCtx       context.Context
 	reregisteredE2EE bool
+	// Calls ringing in encrypted chats (see messenger_calls.go), and when ones answered elsewhere were answered
+	ringing  ringingCalls
+	answered sync.Map // call ID → time.Time
 }
 
 // NewMessenger takes the messenger.com session cookies as a JSON object (name → value; xs, c_user and datr are
@@ -244,6 +247,7 @@ func (m *Messenger) emitTable(tbl *table.LSTable) {
 		m.emit(map[string]any{"type": "edit", "messageId": e.MessageID, "text": e.Text})
 	}
 	m.emitInteractions(tbl)
+	m.emitCallLogs(tbl)
 	for _, r := range tbl.LSInsertNewMessageRange {
 		m.emit(map[string]any{
 			"type": "range", "threadKey": id(r.ThreadKey), "minTimestampMs": r.MinTimestampMs,

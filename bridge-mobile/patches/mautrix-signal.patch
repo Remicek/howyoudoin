@@ -1,0 +1,34 @@
+diff --git a/pkg/signalmeow/events/message.go b/pkg/signalmeow/events/message.go
+index fdc82f0..fab84b5 100644
+--- a/pkg/signalmeow/events/message.go
++++ b/pkg/signalmeow/events/message.go
+@@ -81,6 +81,11 @@ type Call struct {
+ 	Info      MessageInfo
+ 	Timestamp uint64
+ 	IsRinging bool
++	// HowYouDoin: the call's ID (the same in its offer and hangup) and whether it's a video call (from the offer)
++	CallID  uint64
++	IsVideo bool
++	// For a hangup: why (normal, accepted or declined on another of the user's devices, busy...)
++	HangupType signalpb.CallMessage_Hangup_Type
+ }
+ 
+ type ContactList struct {
+diff --git a/pkg/signalmeow/receiving.go b/pkg/signalmeow/receiving.go
+index f0d69df..b0d5a14 100644
+--- a/pkg/signalmeow/receiving.go
++++ b/pkg/signalmeow/receiving.go
+@@ -652,8 +652,11 @@ func (cli *Client) handleDecryptedResult(
+ 					ServerTimestamp: envelope.GetServerTimestamp(),
+ 				},
+ 				// CallMessage doesn't have its own timestamp, use one from the envelope
+-				Timestamp: envelope.GetClientTimestamp(),
+-				IsRinging: content.CallMessage.Offer != nil,
++				Timestamp:  envelope.GetClientTimestamp(),
++				IsRinging:  content.CallMessage.Offer != nil,
++				CallID:     content.CallMessage.GetOffer().GetId() | content.CallMessage.GetHangup().GetId(),
++				IsVideo:    content.CallMessage.GetOffer().GetType() == signalpb.CallMessage_Offer_OFFER_VIDEO_CALL,
++				HangupType: content.CallMessage.GetHangup().GetType(),
+ 			})
+ 		}
+ 	case *signalpb.Content_DecryptionErrorMessage:

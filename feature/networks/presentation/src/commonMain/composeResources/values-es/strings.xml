@@ -149,6 +149,7 @@
     <string name="networks_disconnect_title">¿Desconectar %1$s?</string>
     <string name="networks_disconnect_body">Sus chats, fotos y claves de cifrado se eliminan de este teléfono. Tu cuenta de %1$s y sus mensajes siguen igual; puedes volver a conectarte cuando quieras.</string>
     <string name="networks_on_device_name">%1$s · en este dispositivo</string>
+    <string name="networks_on_device_workspace">%1$s · espacio de trabajo %2$s · en este dispositivo</string>
     <string name="login_state_connected">Conectado</string>
     <string name="login_state_connecting">Conectando</string>
     <string name="login_state_error">Error: %1$s</string>
@@ -216,4 +217,9 @@
     <string name="connectnetwork_x">Inicia sesión en x.com y escribe tu código de acceso de X Chat; los mensajes se conectan desde este teléfono.</string>
     <string name="x_passcode_instructions">Escribe tu código de acceso de X Chat, el PIN que configuraste para Chat en X. Desbloquea tus mensajes cifrados en este teléfono. X solo permite unos pocos intentos fallidos antes de bloquear Chat.</string>
     <string name="field_x_passcode">Código de acceso de X Chat</string>
+    <string name="connect_calls_in_app">Las llamadas de voz y vídeo funcionan directamente en HowYouDoin.</string>
+    <string name="connect_calls_shown">Las llamadas solo suenan en la app de %1$s, pero HowYouDoin te avisa de las llamadas de voz y vídeo entrantes y guarda las perdidas en el chat.</string>
+    <string name="connect_calls_joined">HowYouDoin te avisa cuando alguien inicia una llamada de %1$s, a la que te unes en la app de %1$s. Las llamadas quedan en el chat después.</string>
+    <string name="connect_calls_logged">%1$s no avisa a otras apps cuando suena una llamada. Las llamadas perdidas y terminadas aparecen después en el chat.</string>
+    <string name="connect_calls_not_shown">HowYouDoin no puede mostrar las llamadas de %1$s ni avisarte de ellas: %1$s no las comparte con otras apps.</string>
 </resources>

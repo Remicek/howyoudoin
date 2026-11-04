@@ -179,4 +179,16 @@
     <string name="contacts_start_rate_limited">%1$s is limiting requests for now. Try again in a few minutes.</string>
     <string name="contacts_start_failed">Couldn't start the chat on %1$s. Try again.</string>
     <string name="contacts_no_networks">Connect a network to write to people.</string>
+    <string name="call_incoming">📞 Incoming call · answer it in %1$s</string>
+    <string name="call_incoming_video">📹 Incoming video call · answer it in %1$s</string>
+    <string name="call_missed">📞 Missed call</string>
+    <string name="call_missed_video">📹 Missed video call</string>
+    <string name="call_declined">📞 Declined call</string>
+    <string name="call_declined_video">📹 Declined video call</string>
+    <string name="call_ended">📞 Call</string>
+    <string name="call_ended_video">📹 Video call</string>
+    <string name="call_ended_duration">📞 Call · %1$s</string>
+    <string name="call_ended_video_duration">📹 Video call · %1$s</string>
+    <string name="call_started">📞 A call started · join it in %1$s</string>
+    <string name="call_started_video">📹 A video call started · join it in %1$s</string>
 </resources>

@@ -40,6 +40,8 @@ type Instagram struct {
 	messageTimes sync.Map
 	ownReactions sync.Map
 	selfID       int64
+	// Thread key → instagramCall going on there (instagram_calls.go)
+	calls sync.Map
 	// Threads being fetched because a message arrived for one the inbox sync didn't have
 	threadsLoading sync.Map
 }
@@ -151,6 +153,10 @@ func (ig *Instagram) handleDelta(delta *slidetypes.Delta) {
 	threadKey := delta.ThreadIGID
 	switch evt := delta.Data.(type) {
 	case *slidetypes.NewMessageEvent:
+		if isInstagramCallNotice(evt.Message) {
+			ig.emitCallNotice(threadKey, evt.Message, true)
+			break
+		}
 		ig.emitMessage(threadKey, evt.Message)
 		if _, known := ig.igThreadIDs.Load(threadKey); !known {
 			// A conversation started after connecting (e.g. someone new writing): load it so it shows up
@@ -169,6 +175,10 @@ func (ig *Instagram) handleDelta(delta *slidetypes.Delta) {
 			"text": firstNonEmpty(evt.TextBody, evt.IGDSnippet)})
 	case *slidetypes.DeleteMessageEvent:
 		ig.emit(map[string]any{"type": "unsend", "threadKey": threadKey, "messageId": evt.MessageID})
+	case *slidetypes.AdminMessageEvent:
+		if isInstagramCallNotice(evt.Message) {
+			ig.emitCallNotice(threadKey, evt.Message, true)
+		}
 	case *slidetypes.ReadReceiptEvent:
 		ig.emit(map[string]any{"type": "read", "threadKey": threadKey,
 			"contactId":   strconv.FormatInt(evt.ReadReceipt.ParticipantFBID, 10),
@@ -229,6 +239,11 @@ func boolToUnread(unread bool) uint32 {
 
 func (ig *Instagram) emitMessage(threadKey string, msg *slidetypes.Message) {
 	if msg == nil || msg.MessageID == "" {
+		return
+	}
+	if isInstagramCallNotice(msg) {
+		// From history (live notices are handled in handleDelta)
+		ig.emitCallNotice(threadKey, msg, false)
 		return
 	}
 	ig.messageTimes.Store(msg.MessageID, msg.TimestampMS.Time)

@@ -178,4 +178,16 @@
     <string name="contacts_start_rate_limited">%1$s está limitando solicitações no momento. Tente de novo em alguns minutos.</string>
     <string name="contacts_start_failed">Não foi possível iniciar o chat no %1$s. Tente de novo.</string>
     <string name="contacts_no_networks">Conecte uma rede para escrever para as pessoas.</string>
+    <string name="call_incoming">📞 Chamada recebida · atenda no %1$s</string>
+    <string name="call_incoming_video">📹 Videochamada recebida · atenda no %1$s</string>
+    <string name="call_missed">📞 Chamada perdida</string>
+    <string name="call_missed_video">📹 Videochamada perdida</string>
+    <string name="call_declined">📞 Chamada recusada</string>
+    <string name="call_declined_video">📹 Videochamada recusada</string>
+    <string name="call_ended">📞 Chamada</string>
+    <string name="call_ended_video">📹 Videochamada</string>
+    <string name="call_ended_duration">📞 Chamada · %1$s</string>
+    <string name="call_ended_video_duration">📹 Videochamada · %1$s</string>
+    <string name="call_started">📞 Uma chamada começou · entre pelo %1$s</string>
+    <string name="call_started_video">📹 Uma videochamada começou · entre pelo %1$s</string>
 </resources>

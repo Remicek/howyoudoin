@@ -1,5 +1,7 @@
 package com.devvalor.howyoudoing.chat.data.ondevice
 
+import com.devvalor.howyoudoing.chat.domain.CallInfo
+import com.devvalor.howyoudoing.chat.domain.CallOutcome
 import com.devvalor.howyoudoing.chat.domain.ChatContact
 import com.devvalor.howyoudoing.chat.domain.Chat
 import com.devvalor.howyoudoing.chat.domain.MediaInfo
@@ -150,7 +152,10 @@ class OnDeviceMessengerStore(
         /** The message this one replies to. */
         val replyToId: String? = null,
         /** For local echoes: can be sent again if sending fails (text; attachments aren't kept). */
-        val canRetry: Boolean = false
+        val canRetry: Boolean = false,
+        /** For calls (kind "call"): "incoming", "missed", "declined", "ended" or "started". */
+        val callState: String? = null,
+        val isVideo: Boolean = false
     )
 
     private val _snapshot = MutableStateFlow(Snapshot())
@@ -453,7 +458,7 @@ class OnDeviceMessengerStore(
     }
 
     private fun Snapshot.withMessageEvent(event: JsonObject): Snapshot {
-        val message = StoredMessage(
+        val parsed = StoredMessage(
             id = event.str("id"),
             threadKey = event.str("threadKey"),
             otid = event.str("otid"),
@@ -465,9 +470,16 @@ class OnDeviceMessengerStore(
             isEncrypted = event.bool("isEncrypted"),
             mediaRef = event.str("mediaRef").ifEmpty { null },
             durationMs = event.long("durationMs").takeIf { it > 0 },
-            replyToId = event.str("replyToId").ifEmpty { null }
+            replyToId = event.str("replyToId").ifEmpty { null },
+            callState = event.str("callState").ifEmpty { null },
+            isVideo = event.bool("isVideo")
         )
-        val thread = messages[message.threadKey].orEmpty()
+        val thread = messages[parsed.threadKey].orEmpty()
+        // Messenger repeats a call log's message without its card: it stays a call
+        val known = thread[parsed.id]
+        val message = if (known?.kind == "call" && parsed.kind != "call") {
+            parsed.copy(kind = known.kind, callState = known.callState, isVideo = known.isVideo, text = known.text)
+        } else parsed
         return copy(
             messages = messages + (message.threadKey to (thread + (message.id to message))),
             pending = pending - message.otid,
@@ -680,7 +692,10 @@ class OnDeviceMessengerStore(
             isEdited = isEdited,
             replyTo = replyToId?.takeIf { !isUnsent }?.let { replyPreview(it, s) },
             isReadByOthers = isOutgoing && s.readWatermarks[threadKey].orEmpty()
-                .any { (contact, watermark) -> contact != s.selfId && watermark >= timestampMs }
+                .any { (contact, watermark) -> contact != s.selfId && watermark >= timestampMs },
+            call = if (type == MessageType.CALL) {
+                CallInfo(CallOutcome.fromId(callState.orEmpty()), isVideo, durationMs)
+            } else null
         )
     }
 
@@ -693,6 +708,7 @@ class OnDeviceMessengerStore(
         kind == "sticker" -> MessageType.STICKER
         kind == "text" -> MessageType.TEXT
         kind == "otp" -> MessageType.ONE_TIME_CODE
+        kind == "call" -> MessageType.CALL
         else -> MessageType.OTHER
     }
 

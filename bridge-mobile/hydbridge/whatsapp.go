@@ -10,12 +10,14 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/rs/zerolog"
 	"go.mau.fi/whatsmeow"
+	waBinary "go.mau.fi/whatsmeow/binary"
 	"go.mau.fi/whatsmeow/proto/waCompanionReg"
 	"go.mau.fi/whatsmeow/proto/waE2E"
 	"go.mau.fi/whatsmeow/store"
@@ -45,6 +47,12 @@ type WhatsApp struct {
 	avatarQueue   chan string
 	avatarsQueued sync.Map
 	groupsKnown   sync.Map
+
+	// Calls ringing on WhatsApp (see calls.go), and when ones answered on the phone were answered
+	ringing  ringingCalls
+	answered sync.Map // call ID → time.Time
+	// Call ID → ringingCall, for a minute after a call stopped ringing unanswered (acceptCall)
+	endedCalls sync.Map
 }
 
 // ensureGroup looks up the name of a group seen for the first time (e.g. one created after connecting).
@@ -304,7 +312,149 @@ func (w *WhatsApp) handleEvent(rawEvt any) {
 		if evt.Name != nil {
 			w.emitGroupName(evt.JID, evt.Name.Name)
 		}
+	case *events.CallOffer:
+		isVideo := false
+		if evt.Data != nil {
+			_, isVideo = evt.Data.GetOptionalChildByTag("video")
+		}
+		w.emitCallOffer(evt.BasicCallMeta, isVideo)
+	case *events.CallOfferNotice:
+		w.emitCallOffer(evt.BasicCallMeta, evt.Media == "video")
+	case *events.CallAccept:
+		w.debugCall("accept", evt.BasicCallMeta, "")
+		w.acceptCall(evt.CallID)
+	case *events.CallReject:
+		w.debugCall("reject", evt.BasicCallMeta, "")
+		w.endCall(evt.CallID, callDeclined)
+	case *events.CallTerminate:
+		w.debugCall("terminate", evt.BasicCallMeta, evt.Reason)
+		if evt.Reason == "accepted_elsewhere" {
+			w.answeredElsewhere(evt.CallID)
+			break
+		}
+		joined, durationSec, ok := w.groupCallSummary(evt.Data)
+		if ok && joined {
+			// A group call says who joined only as it ends
+			w.answered.Store(evt.CallID, time.Now().Add(-time.Duration(durationSec)*time.Second))
+		}
+		w.endCall(evt.CallID, callMissed)
 	}
+}
+
+// waCallMaxAge: calls offered longer ago than this (delivered after being offline) are over already.
+const waCallMaxAge = 2 * time.Minute
+
+// emitCallOffer shows a call ringing on WhatsApp, which only the phone's WhatsApp can answer (linked devices
+// like this one are told about it but can't take it).
+func (w *WhatsApp) emitCallOffer(meta types.BasicCallMeta, isVideo bool) {
+	if meta.CallID == "" || time.Since(meta.Timestamp) > waCallMaxAge {
+		return
+	}
+	caller := meta.CallCreator
+	if caller.Server == types.HiddenUserServer && !meta.CallCreatorAlt.IsEmpty() {
+		caller = meta.CallCreatorAlt
+	}
+	if w.client != nil && w.client.Store.ID != nil && caller.ToNonAD().User == w.client.Store.ID.User {
+		// The user calling from their phone
+		return
+	}
+	chatJID := meta.GroupJID
+	if chatJID.IsEmpty() {
+		chatJID = caller
+	}
+	call := ringingCall{threadKey: w.pnJID(chatJID).String(), messageID: "call-" + meta.CallID,
+		senderID: w.pnJID(caller).String(), timestampMs: meta.Timestamp.UnixMilli(), isVideo: isVideo}
+	if _, known := w.ringing.calls.Load(meta.CallID); known {
+		// A call is announced both as an offer and as an offer notice
+		return
+	}
+	w.ringing.put(meta.CallID, call)
+	event := callEvent(call.threadKey, call.messageID, call.senderID, call.timestampMs, callIncoming, isVideo, 0)
+	event["isEncrypted"] = true
+	w.emit(event)
+}
+
+func (w *WhatsApp) debugCall(kind string, meta types.BasicCallMeta, reason string) {
+	w.emit(map[string]any{"type": "debug", "event": "call " + kind, "reason": reason,
+		"fromDevice": meta.From.Device, "callId": meta.CallID})
+}
+
+// acceptCall notes that the phone answered a call. WhatsApp tells this device to stop ringing (a terminate) before
+// it says the phone answered, so a call already shown as missed is shown as answered after all, and its next
+// terminate (the end of the conversation) says how long it lasted.
+func (w *WhatsApp) acceptCall(callID string) {
+	w.answered.Store(callID, time.Now())
+	value, ok := w.endedCalls.LoadAndDelete(callID)
+	if !ok {
+		return
+	}
+	call := value.(ringingCall)
+	startedAt := call.startedAt
+	w.ringing.put(callID, call)
+	if time.Since(startedAt) > ringingCallMaxAge {
+		return
+	}
+	event := callEvent(call.threadKey, call.messageID, call.senderID, call.timestampMs, callEnded, call.isVideo, 0)
+	event["isEncrypted"] = true
+	w.emit(event)
+}
+
+// answeredElsewhere shows a ringing call as answered: the phone took it. For a group call this is the only sign of
+// that (there's no accept), and the call goes on: it stays known, so the summary at its end adds how long it lasted.
+func (w *WhatsApp) answeredElsewhere(callID string) {
+	w.answered.LoadOrStore(callID, time.Now())
+	call, ok := w.ringing.take(callID)
+	if !ok {
+		return
+	}
+	w.ringing.put(callID, call)
+	event := callEvent(call.threadKey, call.messageID, call.senderID, call.timestampMs, callEnded, call.isVideo, 0)
+	event["isEncrypted"] = true
+	w.emit(event)
+}
+
+// groupCallSummary reads the summary a group call's terminate carries: whether the user joined (from any device) and
+// how long the call lasted. ok is false when there's no summary (a 1:1 call).
+func (w *WhatsApp) groupCallSummary(data *waBinary.Node) (joined bool, durationSec int64, ok bool) {
+	if data == nil || w.client == nil || w.client.Store.ID == nil {
+		return false, 0, false
+	}
+	summary, ok := data.GetOptionalChildByTag("call_summary")
+	if !ok {
+		return false, 0, false
+	}
+	self := map[string]bool{w.client.Store.ID.User: true}
+	if !w.client.Store.LID.IsEmpty() {
+		self[w.client.Store.LID.User] = true
+	}
+	for _, user := range summary.GetChildrenByTag("user") {
+		attrs := user.AttrGetter()
+		jid, pn := attrs.OptionalJIDOrEmpty("jid"), attrs.OptionalJIDOrEmpty("user_pn")
+		if (self[jid.User] || self[pn.User]) && attrs.OptionalString("state") == "connected" {
+			joined = true
+		}
+	}
+	durationMs, _ := strconv.ParseInt(summary.AttrGetter().OptionalString("call_duration"), 10, 64)
+	return joined, durationMs / 1000, true
+}
+
+// endCall replaces a ringing call's message with how it ended: answered (on the phone) and how long for, or not.
+func (w *WhatsApp) endCall(callID, unanswered string) {
+	call, ok := w.ringing.take(callID)
+	if !ok {
+		return
+	}
+	state, duration := unanswered, int64(0)
+	if answeredAt, wasAnswered := w.answered.LoadAndDelete(callID); wasAnswered {
+		state, duration = callEnded, int64(time.Since(answeredAt.(time.Time)).Seconds())
+	} else {
+		// The phone may still say it answered (acceptCall)
+		w.endedCalls.Store(callID, call)
+		time.AfterFunc(time.Minute, func() { w.endedCalls.Delete(callID) })
+	}
+	event := callEvent(call.threadKey, call.messageID, call.senderID, call.timestampMs, state, call.isVideo, duration)
+	event["isEncrypted"] = true
+	w.emit(event)
 }
 
 func (w *WhatsApp) emitSelf() {

@@ -4,6 +4,7 @@ import howyoudoin.composeapp.generated.resources.Res
 import howyoudoin.composeapp.generated.resources.notification_new_message
 import org.jetbrains.compose.resources.getString
 import com.devvalor.howyoudoing.chat.domain.Chat
+import com.devvalor.howyoudoing.chat.domain.CallOutcome
 import com.devvalor.howyoudoing.chat.domain.ChatRepository
 import com.devvalor.howyoudoing.chat.domain.Message
 import com.devvalor.howyoudoing.chat.domain.NotificationPreferences
@@ -22,7 +23,8 @@ import kotlin.time.ExperimentalTime
 
 /** Shows and clears message notifications (Android notifications; nothing yet on iOS). */
 interface MessageNotificationPresenter {
-    fun show(chatId: String, title: String, text: String, timestampMs: Long)
+    /** [silent] updates a notification without sounding or vibrating again (a ringing call that ended). */
+    fun show(chatId: String, title: String, text: String, timestampMs: Long, silent: Boolean = false)
     fun cancel(chatId: String)
 }
 
@@ -47,6 +49,13 @@ class IncomingMessageNotifier(
     scope: CoroutineScope
 ) {
     private val lastSeenMessage = HashMap<String, String>()
+
+    /**
+     * Calls notified, by message ID, with the state last shown. A call keeps its message ID when it changes, so this
+     * is how its notification learns that "Incoming call" became "Missed call", or that the phone answered it after
+     * all (WhatsApp says so only after the call stopped ringing here).
+     */
+    private val notifiedCalls = HashMap<String, CallOutcome>()
     private val startedAt = now()
 
     init {
@@ -65,7 +74,35 @@ class IncomingMessageNotifier(
                     val isNew = !warmingUp && previous != message.id && !message.isOutgoing &&
                         now() - message.timestamp <= MAX_AGE_MILLIS
                     val isWanted = chat.id !in muted && !openChatTracker.isWatching(chat.id)
-                    if (isNew && isWanted) notify(chat, message, lock)
+                    val callState = message.call?.state
+                    val shownState = notifiedCalls[message.id]
+                    when {
+                        isNew && isWanted -> {
+                            notify(chat, message, lock)
+                            if (callState != null && callState != CallOutcome.ENDED) {
+                                notifiedCalls[message.id] = callState
+                            }
+                        }
+
+                        callState == null || shownState == null || callState == shownState -> Unit
+
+                        callState == CallOutcome.ENDED && shownState != CallOutcome.STARTED -> {
+                            // Answered on the phone: nothing left to tell
+                            notifiedCalls.remove(message.id)
+                            presenter.cancel(chat.id)
+                        }
+
+                        isWanted -> {
+                            // A call one joins (a huddle, an Instagram call) that ended: whether the user joined
+                            // isn't known, so its notification stays, saying it's over
+                            if (callState == CallOutcome.ENDED) {
+                                notifiedCalls.remove(message.id)
+                            } else {
+                                notifiedCalls[message.id] = callState
+                            }
+                            notify(chat, message, lock, silent = true)
+                        }
+                    }
                 }
             }
             .launchIn(scope)
@@ -73,12 +110,14 @@ class IncomingMessageNotifier(
         openChatTracker.openChatId.filterNotNull().onEach(presenter::cancel).launchIn(scope)
     }
 
-    private suspend fun notify(chat: Chat, message: Message, lock: AppLockSettings) {
+    private suspend fun notify(chat: Chat, message: Message, lock: AppLockSettings, silent: Boolean = false) {
         if (lock.isEnabled && lock.hidesNotificationContent) {
             // With the app locked, a notification shouldn't reveal what the lock protects
-            presenter.show(chat.id, "HowYouDoin", getString(Res.string.notification_new_message), message.timestamp)
+            presenter.show(
+                chat.id, "HowYouDoin", getString(Res.string.notification_new_message), message.timestamp, silent
+            )
         } else {
-            presenter.show(chat.id, chat.name, chat.toChatUi().preview.asStringAsync(), message.timestamp)
+            presenter.show(chat.id, chat.name, chat.toChatUi().preview.asStringAsync(), message.timestamp, silent)
         }
     }
 
@@ -95,6 +134,6 @@ class IncomingMessageNotifier(
 
 /** Used where notifications aren't wired up yet. */
 object NoOpNotificationPresenter : MessageNotificationPresenter {
-    override fun show(chatId: String, title: String, text: String, timestampMs: Long) = Unit
+    override fun show(chatId: String, title: String, text: String, timestampMs: Long, silent: Boolean) = Unit
     override fun cancel(chatId: String) = Unit
 }

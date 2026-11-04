@@ -481,9 +481,12 @@ func (t *Telegram) syncDialogs(ctx context.Context) {
 			return
 		}
 		t.learn(users, chats)
-		newest := map[string]*tg.Message{}
+		newest := map[string]tg.MessageClass{}
 		for _, raw := range messages {
-			if msg, ok := raw.(*tg.Message); ok {
+			switch msg := raw.(type) {
+			case *tg.Message:
+				newest[peerKey(msg.PeerID)+"/"+strconv.Itoa(msg.ID)] = msg
+			case *tg.MessageService:
 				newest[peerKey(msg.PeerID)+"/"+strconv.Itoa(msg.ID)] = msg
 			}
 		}
@@ -495,8 +498,11 @@ func (t *Telegram) syncDialogs(ctx context.Context) {
 			key := peerKey(dialog.Peer)
 			top := newest[key+"/"+strconv.Itoa(dialog.TopMessage)]
 			lastActivity := int64(0)
-			if top != nil {
-				lastActivity = int64(top.Date) * 1000
+			switch msg := top.(type) {
+			case *tg.Message:
+				lastActivity = int64(msg.Date) * 1000
+			case *tg.MessageService:
+				lastActivity = int64(msg.Date) * 1000
 			}
 			t.emitThread(key, lastActivity, dialog.UnreadCount > 0 || dialog.UnreadMark)
 			if top != nil {
@@ -510,7 +516,10 @@ func (t *Telegram) syncDialogs(ctx context.Context) {
 		last := dialogs[len(dialogs)-1].(*tg.Dialog)
 		offsetPeer = t.inputPeer(peerKey(last.Peer))
 		offsetID = last.TopMessage
-		if top := newest[peerKey(last.Peer)+"/"+strconv.Itoa(last.TopMessage)]; top != nil {
+		switch top := newest[peerKey(last.Peer)+"/"+strconv.Itoa(last.TopMessage)].(type) {
+		case *tg.Message:
+			offsetDate = top.Date
+		case *tg.MessageService:
 			offsetDate = top.Date
 		}
 	}
@@ -668,6 +677,10 @@ func splitTelegramMessageID(messageID string) (string, int, error) {
 // --- messages ---
 
 func (t *Telegram) emitMessage(raw tg.MessageClass) {
+	if service, ok := raw.(*tg.MessageService); ok {
+		t.emitServiceMessage(service)
+		return
+	}
 	msg, ok := raw.(*tg.Message)
 	if !ok {
 		return
@@ -971,6 +984,11 @@ func (t *Telegram) registerHandlers(d tg.UpdateDispatcher) {
 		t.emit(map[string]any{"type": "read", "threadKey": key, "contactId": strconv.FormatInt(user.UserID, 10), "watermarkMs": watermark})
 		return nil
 	})
+	d.OnPhoneCall(func(ctx context.Context, e tg.Entities, u *tg.UpdatePhoneCall) error {
+		t.learnEntities(e)
+		t.onPhoneCall(u.PhoneCall)
+		return nil
+	})
 	d.OnMessageReactions(func(ctx context.Context, e tg.Entities, u *tg.UpdateMessageReactions) error {
 		key := peerKey(u.Peer)
 		t.emitReactions(key, key+"/"+strconv.Itoa(u.MsgID), u.Reactions)
@@ -979,6 +997,12 @@ func (t *Telegram) registerHandlers(d tg.UpdateDispatcher) {
 }
 
 func (t *Telegram) onNewMessage(raw tg.MessageClass) {
+	if service, ok := raw.(*tg.MessageService); ok {
+		if key := peerKey(service.PeerID); key != "" && t.emitServiceMessage(service) {
+			t.emitThread(key, int64(service.Date)*1000, !service.Out)
+		}
+		return
+	}
 	msg, ok := raw.(*tg.Message)
 	if !ok {
 		return

@@ -178,4 +178,16 @@
     <string name="contacts_start_rate_limited">%1$s limite les requêtes pour le moment. Réessayez dans quelques minutes.</string>
     <string name="contacts_start_failed">Impossible de démarrer la conversation sur %1$s. Réessayez.</string>
     <string name="contacts_no_networks">Connectez un réseau pour écrire à des gens.</string>
+    <string name="call_incoming">📞 Appel entrant · répondez dans %1$s</string>
+    <string name="call_incoming_video">📹 Appel vidéo entrant · répondez dans %1$s</string>
+    <string name="call_missed">📞 Appel manqué</string>
+    <string name="call_missed_video">📹 Appel vidéo manqué</string>
+    <string name="call_declined">📞 Appel refusé</string>
+    <string name="call_declined_video">📹 Appel vidéo refusé</string>
+    <string name="call_ended">📞 Appel</string>
+    <string name="call_ended_video">📹 Appel vidéo</string>
+    <string name="call_ended_duration">📞 Appel · %1$s</string>
+    <string name="call_ended_video_duration">📹 Appel vidéo · %1$s</string>
+    <string name="call_started">📞 Un appel a commencé · rejoignez-le dans %1$s</string>
+    <string name="call_started_video">📹 Un appel vidéo a commencé · rejoignez-le dans %1$s</string>
 </resources>

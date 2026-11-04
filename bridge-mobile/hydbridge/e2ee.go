@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
+	"time"
 
 	"github.com/google/uuid"
 	"go.mau.fi/whatsmeow/proto/waCommon"
@@ -78,6 +79,27 @@ func (m *Messenger) handleE2EEEvent(rawEvt any) {
 		m.emitState("encrypted_connected", "")
 	case *events.Disconnected:
 		m.emitState("encrypted_disconnected", "")
+	case *events.CallOffer:
+		m.debugE2EECall(rawEvt)
+		isVideo := false
+		if evt.Data != nil {
+			_, isVideo = evt.Data.GetOptionalChildByTag("video")
+		}
+		m.emitE2EECallOffer(evt.BasicCallMeta, isVideo)
+	case *events.CallOfferNotice:
+		m.debugE2EECall(rawEvt)
+		m.emitE2EECallOffer(evt.BasicCallMeta, evt.Media == "video")
+	case *events.CallAccept:
+		m.debugE2EECall(rawEvt)
+		m.answered.Store(evt.CallID, time.Now())
+	case *events.CallReject:
+		m.debugE2EECall(rawEvt)
+		m.endE2EECall(evt.CallID, callDeclined)
+	case *events.CallTerminate:
+		m.debugE2EECall(rawEvt)
+		m.endE2EECall(evt.CallID, callMissed)
+	case *events.UnknownCallEvent:
+		m.debugE2EECall(rawEvt)
 	case *events.LoggedOut:
 		// Meta removed this encrypted-chat device (e.g. its Messenger session ended and the user logged in again);
 		// whatsmeow has deleted it, so register a new one
@@ -116,6 +138,8 @@ func (m *Messenger) emitFBMessage(threadKey, messageID, senderID string, timesta
 	}
 	content := app.GetPayload().GetContent()
 	if content == nil || messageID == "" {
+		// Diagnostics: payloads that aren't messages (types only, no content)
+		m.emit(map[string]any{"type": "debug", "event": fmt.Sprintf("e2ee payload %T", app.GetPayload().GetPayload())})
 		return
 	}
 	if edit := content.GetEditMessage(); edit != nil {
@@ -133,6 +157,9 @@ func (m *Messenger) emitFBMessage(threadKey, messageID, senderID string, timesta
 	kind, text := describeContent(content)
 	if kind == "" {
 		return
+	}
+	if kind == "other" {
+		m.emit(map[string]any{"type": "debug", "event": fmt.Sprintf("e2ee content %T", content.GetContent())})
 	}
 	m.ensureContact(senderID)
 	m.ensureContact(threadKey)

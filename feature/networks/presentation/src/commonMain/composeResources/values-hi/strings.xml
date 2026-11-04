@@ -149,6 +149,7 @@
     <string name="networks_disconnect_title">%1$s हटाएँ?</string>
     <string name="networks_disconnect_body">इसकी चैट, फ़ोटो और एन्क्रिप्शन कुंजियाँ इस फ़ोन से मिट जाएँगी। आपका %1$s खाता और उसके मैसेज वैसे ही रहेंगे; आप कभी भी फिर से जोड़ सकते हैं।</string>
     <string name="networks_on_device_name">%1$s · इस डिवाइस पर</string>
+    <string name="networks_on_device_workspace">%1$s · %2$s वर्कस्पेस · इस डिवाइस पर</string>
     <string name="login_state_connected">कनेक्टेड</string>
     <string name="login_state_connecting">कनेक्ट हो रहा है</string>
     <string name="login_state_error">गड़बड़ी: %1$s</string>
@@ -214,4 +215,9 @@
     <string name="connectnetwork_x">x.com पर लॉग इन करें, फिर अपना X Chat पासकोड डालें; संदेश इस फ़ोन से जुड़ते हैं।</string>
     <string name="x_passcode_instructions">अपना X Chat पासकोड डालें, यानी X पर Chat के लिए रखा गया PIN। यह इस फ़ोन पर आपके एन्क्रिप्टेड संदेश खोलता है। X कुछ ही गलत कोशिशों के बाद Chat लॉक कर देता है।</string>
     <string name="field_x_passcode">X Chat पासकोड</string>
+    <string name="connect_calls_in_app">वॉइस और वीडियो कॉल सीधे HowYouDoin में काम करती हैं।</string>
+    <string name="connect_calls_shown">कॉल सिर्फ़ %1$s ऐप में बजती हैं, लेकिन HowYouDoin आने वाली वॉइस और वीडियो कॉल की सूचना देता है और मिस्ड कॉल चैट में रखता है।</string>
+    <string name="connect_calls_joined">जब कोई %1$s कॉल शुरू करता है, तो HowYouDoin आपको सूचित करता है; आप उसमें %1$s ऐप में शामिल होते हैं। कॉल बाद में चैट में बनी रहती हैं।</string>
+    <string name="connect_calls_logged">कॉल बजने पर %1$s दूसरे ऐप को नहीं बताता। मिस्ड और ख़त्म हुई कॉल बाद में चैट में दिखती हैं।</string>
+    <string name="connect_calls_not_shown">HowYouDoin %1$s कॉल न दिखा सकता है, न उनकी सूचना दे सकता है: %1$s उन्हें दूसरे ऐप से साझा नहीं करता।</string>
 </resources>

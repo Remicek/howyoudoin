@@ -49,6 +49,8 @@ type Slack struct {
 	ownReactions sync.Map
 	// "channel/user" → timer clearing "typing…" (Slack only says when typing starts)
 	typingTimers sync.Map
+	// Channel ID → *slackHuddle, its latest huddle (see slack_calls.go)
+	huddles sync.Map
 }
 
 const (
@@ -116,7 +118,7 @@ func (s *Slack) Connect() error {
 	s.selfID = boot.Self.ID
 	s.teamID = boot.Team.ID
 	s.users.Store(boot.Self.ID, &boot.Self)
-	s.emit(map[string]any{"type": "self", "id": boot.Self.ID, "name": boot.Team.Name})
+	s.emit(map[string]any{"type": "self", "id": boot.Self.ID, "name": boot.Self.Name, "workspace": boot.Team.Name})
 	s.emitUser(&boot.Self)
 
 	rtm := s.client.NewRTM()
@@ -183,6 +185,12 @@ func (s *Slack) handleEvent(ctx context.Context, raw any) {
 		s.emitState("error", "Slack session expired, log in again")
 	case *slack.MessageEvent:
 		s.handleMessage(ctx, evt)
+	case *slack.SHRoomJoinEvent:
+		s.handleHuddleRoom(&evt.Room, evt.Huddle)
+	case *slack.SHRoomUpdateEvent:
+		s.handleHuddleRoom(&evt.Room, evt.Huddle)
+	case *slack.SHRoomLeaveEvent:
+		s.handleHuddleRoom(&evt.Room, evt.Huddle)
 	case *slack.ReactionAddedEvent:
 		s.emitReaction(evt.Item.Channel, evt.Item.Timestamp, evt.User, evt.Reaction, true)
 	case *slack.ReactionRemovedEvent:
@@ -419,6 +427,10 @@ func slackTSMillis(ts string) int64 {
 
 func (s *Slack) emitMessage(ctx context.Context, channelID string, msg *slack.Message) {
 	if msg.Timestamp == "" {
+		return
+	}
+	if msg.SubType == "huddle_thread" {
+		s.emitHuddle(channelID, msg)
 		return
 	}
 	sender := firstNonEmpty(msg.User, msg.BotID)

@@ -1,5 +1,7 @@
 package com.devvalor.howyoudoing.chat.data.ondevice
 
+import com.devvalor.howyoudoing.chat.domain.CallInfo
+import com.devvalor.howyoudoing.chat.domain.CallOutcome
 import com.devvalor.howyoudoing.chat.domain.MessageType
 import com.devvalor.howyoudoing.core.domain.media.MessageRef
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceHistoryError
@@ -158,6 +160,41 @@ class OnDeviceMessengerStoreTest {
         message("123@g.us", "m1", "2", "Hello group", 1_000)
 
         assertTrue(store.chats().single().isGroup)
+    }
+
+    @Test
+    fun a_ringing_call_becomes_a_missed_call_in_the_same_message() = runTest {
+        val store = store()
+        self()
+        message("2", "m1", "2", "Hi", 1_000)
+        message(
+            "2", "call-1", "2", "📞 Incoming video call", 2_000, "call",
+            ""","callState":"incoming","isVideo":true"""
+        )
+
+        val ringing = store.chats().single().lastMessage
+        assertEquals(MessageType.CALL, ringing?.type)
+        assertEquals(CallInfo(CallOutcome.INCOMING, isVideo = true), ringing?.call)
+
+        message(
+            "2", "call-1", "2", "📞 Video call (1:15)", 2_000, "call",
+            ""","callState":"ended","isVideo":true,"durationMs":75000"""
+        )
+        val ended = store.messages("2").last()
+        assertEquals(2, store.messages("2").size)
+        assertEquals(CallInfo(CallOutcome.ENDED, isVideo = true, durationMillis = 75_000), ended.call)
+    }
+
+    @Test
+    fun a_call_log_repeated_without_its_card_stays_a_call() = runTest {
+        val store = store()
+        self()
+        message("2", "m9", "2", "📞 Missed call", 2_000, "call", ""","callState":"missed"""")
+        message("2", "m9", "2", "", 2_000)
+
+        val call = store.messages("2").single()
+        assertEquals(MessageType.CALL, call.type)
+        assertEquals(CallOutcome.MISSED, call.call?.state)
     }
 
     @Test

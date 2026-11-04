@@ -54,6 +54,10 @@ type Signal struct {
 	// Sent message timestamp → thread key, so read receipts (which only name the reader and timestamps) find
 	// their chat
 	sentThreads sync.Map
+
+	// Calls ringing on Signal (see calls.go), and those answered on another of the user's devices
+	ringing  ringingCalls
+	answered sync.Map // call ID → time.Time
 	// Contacts and groups whose names were looked up
 	named sync.Map
 	// Message ID → our own reaction on it (removing a reaction has to name the emoji)
@@ -197,6 +201,16 @@ func (s *Signal) run(ctx context.Context) {
 			switch status.Event {
 			case signalmeow.SignalConnectionEventConnected:
 				s.emitState("connected", "")
+				// The phone's contacts name people who never messaged this device (e.g. someone who only called);
+				// they arrive as a ContactList event. signalmeow asks at most once a minute.
+				go func() {
+					if err := s.client.SendContactSyncRequest(ctx); err != nil {
+						s.log.Warn().Err(err).Msg("Signal contact sync request failed")
+						s.emit(map[string]any{"type": "debug", "event": "contact sync request failed"})
+					} else {
+						s.emit(map[string]any{"type": "debug", "event": "contact sync requested"})
+					}
+				}()
 			case signalmeow.SignalConnectionEventDisconnected:
 				s.emitState("reconnecting", errString(status.Err))
 			case signalmeow.SignalConnectionEventLoggedOut:
@@ -477,12 +491,22 @@ func (s *Signal) handleEvent(rawEvt events.SignalEvent) bool {
 			s.emit(map[string]any{"type": "read", "threadKey": key, "contactId": evt.Sender.String(), "watermarkMs": int64(newest)})
 		}
 	case *events.ContactList:
+		// Diagnostics: how many contacts the phone shared, and how many have a name (counts only)
+		named := 0
 		for _, contact := range evt.Contacts {
-			if name := firstNonEmpty(contact.ContactName, contact.Nickname, contact.Profile.Name); name != "" && contact.ACI != uuid.Nil {
+			if firstNonEmpty(contact.ContactName, contact.Nickname, contact.Profile.Name, contact.E164) != "" {
+				named++
+			}
+		}
+		s.emit(map[string]any{"type": "debug", "event": fmt.Sprintf("contact list: %d contacts, %d named", len(evt.Contacts), named)})
+		for _, contact := range evt.Contacts {
+			if name := firstNonEmpty(contact.ContactName, contact.Nickname, contact.Profile.Name, contact.E164); name != "" && contact.ACI != uuid.Nil {
 				s.named.Store(contact.ACI.String(), name)
 				s.emit(map[string]any{"type": "contact", "id": contact.ACI.String(), "name": name, "firstName": strings.Fields(name)[0]})
 			}
 		}
+	case *events.Call:
+		s.handleCall(evt)
 	case *events.LoggedOut:
 		go s.loggedOut()
 	case *events.DecryptionError:
@@ -492,6 +516,67 @@ func (s *Signal) handleEvent(rawEvt events.SignalEvent) bool {
 			"timestampMs": int64(evt.Timestamp), "isEncrypted": true})
 	}
 	return true
+}
+
+// signalCallMaxAge: call offers delivered later than this (after being offline) are over already.
+const signalCallMaxAge = 2 * time.Minute
+
+// handleCall shows a Signal call, which rings on the phone (and Signal Desktop) but can't be answered here: an
+// offer is an incoming call; the hangup that follows says whether it was answered on another device, declined
+// or missed.
+func (s *Signal) handleCall(evt *events.Call) {
+	if evt.CallID == 0 {
+		return
+	}
+	callID := strconv.FormatUint(evt.CallID, 10)
+	if evt.IsRinging {
+		sent := time.UnixMilli(int64(evt.Timestamp))
+		if s.client != nil && evt.Info.Sender == s.client.Store.ACI || time.Since(sent) > signalCallMaxAge {
+			return
+		}
+		key := evt.Info.ChatID
+		if key == "" {
+			key = evt.Info.Sender.String()
+		}
+		// A call can be a chat's first activity this run: name it (and its caller) as a message would
+		isGroup := isSignalGroup(key)
+		if !isGroup {
+			s.movePNIChat(evt.Info.Sender)
+		}
+		s.ensureNamed(key, isGroup, evt.Info.Sender, int64(evt.Timestamp), true)
+		call := ringingCall{threadKey: key, messageID: "call|" + callID, senderID: evt.Info.Sender.String(),
+			timestampMs: int64(evt.Timestamp), isVideo: evt.IsVideo}
+		s.ringing.put(callID, call)
+		event := callEvent(call.threadKey, call.messageID, call.senderID, call.timestampMs, callIncoming, call.isVideo, 0)
+		event["isEncrypted"] = true
+		s.emit(event)
+		return
+	}
+	switch evt.HangupType {
+	case signalpb.CallMessage_Hangup_HANGUP_ACCEPTED:
+		// Answered on the user's phone or desktop: it's over when the next hangup comes
+		s.answered.Store(callID, time.Now())
+		return
+	case signalpb.CallMessage_Hangup_HANGUP_DECLINED, signalpb.CallMessage_Hangup_HANGUP_BUSY:
+		s.answered.Delete(callID)
+		s.endCall(callID, callDeclined)
+	default:
+		s.endCall(callID, callMissed)
+	}
+}
+
+func (s *Signal) endCall(callID, unanswered string) {
+	call, ok := s.ringing.take(callID)
+	if !ok {
+		return
+	}
+	state, duration := unanswered, int64(0)
+	if answeredAt, wasAnswered := s.answered.LoadAndDelete(callID); wasAnswered {
+		state, duration = callEnded, int64(time.Since(answeredAt.(time.Time)).Seconds())
+	}
+	event := callEvent(call.threadKey, call.messageID, call.senderID, call.timestampMs, state, call.isVideo, duration)
+	event["isEncrypted"] = true
+	s.emit(event)
 }
 
 func (s *Signal) handleChatEvent(evt *events.ChatEvent) {

@@ -180,4 +180,16 @@
     <string name="contacts_start_rate_limited">%1$s сейчас ограничивает запросы. Попробуйте через несколько минут.</string>
     <string name="contacts_start_failed">Не удалось начать чат в %1$s. Попробуйте снова.</string>
     <string name="contacts_no_networks">Подключите сеть, чтобы писать людям.</string>
+    <string name="call_incoming">📞 Входящий звонок · ответьте в %1$s</string>
+    <string name="call_incoming_video">📹 Входящий видеозвонок · ответьте в %1$s</string>
+    <string name="call_missed">📞 Пропущенный звонок</string>
+    <string name="call_missed_video">📹 Пропущенный видеозвонок</string>
+    <string name="call_declined">📞 Отклонённый звонок</string>
+    <string name="call_declined_video">📹 Отклонённый видеозвонок</string>
+    <string name="call_ended">📞 Звонок</string>
+    <string name="call_ended_video">📹 Видеозвонок</string>
+    <string name="call_ended_duration">📞 Звонок · %1$s</string>
+    <string name="call_ended_video_duration">📹 Видеозвонок · %1$s</string>
+    <string name="call_started">📞 Начался звонок · присоединяйтесь в %1$s</string>
+    <string name="call_started_video">📹 Начался видеозвонок · присоединяйтесь в %1$s</string>
 </resources>

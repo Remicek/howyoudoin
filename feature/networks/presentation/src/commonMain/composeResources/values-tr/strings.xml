@@ -149,6 +149,7 @@
     <string name="networks_disconnect_title">%1$s bağlantısı kesilsin mi?</string>
     <string name="networks_disconnect_body">Sohbetleri, fotoğrafları ve şifreleme anahtarları bu telefondan silinir. %1$s hesabınız ve mesajları olduğu gibi kalır; istediğiniz zaman yeniden bağlanabilirsiniz.</string>
     <string name="networks_on_device_name">%1$s · bu cihazda</string>
+    <string name="networks_on_device_workspace">%1$s · %2$s çalışma alanı · bu cihazda</string>
     <string name="login_state_connected">Bağlı</string>
     <string name="login_state_connecting">Bağlanıyor</string>
     <string name="login_state_error">Hata: %1$s</string>
@@ -214,4 +215,9 @@
     <string name="connectnetwork_x">x.com'da oturum açın, ardından X Chat parolanızı girin; mesajlar bu telefondan bağlanır.</string>
     <string name="x_passcode_instructions">X'te Chat için belirlediğiniz PIN olan X Chat parolanızı girin. Şifreli mesajlarınızı bu telefonda açar. X, Chat'i kilitlemeden önce yalnızca birkaç yanlış denemeye izin verir.</string>
     <string name="field_x_passcode">X Chat parolası</string>
+    <string name="connect_calls_in_app">Sesli ve görüntülü aramalar doğrudan HowYouDoin'de çalışır.</string>
+    <string name="connect_calls_shown">Aramalar yalnızca %1$s uygulamasında çalar, ancak HowYouDoin gelen sesli ve görüntülü aramaları size bildirir ve cevapsız aramaları sohbette tutar.</string>
+    <string name="connect_calls_joined">HowYouDoin, biri %1$s araması başlattığında sizi bilgilendirir; aramaya %1$s uygulamasından katılırsınız. Aramalar sonrasında sohbette kalır.</string>
+    <string name="connect_calls_logged">%1$s, bir arama çaldığında diğer uygulamalara haber vermez. Cevapsız ve biten aramalar daha sonra sohbette görünür.</string>
+    <string name="connect_calls_not_shown">HowYouDoin %1$s aramalarını gösteremez ve bildiremez: %1$s bunları diğer uygulamalarla paylaşmaz.</string>
 </resources>

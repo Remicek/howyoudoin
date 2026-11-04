@@ -174,4 +174,16 @@
     <string name="contacts_start_rate_limited">%1$s は現在リクエストを制限しています。数分後にもう一度お試しください。</string>
     <string name="contacts_start_failed">%1$s でチャットを開始できませんでした。もう一度お試しください。</string>
     <string name="contacts_no_networks">ネットワークを接続すると、人にメッセージを送れます。</string>
+    <string name="call_incoming">📞 着信中 · %1$s で応答してください</string>
+    <string name="call_incoming_video">📹 ビデオ通話の着信 · %1$s で応答してください</string>
+    <string name="call_missed">📞 不在着信</string>
+    <string name="call_missed_video">📹 ビデオ通話の不在着信</string>
+    <string name="call_declined">📞 拒否した通話</string>
+    <string name="call_declined_video">📹 拒否したビデオ通話</string>
+    <string name="call_ended">📞 通話</string>
+    <string name="call_ended_video">📹 ビデオ通話</string>
+    <string name="call_ended_duration">📞 通話 · %1$s</string>
+    <string name="call_ended_video_duration">📹 ビデオ通話 · %1$s</string>
+    <string name="call_started">📞 通話が始まりました · %1$s で参加</string>
+    <string name="call_started_video">📹 ビデオ通話が始まりました · %1$s で参加</string>
 </resources>

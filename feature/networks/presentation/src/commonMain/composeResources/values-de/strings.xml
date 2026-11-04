@@ -149,6 +149,7 @@
     <string name="networks_disconnect_title">%1$s trennen?</string>
     <string name="networks_disconnect_body">Seine Chats, Fotos und Verschlüsselungsschlüssel werden von diesem Handy gelöscht. Dein %1$s-Konto und seine Nachrichten bleiben unverändert; du kannst dich jederzeit wieder verbinden.</string>
     <string name="networks_on_device_name">%1$s · auf diesem Gerät</string>
+    <string name="networks_on_device_workspace">%1$s · Workspace %2$s · auf diesem Gerät</string>
     <string name="login_state_connected">Verbunden</string>
     <string name="login_state_connecting">Verbinden</string>
     <string name="login_state_error">Fehler: %1$s</string>
@@ -214,4 +215,9 @@
     <string name="connectnetwork_x">Melde dich auf x.com an und gib dann deinen X-Chat-Passcode ein; Nachrichten verbinden sich von diesem Handy.</string>
     <string name="x_passcode_instructions">Gib deinen X-Chat-Passcode ein, die PIN, die du für Chat auf X festgelegt hast. Sie entsperrt deine verschlüsselten Nachrichten auf diesem Handy. X erlaubt nur wenige Fehlversuche, dann sperrt es Chat.</string>
     <string name="field_x_passcode">X-Chat-Passcode</string>
+    <string name="connect_calls_in_app">Sprach- und Videoanrufe funktionieren direkt in HowYouDoin.</string>
+    <string name="connect_calls_shown">Anrufe klingeln nur in der %1$s-App, aber HowYouDoin benachrichtigt dich über eingehende Sprach- und Videoanrufe und behält verpasste Anrufe im Chat.</string>
+    <string name="connect_calls_joined">HowYouDoin benachrichtigt dich, wenn jemand einen %1$s-Anruf startet, dem du in der %1$s-App beitrittst. Anrufe bleiben danach im Chat.</string>
+    <string name="connect_calls_logged">%1$s sagt anderen Apps nicht, wenn ein Anruf klingelt. Verpasste und beendete Anrufe erscheinen danach im Chat.</string>
+    <string name="connect_calls_not_shown">HowYouDoin kann %1$s-Anrufe weder anzeigen noch dich darüber benachrichtigen: %1$s teilt sie nicht mit anderen Apps.</string>
 </resources>

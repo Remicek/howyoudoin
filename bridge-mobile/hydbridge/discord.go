@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -180,7 +181,15 @@ func (d *Discord) handleEvent(raw any) {
 		d.emitChannel(evt.Channel, "")
 	case *discordgo.ChannelUpdate:
 		d.emitChannel(evt.Channel, "")
+	case *discordgo.Event:
+		if evt.Type == "MESSAGE_CREATE" || evt.Type == "MESSAGE_UPDATE" {
+			d.handleRawCallMessage(evt.RawData, true)
+		}
 	case *discordgo.MessageCreate:
+		if evt.Type == discordgo.MessageTypeCall {
+			// Shown from the raw event, which says who joined the call (handleRawCallMessage)
+			break
+		}
 		if d.isPrivate(evt.ChannelID) {
 			d.emitMessage(evt.Message)
 			d.emit(map[string]any{"type": "thread", "key": evt.ChannelID, "lastActivityMs": discordMillis(evt.ID)})
@@ -613,15 +622,35 @@ func (d *Discord) RequestOlder(channelID, beforeMessageID string) error {
 	if err != nil {
 		return err
 	}
-	messages, err := session.ChannelMessages(channelID, discordPageSize, beforeMessageID, "", "")
+	// Fetched raw: discordgo's Message leaves out a call's details (handleRawCallMessage)
+	query := url.Values{"limit": {strconv.Itoa(discordPageSize)}}
+	if beforeMessageID != "" {
+		query.Set("before", beforeMessageID)
+	}
+	endpoint := discordgo.EndpointChannelMessages(channelID)
+	body, err := session.RequestWithBucketID(http.MethodGet, endpoint+"?"+query.Encode(), nil, endpoint)
 	if err != nil {
 		return err
 	}
-	for _, m := range messages {
+	var raws []json.RawMessage
+	if err := json.Unmarshal(body, &raws); err != nil {
+		return err
+	}
+	messages := make([]*discordgo.Message, 0, len(raws))
+	for _, raw := range raws {
+		var m discordgo.Message
+		if err := json.Unmarshal(raw, &m); err != nil {
+			continue
+		}
+		messages = append(messages, &m)
+		if m.Type == discordgo.MessageTypeCall {
+			d.handleRawCallMessage(raw, false)
+			continue
+		}
 		if m.ChannelID == "" {
 			m.ChannelID = channelID
 		}
-		d.emitMessage(m)
+		d.emitMessage(&m)
 	}
 	d.emit(map[string]any{"type": "range", "threadKey": channelID, "hasMoreBefore": len(messages) == discordPageSize})
 	return nil

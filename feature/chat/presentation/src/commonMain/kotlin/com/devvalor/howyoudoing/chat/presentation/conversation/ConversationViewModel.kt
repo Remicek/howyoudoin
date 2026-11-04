@@ -245,7 +245,10 @@ class ConversationViewModel(
                 _state.update {
                     it.withChat(chat).copy(
                         typingText = chat?.let { c -> typingText(c.typingNames, c.isGroup) },
-                        messages = messages.toMessageUis(showSenderNames = chat?.isGroup == true),
+                        messages = messages.toMessageUis(
+                            showSenderNames = chat?.isGroup == true,
+                            network = chat?.network
+                        ),
                         hasMoreHistory = hasMore
                     ).let { updated -> if (updated.searchQuery != null) updated.withSearchMatches() else updated }
                 }

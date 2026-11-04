@@ -149,6 +149,7 @@
     <string name="networks_disconnect_title">Déconnecter %1$s ?</string>
     <string name="networks_disconnect_body">Ses discussions, photos et clés de chiffrement sont supprimées de ce téléphone. Votre compte %1$s et ses messages restent intacts ; vous pouvez vous reconnecter à tout moment.</string>
     <string name="networks_on_device_name">%1$s · sur cet appareil</string>
+    <string name="networks_on_device_workspace">%1$s · espace de travail %2$s · sur cet appareil</string>
     <string name="login_state_connected">Connecté</string>
     <string name="login_state_connecting">Connexion</string>
     <string name="login_state_error">Erreur : %1$s</string>
@@ -216,4 +217,9 @@
     <string name="connectnetwork_x">Connectez-vous sur x.com, puis saisissez votre code d'accès X Chat ; les messages se connectent depuis ce téléphone.</string>
     <string name="x_passcode_instructions">Saisissez votre code d'accès X Chat, le code PIN défini pour Chat sur X. Il déverrouille vos messages chiffrés sur ce téléphone. X n'autorise que quelques essais erronés avant de bloquer Chat.</string>
     <string name="field_x_passcode">Code d'accès X Chat</string>
+    <string name="connect_calls_in_app">Les appels audio et vidéo fonctionnent directement dans HowYouDoin.</string>
+    <string name="connect_calls_shown">Les appels ne sonnent que dans l'appli %1$s, mais HowYouDoin vous prévient des appels audio et vidéo entrants et garde les appels manqués dans la discussion.</string>
+    <string name="connect_calls_joined">HowYouDoin vous prévient quand quelqu’un lance un appel %1$s, que vous rejoignez dans l’appli %1$s. Les appels restent ensuite dans la discussion.</string>
+    <string name="connect_calls_logged">%1$s ne prévient pas les autres applis quand un appel sonne. Les appels manqués et terminés apparaissent ensuite dans la discussion.</string>
+    <string name="connect_calls_not_shown">HowYouDoin ne peut ni afficher les appels %1$s ni vous en prévenir : %1$s ne les partage pas avec d'autres applis.</string>
 </resources>

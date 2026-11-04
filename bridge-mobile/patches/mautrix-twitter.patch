@@ -1,0 +1,69 @@
+diff --git a/pkg/twittermeow/data/types/event.go b/pkg/twittermeow/data/types/event.go
+index 058ec5a..fb90f44 100644
+--- a/pkg/twittermeow/data/types/event.go
++++ b/pkg/twittermeow/data/types/event.go
+@@ -29,6 +29,19 @@ func (*ConversationRead) isTwitterEvent()           {}
+ func (*TrustConversation) isTwitterEvent()          {}
+ func (*EndAVBroadcast) isTwitterEvent()             {}
+ func (*PollingError) isTwitterEvent()               {}
++func (*XChatCall) isTwitterEvent()                  {}
++
++// XChatCall is an audio or video call in an XChat conversation (HowYouDoin): State is "started", "missed" or
++// "ended"; DurationSeconds is set for ended calls.
++type XChatCall struct {
++	ID              string
++	Time            string
++	ConversationID  string
++	SenderID        string
++	State           string
++	IsAudioOnly     bool
++	DurationSeconds int64
++}
+ 
+ type PollingError struct {
+ 	Error  error
+diff --git a/pkg/twittermeow/xchat_convert.go b/pkg/twittermeow/xchat_convert.go
+index 8f67065..c526b82 100644
+--- a/pkg/twittermeow/xchat_convert.go
++++ b/pkg/twittermeow/xchat_convert.go
+@@ -453,3 +453,25 @@ func ConvertXChatUserToUser(xu *response.XChatUser) *types.User {
+ 
+ 	return user
+ }
++
++// convertXChatCall converts a call notice in an XChat entry (HowYouDoin); nil if the entry isn't one.
++func convertXChatCall(evt *payload.MessageEvent, contents *payload.MessageEntryContents) *types.XChatCall {
++	call := &types.XChatCall{
++		ID:             ptr.Val(evt.SequenceId),
++		Time:           ptr.Val(evt.CreatedAtMsec),
++		ConversationID: ptr.Val(evt.ConversationId),
++		SenderID:       ptr.Val(evt.SenderId),
++	}
++	switch {
++	case contents.AvCallStarted != nil:
++		call.State, call.IsAudioOnly = "started", ptr.Val(contents.AvCallStarted.IsAudioOnly)
++	case contents.AvCallMissed != nil:
++		call.State, call.IsAudioOnly = "missed", ptr.Val(contents.AvCallMissed.IsAudioOnly)
++	case contents.AvCallEnded != nil:
++		call.State, call.IsAudioOnly = "ended", ptr.Val(contents.AvCallEnded.IsAudioOnly)
++		call.DurationSeconds = ptr.Val(contents.AvCallEnded.DurationSeconds)
++	default:
++		return nil
++	}
++	return call
++}
+diff --git a/pkg/twittermeow/xchat_processor.go b/pkg/twittermeow/xchat_processor.go
+index 408ed6e..7302d2a 100644
+--- a/pkg/twittermeow/xchat_processor.go
++++ b/pkg/twittermeow/xchat_processor.go
+@@ -633,6 +633,10 @@ func (p *XChatEventProcessor) processMessageCreateEvent(ctx context.Context, evt
+ 		return p.emitEvent(ctx, msg)
+ 	}
+ 
++	if call := convertXChatCall(evt, contents); call != nil {
++		return p.emitEvent(ctx, call)
++	}
++
+ 	if contents.ReactionAdd != nil {
+ 		return p.emitEvent(ctx, convertXChatReactionAdd(evt, contents.ReactionAdd))
+ 	}

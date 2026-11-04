@@ -149,6 +149,7 @@
     <string name="networks_disconnect_title">%1$s の接続を解除しますか？</string>
     <string name="networks_disconnect_body">チャット、写真、暗号鍵がこのスマホから削除されます。%1$s のアカウントとメッセージはそのまま残り、いつでも再接続できます。</string>
     <string name="networks_on_device_name">%1$s · このデバイス</string>
+    <string name="networks_on_device_workspace">%1$s · ワークスペース %2$s · このデバイス</string>
     <string name="login_state_connected">接続済み</string>
     <string name="login_state_connecting">接続中</string>
     <string name="login_state_error">エラー: %1$s</string>
@@ -212,4 +213,9 @@
     <string name="connectnetwork_x">x.com にログインし、X Chat のパスコードを入力します。メッセージはこのスマートフォンから接続されます。</string>
     <string name="x_passcode_instructions">X Chat のパスコード（X のチャット用に設定した PIN）を入力してください。このスマートフォンで暗号化メッセージを開くのに使います。数回間違えると X はチャットをロックします。</string>
     <string name="field_x_passcode">X Chat のパスコード</string>
+    <string name="connect_calls_in_app">音声通話とビデオ通話は HowYouDoin で直接使えます。</string>
+    <string name="connect_calls_shown">着信音が鳴るのは %1$s アプリだけですが、HowYouDoin は音声通話とビデオ通話の着信を通知し、不在着信をチャットに残します。</string>
+    <string name="connect_calls_joined">誰かが%1$sで通話を始めると、HowYouDoinがお知らせします。通話には%1$sアプリから参加します。通話は終了後もチャットに残ります。</string>
+    <string name="connect_calls_logged">%1$s は着信を他のアプリに知らせません。不在着信や終了した通話は後でチャットに表示されます。</string>
+    <string name="connect_calls_not_shown">%1$s は通話を他のアプリと共有しないため、HowYouDoin では %1$s の通話を表示も通知もできません。</string>
 </resources>

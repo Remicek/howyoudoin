@@ -45,7 +45,7 @@ if grep -q '^module github.com/thinkgos/go-sqlcipher' "$sqlcipher"; then
 fi
 
 # Each patch goes on an unchanged checkout only, so running this again leaves a patched one alone
-for name in mautrix-meta mautrix-linkedin; do
+for name in mautrix-meta mautrix-linkedin mautrix-signal mautrix-twitter; do
     dir="$BRIDGES/$name"
     if git -C "$dir" diff --quiet && git -C "$dir" apply --check "$MODULE_DIR/patches/$name.patch" 2>/dev/null; then
         git -C "$dir" apply "$MODULE_DIR/patches/$name.patch"

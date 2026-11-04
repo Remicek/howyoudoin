@@ -149,6 +149,7 @@
     <string name="networks_disconnect_title">Odłączyć %1$s?</string>
     <string name="networks_disconnect_body">Jego czaty, zdjęcia i klucze szyfrowania zostaną usunięte z tego telefonu. Twoje konto %1$s i jego wiadomości pozostaną bez zmian; możesz połączyć się ponownie w każdej chwili.</string>
     <string name="networks_on_device_name">%1$s · na tym urządzeniu</string>
+    <string name="networks_on_device_workspace">%1$s · przestrzeń robocza %2$s · na tym urządzeniu</string>
     <string name="login_state_connected">Połączono</string>
     <string name="login_state_connecting">Łączenie</string>
     <string name="login_state_error">Błąd: %1$s</string>
@@ -218,4 +219,9 @@
     <string name="connectnetwork_x">Zaloguj się na x.com, a potem wpisz kod dostępu do X Chat; wiadomości łączą się z tego telefonu.</string>
     <string name="x_passcode_instructions">Wpisz kod dostępu do X Chat, czyli PIN ustawiony dla czatu w X. Odblokowuje on Twoje zaszyfrowane wiadomości na tym telefonie. X pozwala na kilka błędnych prób, a potem blokuje czat.</string>
     <string name="field_x_passcode">Kod dostępu do X Chat</string>
+    <string name="connect_calls_in_app">Połączenia głosowe i wideo działają bezpośrednio w HowYouDoin.</string>
+    <string name="connect_calls_shown">Połączenia dzwonią tylko w aplikacji %1$s, ale HowYouDoin powiadomi Cię o przychodzących połączeniach głosowych i wideo i zostawi nieodebrane w czacie.</string>
+    <string name="connect_calls_joined">HowYouDoin powiadomi Cię, gdy ktoś rozpocznie połączenie w %1$s, do którego dołączysz w aplikacji %1$s. Połączenia zostają potem w czacie.</string>
+    <string name="connect_calls_logged">%1$s nie informuje innych aplikacji, gdy ktoś dzwoni. Nieodebrane i zakończone połączenia pojawią się w czacie później.</string>
+    <string name="connect_calls_not_shown">HowYouDoin nie pokaże połączeń z %1$s ani o nich nie powiadomi: %1$s nie udostępnia ich innym aplikacjom.</string>
 </resources>

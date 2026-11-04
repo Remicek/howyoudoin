@@ -176,4 +176,16 @@
     <string name="contacts_start_rate_limited">%1$s şu anda istekleri sınırlıyor. Birkaç dakika sonra tekrar deneyin.</string>
     <string name="contacts_start_failed">%1$s üzerinde sohbet başlatılamadı. Tekrar deneyin.</string>
     <string name="contacts_no_networks">İnsanlara yazmak için bir ağ bağlayın.</string>
+    <string name="call_incoming">📞 Gelen arama · %1$s uygulamasında yanıtlayın</string>
+    <string name="call_incoming_video">📹 Gelen görüntülü arama · %1$s uygulamasında yanıtlayın</string>
+    <string name="call_missed">📞 Cevapsız arama</string>
+    <string name="call_missed_video">📹 Cevapsız görüntülü arama</string>
+    <string name="call_declined">📞 Reddedilen arama</string>
+    <string name="call_declined_video">📹 Reddedilen görüntülü arama</string>
+    <string name="call_ended">📞 Arama</string>
+    <string name="call_ended_video">📹 Görüntülü arama</string>
+    <string name="call_ended_duration">📞 Arama · %1$s</string>
+    <string name="call_ended_video_duration">📹 Görüntülü arama · %1$s</string>
+    <string name="call_started">📞 Bir arama başladı · %1$s uygulamasında katılın</string>
+    <string name="call_started_video">📹 Bir görüntülü arama başladı · %1$s uygulamasında katılın</string>
 </resources>

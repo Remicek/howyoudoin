@@ -147,9 +147,11 @@ private fun BubbleCaption(text: String, type: MessageType, hasMedia: Boolean, te
     )
 }
 
-/** Notices about the message rather than its text. */
+/** Notices about the message rather than its text, and calls. */
 private val ITALIC_TYPES =
-    setOf(MessageType.ENCRYPTED, MessageType.EMOTE, MessageType.UNSUPPORTED, MessageType.ONE_TIME_CODE)
+    setOf(
+        MessageType.ENCRYPTED, MessageType.EMOTE, MessageType.UNSUPPORTED, MessageType.ONE_TIME_CODE, MessageType.CALL
+    )
 
 /** The time, and for our own messages whether it was sent and read. */
 @Composable

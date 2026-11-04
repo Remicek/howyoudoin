@@ -184,4 +184,16 @@
     <string name="contacts_start_rate_limited">يحدّ %1$s من الطلبات حاليًا. حاول مجددًا بعد بضع دقائق.</string>
     <string name="contacts_start_failed">تعذّر بدء الدردشة على %1$s. حاول مجددًا.</string>
     <string name="contacts_no_networks">اربط شبكة لتكتب إلى الناس.</string>
+    <string name="call_incoming">📞 مكالمة واردة · أجب عليها في %1$s</string>
+    <string name="call_incoming_video">📹 مكالمة فيديو واردة · أجب عليها في %1$s</string>
+    <string name="call_missed">📞 مكالمة فائتة</string>
+    <string name="call_missed_video">📹 مكالمة فيديو فائتة</string>
+    <string name="call_declined">📞 مكالمة مرفوضة</string>
+    <string name="call_declined_video">📹 مكالمة فيديو مرفوضة</string>
+    <string name="call_ended">📞 مكالمة</string>
+    <string name="call_ended_video">📹 مكالمة فيديو</string>
+    <string name="call_ended_duration">📞 مكالمة · %1$s</string>
+    <string name="call_ended_video_duration">📹 مكالمة فيديو · %1$s</string>
+    <string name="call_started">📞 بدأت مكالمة · انضم إليها في %1$s</string>
+    <string name="call_started_video">📹 بدأت مكالمة فيديو · انضم إليها في %1$s</string>
 </resources>
