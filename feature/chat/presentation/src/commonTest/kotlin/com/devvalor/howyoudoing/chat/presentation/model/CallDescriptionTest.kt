@@ -28,7 +28,10 @@ class CallDescriptionTest {
             CallInfo(CallOutcome.ENDED, isVideo = true, durationMillis = 75_000).describe("Signal")
         )
         assertEquals(UiText.Resource(Res.string.call_ended), CallInfo(CallOutcome.ENDED, isVideo = false).describe("X"))
-        assertEquals(UiText.Resource(Res.string.call_missed), CallInfo(CallOutcome.MISSED, isVideo = false).describe("X"))
+        assertEquals(
+            UiText.Resource(Res.string.call_missed),
+            CallInfo(CallOutcome.MISSED, isVideo = false).describe("X")
+        )
     }
 
     @Test
