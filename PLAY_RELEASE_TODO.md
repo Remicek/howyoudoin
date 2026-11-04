@@ -16,7 +16,7 @@ in any session. Google Play marketing assets live outside this repo at
 - [x] Play Console app created (Devvalor org account, `com.devvalor.howyoudoing`, free).
       Play App Signing terms accepted — Google will hold the app signing key; our
       `keys/howyoudoin-release.jks` is the **upload key**.
-- [x] Signed release bundle: `GooglePlay/HowYouDoin/release/howyoudoin-1.0.1-vc2.aab`
+- [x] Signed release bundle: `GooglePlay/HowYouDoin/release/howyoudoin-1.0.2-vc3.aab` (1.0.1-vc2 before it)
       (built with `./gradlew :composeApp:bundleRelease`; `local.properties` now has the
       `release.*` signing entries; upload cert SHA-256 `A0:DB:92:11:…:CE:DD`).
 - [x] Store listing (en-US) saved as draft: title, short + full description, icon,
