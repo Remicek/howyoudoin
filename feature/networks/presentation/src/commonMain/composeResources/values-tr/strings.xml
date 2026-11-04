@@ -85,6 +85,8 @@
     <string name="tg_password_hint">Hesabınızda iki adımlı doğrulama var. Şifresini girin (ipucu: %1$s).</string>
     <string name="field_login_code">Giriş kodu</string>
     <string name="field_password">Şifre</string>
+    <string name="connect_show_password">Şifreyi göster</string>
+    <string name="connect_hide_password">Şifreyi gizle</string>
     <string name="pair_signal">Signal'de Ayarlar → Bağlı cihazlar → Yeni cihaz bağla'yı açın ve bu kodu tarayın. Signal'in tarayıcısı kamerayı kullanır, bu yüzden bu kodun Signal'in çalıştığı telefondan farklı bir ekranda olması gerekir.</string>
     <string name="pair_telegram">Telegram'da Ayarlar → Cihazlar → Masaüstü Cihaz Bağla'yı açın ve bu kodu tarayın. Telegram'ın tarayıcısı kodun başka bir ekranda olmasını gerektirir: Telegram yalnızca bu telefondaysa geri dönüp telefon numaranızla giriş yapın.</string>
     <string name="pair_whatsapp_code">Telefonunuzda WhatsApp → Bağlı cihazlar → Cihaz bağla → Bunun yerine telefon numarasıyla bağla'yı açın ve bu kodu girin.</string>

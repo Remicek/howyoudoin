@@ -85,6 +85,8 @@
     <string name="tg_password_hint">Tu cuenta tiene verificación en dos pasos. Introduce su contraseña (pista: %1$s).</string>
     <string name="field_login_code">Código de inicio de sesión</string>
     <string name="field_password">Contraseña</string>
+    <string name="connect_show_password">Mostrar contraseña</string>
+    <string name="connect_hide_password">Ocultar contraseña</string>
     <string name="pair_signal">En Signal abre Ajustes → Dispositivos vinculados → Vincular nuevo dispositivo y escanea este código. El escáner de Signal usa la cámara, así que el código tiene que estar en una pantalla distinta del teléfono en el que funciona.</string>
     <string name="pair_telegram">En Telegram abre Ajustes → Dispositivos → Vincular dispositivo de escritorio y escanea este código. El escáner de Telegram necesita el código en otra pantalla: si Telegram solo está en este teléfono, vuelve atrás e inicia sesión con tu número de teléfono.</string>
     <string name="pair_whatsapp_code">En tu teléfono abre WhatsApp → Dispositivos vinculados → Vincular un dispositivo → Vincular con el número de teléfono e introduce este código.</string>

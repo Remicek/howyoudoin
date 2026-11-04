@@ -85,6 +85,8 @@
     <string name="tg_password_hint">В аккаунте включена двухэтапная проверка. Введите её пароль (подсказка: %1$s).</string>
     <string name="field_login_code">Код входа</string>
     <string name="field_password">Пароль</string>
+    <string name="connect_show_password">Показать пароль</string>
+    <string name="connect_hide_password">Скрыть пароль</string>
     <string name="pair_signal">В Signal откройте Настройки → Связанные устройства → Связать новое устройство и отсканируйте этот код. Сканер Signal использует камеру, поэтому код должен быть на другом экране, а не на телефоне с Signal.</string>
     <string name="pair_telegram">В Telegram откройте Настройки → Устройства → Подключить устройство и отсканируйте этот код. Сканеру Telegram нужен код на другом экране: если Telegram есть только на этом телефоне, вернитесь и войдите по номеру телефона.</string>
     <string name="pair_whatsapp_code">На телефоне откройте WhatsApp → Связанные устройства → Привязка устройства → Привязать по номеру телефона и введите этот код.</string>

@@ -85,6 +85,8 @@
     <string name="tg_password_hint">Your account has two-step verification. Enter its password (hint: %1$s).</string>
     <string name="field_login_code">Login code</string>
     <string name="field_password">Password</string>
+    <string name="connect_show_password">Show password</string>
+    <string name="connect_hide_password">Hide password</string>
     <string name="pair_signal">In Signal open Settings → Linked devices → Link a new device, and scan this code. Signal's scanner uses the camera, so it needs this code on a different screen than the phone it runs on.</string>
     <string name="pair_telegram">In Telegram open Settings → Devices → Link Desktop Device, and scan this code. Telegram's scanner needs the code on another screen: if Telegram is only on this phone, go back and log in with your phone number instead.</string>
     <string name="pair_whatsapp_code">On your phone open WhatsApp → Linked devices → Link a device → Link with phone number instead, and enter this code.</string>

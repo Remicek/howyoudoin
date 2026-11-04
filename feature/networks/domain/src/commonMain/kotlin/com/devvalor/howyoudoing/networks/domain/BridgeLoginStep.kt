@@ -76,7 +76,9 @@ data class LoginInputField(
     /** Can be left empty; bridges use this for "skip" (e.g. Messenger's history PIN). */
     val isOptional: Boolean = false,
     val minLength: Int? = null,
-    val maxLength: Int? = null
+    val maxLength: Int? = null,
+    /** An example of what to type, shown in the empty field (e.g. "@alice:matrix.org"). */
+    val placeholder: String? = null
 )
 
 enum class InputFieldType {

@@ -75,7 +75,13 @@ class DemoBridgeRepository : BridgeRepository {
                     instructions = "Demo mode: any credentials work. " +
                         "Real Messenger bridges use a browser login instead.",
                     fields = listOf(
-                        LoginInputField("email", "Email or phone", "", InputFieldType.EMAIL),
+                        LoginInputField(
+                            "email",
+                            "Email or phone",
+                            "",
+                            InputFieldType.EMAIL,
+                            placeholder = "name@example.com"
+                        ),
                         LoginInputField("password", "Password", "", InputFieldType.PASSWORD),
                     )
                 )

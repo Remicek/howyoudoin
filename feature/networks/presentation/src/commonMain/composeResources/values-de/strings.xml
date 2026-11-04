@@ -85,6 +85,8 @@
     <string name="tg_password_hint">Dein Konto hat die zweistufige Bestätigung. Gib ihr Passwort ein (Hinweis: %1$s).</string>
     <string name="field_login_code">Anmeldecode</string>
     <string name="field_password">Passwort</string>
+    <string name="connect_show_password">Passwort anzeigen</string>
+    <string name="connect_hide_password">Passwort ausblenden</string>
     <string name="pair_signal">Öffne in Signal Einstellungen → Verknüpfte Geräte → Neues Gerät verknüpfen und scanne diesen Code. Der Scanner von Signal nutzt die Kamera, daher muss der Code auf einem anderen Bildschirm sein als dem Handy, auf dem Signal läuft.</string>
     <string name="pair_telegram">Öffne in Telegram Einstellungen → Geräte → Desktop-Gerät verbinden und scanne diesen Code. Der Scanner von Telegram braucht den Code auf einem anderen Bildschirm: Ist Telegram nur auf diesem Handy, geh zurück und melde dich stattdessen mit deiner Telefonnummer an.</string>
     <string name="pair_whatsapp_code">Öffne auf deinem Handy WhatsApp → Verknüpfte Geräte → Gerät hinzufügen → Stattdessen mit Telefonnummer verknüpfen und gib diesen Code ein.</string>

@@ -85,6 +85,8 @@
     <string name="tg_password_hint">Sua conta tem verificação em duas etapas. Digite a senha dela (dica: %1$s).</string>
     <string name="field_login_code">Código de login</string>
     <string name="field_password">Senha</string>
+    <string name="connect_show_password">Mostrar senha</string>
+    <string name="connect_hide_password">Ocultar senha</string>
     <string name="pair_signal">No Signal, abra Configurações → Dispositivos vinculados → Vincular novo dispositivo e leia este código. O leitor do Signal usa a câmera, então o código precisa estar em uma tela diferente do celular onde ele está.</string>
     <string name="pair_telegram">No Telegram, abra Configurações → Dispositivos → Conectar dispositivo desktop e leia este código. O leitor do Telegram precisa do código em outra tela: se o Telegram estiver só neste celular, volte e entre com seu número de telefone.</string>
     <string name="pair_whatsapp_code">No celular, abra o WhatsApp → Dispositivos conectados → Conectar dispositivo → Conectar com número de telefone e digite este código.</string>

@@ -9,6 +9,8 @@ import howyoudoin.feature.networks.presentation.generated.resources.connect_unof
 import howyoudoin.feature.networks.presentation.generated.resources.connect_phone_intro
 import howyoudoin.feature.networks.presentation.generated.resources.connect_restore_history
 import howyoudoin.feature.networks.presentation.generated.resources.connect_continue
+import howyoudoin.feature.networks.presentation.generated.resources.connect_hide_password
+import howyoudoin.feature.networks.presentation.generated.resources.connect_show_password
 import howyoudoin.feature.networks.presentation.generated.resources.connect_connected
 import howyoudoin.feature.networks.presentation.generated.resources.connect_logged_in_as
 import howyoudoin.feature.networks.presentation.generated.resources.connect_chats_soon
@@ -56,6 +58,8 @@ import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Settings
+import androidx.compose.material.icons.rounded.Visibility
+import androidx.compose.material.icons.rounded.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -73,6 +77,9 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -496,18 +503,35 @@ private fun InputField(
         InputFieldType.URL, InputFieldType.DOMAIN -> KeyboardType.Uri
         else -> KeyboardType.Text
     }
+    val isPassword = field.type == InputFieldType.PASSWORD
+    var isPasswordShown by rememberSaveable(field.id) { mutableStateOf(false) }
     OutlinedTextField(
         value = value,
         onValueChange = { input ->
             onValueChange(if (isNumericPin) input.filter(Char::isDigit).take(field.maxLength ?: 6) else input)
         },
         label = { Text(field.name) },
+        placeholder = field.placeholder?.let { { Text(it) } },
         supportingText = field.description.takeIf { it.isNotBlank() }?.let { { Text(it) } },
         singleLine = true,
-        visualTransformation = if (field.type == InputFieldType.PASSWORD) {
+        visualTransformation = if (isPassword && !isPasswordShown) {
             PasswordVisualTransformation()
         } else {
             VisualTransformation.None
+        },
+        trailingIcon = if (isPassword) {
+            {
+                IconButton(onClick = { isPasswordShown = !isPasswordShown }) {
+                    Icon(
+                        if (isPasswordShown) Icons.Rounded.VisibilityOff else Icons.Rounded.Visibility,
+                        contentDescription = stringResource(
+                            if (isPasswordShown) Res.string.connect_hide_password else Res.string.connect_show_password
+                        )
+                    )
+                }
+            }
+        } else {
+            null
         },
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
         modifier = Modifier.fillMaxWidth(),

@@ -85,6 +85,8 @@
     <string name="tg_password_hint">Votre compte utilise la validation en deux étapes. Saisissez son mot de passe (indice : %1$s).</string>
     <string name="field_login_code">Code de connexion</string>
     <string name="field_password">Mot de passe</string>
+    <string name="connect_show_password">Afficher le mot de passe</string>
+    <string name="connect_hide_password">Masquer le mot de passe</string>
     <string name="pair_signal">Dans Signal, ouvrez Paramètres → Appareils associés → Associer un nouvel appareil et scannez ce code. Le scanner de Signal utilise l'appareil photo, donc ce code doit être sur un autre écran que le téléphone où il est installé.</string>
     <string name="pair_telegram">Dans Telegram, ouvrez Paramètres → Appareils → Associer un appareil de bureau et scannez ce code. Le scanner de Telegram a besoin du code sur un autre écran : si Telegram n'est que sur ce téléphone, revenez en arrière et connectez-vous plutôt avec votre numéro de téléphone.</string>
     <string name="pair_whatsapp_code">Sur votre téléphone, ouvrez WhatsApp → Appareils connectés → Connecter un appareil → Associer avec le numéro de téléphone, puis saisissez ce code.</string>

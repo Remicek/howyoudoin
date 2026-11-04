@@ -85,6 +85,8 @@
     <string name="tg_password_hint">Akun Anda memakai verifikasi dua langkah. Masukkan kata sandinya (petunjuk: %1$s).</string>
     <string name="field_login_code">Kode masuk</string>
     <string name="field_password">Kata sandi</string>
+    <string name="connect_show_password">Tampilkan kata sandi</string>
+    <string name="connect_hide_password">Sembunyikan kata sandi</string>
     <string name="pair_signal">Di Signal buka Setelan → Perangkat tertaut → Tautkan perangkat baru, lalu pindai kode ini. Pemindai Signal memakai kamera, jadi kode ini harus berada di layar lain, bukan di ponsel tempat Signal berjalan.</string>
     <string name="pair_telegram">Di Telegram buka Setelan → Perangkat → Tautkan Perangkat Desktop, lalu pindai kode ini. Pemindai Telegram memerlukan kode di layar lain: jika Telegram hanya ada di ponsel ini, kembali dan masuk dengan nomor telepon Anda.</string>
     <string name="pair_whatsapp_code">Di ponsel Anda buka WhatsApp → Perangkat tertaut → Tautkan perangkat → Tautkan dengan nomor telepon saja, lalu masukkan kode ini.</string>

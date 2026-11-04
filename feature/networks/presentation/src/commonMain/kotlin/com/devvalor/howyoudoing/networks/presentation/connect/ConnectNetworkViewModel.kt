@@ -663,13 +663,15 @@ class ConnectNetworkViewModel(
                 id = "identifier",
                 name = getString(Res.string.field_bluesky_handle),
                 description = "",
-                type = InputFieldType.USERNAME
+                type = InputFieldType.USERNAME,
+                placeholder = "alice.bsky.social"
             ),
             LoginInputField(
                 id = "password",
                 name = getString(Res.string.field_app_password),
                 description = "",
-                type = InputFieldType.PASSWORD
+                type = InputFieldType.PASSWORD,
+                placeholder = "xxxx-xxxx-xxxx-xxxx"
             )
         )
     )
@@ -759,13 +761,15 @@ class ConnectNetworkViewModel(
                 name = getString(Res.string.field_homeserver),
                 description = "",
                 type = InputFieldType.DOMAIN,
-                defaultValue = "matrix.org"
+                defaultValue = "matrix.org",
+                placeholder = "matrix.org"
             ),
             LoginInputField(
                 id = "username",
                 name = getString(Res.string.field_matrix_user),
                 description = "",
-                type = InputFieldType.USERNAME
+                type = InputFieldType.USERNAME,
+                placeholder = "@alice:matrix.org"
             ),
             LoginInputField(
                 id = "password",

@@ -85,6 +85,8 @@
     <string name="tg_password_hint">आपके खाते में दो-चरणीय सत्यापन है। उसका पासवर्ड डालें (संकेत: %1$s)।</string>
     <string name="field_login_code">लॉगिन कोड</string>
     <string name="field_password">पासवर्ड</string>
+    <string name="connect_show_password">पासवर्ड दिखाएं</string>
+    <string name="connect_hide_password">पासवर्ड छिपाएं</string>
     <string name="pair_signal">Signal में सेटिंग → लिंक किए गए डिवाइस → नया डिवाइस लिंक करें खोलें और यह कोड स्कैन करें। Signal का स्कैनर कैमरा इस्तेमाल करता है, इसलिए यह कोड उस फ़ोन से अलग स्क्रीन पर होना चाहिए जिस पर Signal चलता है।</string>
     <string name="pair_telegram">Telegram में सेटिंग → डिवाइस → डेस्कटॉप डिवाइस लिंक करें खोलें और यह कोड स्कैन करें। Telegram के स्कैनर को कोड दूसरी स्क्रीन पर चाहिए: अगर Telegram सिर्फ़ इसी फ़ोन पर है, तो वापस जाएँ और अपने फ़ोन नंबर से लॉग इन करें।</string>
     <string name="pair_whatsapp_code">अपने फ़ोन पर WhatsApp → लिंक किए गए डिवाइस → डिवाइस लिंक करें → इसके बजाय फ़ोन नंबर से लिंक करें खोलें, और यह कोड डालें।</string>

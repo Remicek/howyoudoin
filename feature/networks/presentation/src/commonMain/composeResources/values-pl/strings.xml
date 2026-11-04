@@ -85,6 +85,8 @@
     <string name="tg_password_hint">Twoje konto ma weryfikację dwuetapową. Wpisz jej hasło (podpowiedź: %1$s).</string>
     <string name="field_login_code">Kod logowania</string>
     <string name="field_password">Hasło</string>
+    <string name="connect_show_password">Pokaż hasło</string>
+    <string name="connect_hide_password">Ukryj hasło</string>
     <string name="pair_signal">W Signalu otwórz Ustawienia → Połączone urządzenia → Połącz nowe urządzenie i zeskanuj ten kod. Skaner Signala używa aparatu, więc kod musi być na innym ekranie niż telefon, na którym działa Signal.</string>
     <string name="pair_telegram">W Telegramie otwórz Ustawienia → Urządzenia → Połącz urządzenie stacjonarne i zeskanuj ten kod. Skaner Telegrama wymaga kodu na innym ekranie: jeśli Telegram jest tylko na tym telefonie, wróć i zaloguj się numerem telefonu.</string>
     <string name="pair_whatsapp_code">Na telefonie otwórz WhatsApp → Połączone urządzenia → Połącz urządzenie → Zamiast tego połącz za pomocą numeru telefonu i wpisz ten kod.</string>

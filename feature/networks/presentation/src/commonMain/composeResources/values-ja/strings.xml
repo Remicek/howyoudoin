@@ -85,6 +85,8 @@
     <string name="tg_password_hint">このアカウントは 2 段階認証を使用しています。パスワードを入力してください（ヒント: %1$s）。</string>
     <string name="field_login_code">ログインコード</string>
     <string name="field_password">パスワード</string>
+    <string name="connect_show_password">パスワードを表示</string>
+    <string name="connect_hide_password">パスワードを隠す</string>
     <string name="pair_signal">Signal で 設定 → リンク済み端末 → 新しい端末をリンク を開き、このコードを読み取ります。Signal のスキャナーはカメラを使うため、このコードは Signal のあるスマホとは別の画面に表示する必要があります。</string>
     <string name="pair_telegram">Telegram で 設定 → デバイス → デスクトップ端末をリンク を開き、このコードを読み取ります。Telegram のスキャナーには別の画面のコードが必要です。Telegram がこのスマホにしかない場合は、戻って電話番号でログインしてください。</string>
     <string name="pair_whatsapp_code">スマホで WhatsApp → リンク済みデバイス → デバイスをリンク → 代わりに電話番号でリンク を開き、このコードを入力します。</string>
