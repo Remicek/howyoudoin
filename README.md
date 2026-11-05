@@ -154,7 +154,9 @@ apps and may limit or ban accounts that use one; you use it at your own risk. Se
 ## License
 
 HowYouDoin is free software: you can redistribute it and/or modify it under the terms of the
-[GNU Affero General Public License v3](LICENSE) as published by the Free Software Foundation.
+[GNU Affero General Public License v3](LICENSE) (AGPL-3.0) as published by the Free Software Foundation.
+Its source code is published at [github.com/Remicek/howyoudoin](https://github.com/Remicek/howyoudoin); the app links
+to it under Settings → About → Source code.
 
 It includes third-party code under its own licenses, listed in the app under Settings → Open-source licenses.
 Notably mautrix-meta, -signal, -gmessages, -gvoice, -linkedin and -twitter and libsignal are AGPL-3.0, whatsmeow is

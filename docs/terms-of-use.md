@@ -51,10 +51,10 @@ limited to the smallest extent the law allows.
 
 ## License
 
-The source code is licensed under the GNU Affero General Public License v3. Sections 15 ("Disclaimer of Warranty") and 16
+The [source code](https://github.com/Remicek/howyoudoin) is licensed under the GNU Affero General Public License v3 (AGPL-3.0). Sections 15 ("Disclaimer of Warranty") and 16
 ("Limitation of Liability") of that license also apply. These terms don't limit the rights the license gives you.
 
 ## Changes
 
-These terms may change with new versions of the app; changes are published with the source code. Continuing to use the app
-after a change means you accept the new terms. Questions: open an issue in the project's repository.
+These terms may change with new versions of the app; changes are published with the [source code](https://github.com/Remicek/howyoudoin). Continuing to use the app
+after a change means you accept the new terms. Questions: open an issue in the project's [repository](https://github.com/Remicek/howyoudoin/issues).

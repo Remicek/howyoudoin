@@ -80,5 +80,5 @@ provided "as is", and that networks may block accounts that use it.
 
 ## Changes and contact
 
-Changes to this policy are published with the app's source code. Questions: open an issue in the project's
-repository.
+Changes to this policy are published with the app's [source code](https://github.com/Remicek/howyoudoin). Questions: open an issue in the project's
+[repository](https://github.com/Remicek/howyoudoin/issues).
