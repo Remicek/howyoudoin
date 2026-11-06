@@ -86,3 +86,16 @@ in any session. Google Play marketing assets live outside this repo at
 ## Notes / decisions
 - **GitHub is the only remote used** (`git@github.com:Remicek/howyoudoin.git`).
   Bitbucket (`origin`) is left untouched — unrelated ~80-commit history, no merge-base.
+
+## Publishing from the command line (2026-11-06)
+
+`./gradlew :composeApp:publishReleaseBundle` builds the signed bundle and sends it to the closed test (Alpha) track
+(Gradle Play Publisher; config at the end of `composeApp/build.gradle.kts`). Release notes:
+`composeApp/src/main/play/release-notes/{en-US,pl-PL}/default.txt`. Raise `projectVersionCode` first.
+
+One-time setup (not done yet):
+- [ ] Google Cloud → IAM → Service accounts: create one (e.g. `play-publisher`) and download a JSON key to
+      `~/StudioProjects/keys/howyoudoin-play-publisher.json`; enable the "Google Play Android Developer API".
+- [ ] Play Console → Users and permissions → Invite new users: the service account's e-mail, app HowYouDoin,
+      permission "Release to testing tracks" (add "Release to production…" later if wanted).
+- [ ] `local.properties`: `play.serviceAccountJson=/Users/remik/StudioProjects/keys/howyoudoin-play-publisher.json`

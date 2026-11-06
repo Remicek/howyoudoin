@@ -5,6 +5,7 @@ import java.util.Properties
 plugins {
     alias(libs.plugins.convention.cmp.application)
     alias(libs.plugins.aboutlibraries)
+    alias(libs.plugins.play.publisher)
 }
 
 // Telegram API credentials (my.telegram.org) stay out of git: telegram.apiId / telegram.apiHash in local.properties.
@@ -190,4 +191,15 @@ kotlin {
             inputs.files(libDir.resolve("libhydbridge.h"), libDir.resolve("libhydbridge.a")).optional()
         }
     }
+}
+
+// Publishing to Google Play: ./gradlew :composeApp:publishReleaseBundle uploads the signed bundle to the closed test
+// (Alpha) track and sends it out to the testers, with the notes in src/main/play/release-notes/<lang>/default.txt.
+// Needs a Play API service account key (never in git): play.serviceAccountJson=/path/to/key.json in local.properties.
+// Without it the build works as before and only the publish tasks fail.
+play {
+    localProperties.getProperty("play.serviceAccountJson")?.let { serviceAccountCredentials.set(file(it)) }
+    track.set("alpha")
+    defaultToAppBundles.set(true)
+    releaseStatus.set(com.github.triplet.gradle.androidpublisher.ReleaseStatus.COMPLETED)
 }

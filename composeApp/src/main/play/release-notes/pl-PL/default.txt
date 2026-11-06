@@ -1,0 +1,1 @@
+Naprawia zamykanie się aplikacji zaraz po uruchomieniu.

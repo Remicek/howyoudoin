@@ -1,0 +1,1 @@
+Fixes the app closing right after it opens.
