@@ -17,7 +17,7 @@ jobs:
       GOMOBILE_VERSION: v0.0.0-20261011034528-197770444867
       CARGO_NDK_VERSION: 4.1.2
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Restore from cache
         id: cache
