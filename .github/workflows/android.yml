@@ -33,7 +33,7 @@ jobs:
         with:
           distribution: temurin
           java-version: "21"
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v6
 
       - name: Telegram credentials
         env:
@@ -74,7 +74,7 @@ jobs:
         with:
           distribution: temurin
           java-version: "21"
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v6
 
       # Built before the emulator starts, so it doesn't sit idle while Gradle compiles
       # The emulator and Gradle's daemons together run the runner out of memory, so the daemons from this build
