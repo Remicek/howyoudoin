@@ -1033,6 +1033,7 @@ func (w *WhatsApp) SendMediaFile(chatJID, path, mimeType, fileName, caption stri
 			FileEncSHA256: up.FileEncSHA256, FileSHA256: up.FileSHA256, FileLength: &up.FileLength,
 			Caption: optionalString(caption), Seconds: optionalSeconds(video.seconds),
 			Width: proto.Uint32(uint32(width)), Height: proto.Uint32(uint32(height)),
+			JPEGThumbnail: takeVideoThumbnail(path).jpeg,
 		}
 	case "audio":
 		msg.AudioMessage = &waE2E.AudioMessage{

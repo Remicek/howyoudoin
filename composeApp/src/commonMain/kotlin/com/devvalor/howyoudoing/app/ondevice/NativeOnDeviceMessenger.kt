@@ -136,6 +136,29 @@ interface OnDeviceDataDirectory {
 
     /** Reads a file inside the directory; null for paths outside it or missing files. */
     fun read(path: String): ByteArray?
+
+    /**
+     * Writes a video's preview picture beside the file at [mediaPath] (written by [writeTemp]), at
+     * [thumbnailPathOf], where the bridge looks for it while sending. Platforms without it send videos without one.
+     */
+    fun writeThumbnail(mediaPath: String, jpeg: ByteArray) = Unit
+
+    /** Removes what [writeThumbnail] wrote, once the bridge is done with it. */
+    fun deleteThumbnail(mediaPath: String) = Unit
+}
+
+/** Where the bridge looks for a video's preview picture: beside the video, see hydbridge's `takeVideoThumbnail`. */
+fun thumbnailPathOf(mediaPath: String): String = "$mediaPath.thumb.jpg"
+
+/** Calls [send] with the attachment's preview picture written beside [path], and removes the picture afterwards. */
+internal inline fun <T> OnDeviceDataDirectory.withThumbnail(path: String, attachment: Attachment, send: () -> T): T {
+    val thumbnail = attachment.thumbnailJpeg ?: return send()
+    writeThumbnail(path, thumbnail)
+    return try {
+        send()
+    } finally {
+        deleteThumbnail(path)
+    }
 }
 
 /**
@@ -305,17 +328,19 @@ open class NativeOnDeviceMessenger(
                 voice.waveform.orEmpty().joinToString(",")
             )
         } else {
-            sendMediaFile(
-                threadKey,
-                isEncrypted,
-                isGroup,
-                path,
-                attachment.mimeType,
-                attachment.fileName,
-                caption.orEmpty(),
-                (attachment.width ?: 0).toLong(),
-                (attachment.height ?: 0).toLong()
-            )
+            dataDir.withThumbnail(path, attachment) {
+                sendMediaFile(
+                    threadKey,
+                    isEncrypted,
+                    isGroup,
+                    path,
+                    attachment.mimeType,
+                    attachment.fileName,
+                    caption.orEmpty(),
+                    (attachment.width ?: 0).toLong(),
+                    (attachment.height ?: 0).toLong()
+                )
+            }
         }
     }
 

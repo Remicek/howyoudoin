@@ -129,10 +129,17 @@ func (m *Messenger) sendEncryptedMedia(threadKey string, isGroup bool, path stri
 	if err != nil {
 		return "", fmt.Errorf("upload failed: %w", err)
 	}
-	// Messenger apps refuse to show media without thumbnail dimensions
+	// Messenger apps refuse to show media without thumbnail dimensions, and show a video as a grey box until it is
+	// played when it comes without the picture itself
 	thumbW, thumbH := clampTo400(width, height)
 	if thumbW == 0 {
 		thumbW, thumbH = 400, 400
+	}
+	var thumbJPEG []byte
+	if kind == "video" {
+		if thumb := takeVideoThumbnail(path); thumb.jpeg != nil {
+			thumbJPEG, thumbW, thumbH = thumb.jpeg, thumb.width, thumb.height
+		}
 	}
 	transport := &waMediaTransport.WAMediaTransport{
 		Integral: &waMediaTransport.WAMediaTransport_Integral{
@@ -146,6 +153,7 @@ func (m *Messenger) sendEncryptedMedia(threadKey string, isGroup bool, path stri
 			FileLength: proto.Uint64(uint64(len(data))),
 			Mimetype:   &mimeType,
 			Thumbnail: &waMediaTransport.WAMediaTransport_Ancillary_Thumbnail{
+				JPEGThumbnail:   thumbJPEG,
 				ThumbnailWidth:  proto.Uint32(uint32(thumbW)),
 				ThumbnailHeight: proto.Uint32(uint32(thumbH)),
 			},

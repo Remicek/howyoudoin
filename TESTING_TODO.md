@@ -1,6 +1,6 @@
 # Testing TODO: videos and replies across networks
 
-Tested on 2026-11-08 with the A16 (real apps and HowYouDoin) and the emulator (HowYouDoin).
+Tested on 2026-11-08 and 2026-11-09 with the A16 (real apps and HowYouDoin) and the emulator (HowYouDoin).
 
 The test steps:
 
@@ -17,27 +17,41 @@ The test steps:
 | Telegram  | ✅  | ✅ | ✅ |
 | Signal    | ✅  | ✅ | ✅ |
 | Messenger | ✅  | ✅ | ✅ |
-| Instagram | ✅  | ❌ not tested | ✅ |
-| Slack     | ✅  | ✅ | not tested |
-| Discord   | ✅  | partly (see below) | ✅ |
+| Instagram | ✅  | ✅ | ✅ |
+| Slack     | ✅  | ✅ | ✅ (shows as a thread reply in Slack) |
+| Discord   | ✅  | ✅ | ✅ |
 | Matrix    | ✅  | not tested (no real Matrix app on the devices) | ✅ |
 
 ## Still to test
 
-- [ ] **Instagram step 3:** send a video from the real Instagram on the A16 to remol270 (the emulator). Check the
-      thumbnail, length and playback in HowYouDoin. The A16's Instagram now has full photo and video access.
-- [ ] **Discord step 3:** a video was sent from the real Discord on the A16 (Rwa → Jeremy) and the emulator's inbox
-      shows "Rwa · Video". Still to check: open the chat, then check the thumbnail, length and playback. The emulator
-      was taken over by another app (Matchamore, demo mode) before this was checked.
-- [ ] **Slack reply:** reply to a video in HowYouDoin, then check the quote in the real Slack.
 - [ ] **Messenger "confirm on the website" flow on Instagram:** Reconnect should open instagram.com's page in the
-      same way. Only Messenger was tested, after its cookie choice.
+      same way. Only Messenger was tested, after its cookie choice. It can only be tested when Instagram asks for it.
+- [ ] **Messenger video preview:** the real Messenger app ignores the inline `JPEGThumbnail` we now send (still a
+      grey box). Logging a video sent by the official app (2026-11-09) showed how it does it: `JPEGThumbnail` is empty
+      and `thumbnail.downloadableThumbnail` points to a separately uploaded, encrypted JPEG (~9 KB) with its own
+      media key (not the video's), `thumbnailWidth/Height` 480×854, no scans. Its direct path (`/v/t801.45977-0/…`)
+      downloads only *without* the `hash=` query parameter (400 with it; `mms-type` doesn't matter). Still unknown:
+      which HKDF info string decrypts it (image/video/link-thumbnail/document keys were being tried when the A16 was
+      unplugged). Next: find that, then upload our JPEG the same way and fill `downloadableThumbnail`.
+
+      **To pick it up again** (needs the A16: its Messenger is signed in; the A53 has no Messenger):
+      1. In `downloadEncryptedMedia` (`bridge-mobile/hydbridge/e2ee_media.go`), in the video case, temporarily try
+         `m.e2ee.DownloadMediaWithPath(ctx, dl.GetDirectPath(), nil, dl.GetFileSHA256(), dl.GetMediaKey(), mt,
+         "image", true)` for each `whatsmeow.Media*` type, with `dl` = the transport's
+         `Ancillary.Thumbnail.DownloadableThumbnail`, and `log.Printf` which one returns data starting `ffd8`
+         (JPEG). The emulator's installed debug build already has this probe (logcat tag `GoLog`, `HYDTHUMBDEBUG`).
+      2. Send the 6-second test video from the A16's Messenger to Mieszko Chlebek (the emulator's account) and read
+         the log. In the A16 picker, if Send shows before anything is picked, leave the chat and come back first,
+         or a hidden earlier selection gets sent along.
+      3. In `sendEncryptedMedia` (`messenger_media.go`), encrypt-upload the JPEG with that key type and fill
+         `Thumbnail.DownloadableThumbnail` (fileSHA256, fileEncSHA256, directPath, mediaKey, mediaKeyTimestamp,
+         objectID) instead of `JPEGThumbnail`.
+      4. Send a video from HowYouDoin and check that the A16's Messenger shows the frame instead of a grey box.
+      5. Remove the probe, rebuild (`bridge-mobile/scripts/build-android.sh`) and reinstall.
 - [ ] **LinkedIn:** connected only on the A16, so it has no second account to test with.
 - [ ] **Bluesky:** not tested, because its chats don't support media.
 
 ## Known gaps (not bugs in what was tested)
 
-- In the real Messenger app, videos from HowYouDoin show a grey box until played, because we don't send a JPEG
-  preview with them.
 - Videos sent to Matrix carry no `thumbnail_url`, so other Matrix apps show no preview.
 - On iOS, the "confirm on the website" page from Reconnect does nothing yet (it's an empty stub).

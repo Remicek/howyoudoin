@@ -11,7 +11,9 @@ class Attachment(
     /** Set for a recorded voice message, which networks show as a voice note rather than an audio file. */
     val voice: VoiceNote? = null,
     /** A video's length, when known. */
-    val durationMillis: Long? = null
+    val durationMillis: Long? = null,
+    /** A video's preview picture (a JPEG of one frame), which some networks show until the video is played. */
+    val thumbnailJpeg: ByteArray? = null
 ) {
     val isImage: Boolean get() = mimeType.startsWith("image/")
     val isVoice: Boolean get() = voice != null
