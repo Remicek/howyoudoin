@@ -1,5 +1,7 @@
 package com.devvalor.howyoudoing.app.navigation
 
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -18,9 +20,15 @@ fun NavigationRoot(
     navController: NavHostController,
     startDestination: Any,
 ) {
+    // Screens switch at once, without the library's fades or the back gesture's shrinking page
     NavHost(
         navController = navController,
         startDestination = startDestination,
+        enterTransition = { EnterTransition.None },
+        exitTransition = { ExitTransition.None },
+        popEnterTransition = { EnterTransition.None },
+        popExitTransition = { ExitTransition.None },
+        sizeTransform = null,
     ) {
         authGraph(
             onLoginSuccess = {
