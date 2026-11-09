@@ -141,6 +141,14 @@ func (m *Messenger) sendEncryptedMedia(threadKey string, isGroup bool, path stri
 			thumbJPEG, thumbW, thumbH = thumb.jpeg, thumb.width, thumb.height
 		}
 	}
+	// Messenger's apps show the frame only from a separately uploaded preview; the inline JPEG stays for others
+	var preview *waMediaTransport.WAMediaTransport_Ancillary_Thumbnail_DownloadableThumbnail
+	if thumbJPEG != nil {
+		if preview, err = m.uploadPreview(ctx, thumbJPEG); err != nil {
+			m.log.Warn().Err(err).Msg("Video preview upload failed, sending without it")
+			preview, err = nil, nil
+		}
+	}
 	transport := &waMediaTransport.WAMediaTransport{
 		Integral: &waMediaTransport.WAMediaTransport_Integral{
 			FileSHA256:        up.FileSHA256,
@@ -153,9 +161,10 @@ func (m *Messenger) sendEncryptedMedia(threadKey string, isGroup bool, path stri
 			FileLength: proto.Uint64(uint64(len(data))),
 			Mimetype:   &mimeType,
 			Thumbnail: &waMediaTransport.WAMediaTransport_Ancillary_Thumbnail{
-				JPEGThumbnail:   thumbJPEG,
-				ThumbnailWidth:  proto.Uint32(uint32(thumbW)),
-				ThumbnailHeight: proto.Uint32(uint32(thumbH)),
+				JPEGThumbnail:         thumbJPEG,
+				DownloadableThumbnail: preview,
+				ThumbnailWidth:        proto.Uint32(uint32(thumbW)),
+				ThumbnailHeight:       proto.Uint32(uint32(thumbH)),
 			},
 			ObjectID: &up.ObjectID,
 		},

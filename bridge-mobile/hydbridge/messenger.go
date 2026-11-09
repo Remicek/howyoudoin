@@ -41,6 +41,9 @@ type Messenger struct {
 	cancel context.CancelFunc
 	selfID int64
 
+	// Upload type the server accepted for video previews (see uploadPreview)
+	previewUploadType string
+
 	// Contacts already sent to the app; others are looked up when their encrypted messages arrive
 	knownContacts sync.Map
 	lookups       sync.Map
