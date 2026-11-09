@@ -645,6 +645,17 @@ func (s *Signal) emitDataMessage(key, sender string, msg *signalpb.DataMessage) 
 			go s.downloadAttachment(key, id, "image", attachment)
 		} else if ref, err := proto.Marshal(attachment); err == nil {
 			event["mediaRef"] = base64.StdEncoding.EncodeToString(ref)
+			if kind == "video" {
+				// Shown in its shape before the video is downloaded
+				if attachment.GetWidth() > 0 && attachment.GetHeight() > 0 {
+					event["width"], event["height"] = attachment.GetWidth(), attachment.GetHeight()
+				}
+				// Signal sends no preview picture: a short video is downloaded right away, like Signal's apps do, so
+				// it shows a frame and its length
+				if attachment.GetSize() > 0 && attachment.GetSize() <= signalAutoDownloadVideoBytes {
+					go s.downloadAttachment(key, id, "video", attachment)
+				}
+			}
 			if kind == "file" && msg.GetBody() == "" {
 				event["text"] = attachment.GetFileName()
 			}
@@ -696,12 +707,23 @@ func (s *Signal) downloadAttachment(key, id, kind string, pointer *signalpb.Atta
 		s.log.Warn().Err(err).Msg("Failed to download a Signal attachment")
 		return
 	}
-	s.emit(map[string]any{
+	event := map[string]any{
 		"type": "attachment", "threadKey": key, "messageId": id, "kind": kind, "url": "file://" + path,
 		"previewUrl": "file://" + path, "mimeType": pointer.GetContentType(), "fileName": pointer.GetFileName(),
 		"width": pointer.GetWidth(), "height": pointer.GetHeight(),
-	})
+	}
+	if kind == "video" {
+		if data, err := os.ReadFile(path); err == nil {
+			if video := mp4Meta(data); video.seconds > 0 {
+				event["durationMs"] = int64(video.seconds) * 1000
+			}
+		}
+	}
+	s.emit(event)
 }
+
+// signalAutoDownloadVideoBytes is the largest video downloaded as soon as it arrives.
+const signalAutoDownloadVideoBytes = 25 << 20
 
 // DownloadMedia downloads a message's attachment from its mediaRef and returns the file's path.
 func (s *Signal) DownloadMedia(threadKey, messageID, mediaRef string) (string, error) {
@@ -811,6 +833,14 @@ func (s *Signal) SendMediaFile(threadKey, path, mimeType, fileName, caption stri
 	if fileName != "" {
 		pointer.FileName = &fileName
 	}
+	var video videoMeta
+	if kind, _ := mediaKind(mimeType); kind == "video" {
+		// Signal's apps show a video without its size as a file
+		video = mp4Meta(data)
+		if width == 0 || height == 0 {
+			width, height = video.width, video.height
+		}
+	}
 	if width > 0 && height > 0 {
 		w, h := uint32(width), uint32(height)
 		pointer.Width, pointer.Height = &w, &h
@@ -828,9 +858,13 @@ func (s *Signal) SendMediaFile(threadKey, path, mimeType, fileName, caption stri
 	// Keep our copy as the echo's media
 	id := s.selfID() + ":" + strconv.FormatUint(ts, 10)
 	if cached, err := s.mediaPath(id); err == nil && os.Rename(path, cached) == nil {
-		s.emit(map[string]any{"type": "attachment", "threadKey": threadKey, "messageId": id, "kind": kind,
+		event := map[string]any{"type": "attachment", "threadKey": threadKey, "messageId": id, "kind": kind,
 			"url": "file://" + cached, "previewUrl": "file://" + cached, "mimeType": mimeType, "fileName": fileName,
-			"width": width, "height": height})
+			"width": width, "height": height}
+		if video.seconds > 0 {
+			event["durationMs"] = int64(video.seconds) * 1000
+		}
+		s.emit(event)
 	} else {
 		_ = os.Remove(path)
 	}

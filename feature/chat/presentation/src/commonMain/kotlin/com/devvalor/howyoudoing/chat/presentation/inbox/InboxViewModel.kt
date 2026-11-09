@@ -7,6 +7,7 @@ import com.devvalor.howyoudoing.chat.domain.Chat
 import com.devvalor.howyoudoing.chat.domain.ChatRepository
 import com.devvalor.howyoudoing.chat.presentation.model.toChatUi
 import com.devvalor.howyoudoing.core.domain.auth.AuthService
+import com.devvalor.howyoudoing.core.domain.connectivity.InternetConnection
 import com.devvalor.howyoudoing.core.domain.ondevice.ConnectionMonitor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,7 +27,8 @@ class InboxViewModel(
     private val chatRepository: ChatRepository,
     private val authService: AuthService,
     private val notificationPreferences: NotificationPreferences,
-    private val connectionMonitor: ConnectionMonitor
+    private val connectionMonitor: ConnectionMonitor,
+    private val internetConnection: InternetConnection
 ) : ViewModel() {
 
     private var hasLoadedInitialData = false
@@ -42,6 +44,9 @@ class InboxViewModel(
                 observeSyncState()
                 connectionMonitor.problems
                     .onEach { problems -> _state.update { it.copy(connectionProblems = problems) } }
+                    .launchIn(viewModelScope)
+                internetConnection.isOnline
+                    .onEach { online -> _state.update { it.copy(isOffline = !online) } }
                     .launchIn(viewModelScope)
                 hasLoadedInitialData = true
             }

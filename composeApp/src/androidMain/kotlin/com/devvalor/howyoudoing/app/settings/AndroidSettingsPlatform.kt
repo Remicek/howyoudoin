@@ -29,17 +29,13 @@ import kotlin.coroutines.resume
 class AndroidPinHasher : PinHasher {
     override fun newSalt(): ByteArray = ByteArray(SALT_BYTES).also(SecureRandom()::nextBytes)
 
-    override fun hash(pin: String, salt: ByteArray): ByteArray {
-        val spec = PBEKeySpec(pin.toCharArray(), salt, ITERATIONS, KEY_BITS)
+    override fun hash(pin: String, salt: ByteArray, iterations: Int): ByteArray {
+        val spec = PBEKeySpec(pin.toCharArray(), salt, iterations, KEY_BITS)
         try {
             return SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256").generateSecret(spec).encoded
         } finally {
             spec.clearPassword()
         }
-    }
-
-    private companion object {
-        const val ITERATIONS = 120_000
     }
 }
 

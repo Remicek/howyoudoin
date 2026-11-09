@@ -103,7 +103,9 @@ class OnDeviceMessengerStore(
         val fileName: String?,
         val width: Int?,
         val height: Int?,
-        val durationMs: Long? = null
+        val durationMs: Long? = null,
+        /** A picture standing for the media (Messenger sends one with each video). */
+        val previewUrl: String? = null
     ) {
         val media: MediaInfo
             get() = MediaInfo(
@@ -113,7 +115,9 @@ class OnDeviceMessengerStore(
                 sizeBytes = null,
                 width,
                 height,
-                durationMillis = durationMs
+                durationMillis = durationMs,
+                // A video's preview is a still from it, unless it's the video file itself
+                thumbnailUrl = previewUrl?.takeIf { kind == "video" && it != url }
             )
     }
 
@@ -155,7 +159,12 @@ class OnDeviceMessengerStore(
         val canRetry: Boolean = false,
         /** For calls (kind "call"): "incoming", "missed", "declined", "ended" or "started". */
         val callState: String? = null,
-        val isVideo: Boolean = false
+        val isVideo: Boolean = false,
+        /** A video's preview picture, sent with the message (shown before and without downloading the video). */
+        val thumbnailUrl: String? = null,
+        /** A video's size, when the network says, so it shows in its shape before it's downloaded. */
+        val width: Int? = null,
+        val height: Int? = null
     )
 
     private val _snapshot = MutableStateFlow(Snapshot())
@@ -294,6 +303,7 @@ class OnDeviceMessengerStore(
         "participant" -> withParticipant(event)
         "range" -> withRange(event)
         "attachment" -> withAttachment(event)
+        "thumbnail" -> withThumbnail(event)
         "typing" -> withTyping(event)
         "read" -> withReadReceipt(event)
         "link" -> withLink(event)
@@ -381,19 +391,38 @@ class OnDeviceMessengerStore(
         }
     }
 
+    /** A video's preview picture, which some networks only give after the message (Telegram). */
+    private fun Snapshot.withThumbnail(event: JsonObject): Snapshot {
+        val key = event.str("threadKey")
+        val message = messages[key]?.get(event.str("messageId"))
+        val url = event.str("url")
+        if (message == null || url.isEmpty()) return this
+        val thread = messages[key].orEmpty() + (message.id to message.copy(thumbnailUrl = url))
+        return copy(messages = messages + (key to thread))
+    }
+
     private fun Snapshot.withAttachment(event: JsonObject): Snapshot {
         val messageId = event.str("messageId")
-        if (messageId.isEmpty() || messageId in attachments) return this
-        val attachment = StoredAttachment(
-            kind = event.str("kind"),
-            url = event.str("url"),
-            mimeType = event.str("mimeType").ifBlank { null },
-            fileName = event.str("fileName").ifBlank { null },
-            width = event.long("width").toInt().takeIf { it > 0 },
-            height = event.long("height").toInt().takeIf { it > 0 },
-            durationMs = event.long("durationMs").takeIf { it > 0 }
-        )
-        return copy(attachments = attachments + (messageId to attachment))
+        val known = attachments[messageId]
+        val preview = event.str("previewUrl").ifBlank { null }
+        val attachment = when {
+            messageId.isEmpty() -> null
+            // Cached before previews were kept: the same media sent again brings its preview
+            known != null -> known.takeIf { it.previewUrl == null && preview != null && it.url == event.str("url") }
+                ?.copy(previewUrl = preview)
+
+            else -> StoredAttachment(
+                kind = event.str("kind"),
+                url = event.str("url"),
+                mimeType = event.str("mimeType").ifBlank { null },
+                fileName = event.str("fileName").ifBlank { null },
+                width = event.long("width").toInt().takeIf { it > 0 },
+                height = event.long("height").toInt().takeIf { it > 0 },
+                durationMs = event.long("durationMs").takeIf { it > 0 },
+                previewUrl = preview
+            )
+        }
+        return if (attachment == null) this else copy(attachments = attachments + (messageId to attachment))
     }
 
     private fun Snapshot.withTyping(event: JsonObject): Snapshot {
@@ -472,7 +501,10 @@ class OnDeviceMessengerStore(
             durationMs = event.long("durationMs").takeIf { it > 0 },
             replyToId = event.str("replyToId").ifEmpty { null },
             callState = event.str("callState").ifEmpty { null },
-            isVideo = event.bool("isVideo")
+            isVideo = event.bool("isVideo"),
+            thumbnailUrl = event.str("thumbnailUrl").ifEmpty { null },
+            width = event.long("width").toInt().takeIf { it > 0 },
+            height = event.long("height").toInt().takeIf { it > 0 }
         )
         val thread = messages[parsed.threadKey].orEmpty()
         // Messenger repeats a call log's message without its card: it stays a call
@@ -497,6 +529,7 @@ class OnDeviceMessengerStore(
             "audio" -> "🎤 Voice message"
             "sticker" -> "Sticker"
             "file" -> "📎 File"
+            "album" -> "📷 Photo"
             else -> "Message"
         }
 
@@ -623,8 +656,46 @@ class OnDeviceMessengerStore(
     fun messages(threadKey: String): List<Message> {
         val s = _snapshot.value
         val stored = s.messages[threadKey].orEmpty().values + s.pending.values.filter { it.threadKey == threadKey }
-        return stored.sortedBy { it.timestampMs }.map { it.toMessage(s) }
+        return stored.sortedBy { it.timestampMs }.filterNot { it.isHiddenIn(s) }.map { it.toMessage(s) }
     }
+
+    /**
+     * WhatsApp messages the chat doesn't show as bubbles of their own: an album's announcement (its photos follow
+     * as messages) and, in chats cached before HD copies were recognised, a photo's or video's HD copy, which
+     * arrives within moments of the original and could never be downloaded.
+     */
+    private fun StoredMessage.isHiddenIn(s: Snapshot): Boolean {
+        if (chatIdPrefix != WHATSAPP_CHAT_ID_PREFIX) return false
+        if (isAlbumIn(s)) return true
+        val isUndownloadableMedia = (kind == "image" || kind == "video") && mediaRef == null && text.isBlank() &&
+            id !in s.attachments && senderId != s.selfId
+        return isUndownloadableMedia && s.messages[threadKey].orEmpty().values.any { original ->
+            original.id != id && original.kind == kind && original.senderId == senderId &&
+                original.id in s.attachments && original.timestampMs in (timestampMs - HD_COPY_WINDOW_MS)..timestampMs
+        }
+    }
+
+    /**
+     * A WhatsApp album's announcement. Chats cached before albums were recognised have it as an unknown message
+     * right before the sender's photos or videos.
+     */
+    private fun StoredMessage.isAlbumIn(s: Snapshot): Boolean {
+        if (chatIdPrefix != WHATSAPP_CHAT_ID_PREFIX) return false
+        if (kind == "album") return true
+        return kind == "other" && text.isBlank() && s.messages[threadKey].orEmpty().values.any {
+            it.senderId == senderId && (it.kind == "image" || it.kind == "video") &&
+                it.timestampMs in timestampMs..(timestampMs + ALBUM_ITEMS_WINDOW_MS)
+        }
+    }
+
+    /** Replies to a WhatsApp album quote its first photo or video (the album itself isn't shown). */
+    private fun albumFirstItem(album: StoredMessage, s: Snapshot): StoredMessage? =
+        s.messages[album.threadKey].orEmpty().values
+            .filter {
+                it.senderId == album.senderId && (it.kind == "image" || it.kind == "video") &&
+                    it.timestampMs >= album.timestampMs && !it.isHiddenIn(s)
+            }
+            .minByOrNull { it.timestampMs }
 
     fun hasMoreBefore(threadKey: String): Boolean = _snapshot.value.hasMoreBefore[threadKey] ?: true
 
@@ -732,20 +803,23 @@ class OnDeviceMessengerStore(
             }
 
     private fun StoredMessage.mediaFor(attachment: StoredAttachment?, type: MessageType): MediaInfo? =
-        attachment?.media?.takeIf { it.url.isNotBlank() && !isUnsent }
-            ?.let { if (it.durationMillis == null && durationMs != null) it.copy(durationMillis = durationMs) else it }
-        // Not downloaded yet: shown as a card that downloads it when opened
-            ?: mediaRef?.takeIf { type in ON_REQUEST_TYPES }?.let { onRequestMedia(type) }
+        (
+            attachment?.media?.takeIf { it.url.isNotBlank() && !isUnsent }
+                ?.let { if (it.durationMillis == null) it.copy(durationMillis = durationMs) else it }
+            // Not downloaded yet (or downloading it with the message failed): downloaded when shown or opened
+                ?: mediaRef?.takeIf { type in ON_REQUEST_TYPES && !isUnsent }?.let { onRequestMedia(type) }
+            )?.let { media -> if (thumbnailUrl != null) media.copy(thumbnailUrl = thumbnailUrl) else media }
 
     private fun StoredMessage.onRequestMedia(type: MessageType): MediaInfo {
         // The real type arrives with the download; until then a typical one, so the file opens in a player
         val (mimeType, fileName) = when (type) {
             MessageType.VIDEO -> "video/mp4" to "video.mp4"
             MessageType.AUDIO -> "audio/ogg" to "voice.ogg"
-            else -> null to text.ifBlank { null }
+            MessageType.FILE -> null to text.ifBlank { null }
+            else -> null to null
         }
         val url = onRequestMediaUrl(chatIdPrefix + threadKey, id)
-        return MediaInfo(url, mimeType, fileName, null, null, null, durationMs)
+        return MediaInfo(url, mimeType, fileName, null, width, height, durationMs)
     }
 
     private fun StoredMessage.bodyWith(media: MediaInfo?, placeholder: String): String = when {
@@ -758,9 +832,10 @@ class OnDeviceMessengerStore(
     }
 
     private fun StoredMessage.replyPreview(replyId: String, s: Snapshot): ReplyPreview {
-        val target = s.messages[threadKey]?.get(replyId)
+        val quoted = s.messages[threadKey]?.get(replyId)
+        val target = if (quoted?.isAlbumIn(s) == true) albumFirstItem(quoted, s) ?: quoted else quoted
         return ReplyPreview(
-            messageId = replyId,
+            messageId = target?.id ?: replyId,
             senderName = target?.let {
                 val contact = s.contacts[it.senderId]
                 if (it.senderId == s.selfId) "You" else contact?.firstName ?: contact?.name
@@ -792,7 +867,14 @@ class OnDeviceMessengerStore(
         private const val CLOCK_SKEW_MS = 5_000L
         private const val AVATAR_REFRESH_AHEAD_SECONDS = 24 * 3600L
         private val EXPIRY_PARAM = Regex("[?&]oe=([0-9A-Fa-f]+)")
-        private val ON_REQUEST_TYPES = setOf(MessageType.VIDEO, MessageType.AUDIO, MessageType.FILE)
+        private val ON_REQUEST_TYPES =
+            setOf(MessageType.IMAGE, MessageType.STICKER, MessageType.VIDEO, MessageType.AUDIO, MessageType.FILE)
+
+        /** How soon after a WhatsApp photo or video its HD copy arrives (seconds, at most a minute or two). */
+        private const val HD_COPY_WINDOW_MS = 120_000L
+
+        /** An album's photos and videos follow its announcement within seconds. */
+        private const val ALBUM_ITEMS_WINDOW_MS = 10_000L
         private const val ON_REQUEST_SCHEME = "ondevice-media:"
 
         fun onRequestMediaUrl(chatId: String, messageId: String) = "$ON_REQUEST_SCHEME$chatId|$messageId"

@@ -37,11 +37,15 @@ class MoreNetworksTest {
     val chain: TestRule = rules.chain
 
     @Test
-    fun newNetworksAreListedAsUntested() {
+    fun newNetworksAreNoLongerMarkedUntested() {
         openNetworks()
-        UNTESTED_NETWORKS.forEach { network ->
+        // All of them have been tried with real accounts now (Discord last), so none says "Untested"
+        NEW_NETWORKS.forEach { network ->
             scrollTo(network)
-            app.waitForNode(hasText(UNTESTED, substring = true) and hasParent(hasAnyDescendant(hasText(network))))
+            app.waitForText(network)
+            check(app.onAllNodes(hasText(UNTESTED, substring = true)).fetchSemanticsNodes().isEmpty()) {
+                "$network is marked untested"
+            }
         }
     }
 
@@ -159,8 +163,8 @@ class MoreNetworksTest {
     }
 
     private companion object {
-        /** Networks not yet connected with a real account (Bluesky, LinkedIn and X have been). */
-        val UNTESTED_NETWORKS = listOf("Discord")
+        /** The networks added later; all have been tried with real accounts. */
+        val NEW_NETWORKS = listOf("Bluesky", "LinkedIn", "Discord")
         const val UNTESTED = "Untested"
         const val DISCORD_WARNING = "Discord bans accounts for this"
         const val NETWORK_TIMEOUT_MILLIS = 30_000L

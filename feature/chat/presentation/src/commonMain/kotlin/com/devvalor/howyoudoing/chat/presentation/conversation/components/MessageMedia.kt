@@ -8,8 +8,13 @@ import howyoudoin.feature.chat.presentation.generated.resources.media_tap_to_ope
 import howyoudoin.feature.chat.presentation.generated.resources.Res
 import org.jetbrains.compose.resources.stringResource
 import howyoudoin.feature.chat.presentation.generated.resources.messagemedia_sticker
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.rounded.PlayArrow
+import com.devvalor.howyoudoing.chat.presentation.platform.rememberVideoFrame
+import howyoudoin.feature.chat.presentation.generated.resources.media_play_video
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -33,6 +38,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -140,6 +146,8 @@ fun MessageMedia(
     contentColor: Color,
     /** Lets audio play inside the bubble (see [LocalVoicePlayback]). */
     messageId: String? = null,
+    /** The bubble's long press (reply, react…), which the media's own tap would otherwise swallow. */
+    onLongClick: () -> Unit = {},
 ) {
     when (type) {
         // Stickers stand on their own, without a frame, like in the networks' apps
@@ -150,7 +158,7 @@ fun MessageMedia(
             contentDescription = stringResource(Res.string.messagemedia_sticker),
             contentScale = ContentScale.Fit,
             placeholderColor = Color.Transparent,
-            modifier = Modifier.size(STICKER_SIZE).clickable(onClick = onClick),
+            modifier = Modifier.size(STICKER_SIZE).combinedClickable(onClick = onClick, onLongClick = onLongClick),
         )
 
         MessageType.IMAGE -> {
@@ -169,29 +177,118 @@ fun MessageMedia(
                     .fillMaxWidth()
                     .aspectRatio(ratio)
                     .clip(RoundedCornerShape(14.dp))
-                    .clickable(onClick = onClick),
+                    .combinedClickable(onClick = onClick, onLongClick = onLongClick),
             )
         }
+
+        MessageType.VIDEO -> VideoPreview(media, resolver, onClick, onLongClick)
 
         MessageType.AUDIO -> {
             val playback = LocalVoicePlayback.current
             if (playback != null && messageId != null) VoiceNote(messageId, media, playback, contentColor)
-            else FileCard(type, media, onClick, contentColor)
+            else FileCard(type, media, onClick, contentColor, onLongClick)
         }
 
-        else -> FileCard(type, media, onClick, contentColor)
+        else -> FileCard(type, media, onClick, contentColor, onLongClick)
+    }
+}
+
+/**
+ * Where a video's frame can be read: a file or web address as it is, anything else (a Matrix `mxc://` address) as the
+ * resolver serves it, with the login it needs.
+ */
+@Composable
+private fun rememberVideoSource(url: String, resolver: MediaResolver): MediaRequest? {
+    val direct = url.startsWith("file://") || url.startsWith("https://")
+    val resolved by produceState<MediaRequest?>(null, url) {
+        if (!direct && !url.startsWith("ondevice-media:")) value = resolver(url, false)
+    }
+    return if (direct) MediaRequest(url, emptyMap()) else resolved
+}
+
+/** A still from the video with a play button and its length, like the networks' own apps. */
+@Composable
+private fun VideoPreview(media: MediaInfo, resolver: MediaResolver, onClick: () -> Unit, onLongClick: () -> Unit) {
+    val width = media.width
+    val height = media.height
+    val ratio = if (width != null && height != null && height > 0) {
+        (width.toFloat() / height).coerceIn(0.5f, 2f)
+    } else 16f / 9f
+    // A frame of a downloaded video is sharper than the small preview picture the network sends with it; a video on
+    // the web is only read for a frame when there's no preview picture
+    val readFrame = media.url.startsWith("file://") || media.thumbnailUrl == null
+    val source = if (readFrame) rememberVideoSource(media.url, resolver) else null
+    val frame = source?.let { rememberVideoFrame(it.url, it.headers) }
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .widthIn(max = 260.dp)
+            .fillMaxWidth()
+            .aspectRatio(ratio)
+            .clip(RoundedCornerShape(14.dp))
+            .background(Color.Black)
+            .combinedClickable(onClick = onClick, onLongClick = onLongClick),
+    ) {
+        val thumbnail = media.thumbnailUrl
+        when {
+            frame != null -> Image(
+                frame,
+                contentDescription = stringResource(Res.string.media_video),
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.matchParentSize(),
+            )
+
+            thumbnail != null -> AuthenticatedImage(
+                mxcUrl = thumbnail,
+                resolver = resolver,
+                thumbnail = true,
+                contentDescription = stringResource(Res.string.media_video),
+                placeholderColor = Color.Black,
+                modifier = Modifier.matchParentSize(),
+            )
+        }
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier.size(52.dp).clip(CircleShape).background(Color.Black.copy(alpha = 0.55f)),
+        ) {
+            Icon(
+                Icons.Rounded.PlayArrow,
+                contentDescription = stringResource(Res.string.media_play_video),
+                tint = Color.White,
+                modifier = Modifier.size(34.dp),
+            )
+        }
+        media.durationMillis?.let { duration ->
+            Text(
+                formatClock(duration),
+                color = Color.White,
+                style = MaterialTheme.typography.labelSmall,
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(8.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(Color.Black.copy(alpha = 0.55f))
+                    .padding(horizontal = 6.dp, vertical = 2.dp),
+            )
+        }
     }
 }
 
 @Composable
-private fun FileCard(type: MessageType, media: MediaInfo, onClick: () -> Unit, contentColor: Color) {
+private fun FileCard(
+    type: MessageType,
+    media: MediaInfo,
+    onClick: () -> Unit,
+    contentColor: Color,
+    onLongClick: () -> Unit = {},
+) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .widthIn(min = 180.dp, max = 260.dp)
             .clip(RoundedCornerShape(12.dp))
             .background(contentColor.copy(alpha = 0.08f))
-            .clickable(onClick = onClick)
+            .combinedClickable(onClick = onClick, onLongClick = onLongClick)
             .padding(HowYouDoinSpacing.sm),
     ) {
         Icon(

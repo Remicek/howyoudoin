@@ -31,6 +31,9 @@ sealed interface ConversationAction {
     data class OnAttachmentError(val message: String) : ConversationAction
     data class OnMediaClick(val messageId: String) : ConversationAction
     data object OnCloseImage : ConversationAction
+    data object OnCloseVideo : ConversationAction
+    /** The quoted message in a reply: brings the original into view. */
+    data class OnQuoteClick(val messageId: String) : ConversationAction
     data object OnToggleMute : ConversationAction
 
     data object OnSearchClick : ConversationAction

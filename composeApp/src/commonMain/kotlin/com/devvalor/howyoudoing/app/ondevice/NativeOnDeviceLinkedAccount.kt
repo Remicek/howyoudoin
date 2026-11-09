@@ -300,15 +300,17 @@ abstract class NativeOnDeviceLinkedAccount(
             val waveform = voice.waveform.orEmpty().joinToString(",")
             sendVoice(threadKey, path, attachment.mimeType, voice.durationMillis, waveform)
         } else {
-            sendMediaFile(
-                threadKey,
-                path,
-                attachment.mimeType,
-                attachment.fileName,
-                caption.orEmpty(),
-                (attachment.width ?: 0).toLong(),
-                (attachment.height ?: 0).toLong()
-            )
+            dataDir.withThumbnail(path, attachment) {
+                sendMediaFile(
+                    threadKey,
+                    path,
+                    attachment.mimeType,
+                    attachment.fileName,
+                    caption.orEmpty(),
+                    (attachment.width ?: 0).toLong(),
+                    (attachment.height ?: 0).toLong()
+                )
+            }
         }
     }
 

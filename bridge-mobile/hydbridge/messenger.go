@@ -41,6 +41,9 @@ type Messenger struct {
 	cancel context.CancelFunc
 	selfID int64
 
+	// Upload type the server accepted for video previews (see uploadPreview)
+	previewUploadType string
+
 	// Contacts already sent to the app; others are looked up when their encrypted messages arrive
 	knownContacts sync.Map
 	lookups       sync.Map
@@ -95,7 +98,10 @@ func (m *Messenger) Connect() error {
 	user, initial, err := m.client.LoadMessagesPage(ctx)
 	if err != nil {
 		m.resetCancel()
-		return fmt.Errorf("failed to load inbox: %w", err)
+		if url := metaActionURL(err); url != "" {
+			m.emit(map[string]any{"type": "state", "state": "action_required", "url": url})
+		}
+		return friendlyMetaError(err, "messenger.com")
 	}
 	m.selfID = user.GetFBID()
 	m.emit(map[string]any{"type": "self", "id": strconv.FormatInt(m.selfID, 10), "name": user.GetName()})

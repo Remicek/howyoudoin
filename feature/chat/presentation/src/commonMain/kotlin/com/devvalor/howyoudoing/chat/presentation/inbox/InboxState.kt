@@ -16,7 +16,9 @@ data class InboxState(
     val isLoading: Boolean = true,
     val isRefreshing: Boolean = false,
     /** Connected networks that stopped working. */
-    val connectionProblems: List<ConnectionProblem> = emptyList()
+    val connectionProblems: List<ConnectionProblem> = emptyList(),
+    /** No internet: the chats saved on this phone stay readable, nothing new arrives or gets sent. */
+    val isOffline: Boolean = false
 ) {
     val totalUnread: Int get() = chats.sumOf { it.unreadCount }
 }

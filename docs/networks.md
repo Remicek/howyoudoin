@@ -24,7 +24,7 @@ real account; the app shows "Untested" on their card until they have.
 | Matrix | homeserver, username, password | the app's own Matrix client | tested |
 | Bluesky | handle and an app password allowed to read messages | HowYouDoin's own client for Bluesky's chat API | tested |
 | LinkedIn | linkedin.com in the login browser | mautrix-linkedin (linkedingo) | tested |
-| Discord | discord.com in the login browser (the web client's token) | Beeper's discordgo | **untested** |
+| Discord | discord.com in the login browser (the web client's token) | Beeper's discordgo | tested |
 | X | x.com in the login browser, then the X Chat passcode | mautrix-twitter (twittermeow) | tested |
 
 ## Finding people

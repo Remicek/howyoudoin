@@ -13,6 +13,8 @@ import howyoudoin.feature.chat.presentation.generated.resources.problem_logged_o
 import howyoudoin.feature.chat.presentation.generated.resources.problem_logged_out_title
 import howyoudoin.feature.chat.presentation.generated.resources.problem_reconnecting_text
 import howyoudoin.feature.chat.presentation.generated.resources.problem_reconnecting_title
+import howyoudoin.feature.chat.presentation.generated.resources.problem_reconnect_didnt_help_text
+import howyoudoin.feature.chat.presentation.generated.resources.problem_reconnect_didnt_help_title
 import howyoudoin.feature.chat.presentation.generated.resources.problem_unverified_text
 import howyoudoin.feature.chat.presentation.generated.resources.problem_unverified_title
 import howyoudoin.feature.chat.presentation.generated.resources.problems_text
@@ -49,6 +51,13 @@ val List<ConnectionProblem>.title: UiText
 val List<ConnectionProblem>.text: UiText
     get() = singleOrNull()?.text ?: UiText.Resource(Res.string.problems_text)
 
-/** Problems the user can try to fix right here by reconnecting. */
+/** Problems the user can try to fix right here by reconnecting (once: then they're shown how to log in again). */
 val List<ConnectionProblem>.canReconnect: Boolean
-    get() = any { it.kind == Kind.RECONNECTING || it.kind == Kind.FAILED }
+    get() = any { (it.kind == Kind.RECONNECTING || it.kind == Kind.FAILED) && !it.reconnectDidntHelp }
+
+/** The banner for a network that reconnecting didn't fix; tapping it shows how to disconnect and connect again. */
+val ConnectionProblem.reconnectDidntHelpTitle: UiText
+    get() = UiText.Resource(Res.string.problem_reconnect_didnt_help_title, arrayOf(network.displayName))
+
+val ConnectionProblem.reconnectDidntHelpText: UiText
+    get() = UiText.Resource(Res.string.problem_reconnect_didnt_help_text, arrayOf(network.displayName))

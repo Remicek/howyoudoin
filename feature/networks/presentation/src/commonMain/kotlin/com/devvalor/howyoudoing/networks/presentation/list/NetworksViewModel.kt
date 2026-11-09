@@ -1,5 +1,8 @@
 package com.devvalor.howyoudoing.networks.presentation.list
 
+import com.devvalor.howyoudoing.networks.presentation.navigation.NetworksRoutes
+import androidx.navigation.toRoute
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
@@ -22,6 +25,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class NetworksViewModel(
+    savedStateHandle: SavedStateHandle,
     private val bridgeRepository: BridgeRepository,
     private val onboardingRepository: OnboardingRepository,
     onDevice: OnDeviceAccounts,
@@ -33,7 +37,12 @@ class NetworksViewModel(
     private val eventChannel = Channel<NetworksEvent>()
     val events = eventChannel.receiveAsFlow()
 
-    private val _state = MutableStateFlow(NetworksState())
+    private val _state = MutableStateFlow(
+        NetworksState(
+            troubleshoot = runCatching { savedStateHandle.toRoute<NetworksRoutes.List>().troubleshoot }.getOrNull()
+                ?.let { name -> ChatNetwork.entries.firstOrNull { it.name == name } }
+        )
+    )
     val state = _state.asStateFlow()
 
     init {

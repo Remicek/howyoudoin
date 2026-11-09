@@ -134,10 +134,19 @@ class AndroidDataDirectory(context: Context, name: String = "on_device_messenger
     override fun writeTemp(bytes: ByteArray): String =
         File.createTempFile("outgoing", null, dir.also { it.mkdirs() }).apply { writeBytes(bytes) }.absolutePath
 
-    override fun read(path: String): ByteArray? {
-        val file = File(path).canonicalFile
-        return file.takeIf { it.path.startsWith(dir.canonicalPath + File.separator) && it.isFile }?.readBytes()
+    override fun read(path: String): ByteArray? = inside(path)?.takeIf { it.isFile }?.readBytes()
+
+    override fun writeThumbnail(mediaPath: String, jpeg: ByteArray) {
+        inside(thumbnailPathOf(mediaPath))?.writeBytes(jpeg)
     }
+
+    override fun deleteThumbnail(mediaPath: String) {
+        inside(thumbnailPathOf(mediaPath))?.delete()
+    }
+
+    /** The file at [path] when it is inside the directory, else null. */
+    private fun inside(path: String): File? =
+        File(path).canonicalFile.takeIf { it.path.startsWith(dir.canonicalPath + File.separator) }
 }
 
 /** The on-device inbox cache, next to the encrypted-chat keys (cleared with them on Disconnect). */

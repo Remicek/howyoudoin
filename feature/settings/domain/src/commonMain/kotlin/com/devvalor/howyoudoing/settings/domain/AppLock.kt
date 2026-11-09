@@ -52,10 +52,18 @@ interface AppLockRepository {
     suspend fun setLockOffered()
 }
 
-/** Derives a slow, salted hash of a PIN (platform crypto). */
+/** Derives a slow, salted hash of a PIN (platform crypto): PBKDF2-HMAC-SHA256 with [iterations] rounds. */
 interface PinHasher {
     fun newSalt(): ByteArray
-    fun hash(pin: String, salt: ByteArray): ByteArray
+    fun hash(pin: String, salt: ByteArray, iterations: Int): ByteArray
+
+    companion object {
+        /** Rounds for new PIN hashes (OWASP's 2023 figure for PBKDF2-HMAC-SHA256). */
+        const val ITERATIONS = 210_000
+
+        /** Rounds of hashes stored before the count was stored with them; they're redone on the next unlock. */
+        const val LEGACY_ITERATIONS = 120_000
+    }
 }
 
 /** The phone's fingerprint / face unlock. */

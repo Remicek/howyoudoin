@@ -53,6 +53,9 @@ type WhatsApp struct {
 	answered sync.Map // call ID → time.Time
 	// Call ID → ringingCall, for a minute after a call stopped ringing unanswered (acceptCall)
 	endedCalls sync.Map
+
+	// Recent photos, videos and files, which a reply quotes whole so WhatsApp shows their preview (SendReply)
+	recentMedia waRecentMedia
 }
 
 // ensureGroup looks up the name of a group seen for the first time (e.g. one created after connecting).
@@ -545,6 +548,7 @@ func (w *WhatsApp) emitWAMessage(evt *events.Message, live bool) {
 	if msg == nil {
 		return
 	}
+	w.recentMedia.put(evt.Info.ID, msg)
 	chatJID := evt.Info.Chat
 	if chatJID.Server == types.HiddenUserServer && !evt.Info.IsFromMe && !evt.Info.SenderAlt.IsEmpty() && !evt.Info.IsGroup {
 		chatJID = evt.Info.SenderAlt
@@ -602,6 +606,10 @@ func (w *WhatsApp) emitWAMessage(evt *events.Message, live bool) {
 		}
 		return
 	}
+	if waIsHDCopy(msg) {
+		// The original (sent just before) is already in the chat; WhatsApp shows the two as one
+		return
+	}
 	kind, text := describeWAMessage(msg)
 	if kind == "" {
 		return
@@ -618,21 +626,31 @@ func (w *WhatsApp) emitWAMessage(evt *events.Message, live bool) {
 	}
 	if seconds := msg.GetAudioMessage().GetSeconds(); seconds > 0 {
 		event["durationMs"] = int64(seconds) * 1000
-	} else if seconds := msg.GetVideoMessage().GetSeconds(); seconds > 0 {
+	} else if seconds := waMediaMessage(msg).GetVideoMessage().GetSeconds(); seconds > 0 {
 		event["durationMs"] = int64(seconds) * 1000
 	}
-	isMedia := kind != "text" && kind != "other" && kind != "location" && kind != "otp"
-	// History can be long, so from it only photos and stickers are downloaded right away; the rest carries a
-	// reference the app hands back to DownloadMedia when the user opens it
+	if kind == "video" {
+		if preview := w.saveVideoPreview(chat, evt.Info.ID, msg); preview != "" {
+			event["thumbnailUrl"] = preview
+		}
+	}
+	isMedia := kind != "text" && kind != "other" && kind != "location" && kind != "otp" && kind != "album"
+	// History can be long, so from it only photos and stickers are downloaded right away. Every media message
+	// carries a reference the app hands back to DownloadMedia when the user opens it, also when downloading it
+	// right away failed
 	downloadNow := isMedia && (live || kind == "image" || kind == "sticker")
-	if isMedia && !downloadNow {
+	if isMedia {
 		if ref, err := proto.Marshal(msg); err == nil {
 			event["mediaRef"] = base64.StdEncoding.EncodeToString(ref)
 		}
 	}
 	w.emit(event)
 	if downloadNow {
-		go w.downloadMedia(chat, evt.Info.ID, kind, msg)
+		go func() {
+			if _, err := w.downloadMedia(chat, evt.Info.ID, kind, msg); err != nil {
+				w.emit(map[string]any{"type": "debug", "event": "media_download_failed", "kind": kind, "error": err.Error()})
+			}
+		}()
 	}
 }
 
@@ -669,6 +687,9 @@ func describeWAMessage(msg *waE2E.Message) (kind, text string) {
 		return "sticker", ""
 	case msg.GetLocationMessage() != nil, msg.GetLiveLocationMessage() != nil:
 		return "location", ""
+	case msg.GetAlbumMessage() != nil:
+		// Announces the photos and videos that follow as messages of their own; replies to the album quote it
+		return "album", ""
 	case msg.GetProtocolMessage() != nil, msg.GetSenderKeyDistributionMessage() != nil && msg.GetConversation() == "",
 		msg.GetPollUpdateMessage() != nil, msg.GetEncReactionMessage() != nil:
 		return "", ""
@@ -777,16 +798,8 @@ func (w *WhatsApp) downloadMedia(chat, messageID, kind string, msg *waE2E.Messag
 	if client == nil {
 		return "", errors.New("WhatsApp isn't connected")
 	}
-	for {
-		// Media of disappearing and view-once messages sits one level down
-		if inner := msg.GetEphemeralMessage().GetMessage(); inner != nil {
-			msg = inner
-		} else if inner := msg.GetViewOnceMessage().GetMessage(); inner != nil {
-			msg = inner
-		} else {
-			break
-		}
-	}
+	// Media of disappearing, view-once and wrapped messages sits a level or more down
+	msg = waMediaMessage(msg)
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 	defer cancel()
 	data, err := client.DownloadAny(ctx, msg)
@@ -1002,6 +1015,7 @@ func (w *WhatsApp) SendMediaFile(chatJID, path, mimeType, fileName, caption stri
 		return "", fmt.Errorf("upload failed: %w", err)
 	}
 	msg := &waE2E.Message{}
+	var video videoMeta
 	switch kind {
 	case "image":
 		msg.ImageMessage = &waE2E.ImageMessage{
@@ -1010,10 +1024,16 @@ func (w *WhatsApp) SendMediaFile(chatJID, path, mimeType, fileName, caption stri
 			Width: proto.Uint32(uint32(width)), Height: proto.Uint32(uint32(height)), Caption: optionalString(caption),
 		}
 	case "video":
+		video = mp4Meta(data)
+		if width == 0 || height == 0 {
+			width, height = video.width, video.height
+		}
 		msg.VideoMessage = &waE2E.VideoMessage{
 			URL: &up.URL, DirectPath: &up.DirectPath, MediaKey: up.MediaKey, Mimetype: &mimeType,
 			FileEncSHA256: up.FileEncSHA256, FileSHA256: up.FileSHA256, FileLength: &up.FileLength,
-			Caption: optionalString(caption),
+			Caption: optionalString(caption), Seconds: optionalSeconds(video.seconds),
+			Width: proto.Uint32(uint32(width)), Height: proto.Uint32(uint32(height)),
+			JPEGThumbnail: takeVideoThumbnail(path).jpeg,
 		}
 	case "audio":
 		msg.AudioMessage = &waE2E.AudioMessage{
@@ -1028,7 +1048,7 @@ func (w *WhatsApp) SendMediaFile(chatJID, path, mimeType, fileName, caption stri
 		}
 	}
 	return w.sendMedia(client, chat, msg, sentMedia{kind: kind, caption: caption, path: path, mimeType: mimeType,
-		fileName: fileName, width: width, height: height})
+		fileName: fileName, width: width, height: height, durationMs: int(video.seconds) * 1000})
 }
 
 // sentMedia describes an outgoing media message for its echo.
@@ -1043,6 +1063,7 @@ func (w *WhatsApp) sendMedia(client *whatsmeow.Client, chat types.JID, msg *waE2
 	if err != nil {
 		return "", err
 	}
+	w.recentMedia.put(resp.ID, msg)
 	self := client.Store.ID.ToNonAD().String()
 	w.emit(map[string]any{
 		"type": "message", "threadKey": chat.String(), "id": resp.ID, "otid": resp.ID, "senderId": self,

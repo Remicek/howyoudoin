@@ -1,5 +1,12 @@
 package com.devvalor.howyoudoing.networks.presentation.list
 
+import howyoudoin.feature.networks.presentation.generated.resources.networks_fix_title
+import howyoudoin.feature.networks.presentation.generated.resources.networks_fix_reason
+import howyoudoin.feature.networks.presentation.generated.resources.networks_fix_intro
+import howyoudoin.feature.networks.presentation.generated.resources.networks_fix_step_disconnect
+import howyoudoin.feature.networks.presentation.generated.resources.networks_fix_step_connect
+import howyoudoin.feature.networks.presentation.generated.resources.networks_fix_now_connect
+import howyoudoin.feature.networks.presentation.generated.resources.networks_fix_done
 import howyoudoin.feature.networks.presentation.generated.resources.networks_untested
 import howyoudoin.feature.networks.presentation.generated.resources.networks_discord_body
 import howyoudoin.feature.networks.presentation.generated.resources.networks_discord_title
@@ -176,12 +183,73 @@ fun NetworksScreen(
                     modifier = Modifier.padding(bottom = HowYouDoinSpacing.sm),
                 )
             }
-            items(state.items, key = { it.network.name }) { item ->
+            state.troubleshoot?.let { network ->
+                item(key = "troubleshoot") {
+                    TroubleshootCard(network, state.onDevice[network] ?: OnDeviceMessengerState.NotLinked)
+                }
+            }
+            // The network being fixed comes right under its instructions
+            val items = state.troubleshoot?.let { fixing -> state.items.sortedByDescending { it.network == fixing } }
+                ?: state.items
+            items(items, key = { it.network.name }) { item ->
                 NetworkCard(
                     item = item,
                     onAction = onAction,
                     onDevice = state.onDevice[item.network] ?: OnDeviceMessengerState.NotLinked,
                 )
+            }
+        }
+    }
+}
+
+/**
+ * Reconnecting from the inbox didn't help: logging in again usually does. The steps, then how far the user got
+ * (disconnected: connect now; working again: done).
+ */
+@Composable
+private fun TroubleshootCard(network: ChatNetwork, onDevice: OnDeviceMessengerState) {
+    Card(
+        // Calm again once it works
+        colors = if (onDevice is OnDeviceMessengerState.Connected) {
+            CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+            )
+        } else {
+            CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.errorContainer,
+                contentColor = MaterialTheme.colorScheme.onErrorContainer,
+            )
+        },
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Column(
+            verticalArrangement = Arrangement.spacedBy(HowYouDoinSpacing.xs),
+            modifier = Modifier.padding(HowYouDoinSpacing.md),
+        ) {
+            Text(
+                stringResource(Res.string.networks_fix_title, network.displayName),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+            )
+            (onDevice as? OnDeviceMessengerState.Failed)?.message?.takeIf { it.isNotBlank() }?.let { reason ->
+                Text(
+                    stringResource(Res.string.networks_fix_reason, reason),
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+            Text(stringResource(Res.string.networks_fix_intro), style = MaterialTheme.typography.bodyMedium)
+            Text(
+                stringResource(Res.string.networks_fix_step_disconnect, network.displayName),
+                style = MaterialTheme.typography.bodyMedium,
+            )
+            Text(stringResource(Res.string.networks_fix_step_connect), style = MaterialTheme.typography.bodyMedium)
+            when (onDevice) {
+                OnDeviceMessengerState.NotLinked -> stringResource(Res.string.networks_fix_now_connect)
+                is OnDeviceMessengerState.Connected -> stringResource(Res.string.networks_fix_done, network.displayName)
+                else -> null
+            }?.let { progress ->
+                Text(progress, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
             }
         }
     }

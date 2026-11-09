@@ -222,4 +222,11 @@
     <string name="connect_calls_joined">HowYouDoin vous prévient quand quelqu’un lance un appel %1$s, que vous rejoignez dans l’appli %1$s. Les appels restent ensuite dans la discussion.</string>
     <string name="connect_calls_logged">%1$s ne prévient pas les autres applis quand un appel sonne. Les appels manqués et terminés apparaissent ensuite dans la discussion.</string>
     <string name="connect_calls_not_shown">HowYouDoin ne peut ni afficher les appels %1$s ni vous en prévenir : %1$s ne les partage pas avec d'autres applis.</string>
+    <string name="networks_fix_title">La reconnexion de %1$s n'a pas fonctionné</string>
+    <string name="networks_fix_reason">Erreur : %1$s</string>
+    <string name="networks_fix_intro">Se reconnecter règle généralement le problème :</string>
+    <string name="networks_fix_step_disconnect">1. Touchez Déconnecter sous %1$s ci-dessous.</string>
+    <string name="networks_fix_step_connect">2. Touchez ensuite Connecter et reconnectez-vous.</string>
+    <string name="networks_fix_now_connect">Déconnecté. Touchez maintenant Connecter ci-dessous et reconnectez-vous.</string>
+    <string name="networks_fix_done">%1$s fonctionne à nouveau.</string>
 </resources>

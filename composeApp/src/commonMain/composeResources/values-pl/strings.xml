@@ -24,4 +24,8 @@
     <string name="background_text">Gdy nie używasz telefonu, Android może wstrzymać HowYouDoin i wtedy wiadomości przychodzą z opóźnieniem. Pozwól mu działać w tle, aby sieci pozostały połączone. Zużywa to trochę baterii.</string>
     <string name="background_allow">Zezwól</string>
     <string name="background_not_now">Nie teraz</string>
+    <string name="account_action_title">%1$s prosi o potwierdzenie</string>
+    <string name="account_action_text">%1$s nie będzie działać w HowYouDoin, dopóki nie potwierdzisz kroku na swojej stronie, zwykle wyboru plików cookie. Poniżej jesteś zalogowany na swoje konto: dokonaj wyboru na stronie, a potem stuknij Gotowe, a HowYouDoin połączy się ponownie.</string>
+    <string name="account_action_done">Gotowe</string>
+    <string name="account_action_cancel">Anuluj</string>
 </resources>

@@ -104,6 +104,7 @@
     <string name="inbox_empty">No chats yet</string>
     <string name="media_photo">Photo</string>
     <string name="media_video">Video</string>
+    <string name="media_play_video">Play video</string>
     <string name="media_audio">Audio</string>
     <string name="media_file">File</string>
     <string name="media_tap_to_open">Tap to open</string>
@@ -191,4 +192,10 @@
     <string name="call_ended_video_duration">📹 Video call · %1$s</string>
     <string name="call_started">📞 A call started · join it in %1$s</string>
     <string name="call_started_video">📹 A video call started · join it in %1$s</string>
+    <string name="problem_reconnect_didnt_help_title">Reconnecting %1$s didn't help</string>
+    <string name="problem_reconnect_didnt_help_text">Tap to see how to fix it: disconnect %1$s and connect it again.</string>
+    <string name="offline_title">You're offline</string>
+    <string name="offline_text">You can read the messages saved on this phone. New ones arrive when you're back online.</string>
+    <string name="offline_chat_note">Offline: showing messages saved on this phone</string>
+    <string name="offline_cant_send">You're offline, so this wasn't sent. Try again when you're back online.</string>
 </resources>

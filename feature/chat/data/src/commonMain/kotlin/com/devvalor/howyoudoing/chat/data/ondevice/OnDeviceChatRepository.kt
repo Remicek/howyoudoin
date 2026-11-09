@@ -419,7 +419,11 @@ class OnDeviceChatRepository(
     override suspend fun resolveMedia(mxcUrl: String, thumbnail: Boolean): MediaRequest? = when {
         matrixAccount.owns(mxcUrl) -> matrixAccount.resolveMedia(mxcUrl, thumbnail)
         mxcUrl.isDirect() -> MediaRequest(mxcUrl, emptyMap())
-        OnDeviceMessengerStore.parseOnRequestMediaUrl(mxcUrl) != null -> null
+        // A photo not downloaded yet: downloading it updates the message to the saved file, which then shows
+        OnDeviceMessengerStore.parseOnRequestMediaUrl(mxcUrl) != null -> {
+            downloadMedia(mxcUrl)
+            null
+        }
         else -> server.resolveMedia(mxcUrl, thumbnail)
     }
 
