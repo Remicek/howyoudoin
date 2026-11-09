@@ -36,6 +36,23 @@ Bridge logins are a server-driven state machine (`BridgeLoginStep`):
 Because the UI renders steps generically, adding Telegram / Signal / ... is mostly a matter of
 flipping `ChatNetwork.isSupported` once their bridge is deployed.
 
+### Connection problems and offline
+
+Networks connected on the phone are watched by `ConnectionMonitor` (`core/domain/ondevice`). It turns each client's
+state into `ConnectionProblem`s that the inbox shows (failed, logged out, still reconnecting after a few minutes,
+expired login, unverified account) and gives the inbox's Reconnect button something to do:
+
+- Reconnect starts the network over. If it fails again, or isn't back within a minute
+  (`USER_RECONNECT_WAIT_MILLIS`), the problem comes back with `reconnectDidntHelp`. The inbox then shows "Reconnecting
+  X didn't help", which opens Networks (`NetworksRoutes.List(troubleshoot = network)`) with steps to disconnect and
+  connect again.
+- `OnlineReconnector` (Android) restarts networks still down a few seconds after the phone is back online.
+
+`InternetConnection` (`core/domain/connectivity`) says whether the phone is online: `AndroidInternetConnection` follows
+the default network's validated internet capability; iOS uses `AlwaysOnline` for now. Offline, the inbox shows an
+offline banner instead of problem cards, chats read from what's saved on the phone, and the conversation screen
+reminds the user they're offline instead of sending (the draft stays).
+
 ### Demo mode
 
 "Try demo mode" on the login screen stores a session with `isDemo = true`.

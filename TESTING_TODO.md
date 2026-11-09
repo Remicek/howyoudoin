@@ -22,6 +22,14 @@ The test steps:
 | Discord   | ✅  | ✅ | ✅ |
 | Matrix    | ✅  | ✅ (Element on the emulator, same account; thumbnail fixed 2026-11-09) | ✅ |
 
+## Offline and "reconnecting didn't help" (2026-11-09, emulator)
+
+- ✅ Airplane mode: the inbox shows "You're offline" and the saved chats; a chat shows the offline note; Send shows
+  the reminder and keeps the text.
+- ✅ The "Reconnecting Slack didn't help" card opens Networks with Slack first and the disconnect/connect steps
+  (shown with an injected problem; the timing is covered by `ConnectionMonitorTest`). Not yet seen with a real
+  network that keeps failing.
+
 ## Still to test
 
 - [ ] **Messenger "confirm on the website" flow on Instagram:** Reconnect should open instagram.com's page in the

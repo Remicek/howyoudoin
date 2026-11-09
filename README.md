@@ -30,6 +30,9 @@ Status: experimental, Android only for now. (An iOS build exists in the code but
 - New messages to anyone: each network is searched by name or username (WhatsApp and Signal by phone number)
 - Voice and video calls with Matrix contacts (calls on the other networks aren't supported)
 - Notifications from a background connection, without push servers
+- Works offline for reading: chats saved on the phone stay open, and sending says you're offline instead of failing
+- Connection trouble is shown above the inbox with a Reconnect button; if reconnecting doesn't help, the app shows
+  how to disconnect the network and connect it again
 - App lock with a PIN or fingerprint, hidden message text in notifications, and no screenshots while locked
 - Crash reports stay on the phone; you choose whether to share them
 - 12 languages, four colour themes, light and dark
