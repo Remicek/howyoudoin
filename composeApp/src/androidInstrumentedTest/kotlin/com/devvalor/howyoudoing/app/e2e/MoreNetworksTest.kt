@@ -141,10 +141,16 @@ class MoreNetworksTest {
         app.waitForText("App lock")
         app.scrollToAndClick("Networks")
         app.waitForText("Connect your chat accounts", substring = true)
+        // The demo accounts load a moment later and rebuild the list, which can undo a scroll made before then
+        app.waitForText("Disconnect")
     }
 
+    /** Scrolls the list to [network], again if the list was rebuilt meanwhile, until its name is on screen. */
     private fun scrollTo(network: String) {
-        app.onAllNodes(hasScrollToNodeAction()).onFirst().performScrollToNode(hasText(network))
+        app.waitUntil(NETWORK_TIMEOUT_MILLIS) {
+            app.onAllNodes(hasScrollToNodeAction()).onFirst().performScrollToNode(hasText(network))
+            app.onAllNodes(hasText(network)).fetchSemanticsNodes().isNotEmpty()
+        }
     }
 
     private fun connect(network: String) {
