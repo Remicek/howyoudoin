@@ -161,8 +161,9 @@ private fun MatrixEventDto.mediaInfo(type: MessageType): MediaInfo? {
         width = info?.string("w")?.toIntOrNull(),
         height = info?.string("h")?.toIntOrNull(),
         durationMillis = info?.string("duration")?.toLongOrNull(),
-        // Videos' still (unencrypted rooms; encrypted ones carry it in "thumbnail_file")
-        thumbnailUrl = info?.string("thumbnail_url")
+        // Videos' still; encrypted rooms carry it in "thumbnail_file" (decrypted by the media resolver, which keeps
+        // the file's key by its URL)
+        thumbnailUrl = info?.string("thumbnail_url") ?: info?.obj("thumbnail_file")?.string("url")
     )
 }
 

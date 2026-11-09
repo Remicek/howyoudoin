@@ -29,7 +29,7 @@ class MatrixAccountChats(private val matrix: MatrixChatRepository) : ChatReposit
 
     private fun Message.prefixed() = copy(
         chatId = PREFIX + chatId,
-        media = media?.let { it.copy(url = it.url.prefixed()) }
+        media = media?.let { it.copy(url = it.url.prefixed(), thumbnailUrl = it.thumbnailUrl?.prefixed()) }
     )
 
     private fun Chat.prefixed() = copy(

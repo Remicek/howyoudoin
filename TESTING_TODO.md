@@ -20,7 +20,7 @@ The test steps:
 | Instagram | ✅  | ✅ | ✅ |
 | Slack     | ✅  | ✅ | ✅ (shows as a thread reply in Slack) |
 | Discord   | ✅  | ✅ | ✅ |
-| Matrix    | ✅  | not tested (no real Matrix app on the devices) | ✅ |
+| Matrix    | ✅  | ✅ (Element on the emulator, same account; thumbnail fixed 2026-11-09) | ✅ |
 
 ## Still to test
 
