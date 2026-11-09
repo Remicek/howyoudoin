@@ -54,6 +54,12 @@ interface OnDeviceMessenger {
     /** Drops the connection and starts a fresh one from the saved login (for one that's stuck reconnecting). */
     suspend fun reconnect() = connectIfLinked()
 
+    /** The saved login's cookies, to open the network's website signed in as this account (see [AccountAction]). */
+    fun sessionCookies(): Map<String, String> = emptyMap()
+
+    /** Saves cookies the network's website renewed while the user acted there, over the saved login's. */
+    fun updateSessionCookies(cookies: Map<String, String>) {}
+
     /**
      * Sends text to a thread; returns the ID the echoed message will carry (offline threading ID for regular
      * chats, message ID for encrypted ones).
@@ -195,7 +201,11 @@ sealed interface OnDeviceMessengerState {
         val needsVerification: Boolean = false,
         val workspace: String? = null
     ) : OnDeviceMessengerState
-    data class Failed(val message: String) : OnDeviceMessengerState
+    /**
+     * [actionUrl]: a page on the network's website where the user has to act (e.g. accept its terms) before it
+     * works.
+     */
+    data class Failed(val message: String, val actionUrl: String? = null) : OnDeviceMessengerState
 }
 
 /** Used where the native client isn't built in. */

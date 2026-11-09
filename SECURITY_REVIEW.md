@@ -78,24 +78,32 @@ or a version-specific check that shouldn't be guessed blind.
 - **Go secrets written in plaintext when no storage key is set (MED).**
   `files.go`/`sqlite.go` fall back to cleartext on iOS/tests. Failing closed would
   break those paths until an iOS Keychain-backed key is wired up first.
-- **PBKDF2 iterations 120k < OWASP 210k (LOW).** Bumping it silently invalidates
-  every existing stored PIN hash (lockout) — version the hash (store its iteration
-  count) first, then raise it. Marginal benefit for a numeric PIN whose hash isn't
-  backed up.
+- **PBKDF2 iterations 120k < OWASP 210k (LOW) — FIXED.** The hash's round count is now
+  stored with it (`app_lock_pin_iterations`); new PINs use 210k. A hash without the
+  count is from before and is checked at 120k, and on the next correct unlock the PIN
+  is hashed again at 210k with a new salt, so no one is locked out
+  (`DataStoreAppLockRepositoryTest`).
 - **Matrix access token stored in plaintext DataStore (LOW) — FIXED.** The stored
   session (which holds the access token) is now encrypted at rest with a new
   `SecretCipher`: on Android an AES-256-GCM key bound to the Keystore
   (`KeystoreSecretCipher`), wired through `DataStoreSessionStorage`. Sessions written
   by older builds are read transparently and re-encrypted on the next write, so no one
   is logged out. The session is not in any backup, so a device-bound key is safe.
-- **Unbounded media/sync response allocation (LOW).** A hostile homeserver can OOM
-  the app; cap content length / stream large media (mind the long-poll sync size).
+- **Unbounded media/sync response allocation (LOW) — FIXED.** `/sync` and `/messages`
+  go through `safeLimitedGet` (streamed, at most 64 MB) and media downloads through
+  `readBodyLimited` (at most 100 MB): refused up front by Content-Length, or stopped one
+  byte past the limit when the length isn't given (`SafeLimitedGetTest`).
 - **Auto-join keyed on inviter MXID pattern + fragile `is_direct` string compare
-  (LOW).** Restricting risks breaking legitimate bridge portal auto-join; needs an
-  own-bridge (server-name) rule.
-- **SQLCipher key embedded in the DSN string (LOW, PLAUSIBLE).** The glue never
-  logs it, but a third-party DB layer might on an open error; prefer `PRAGMA key`
-  post-open, or confirm upstream never echoes the DSN.
+  (LOW) — FIXED.** A bridge invite is accepted only when the ghost or bot is on our own
+  homeserver (where the bridges run), so `@whatsapp_…:elsewhere` is shown as an invite
+  instead; `is_direct` counts only as a JSON `true` (`MatrixInvitesTest`).
+- **SQLCipher key embedded in the DSN string (LOW) — VERIFIED SAFE, no change.**
+  Nothing echoes the DSN: the driver (go-sqlcipher `Open`) only names the bad parameter
+  in its errors, `database/sql` doesn't include it, and whatsmeow's `sqlstore.New` and
+  mautrix `dbutil.NewWithDialect` pass it straight to `sql.Open` without logging it; our
+  own logs name only the path. Moving to `PRAGMA key` in a connect hook would need a
+  custom driver name, which whatsmeow and dbutil use to pick their SQL dialect, and the
+  hook runs after the DSN's WAL pragma, which fails on an encrypted file before the key.
 - **Smaller items:** StrongBox not requested (optional, add with fallback);
   `StorageKey.setStorageKey` logs-and-continues on failure (confirm the bridge
   fails closed); exported `MainActivity` reads notification extras from any caller
@@ -110,7 +118,9 @@ or a version-specific check that shouldn't be guessed blind.
 
 ---
 
-## Separate: the detekt gate is red on `main`
+## Separate: the detekt gate (was red on `main`)
+
+Fixed since: all 7 findings below were resolved and `./gradlew detekt` passes.
 
 `./gradlew detekt` (configured with no baseline, so every finding fails) reports
 **7 pre-existing findings on `main`**, none in files touched here:

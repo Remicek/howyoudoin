@@ -218,4 +218,11 @@
     <string name="connect_calls_joined">HowYouDoin memberi tahu Anda saat seseorang memulai panggilan %1$s, yang Anda ikuti di aplikasi %1$s. Panggilan tetap ada di chat sesudahnya.</string>
     <string name="connect_calls_logged">%1$s tidak memberi tahu aplikasi lain saat panggilan berdering. Panggilan tak terjawab dan yang selesai muncul di chat setelahnya.</string>
     <string name="connect_calls_not_shown">HowYouDoin tidak dapat menampilkan panggilan %1$s atau memberi tahu Anda: %1$s tidak membagikannya ke aplikasi lain.</string>
+    <string name="networks_fix_title">Menyambungkan ulang %1$s tidak berhasil</string>
+    <string name="networks_fix_reason">Galat: %1$s</string>
+    <string name="networks_fix_intro">Biasanya masuk lagi akan memperbaikinya:</string>
+    <string name="networks_fix_step_disconnect">1. Ketuk Putuskan di bawah %1$s di bawah ini.</string>
+    <string name="networks_fix_step_connect">2. Lalu ketuk Sambungkan dan masuk lagi.</string>
+    <string name="networks_fix_now_connect">Terputus. Sekarang ketuk Sambungkan di bawah dan masuk lagi.</string>
+    <string name="networks_fix_done">%1$s berfungsi lagi.</string>
 </resources>

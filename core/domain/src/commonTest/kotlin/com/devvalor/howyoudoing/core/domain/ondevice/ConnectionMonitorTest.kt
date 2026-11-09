@@ -10,6 +10,7 @@ import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -147,6 +148,49 @@ class ConnectionMonitorTest {
 
         set(slack, OnDeviceMessengerState.Connected("Team"))
         assertTrue(monitor.problems.value.isEmpty())
+    }
+
+    @Test
+    fun aReconnectThatDoesntGetItBackWithinAMinuteIsMarked() = runTest {
+        val monitor = monitor()
+        set(slack, OnDeviceMessengerState.Connected("Team"))
+        set(slack, OnDeviceMessengerState.Connecting)
+        advanceTimeBy(10 * 60_000 + 1)
+        runCurrent()
+        assertFalse(monitor.problems.value.single().reconnectDidntHelp)
+
+        monitor.reconnect()
+        runCurrent()
+        advanceTimeBy(60_000 + 1)
+        runCurrent()
+        val problem = monitor.problems.value.single()
+        assertEquals(ConnectionProblem.Kind.RECONNECTING, problem.kind)
+        assertTrue(problem.reconnectDidntHelp)
+
+        set(slack, OnDeviceMessengerState.Connected("Team"))
+        assertTrue(monitor.problems.value.isEmpty())
+        // Later trouble starts unmarked again
+        set(slack, OnDeviceMessengerState.Failed("No network"))
+        assertFalse(monitor.problems.value.single().reconnectDidntHelp)
+    }
+
+    @Test
+    fun aFailedNetworkThatFailsAgainAfterReconnectIsMarked() = runTest {
+        val monitor = monitor()
+        set(whatsApp, OnDeviceMessengerState.Failed("No network"))
+        assertFalse(monitor.problems.value.single().reconnectDidntHelp)
+
+        monitor.reconnect()
+        runCurrent()
+        assertEquals(1, whatsApp.reconnects)
+        // Hidden while it tries
+        assertTrue(monitor.problems.value.isEmpty())
+
+        set(whatsApp, OnDeviceMessengerState.Connecting)
+        set(whatsApp, OnDeviceMessengerState.Failed("Still no network"))
+        val problem = monitor.problems.value.single()
+        assertTrue(problem.reconnectDidntHelp)
+        assertEquals("Still no network", problem.detail)
     }
 
     @Test

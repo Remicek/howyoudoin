@@ -136,6 +136,29 @@ interface OnDeviceDataDirectory {
 
     /** Reads a file inside the directory; null for paths outside it or missing files. */
     fun read(path: String): ByteArray?
+
+    /**
+     * Writes a video's preview picture beside the file at [mediaPath] (written by [writeTemp]), at
+     * [thumbnailPathOf], where the bridge looks for it while sending. Platforms without it send videos without one.
+     */
+    fun writeThumbnail(mediaPath: String, jpeg: ByteArray) = Unit
+
+    /** Removes what [writeThumbnail] wrote, once the bridge is done with it. */
+    fun deleteThumbnail(mediaPath: String) = Unit
+}
+
+/** Where the bridge looks for a video's preview picture: beside the video, see hydbridge's `takeVideoThumbnail`. */
+fun thumbnailPathOf(mediaPath: String): String = "$mediaPath.thumb.jpg"
+
+/** Calls [send] with the attachment's preview picture written beside [path], and removes the picture afterwards. */
+internal inline fun <T> OnDeviceDataDirectory.withThumbnail(path: String, attachment: Attachment, send: () -> T): T {
+    val thumbnail = attachment.thumbnailJpeg ?: return send()
+    writeThumbnail(path, thumbnail)
+    return try {
+        send()
+    } finally {
+        deleteThumbnail(path)
+    }
 }
 
 /**
@@ -165,6 +188,24 @@ open class NativeOnDeviceMessenger(
 
     init {
         scope.launch { connectIfLinked() }
+    }
+
+    /** The page the network last said the user has to act on, kept for the next failure. */
+    @kotlin.concurrent.Volatile
+    private var actionUrl: String? = null
+
+    override fun sessionCookies(): Map<String, String> =
+        secrets.read()?.let { saved ->
+            runCatching { Json.parseToJsonElement(saved).jsonObject }.getOrNull()
+                ?.mapNotNull { (name, value) -> (value as? JsonPrimitive)?.contentOrNull?.let { name to it } }?.toMap()
+        }.orEmpty()
+
+    override fun updateSessionCookies(cookies: Map<String, String>) {
+        val saved = sessionCookies()
+        // Only the login's own cookies, renewed; the website's others aren't part of it
+        val renewed = cookies.filterKeys { it in saved }.filterValues { it.isNotBlank() }
+        if (saved.isEmpty() || renewed.isEmpty()) return
+        secrets.write(JsonObject((saved + renewed).mapValues { JsonPrimitive(it.value) }).toString())
     }
 
     private var lastLinkError: String? = null
@@ -213,6 +254,7 @@ open class NativeOnDeviceMessenger(
             client?.disconnect()
             client = null
             _events.resetReplayCache()
+            actionUrl = null
             _state.value = OnDeviceMessengerState.Connecting
             try {
                 val created = factory.create(cookiesJson, dataDir.path, ::onNativeEvent)
@@ -221,7 +263,7 @@ open class NativeOnDeviceMessenger(
                 Result.Success(Unit)
             } catch (e: Exception) {
                 log("Connecting failed: ${e.message}")
-                _state.value = OnDeviceMessengerState.Failed(e.message ?: "Couldn't connect")
+                _state.value = OnDeviceMessengerState.Failed(e.message ?: "Couldn't connect", actionUrl)
                 Result.Failure(DataError.Remote.UNKNOWN)
             }
         }
@@ -286,17 +328,19 @@ open class NativeOnDeviceMessenger(
                 voice.waveform.orEmpty().joinToString(",")
             )
         } else {
-            sendMediaFile(
-                threadKey,
-                isEncrypted,
-                isGroup,
-                path,
-                attachment.mimeType,
-                attachment.fileName,
-                caption.orEmpty(),
-                (attachment.width ?: 0).toLong(),
-                (attachment.height ?: 0).toLong()
-            )
+            dataDir.withThumbnail(path, attachment) {
+                sendMediaFile(
+                    threadKey,
+                    isEncrypted,
+                    isGroup,
+                    path,
+                    attachment.mimeType,
+                    attachment.fileName,
+                    caption.orEmpty(),
+                    (attachment.width ?: 0).toLong(),
+                    (attachment.height ?: 0).toLong()
+                )
+            }
         }
     }
 
@@ -479,9 +523,15 @@ open class NativeOnDeviceMessenger(
                     .also { log("state $it ${event["error"]?.jsonPrimitive?.contentOrNull.orEmpty()}") }
             ) {
                 "error" -> _state.value =
-                    OnDeviceMessengerState.Failed(event["error"]?.jsonPrimitive?.contentOrNull ?: "Disconnected")
+                    OnDeviceMessengerState.Failed(
+                        event["error"]?.jsonPrimitive?.contentOrNull ?: "Disconnected",
+                        actionUrl
+                    )
 
                 "reconnecting" -> _state.value = OnDeviceMessengerState.Connecting
+
+                // Comes just before connecting fails; the failure carries it
+                "action_required" -> actionUrl = event["url"]?.jsonPrimitive?.contentOrNull
 
                 // Back after a dropped connection (the first connect says so with "self")
                 "connected" -> if (_state.value == OnDeviceMessengerState.Connecting && client != null) {

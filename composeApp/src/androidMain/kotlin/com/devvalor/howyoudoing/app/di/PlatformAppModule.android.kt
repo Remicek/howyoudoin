@@ -1,5 +1,7 @@
 package com.devvalor.howyoudoing.app.di
 
+import com.devvalor.howyoudoing.app.connectivity.AndroidInternetConnection
+import com.devvalor.howyoudoing.core.domain.connectivity.InternetConnection
 import com.devvalor.howyoudoing.app.ondevice.AndroidTelegramApiKeys
 import com.devvalor.howyoudoing.core.domain.ondevice.TelegramApiKeys
 import com.devvalor.howyoudoing.chat.data.di.onDeviceClientName
@@ -92,6 +94,7 @@ actual val platformAppModule: Module = module {
     single(createdAtStart = true) { IncomingMessageNotifier(get(), get(), get(), get(), get(), get()) }
     single<BackgroundDelivery> { AndroidBackgroundDelivery(androidContext()) }
     single(createdAtStart = true) { OnlineReconnector(androidContext(), get(), get()) }
+    single<InternetConnection> { AndroidInternetConnection(androidContext()) }
     single(createdAtStart = true) {
         OnDeviceConnectionKeeper(
             context = androidContext(),

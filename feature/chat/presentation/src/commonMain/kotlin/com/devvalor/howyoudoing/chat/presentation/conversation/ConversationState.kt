@@ -1,6 +1,7 @@
 package com.devvalor.howyoudoing.chat.presentation.conversation
 
 import com.devvalor.howyoudoing.core.presentation.util.UiText
+import com.devvalor.howyoudoing.chat.presentation.platform.PlayableVideo
 import com.devvalor.howyoudoing.chat.presentation.model.MessageUi
 import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
 
@@ -34,12 +35,20 @@ data class ConversationState(
     val actionsFor: MessageUi? = null,
     /** Image shown full screen. */
     val viewingImage: MessageUi? = null,
+    /** Video playing full screen in the app. */
+    val playingVideo: PlayableVideo? = null,
+    /** A video being downloaded to play. */
+    val isLoadingVideo: Boolean = false,
+    /** A message brought into view from a reply's quote, highlighted for a moment. */
+    val highlightedMessageId: String? = null,
     val isSendingAttachment: Boolean = false,
     /** Searching the loaded messages when not null. */
     val searchQuery: String? = null,
     /** IDs of messages matching [searchQuery], newest first. */
     val searchMatches: List<String> = emptyList(),
-    val searchIndex: Int = 0
+    val searchIndex: Int = 0,
+    /** No internet: the saved messages stay readable; sending only reminds that it's offline. */
+    val isOffline: Boolean = false
 ) {
     val canSend: Boolean get() = draft.isNotBlank()
     val currentMatchId: String? get() = searchMatches.getOrNull(searchIndex)

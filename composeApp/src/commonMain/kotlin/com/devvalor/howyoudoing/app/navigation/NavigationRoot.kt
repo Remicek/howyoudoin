@@ -40,6 +40,9 @@ fun NavigationRoot(
             onGuideClick = {
                 navController.navigate(SettingsRoutes.ConnectGuide) { launchSingleTop = true }
             },
+            onFixConnectionClick = { network ->
+                navController.navigate(NetworksRoutes.List(troubleshoot = network.name)) { launchSingleTop = true }
+            },
             inboxBanner = { encryptedNetworks -> EncryptedHistoryBannerRoot(encryptedNetworks) },
         )
         networksGraph(

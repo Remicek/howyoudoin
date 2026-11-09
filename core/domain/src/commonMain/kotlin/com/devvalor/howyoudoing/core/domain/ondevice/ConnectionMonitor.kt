@@ -19,7 +19,15 @@ import kotlinx.coroutines.launch
  * A connected network that isn't working: shown in the inbox and as a notification until it's fixed (texts in chat
  * presentation).
  */
-data class ConnectionProblem(val network: ChatNetwork, val kind: Kind, val detail: String? = null) {
+data class ConnectionProblem(
+    val network: ChatNetwork,
+    val kind: Kind,
+    val detail: String? = null,
+    /** A page on the network's website where the user has to act before it works again; Reconnect opens it. */
+    val actionUrl: String? = null,
+    /** The user tapped Reconnect and it still isn't working: they're shown how to disconnect and connect again. */
+    val reconnectDidntHelp: Boolean = false
+) {
     enum class Kind {
         /** Connecting failed (it keeps retrying in the background). */
         FAILED,
@@ -38,6 +46,12 @@ data class ConnectionProblem(val network: ChatNetwork, val kind: Kind, val detai
     }
 }
 
+/**
+ * A network's website page the user has to act on (accept its terms, confirm it's them) before it works again, opened
+ * signed in with the account's [cookies].
+ */
+data class AccountAction(val network: ChatNetwork, val url: String, val cookies: Map<String, String>)
+
 /** Watches the networks connected on this phone and reports the ones that stopped working. */
 @OptIn(ExperimentalCoroutinesApi::class)
 class ConnectionMonitor(
@@ -52,6 +66,11 @@ class ConnectionMonitor(
     private val _problems = MutableStateFlow<List<ConnectionProblem>>(emptyList())
     val problems: StateFlow<List<ConnectionProblem>> = _problems.asStateFlow()
 
+    private val _pendingAction = MutableStateFlow<AccountAction?>(null)
+
+    /** The page the user opened with Reconnect to act on; shown until they're done (see [finishAction]). */
+    val pendingAction: StateFlow<AccountAction?> = _pendingAction.asStateFlow()
+
     private val _linkedNetworks = MutableStateFlow<Set<ChatNetwork>>(emptySet())
 
     /** Networks logged in on this phone, working or not (a logged-out or never-connected one isn't). */
@@ -60,6 +79,9 @@ class ConnectionMonitor(
     /** Networks the user is disconnecting right now: their logout is expected. */
     private val disconnecting = mutableSetOf<ChatNetwork>()
     private val reconnectTimers = mutableMapOf<ChatNetwork, Job>()
+
+    /** Networks the user asked to reconnect that haven't connected since. */
+    private val userReconnected = mutableSetOf<ChatNetwork>()
 
     init {
         clients.forEach { client -> watch(client) }
@@ -95,7 +117,12 @@ class ConnectionMonitor(
         }
     }
 
-    /** The user asked to reconnect the networks that are stuck reconnecting or failed: each starts over. */
+    /**
+     * The user asked to reconnect the networks that are stuck reconnecting or failed: each starts over. One that
+     * waits for the user on its website opens that page instead (see [pendingAction]); it reconnects when they're done.
+     * One that fails again, or isn't back within [USER_RECONNECT_WAIT_MILLIS], comes back marked
+     * [ConnectionProblem.reconnectDidntHelp].
+     */
     fun reconnect() {
         scope.launch {
             val stuck = _problems.value.filter {
@@ -103,14 +130,38 @@ class ConnectionMonitor(
             }
             for (problem in stuck) {
                 val client = clients.firstOrNull { it.network == problem.network } ?: continue
-                if (problem.kind == ConnectionProblem.Kind.RECONNECTING) {
-                    // Gone while it tries; asks again if this attempt doesn't get it back either
-                    clear(problem.network)
-                    reconnectTimers.remove(problem.network)?.cancel()
-                    watchReconnect(client)
+                val actionUrl = problem.actionUrl
+                when {
+                    actionUrl != null -> if (_pendingAction.value == null) {
+                        _pendingAction.value = AccountAction(problem.network, actionUrl, client.sessionCookies())
+                    }
+
+                    else -> {
+                        // Gone while it tries; back (marked) if this attempt doesn't get it working either
+                        userReconnected += problem.network
+                        clear(problem.network)
+                        reconnectTimers.remove(problem.network)?.cancel()
+                        watchReconnect(client, askAfter = USER_RECONNECT_WAIT_MILLIS)
+                        scope.launch { client.reconnect() }
+                    }
                 }
-                scope.launch { client.reconnect() }
             }
+        }
+    }
+
+    /**
+     * The user closed the page from [pendingAction]. Done ([cookies] being what the website has now, which may have
+     * renewed the login's): the network reconnects; cancelled: the problem stays.
+     */
+    fun finishAction(cookies: Map<String, String>?) {
+        scope.launch {
+            val action = _pendingAction.value ?: return@launch
+            _pendingAction.value = null
+            if (cookies == null) return@launch
+            val client = clients.firstOrNull { it.network == action.network } ?: return@launch
+            client.updateSessionCookies(cookies)
+            clear(action.network)
+            scope.launch { client.reconnect() }
         }
     }
 
@@ -125,6 +176,7 @@ class ConnectionMonitor(
                 is OnDeviceMessengerState.Connected -> {
                     wasConnected = true
                     disconnecting -= network
+                    userReconnected -= network
                     if (state.needsVerification) {
                         report(ConnectionProblem(network, ConnectionProblem.Kind.UNVERIFIED))
                     } else {
@@ -138,7 +190,7 @@ class ConnectionMonitor(
                         ConnectionProblem.Kind.LOGIN_EXPIRED,
                         state.message
                     )
-                    else ConnectionProblem(network, ConnectionProblem.Kind.FAILED, state.message)
+                    else ConnectionProblem(network, ConnectionProblem.Kind.FAILED, state.message, state.actionUrl)
                 )
 
                 OnDeviceMessengerState.Connecting -> if (wasConnected && reconnectTimers[network]?.isActive != true) {
@@ -154,6 +206,7 @@ class ConnectionMonitor(
                         clear(network)
                     }
                     disconnecting -= network
+                    userReconnected -= network
                     wasConnected = false
                 }
             }
@@ -165,7 +218,11 @@ class ConnectionMonitor(
      * Brief reconnects are normal (network changes) and aren't worth telling. A long one first gets a fresh
      * connection ([startOverAfter]); if that doesn't bring it back either, the user is asked to help.
      */
-    private fun watchReconnect(client: OnDeviceMessenger, startOverAfter: Long? = null) {
+    private fun watchReconnect(
+        client: OnDeviceMessenger,
+        startOverAfter: Long? = null,
+        askAfter: Long = ASK_USER_AFTER_MILLIS
+    ) {
         val network = client.network
         reconnectTimers[network] = scope.launch {
             if (startOverAfter != null) {
@@ -173,13 +230,18 @@ class ConnectionMonitor(
                 // Its own job: a failure while connecting ends this one, and that mustn't cancel the connecting
                 scope.launch { client.reconnect() }
             }
-            delay(ASK_USER_AFTER_MILLIS)
+            delay(askAfter)
             report(ConnectionProblem(network, ConnectionProblem.Kind.RECONNECTING))
         }
     }
 
     private fun report(problem: ConnectionProblem) {
-        _problems.update { current -> current.filterNot { it.network == problem.network } + problem }
+        val stillBroken = problem.kind == ConnectionProblem.Kind.FAILED ||
+            problem.kind == ConnectionProblem.Kind.RECONNECTING
+        val reported = if (stillBroken && problem.network in userReconnected) {
+            problem.copy(reconnectDidntHelp = true)
+        } else problem
+        _problems.update { current -> current.filterNot { it.network == problem.network } + reported }
     }
 
     private fun clear(network: ChatNetwork) {
@@ -191,6 +253,9 @@ class ConnectionMonitor(
 
         /** How long a fresh connection gets before the user is asked. */
         const val ASK_USER_AFTER_MILLIS = 7 * 60_000L
+
+        /** How long a reconnect the user asked for gets before it counts as not having helped (they're waiting). */
+        const val USER_RECONNECT_WAIT_MILLIS = 60_000L
 
         /** How the native clients say a saved login stopped working. */
         val EXPIRED_LOGIN_HINTS = listOf(

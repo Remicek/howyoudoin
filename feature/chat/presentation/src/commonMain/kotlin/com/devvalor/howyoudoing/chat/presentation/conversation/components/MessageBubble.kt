@@ -62,6 +62,8 @@ fun MessageBubble(
     onLongPress: () -> Unit,
     onMediaClick: () -> Unit,
     onReactionClick: (String) -> Unit,
+    /** The quoted message of a reply was tapped: its ID. */
+    onQuoteClick: (String) -> Unit = {},
 ) {
     val isOutgoing = message.isOutgoing
     val bubbleColor = if (isOutgoing) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface
@@ -86,9 +88,12 @@ fun MessageBubble(
                 .combinedClickable(onClick = {}, onLongClick = onLongPress)
                 .padding(bubblePadding(isBareSticker, hasMedia = media != null)),
         ) {
-            message.replyTo?.let { ReplyQuote(it, textColor) }
+            message.replyTo?.let { reply -> ReplyQuote(reply, textColor, onClick = { onQuoteClick(reply.messageId) }) }
             if (media != null) {
-                MessageMedia(message.type, media, resolver, onMediaClick, textColor, messageId = message.id)
+                MessageMedia(
+                    message.type, media, resolver, onMediaClick, textColor, messageId = message.id,
+                    onLongClick = onLongPress,
+                )
             }
             caption?.let { BubbleCaption(it, message.type, hasMedia = media != null, textColor) }
             BubbleMeta(message, metaColor, hasMedia = media != null, Modifier.align(Alignment.End))
@@ -190,13 +195,14 @@ private fun DeliveryStatus(message: MessageUi, metaColor: Color) {
 }
 
 @Composable
-private fun ReplyQuote(reply: ReplyPreview, textColor: Color) {
+private fun ReplyQuote(reply: ReplyPreview, textColor: Color, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .padding(bottom = 6.dp)
             .height(IntrinsicSize.Min)
             .clip(RoundedCornerShape(8.dp))
-            .background(textColor.copy(alpha = 0.1f)),
+            .background(textColor.copy(alpha = 0.1f))
+            .clickable(onClick = onClick),
     ) {
         Box(Modifier.width(3.dp).fillMaxHeight().background(textColor.copy(alpha = 0.6f)))
         Column(Modifier.padding(horizontal = 8.dp, vertical = 4.dp)) {

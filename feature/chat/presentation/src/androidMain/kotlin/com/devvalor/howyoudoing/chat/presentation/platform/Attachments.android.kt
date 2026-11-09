@@ -7,7 +7,9 @@ import org.jetbrains.compose.resources.stringResource
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.provider.OpenableColumns
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -22,6 +24,7 @@ import com.devvalor.howyoudoing.chat.domain.Attachment
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.ByteArrayOutputStream
 import java.io.File
 
 actual val isAttachmentPickerSupported: Boolean = true
@@ -57,14 +60,79 @@ private fun readAttachment(context: Context, uri: Uri): Attachment {
     val bytes = resolver.openInputStream(uri)?.use { it.readBytes() } ?: error("Unreadable")
     var width: Int? = null
     var height: Int? = null
+    var durationMillis: Long? = null
+    var thumbnail: ByteArray? = null
     if (mimeType.startsWith("image/")) {
         val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
         BitmapFactory.decodeByteArray(bytes, 0, bytes.size, options)
         width = options.outWidth.takeIf { it > 0 }
         height = options.outHeight.takeIf { it > 0 }
+    } else if (mimeType.startsWith("video/")) {
+        videoMeta(context, uri)?.let { (w, h, ms) -> width = w; height = h; durationMillis = ms }
+        thumbnail = videoThumbnail(context, uri)
     }
-    return Attachment(bytes, name, mimeType, width, height)
+    return Attachment(
+        bytes, name, mimeType, width, height, durationMillis = durationMillis, thumbnailJpeg = thumbnail
+    )
 }
+
+/**
+ * A JPEG of the video's first frame, at most [THUMBNAIL_EDGE] pixels on its longer side (rotation applied). Messenger
+ * shows it until the video is played; without it the bubble is a grey box. Null when no frame can be read.
+ */
+private fun videoThumbnail(context: Context, uri: Uri): ByteArray? {
+    val retriever = MediaMetadataRetriever()
+    return try {
+        retriever.setDataSource(context, uri)
+        val frame = retriever.getFrameAtTime(0, MediaMetadataRetriever.OPTION_CLOSEST_SYNC) ?: return null
+        val scale = minOf(1f, THUMBNAIL_EDGE.toFloat() / maxOf(frame.width, frame.height))
+        val scaled = if (scale < 1f) {
+            Bitmap.createScaledBitmap(
+                frame, (frame.width * scale).toInt().coerceAtLeast(1), (frame.height * scale).toInt().coerceAtLeast(1),
+                true
+            )
+        } else {
+            frame
+        }
+        ByteArrayOutputStream().use { out ->
+            scaled.compress(Bitmap.CompressFormat.JPEG, THUMBNAIL_QUALITY, out)
+            out.toByteArray()
+        }.also {
+            if (scaled !== frame) scaled.recycle()
+            frame.recycle()
+        }
+    } catch (@Suppress("SwallowedException", "TooGenericExceptionCaught") e: RuntimeException) {
+        // Not a video Android can read, or its decoder failed: it's sent without a preview
+        null
+    } finally {
+        retriever.release()
+    }
+}
+
+/** A video's size as shown (rotation applied) and length, which networks need to show it in its shape. */
+private fun videoMeta(context: Context, uri: Uri): Triple<Int?, Int?, Long?>? {
+    val retriever = MediaMetadataRetriever()
+    return try {
+        retriever.setDataSource(context, uri)
+        fun number(key: Int) = retriever.extractMetadata(key)?.toLongOrNull()
+        val w = number(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)?.toInt()?.takeIf { it > 0 }
+        val h = number(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)?.toInt()?.takeIf { it > 0 }
+        val rotation = number(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION) ?: 0
+        val rotated = rotation % HALF_TURN == QUARTER_TURN
+        val ms = number(MediaMetadataRetriever.METADATA_KEY_DURATION)?.takeIf { it > 0 }
+        if (rotated) Triple(h, w, ms) else Triple(w, h, ms)
+    } catch (@Suppress("SwallowedException") e: IllegalArgumentException) {
+        // Not a video Android can read: it's sent without its size
+        null
+    } finally {
+        retriever.release()
+    }
+}
+
+private const val THUMBNAIL_EDGE = 400
+private const val THUMBNAIL_QUALITY = 70
+private const val HALF_TURN = 180L
+private const val QUARTER_TURN = 90L
 
 @Composable
 actual fun rememberFileOpener(): (bytes: ByteArray, fileName: String, mimeType: String?) -> Unit {

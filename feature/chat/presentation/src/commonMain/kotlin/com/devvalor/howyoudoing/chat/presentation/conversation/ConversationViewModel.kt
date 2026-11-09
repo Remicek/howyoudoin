@@ -1,5 +1,7 @@
 package com.devvalor.howyoudoing.chat.presentation.conversation
 
+import com.devvalor.howyoudoing.core.domain.connectivity.InternetConnection
+import howyoudoin.feature.chat.presentation.generated.resources.offline_cant_send
 import howyoudoin.feature.chat.presentation.generated.resources.Res
 import howyoudoin.feature.chat.presentation.generated.resources.conversation_download_failed
 import androidx.lifecycle.SavedStateHandle
@@ -18,6 +20,7 @@ import com.devvalor.howyoudoing.chat.domain.MessageType
 import com.devvalor.howyoudoing.chat.presentation.model.toMessageUis
 import com.devvalor.howyoudoing.chat.presentation.model.typingText
 import com.devvalor.howyoudoing.chat.presentation.navigation.ChatRoutes
+import com.devvalor.howyoudoing.chat.presentation.platform.PlayableVideo
 import com.devvalor.howyoudoing.core.domain.util.onFailure
 import com.devvalor.howyoudoing.core.domain.util.onSuccess
 import com.devvalor.howyoudoing.core.presentation.util.UiText
@@ -42,7 +45,8 @@ class ConversationViewModel(
     private val openChatTracker: OpenChatTracker,
     private val notificationPreferences: NotificationPreferences,
     private val callManager: CallManager,
-    private val callLauncher: CallLauncher
+    private val callLauncher: CallLauncher,
+    private val internetConnection: InternetConnection
 ) : ViewModel() {
 
     private val chatId = savedStateHandle.toRoute<ChatRoutes.Conversation>().chatId
@@ -79,6 +83,9 @@ class ConversationViewModel(
         notificationPreferences.observeMutedChats()
             .onEach { muted -> _state.update { it.copy(isMuted = chatId in muted) } }
             .launchIn(viewModelScope)
+        internetConnection.isOnline
+            .onEach { online -> _state.update { it.copy(isOffline = !online) } }
+            .launchIn(viewModelScope)
     }
 
     fun onAction(action: ConversationAction) {
@@ -101,6 +108,8 @@ class ConversationViewModel(
 
             is ConversationAction.OnMediaClick -> openMedia(action.messageId)
             ConversationAction.OnCloseImage -> _state.update { it.copy(viewingImage = null) }
+            ConversationAction.OnCloseVideo -> _state.update { it.copy(playingVideo = null) }
+            is ConversationAction.OnQuoteClick -> jumpToMessage(action.messageId)
             ConversationAction.OnToggleMute -> viewModelScope.launch {
                 notificationPreferences.setMuted(chatId, !state.value.isMuted)
             }
@@ -260,9 +269,16 @@ class ConversationViewModel(
             .launchIn(viewModelScope)
     }
 
+    /** Offline, nothing goes out: the user is reminded, and what they wrote stays in the composer. */
+    private fun remindIfOffline(): Boolean {
+        if (!state.value.isOffline) return false
+        viewModelScope.launch { eventChannel.send(ConversationEvent.Error(UiText.Resource(Res.string.offline_cant_send))) }
+        return true
+    }
+
     private fun send() {
         val body = state.value.draft.trim()
-        if (body.isEmpty()) return
+        if (body.isEmpty() || remindIfOffline()) return
         state.value.editing?.let { editing ->
             _state.update { it.copy(draft = "", editing = null) }
             if (body != editing.text) {
@@ -300,6 +316,7 @@ class ConversationViewModel(
     }
 
     private fun sendAttachment(attachment: Attachment) {
+        if (remindIfOffline()) return
         val caption = state.value.draft.trim().takeIf { it.isNotEmpty() }
         _state.update { it.copy(draft = "", isSendingAttachment = true) }
         viewModelScope.launch {
@@ -311,6 +328,7 @@ class ConversationViewModel(
 
     /** A voice message goes without the draft as its caption. */
     private fun sendVoice(attachment: Attachment) {
+        if (remindIfOffline()) return
         _state.update { it.copy(isSendingAttachment = true) }
         viewModelScope.launch {
             chatRepository.sendAttachment(chatId, attachment, caption = null)
@@ -322,12 +340,29 @@ class ConversationViewModel(
     /** Media bytes for in-app playback (voice messages). */
     suspend fun loadMedia(url: String): ByteArray? = chatRepository.downloadMedia(url)
 
-    /** Images open in the in-app viewer; anything else is downloaded and handed to another app. */
+    /** Images open in the in-app viewer and videos play in the app; anything else is handed to another app. */
     private fun openMedia(messageId: String) {
         val message = state.value.messages.firstOrNull { it.id == messageId } ?: return
         val media = message.media ?: return
         if (message.type == MessageType.IMAGE || message.type == MessageType.STICKER) {
             _state.update { it.copy(viewingImage = message) }
+            return
+        }
+        if (message.type == MessageType.VIDEO) {
+            if (state.value.isLoadingVideo) return
+            _state.update { it.copy(isLoadingVideo = true) }
+            viewModelScope.launch {
+                val bytes = chatRepository.downloadMedia(media.url)
+                _state.update {
+                    it.copy(
+                        isLoadingVideo = false,
+                        playingVideo = bytes?.let { b -> PlayableVideo(b, media.mimeType, media.fileName) }
+                    )
+                }
+                if (bytes == null) {
+                    eventChannel.send(ConversationEvent.Error(UiText.Resource(Res.string.conversation_download_failed)))
+                }
+            }
             return
         }
         viewModelScope.launch {
@@ -363,6 +398,35 @@ class ConversationViewModel(
 
     private companion object {
         const val TYPING_IDLE_MILLIS = 4_000L
+        const val MAX_PAGES_TO_ORIGINAL = 20
+        const val PAGE_ARRIVAL_CHECKS = 10
+        const val PAGE_ARRIVAL_CHECK_MILLIS = 100L
+        const val HIGHLIGHT_MILLIS = 1_800L
+    }
+
+    /**
+     * Brings a reply's original message into view and highlights it for a moment, loading older messages until it
+     * is there (or the chat's history ends).
+     */
+    private fun jumpToMessage(messageId: String) {
+        viewModelScope.launch {
+            fun isLoaded() = _state.value.messages.any { it.id == messageId }
+            var pages = 0
+            while (!isLoaded() && _state.value.hasMoreHistory && pages < MAX_PAGES_TO_ORIGINAL) {
+                pages++
+                chatRepository.loadOlderMessages(chatId)
+                // The loaded page reaches the state through the chat's message flow
+                var checks = 0
+                while (!isLoaded() && checks < PAGE_ARRIVAL_CHECKS) {
+                    delay(PAGE_ARRIVAL_CHECK_MILLIS)
+                    checks++
+                }
+            }
+            if (!isLoaded()) return@launch
+            _state.update { it.copy(highlightedMessageId = messageId) }
+            delay(HIGHLIGHT_MILLIS)
+            _state.update { if (it.highlightedMessageId == messageId) it.copy(highlightedMessageId = null) else it }
+        }
     }
 
     private fun loadOlder() {

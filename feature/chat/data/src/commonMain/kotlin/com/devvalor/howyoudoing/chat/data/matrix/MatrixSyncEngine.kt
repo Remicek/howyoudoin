@@ -17,7 +17,6 @@ import com.devvalor.howyoudoing.chat.domain.MatrixEncryptionStatus
 import com.devvalor.howyoudoing.chat.domain.SyncState
 import com.devvalor.howyoudoing.core.domain.auth.AuthInfo
 import com.devvalor.howyoudoing.core.domain.auth.SessionStorage
-import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
 import com.devvalor.howyoudoing.core.domain.util.DataError
 import com.devvalor.howyoudoing.core.domain.util.EmptyResult
 import com.devvalor.howyoudoing.core.domain.util.Result
@@ -274,22 +273,20 @@ class MatrixSyncEngine(
     }
 
     /**
-     * Bridges create a portal room per chat and invite us. Without double puppeting those
-     * invites must be accepted by the client, so accept anything a bridge ghost/bot sends; with
-     * [acceptDirectInvites], also people's direct-chat invites (group invites still aren't accepted).
+     * Bridges create a portal room per chat and invite us. Without double puppeting those invites must be accepted by
+     * the client, so invites from a bridge ghost or bot on our own homeserver are accepted (see [shouldAutoJoin]);
+     * with [acceptDirectInvites], also people's direct-chat invites (group invites still aren't accepted).
      */
     private suspend fun autoJoinInvites(session: AuthInfo, invites: Map<String, InvitedRoomDto>) {
         invites.forEach { (roomId, invite) ->
             if (!attemptedInvites.add(roomId)) return@forEach
-            val inviter = invite.inviteState?.events
-                ?.firstOrNull { it.type == "m.room.member" && it.stateKey == session.userId }
-                ?.takeIf { it.content.string("membership") == "invite" }
-                ?.sender
-                ?: return@forEach
             val ownMembership = invite.inviteState?.events
                 ?.firstOrNull { it.type == "m.room.member" && it.stateKey == session.userId }
-            val isDirect = ownMembership?.content?.get("is_direct")?.let { it.toString() == "true" } == true
-            if (ChatNetwork.fromUserId(inviter) != null || (acceptDirectInvites && isDirect)) {
+                ?.takeIf { it.content.string("membership") == "invite" }
+                ?: return@forEach
+            if (shouldAutoJoin(ownMembership.sender, session.userId, isDirectInvite(ownMembership.content),
+                    acceptDirectInvites)
+            ) {
                 api.joinRoom(session, roomId).onSuccess { _invites.update { it - roomId } }
             }
         }
@@ -329,7 +326,7 @@ class MatrixSyncEngine(
             inviterId = inviter,
             inviterName = inviterName ?: inviter,
             timestamp = own?.originServerTs ?: now(),
-            isDirect = own?.content?.get("is_direct")?.toString() == "true"
+            isDirect = isDirectInvite(own?.content)
         )
     }
 
@@ -565,7 +562,7 @@ class MatrixSyncEngine(
             put("size", attachment.bytes.size)
             attachment.width?.let { put("w", it) }
             attachment.height?.let { put("h", it) }
-            attachment.voice?.let { put("duration", it.durationMillis) }
+            (attachment.voice?.durationMillis ?: attachment.durationMillis)?.let { put("duration", it) }
         }
         // A voice message (MSC3245): bridges send it as the network's voice note
         attachment.voice?.let { voice ->

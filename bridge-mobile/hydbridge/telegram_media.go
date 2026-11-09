@@ -61,6 +61,16 @@ func (t *Telegram) describeMedia(key, id string, msg *tg.Message, event map[stri
 			go t.downloadAttachment(key, id, "sticker", location, mime, "", w, h)
 		default:
 			event["mediaRef"] = "doc"
+			if kind == "video" {
+				// Shown in its shape with a still before the video is downloaded
+				if w > 0 && h > 0 {
+					event["width"], event["height"] = w, h
+				}
+				if thumb, _, _ := pickPhotoSize(doc.Thumbs); thumb != "" {
+					location := &tg.InputDocumentFileLocation{ID: doc.ID, AccessHash: doc.AccessHash, FileReference: doc.FileReference, ThumbSize: thumb}
+					go t.downloadVideoThumbnail(key, id, location)
+				}
+			}
 			if kind == "file" && msg.Message == "" {
 				// The file card shows the text as the file's name until it's downloaded
 				event["text"] = fileName
@@ -190,6 +200,24 @@ func (t *Telegram) downloadAttachment(key, id, kind string, location tg.InputFil
 	})
 }
 
+// downloadVideoThumbnail saves a video's preview picture and emits it for the message.
+func (t *Telegram) downloadVideoThumbnail(key, id string, location tg.InputFileLocationClass) {
+	path, err := t.mediaPath(id + "/thumbnail")
+	if err != nil {
+		return
+	}
+	if _, err := os.Stat(path); err != nil {
+		ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+		err = t.downloadTo(ctx, location, path)
+		cancel()
+		if err != nil {
+			t.log.Warn().Err(err).Msg("Failed to download Telegram video preview")
+			return
+		}
+	}
+	t.emit(map[string]any{"type": "thumbnail", "threadKey": key, "messageId": id, "url": "file://" + path})
+}
+
 // DownloadMedia downloads a message's video, voice message or file and returns the file's path.
 func (t *Telegram) DownloadMedia(threadKey, messageID, _ string) (string, error) {
 	path, err := t.mediaPath(messageID)
@@ -284,7 +312,17 @@ func (t *Telegram) SendMediaFile(threadKey, path, mimeType, fileName, caption st
 		attributes := []tg.DocumentAttributeClass{&tg.DocumentAttributeFilename{FileName: firstNonEmpty(fileName, "file")}}
 		switch kind {
 		case "video":
-			attributes = append(attributes, &tg.DocumentAttributeVideo{W: width, H: height, SupportsStreaming: true})
+			// Telegram shows a video without its size and length as a square with no length
+			video := videoMeta{}
+			if data, err := os.ReadFile(path); err == nil {
+				video = mp4Meta(data)
+			}
+			if width == 0 || height == 0 {
+				width, height = video.width, video.height
+			}
+			attributes = append(attributes, &tg.DocumentAttributeVideo{
+				W: width, H: height, Duration: float64(video.seconds), SupportsStreaming: true,
+			})
 		case "audio":
 			attributes = append(attributes, &tg.DocumentAttributeAudio{})
 		}

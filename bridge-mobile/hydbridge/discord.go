@@ -492,11 +492,16 @@ func (d *Discord) downloadAttachment(channelID, messageID, kind string, a *disco
 			return
 		}
 	}
-	d.emit(map[string]any{
+	event := map[string]any{
 		"type": "attachment", "threadKey": channelID, "messageId": messageID, "kind": kind, "url": "file://" + path,
 		"previewUrl": "file://" + path, "mimeType": a.ContentType, "fileName": a.Filename,
 		"width": a.Width, "height": a.Height,
-	})
+	}
+	if kind == "video" {
+		// Discord gives a video's size but not its length
+		withVideoMeta(event, path)
+	}
+	d.emit(event)
 }
 
 // --- sending ---

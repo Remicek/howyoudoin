@@ -24,6 +24,12 @@ import com.devvalor.howyoudoing.chat.presentation.model.text
 import com.devvalor.howyoudoing.chat.presentation.model.title
 import howyoudoin.feature.chat.presentation.generated.resources.inbox_connecting
 import howyoudoin.feature.chat.presentation.generated.resources.inbox_offline
+import androidx.compose.material.icons.rounded.CloudOff
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
+import com.devvalor.howyoudoing.chat.presentation.model.reconnectDidntHelpText
+import com.devvalor.howyoudoing.chat.presentation.model.reconnectDidntHelpTitle
+import howyoudoin.feature.chat.presentation.generated.resources.offline_text
+import howyoudoin.feature.chat.presentation.generated.resources.offline_title
 import howyoudoin.feature.chat.presentation.generated.resources.inbox_no_match
 import howyoudoin.feature.chat.presentation.generated.resources.inbox_empty
 import howyoudoin.feature.chat.presentation.generated.resources.Res
@@ -65,9 +71,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Surface
 import com.devvalor.howyoudoing.core.domain.ondevice.ConnectionProblem
 import androidx.compose.foundation.lazy.items
@@ -132,6 +138,8 @@ fun InboxRoot(
     onContactsClick: () -> Unit = {},
     onNewMessageClick: () -> Unit = {},
     onGuideClick: () -> Unit = {},
+    /** Opens [ChatNetwork]'s connection with how to disconnect and connect it again. */
+    onFixConnectionClick: (ChatNetwork) -> Unit = { onNetworksClick() },
     banner: @Composable (encryptedNetworks: Set<ChatNetwork>) -> Unit = {},
     viewModel: InboxViewModel = koinViewModel()
 ) {
@@ -152,6 +160,7 @@ fun InboxRoot(
                 InboxAction.OnContactsClick -> onContactsClick()
                 InboxAction.OnNewMessageClick -> onNewMessageClick()
                 InboxAction.OnGuideClick -> onGuideClick()
+                is InboxAction.OnFixConnectionClick -> onFixConnectionClick(action.network)
                 else -> viewModel.onAction(action)
             }
         }
@@ -206,7 +215,7 @@ fun InboxScreen(
                     fontWeight = FontWeight.Bold,
                 )
                 Spacer(Modifier.width(HowYouDoinSpacing.sm))
-                SyncStatusLabel(state.syncState)
+                if (!state.isOffline) SyncStatusLabel(state.syncState)
             }
             if (isSearchOpen || state.query.isNotEmpty()) {
                 SearchField(
@@ -215,12 +224,21 @@ fun InboxScreen(
                 )
             }
             FilterRow(state = state, onAction = onAction)
-            ConnectionProblems(
-                problems = state.connectionProblems,
-                onClick = { onAction(InboxAction.OnNetworksClick) },
-                onReconnect = { onAction(InboxAction.OnReconnectClick) },
-                onDismiss = { onAction(InboxAction.OnDismissProblem(it)) },
-            )
+            if (state.isOffline) {
+                // Offline, every network looks broken: that's the one thing worth saying
+                OfflineBanner()
+            } else {
+                val (didntHelp, problems) = state.connectionProblems.partition { it.reconnectDidntHelp }
+                didntHelp.forEach { problem ->
+                    ReconnectDidntHelp(problem, onClick = { onAction(InboxAction.OnFixConnectionClick(problem.network)) })
+                }
+                ConnectionProblems(
+                    problems = problems,
+                    onClick = { onAction(InboxAction.OnNetworksClick) },
+                    onReconnect = { onAction(InboxAction.OnReconnectClick) },
+                    onDismiss = { onAction(InboxAction.OnDismissProblem(it)) },
+                )
+            }
             banner()
 
             when {
@@ -239,7 +257,8 @@ fun InboxScreen(
                     onRefresh = { onAction(InboxAction.OnRefresh) },
                     modifier = Modifier.fillMaxSize(),
                 ) {
-                    val listState = rememberLazyListState()
+                    // Each filter shows its list from the top, straight away (one list state would scroll there)
+                    val listState = rememberSaveable(state.filter, saver = LazyListState.Saver) { LazyListState() }
                     StayAtTop(listState, topChatId = state.chats.firstOrNull()?.id)
                     LazyColumn(
                         state = listState,
@@ -344,6 +363,66 @@ private fun ConnectionProblems(
                     Icon(Icons.Rounded.Close, contentDescription = stringResource(Res.string.inbox_dismiss))
                 }
             }
+        }
+    }
+}
+
+/** No internet: what's saved on the phone can still be read. */
+@Composable
+private fun OfflineBanner() {
+    Surface(
+        color = MaterialTheme.colorScheme.secondaryContainer,
+        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+        shape = MaterialTheme.shapes.medium,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = HowYouDoinSpacing.md, vertical = HowYouDoinSpacing.xs),
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(HowYouDoinSpacing.md),
+        ) {
+            Icon(Icons.Rounded.CloudOff, contentDescription = null)
+            Spacer(Modifier.width(HowYouDoinSpacing.md))
+            Column {
+                Text(
+                    stringResource(Res.string.offline_title),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Text(stringResource(Res.string.offline_text), style = MaterialTheme.typography.bodySmall)
+            }
+        }
+    }
+}
+
+/** A network the user reconnected without luck: tapping shows how to disconnect and connect it again. */
+@Composable
+private fun ReconnectDidntHelp(problem: ConnectionProblem, onClick: () -> Unit) {
+    Surface(
+        onClick = onClick,
+        color = MaterialTheme.colorScheme.errorContainer,
+        contentColor = MaterialTheme.colorScheme.onErrorContainer,
+        shape = MaterialTheme.shapes.medium,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = HowYouDoinSpacing.md, vertical = HowYouDoinSpacing.xs),
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(HowYouDoinSpacing.md),
+        ) {
+            NetworkBadge(network = problem.network, size = 24.dp, borderColor = Color.Transparent)
+            Spacer(Modifier.width(HowYouDoinSpacing.md))
+            Column(Modifier.weight(1f)) {
+                Text(
+                    problem.reconnectDidntHelpTitle.asString(),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Text(problem.reconnectDidntHelpText.asString(), style = MaterialTheme.typography.bodySmall)
+            }
+            Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = null)
         }
     }
 }

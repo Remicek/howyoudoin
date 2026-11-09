@@ -30,8 +30,7 @@ class HomeTest {
     @Test
     fun newMessageStartsAChatWithSomeoneNew() {
         startDemo()
-        app.onNodeWithContentDescription("New").performClick()
-        app.onNodeWithText("New message").performClick()
+        app.onNodeWithContentDescription("New message").performClick()
         app.waitForText("Where do you want to write?")
         app.onNodeWithText("WhatsApp").performClick()
         app.onNode(hasSetTextAction()).performTextInput("ewa")
@@ -78,8 +77,7 @@ class HomeTest {
     @Test
     fun plusOffersToAddANetwork() {
         startDemo()
-        app.onNodeWithContentDescription("New").performClick()
-        app.onNodeWithText("Add network").performClick()
+        app.onNodeWithContentDescription("Add network").performClick()
         app.waitForText("Connect your chat accounts", substring = true)
         app.waitForNode(hasContentDescription("Voice and video calls", substring = true) or hasText("WhatsApp"))
     }

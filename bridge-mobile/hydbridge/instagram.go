@@ -78,7 +78,10 @@ func (ig *Instagram) Connect() error {
 	viewer, mailbox, err := ig.client.LoadIndex(ctx)
 	if err != nil {
 		ig.resetCancel()
-		return fmt.Errorf("failed to load inbox: %w", err)
+		if url := metaActionURL(err); url != "" {
+			ig.emit(map[string]any{"type": "state", "state": "action_required", "url": url})
+		}
+		return friendlyMetaError(err, "instagram.com")
 	}
 	ig.selfID = ig.client.GetOwnFBID()
 	selfID := strconv.FormatInt(ig.selfID, 10)
@@ -263,6 +266,10 @@ func (ig *Instagram) emitMessage(threadKey string, msg *slidetypes.Message) {
 		if len(content.Videos) > 0 && content.Videos[0] != nil {
 			a := content.Videos[0]
 			kind, url, preview, width, height = "video", a.AttachmentCDNURL, a.PreviewCDNURL, a.PreviewWidth, a.PreviewHeight
+			durationMs = dashDurationMs(a.DashManifest)
+			if ms, ok := a.Unrecognized["playable_duration_ms"].(float64); ok && durationMs == 0 {
+				durationMs = int(ms)
+			}
 		}
 	case *slidetypes.MessageContentAudio:
 		kind = "audio"
@@ -295,6 +302,8 @@ func (ig *Instagram) emitMessage(threadKey string, msg *slidetypes.Message) {
 		}
 		if kind == "audio" {
 			attachment["mimeType"] = "audio/mp4"
+		}
+		if durationMs > 0 {
 			attachment["durationMs"] = durationMs
 		}
 		ig.emit(attachment)

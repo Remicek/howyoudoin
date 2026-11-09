@@ -15,4 +15,7 @@ sealed interface InboxAction {
     data object OnLogoutClick : InboxAction
     data class OnDismissProblem(val network: ChatNetwork) : InboxAction
     data object OnReconnectClick : InboxAction
+
+    /** Reconnecting didn't help: show how to disconnect and connect [network] again. */
+    data class OnFixConnectionClick(val network: ChatNetwork) : InboxAction
 }
