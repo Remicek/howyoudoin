@@ -224,4 +224,11 @@
     <string name="connect_calls_joined">HowYouDoin сообщит, когда кто-то начнёт звонок в %1$s; присоединиться к нему можно в приложении %1$s. Звонки остаются в чате и после завершения.</string>
     <string name="connect_calls_logged">%1$s не сообщает другим приложениям о входящем звонке. Пропущенные и завершённые звонки появятся в чате позже.</string>
     <string name="connect_calls_not_shown">HowYouDoin не может показывать звонки %1$s или уведомлять о них: %1$s не передаёт их другим приложениям.</string>
+    <string name="networks_fix_title">Переподключение к %1$s не помогло</string>
+    <string name="networks_fix_reason">Ошибка: %1$s</string>
+    <string name="networks_fix_intro">Обычно помогает войти заново:</string>
+    <string name="networks_fix_step_disconnect">1. Нажмите «Отключить» под %1$s ниже.</string>
+    <string name="networks_fix_step_connect">2. Затем нажмите «Подключить» и войдите снова.</string>
+    <string name="networks_fix_now_connect">Отключено. Теперь нажмите «Подключить» ниже и войдите снова.</string>
+    <string name="networks_fix_done">%1$s снова работает.</string>
 </resources>

@@ -193,4 +193,10 @@
     <string name="call_ended_video_duration">📹 Видеозвонок · %1$s</string>
     <string name="call_started">📞 Начался звонок · присоединяйтесь в %1$s</string>
     <string name="call_started_video">📹 Начался видеозвонок · присоединяйтесь в %1$s</string>
+    <string name="problem_reconnect_didnt_help_title">Переподключение к %1$s не помогло</string>
+    <string name="problem_reconnect_didnt_help_text">Нажмите, чтобы узнать, как это исправить: отключите %1$s и подключите заново.</string>
+    <string name="offline_title">Нет подключения к интернету</string>
+    <string name="offline_text">Можно читать сообщения, сохранённые на этом телефоне. Новые придут, когда интернет вернётся.</string>
+    <string name="offline_chat_note">Офлайн: сообщения, сохранённые на этом телефоне</string>
+    <string name="offline_cant_send">Нет интернета, поэтому ничего не отправлено. Попробуйте снова, когда подключение вернётся.</string>
 </resources>

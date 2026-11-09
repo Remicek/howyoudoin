@@ -187,4 +187,10 @@
     <string name="call_ended_video_duration">📹 Panggilan video · %1$s</string>
     <string name="call_started">📞 Panggilan dimulai · gabung di %1$s</string>
     <string name="call_started_video">📹 Panggilan video dimulai · gabung di %1$s</string>
+    <string name="problem_reconnect_didnt_help_title">Menyambungkan ulang %1$s tidak berhasil</string>
+    <string name="problem_reconnect_didnt_help_text">Ketuk untuk melihat cara memperbaikinya: putuskan %1$s lalu sambungkan lagi.</string>
+    <string name="offline_title">Kamu sedang offline</string>
+    <string name="offline_text">Kamu bisa membaca pesan yang tersimpan di ponsel ini. Pesan baru masuk saat kamu online lagi.</string>
+    <string name="offline_chat_note">Offline: pesan yang tersimpan di ponsel ini</string>
+    <string name="offline_cant_send">Kamu offline, jadi pesan tidak terkirim. Coba lagi saat sudah online.</string>
 </resources>

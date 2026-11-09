@@ -46,7 +46,9 @@ data class ConversationState(
     val searchQuery: String? = null,
     /** IDs of messages matching [searchQuery], newest first. */
     val searchMatches: List<String> = emptyList(),
-    val searchIndex: Int = 0
+    val searchIndex: Int = 0,
+    /** No internet: the saved messages stay readable; sending only reminds that it's offline. */
+    val isOffline: Boolean = false
 ) {
     val canSend: Boolean get() = draft.isNotBlank()
     val currentMatchId: String? get() = searchMatches.getOrNull(searchIndex)

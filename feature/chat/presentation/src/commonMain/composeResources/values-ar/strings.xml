@@ -197,4 +197,10 @@
     <string name="call_ended_video_duration">📹 مكالمة فيديو · %1$s</string>
     <string name="call_started">📞 بدأت مكالمة · انضم إليها في %1$s</string>
     <string name="call_started_video">📹 بدأت مكالمة فيديو · انضم إليها في %1$s</string>
+    <string name="problem_reconnect_didnt_help_title">لم تنجح إعادة الاتصال بـ %1$s</string>
+    <string name="problem_reconnect_didnt_help_text">اضغط لمعرفة طريقة الإصلاح: افصل %1$s ثم اربطه مرة أخرى.</string>
+    <string name="offline_title">أنت غير متصل بالإنترنت</string>
+    <string name="offline_text">يمكنك قراءة الرسائل المحفوظة على هذا الهاتف. ستصل الرسائل الجديدة عند عودة الاتصال.</string>
+    <string name="offline_chat_note">غير متصل: الرسائل المحفوظة على هذا الهاتف</string>
+    <string name="offline_cant_send">أنت غير متصل، لذا لم يتم الإرسال. حاول مرة أخرى عند عودة الاتصال.</string>
 </resources>

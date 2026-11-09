@@ -228,4 +228,11 @@
     <string name="connect_calls_joined">يُعلمك HowYouDoin عندما يبدأ أحدهم مكالمة على %1$s، وتنضم إليها من تطبيق %1$s. تبقى المكالمات في المحادثة بعد انتهائها.</string>
     <string name="connect_calls_logged">لا يُعلم %1$s التطبيقات الأخرى عند رنين مكالمة. تظهر المكالمات الفائتة والمنتهية في المحادثة لاحقًا.</string>
     <string name="connect_calls_not_shown">لا يمكن لـ HowYouDoin عرض مكالمات %1$s أو التنبيه إليها: لا يشاركها %1$s مع التطبيقات الأخرى.</string>
+    <string name="networks_fix_title">لم تنجح إعادة الاتصال بـ %1$s</string>
+    <string name="networks_fix_reason">خطأ: %1$s</string>
+    <string name="networks_fix_intro">عادةً ما يحل تسجيل الدخول من جديد المشكلة:</string>
+    <string name="networks_fix_step_disconnect">1. اضغط على فصل أسفل %1$s بالأسفل.</string>
+    <string name="networks_fix_step_connect">2. ثم اضغط على ربط وسجّل الدخول مرة أخرى.</string>
+    <string name="networks_fix_now_connect">تم الفصل. اضغط الآن على ربط بالأسفل وسجّل الدخول مرة أخرى.</string>
+    <string name="networks_fix_done">%1$s يعمل مرة أخرى.</string>
 </resources>

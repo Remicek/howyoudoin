@@ -189,4 +189,10 @@
     <string name="call_ended_video_duration">📹 वीडियो कॉल · %1$s</string>
     <string name="call_started">📞 एक कॉल शुरू हुई · %1$s में जुड़ें</string>
     <string name="call_started_video">📹 एक वीडियो कॉल शुरू हुई · %1$s में जुड़ें</string>
+    <string name="problem_reconnect_didnt_help_title">%1$s को दोबारा जोड़ने से मदद नहीं मिली</string>
+    <string name="problem_reconnect_didnt_help_text">ठीक करने का तरीका देखने के लिए टैप करें: %1$s को डिस्कनेक्ट करके फिर से कनेक्ट करें।</string>
+    <string name="offline_title">आप ऑफ़लाइन हैं</string>
+    <string name="offline_text">आप इस फ़ोन पर सेव किए गए संदेश पढ़ सकते हैं। ऑनलाइन होने पर नए संदेश आएँगे।</string>
+    <string name="offline_chat_note">ऑफ़लाइन: इस फ़ोन पर सेव किए गए संदेश</string>
+    <string name="offline_cant_send">आप ऑफ़लाइन हैं, इसलिए यह नहीं भेजा गया। ऑनलाइन होने पर फिर से कोशिश करें।</string>
 </resources>

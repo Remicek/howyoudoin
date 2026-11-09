@@ -1,5 +1,7 @@
 package com.devvalor.howyoudoing.chat.presentation.conversation
 
+import com.devvalor.howyoudoing.core.domain.connectivity.InternetConnection
+import howyoudoin.feature.chat.presentation.generated.resources.offline_cant_send
 import howyoudoin.feature.chat.presentation.generated.resources.Res
 import howyoudoin.feature.chat.presentation.generated.resources.conversation_download_failed
 import androidx.lifecycle.SavedStateHandle
@@ -43,7 +45,8 @@ class ConversationViewModel(
     private val openChatTracker: OpenChatTracker,
     private val notificationPreferences: NotificationPreferences,
     private val callManager: CallManager,
-    private val callLauncher: CallLauncher
+    private val callLauncher: CallLauncher,
+    private val internetConnection: InternetConnection
 ) : ViewModel() {
 
     private val chatId = savedStateHandle.toRoute<ChatRoutes.Conversation>().chatId
@@ -79,6 +82,9 @@ class ConversationViewModel(
         openChatTracker.openChatId.value = chatId
         notificationPreferences.observeMutedChats()
             .onEach { muted -> _state.update { it.copy(isMuted = chatId in muted) } }
+            .launchIn(viewModelScope)
+        internetConnection.isOnline
+            .onEach { online -> _state.update { it.copy(isOffline = !online) } }
             .launchIn(viewModelScope)
     }
 
@@ -263,9 +269,16 @@ class ConversationViewModel(
             .launchIn(viewModelScope)
     }
 
+    /** Offline, nothing goes out: the user is reminded, and what they wrote stays in the composer. */
+    private fun remindIfOffline(): Boolean {
+        if (!state.value.isOffline) return false
+        viewModelScope.launch { eventChannel.send(ConversationEvent.Error(UiText.Resource(Res.string.offline_cant_send))) }
+        return true
+    }
+
     private fun send() {
         val body = state.value.draft.trim()
-        if (body.isEmpty()) return
+        if (body.isEmpty() || remindIfOffline()) return
         state.value.editing?.let { editing ->
             _state.update { it.copy(draft = "", editing = null) }
             if (body != editing.text) {
@@ -303,6 +316,7 @@ class ConversationViewModel(
     }
 
     private fun sendAttachment(attachment: Attachment) {
+        if (remindIfOffline()) return
         val caption = state.value.draft.trim().takeIf { it.isNotEmpty() }
         _state.update { it.copy(draft = "", isSendingAttachment = true) }
         viewModelScope.launch {
@@ -314,6 +328,7 @@ class ConversationViewModel(
 
     /** A voice message goes without the draft as its caption. */
     private fun sendVoice(attachment: Attachment) {
+        if (remindIfOffline()) return
         _state.update { it.copy(isSendingAttachment = true) }
         viewModelScope.launch {
             chatRepository.sendAttachment(chatId, attachment, caption = null)

@@ -220,4 +220,11 @@
     <string name="connect_calls_joined">HowYouDoin notifies you when someone starts a %1$s call, which you join in the %1$s app. Calls stay in the chat afterwards.</string>
     <string name="connect_calls_logged">%1$s doesn't let other apps know when a call rings. Missed and ended calls show in the chat afterwards.</string>
     <string name="connect_calls_not_shown">HowYouDoin can't show %1$s calls or notify you about them: %1$s doesn't share them with other apps.</string>
+    <string name="networks_fix_title">Reconnecting %1$s didn't help</string>
+    <string name="networks_fix_reason">Error: %1$s</string>
+    <string name="networks_fix_intro">Logging in again usually fixes it:</string>
+    <string name="networks_fix_step_disconnect">1. Tap Disconnect under %1$s below.</string>
+    <string name="networks_fix_step_connect">2. Then tap Connect and log in again.</string>
+    <string name="networks_fix_now_connect">Disconnected. Now tap Connect below and log in again.</string>
+    <string name="networks_fix_done">%1$s works again.</string>
 </resources>

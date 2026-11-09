@@ -187,4 +187,10 @@
     <string name="call_ended_video_duration">📹 ビデオ通話 · %1$s</string>
     <string name="call_started">📞 通話が始まりました · %1$s で参加</string>
     <string name="call_started_video">📹 ビデオ通話が始まりました · %1$s で参加</string>
+    <string name="problem_reconnect_didnt_help_title">%1$s の再接続で直りませんでした</string>
+    <string name="problem_reconnect_didnt_help_text">タップして直し方を確認：%1$s の接続を解除して、もう一度接続してください。</string>
+    <string name="offline_title">オフラインです</string>
+    <string name="offline_text">この端末に保存されたメッセージは読めます。新しいメッセージはオンラインに戻ると届きます。</string>
+    <string name="offline_chat_note">オフライン：この端末に保存されたメッセージを表示中</string>
+    <string name="offline_cant_send">オフラインのため送信されませんでした。オンラインに戻ってからもう一度お試しください。</string>
 </resources>

@@ -220,4 +220,11 @@
     <string name="connect_calls_joined">HowYouDoin, biri %1$s araması başlattığında sizi bilgilendirir; aramaya %1$s uygulamasından katılırsınız. Aramalar sonrasında sohbette kalır.</string>
     <string name="connect_calls_logged">%1$s, bir arama çaldığında diğer uygulamalara haber vermez. Cevapsız ve biten aramalar daha sonra sohbette görünür.</string>
     <string name="connect_calls_not_shown">HowYouDoin %1$s aramalarını gösteremez ve bildiremez: %1$s bunları diğer uygulamalarla paylaşmaz.</string>
+    <string name="networks_fix_title">%1$s yeniden bağlanması işe yaramadı</string>
+    <string name="networks_fix_reason">Hata: %1$s</string>
+    <string name="networks_fix_intro">Genellikle yeniden giriş yapmak düzeltir:</string>
+    <string name="networks_fix_step_disconnect">1. Aşağıda %1$s altındaki Bağlantıyı kes'e dokun.</string>
+    <string name="networks_fix_step_connect">2. Sonra Bağlan'a dokun ve yeniden giriş yap.</string>
+    <string name="networks_fix_now_connect">Bağlantı kesildi. Şimdi aşağıdaki Bağlan'a dokun ve yeniden giriş yap.</string>
+    <string name="networks_fix_done">%1$s yeniden çalışıyor.</string>
 </resources>

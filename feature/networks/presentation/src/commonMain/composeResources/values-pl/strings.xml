@@ -224,4 +224,11 @@
     <string name="connect_calls_joined">HowYouDoin powiadomi Cię, gdy ktoś rozpocznie połączenie w %1$s, do którego dołączysz w aplikacji %1$s. Połączenia zostają potem w czacie.</string>
     <string name="connect_calls_logged">%1$s nie informuje innych aplikacji, gdy ktoś dzwoni. Nieodebrane i zakończone połączenia pojawią się w czacie później.</string>
     <string name="connect_calls_not_shown">HowYouDoin nie pokaże połączeń z %1$s ani o nich nie powiadomi: %1$s nie udostępnia ich innym aplikacjom.</string>
+    <string name="networks_fix_title">Ponowne łączenie z %1$s nie pomogło</string>
+    <string name="networks_fix_reason">Błąd: %1$s</string>
+    <string name="networks_fix_intro">Zwykle pomaga ponowne zalogowanie:</string>
+    <string name="networks_fix_step_disconnect">1. Stuknij Odłącz pod %1$s poniżej.</string>
+    <string name="networks_fix_step_connect">2. Potem stuknij Połącz i zaloguj się ponownie.</string>
+    <string name="networks_fix_now_connect">Odłączono. Teraz stuknij Połącz poniżej i zaloguj się ponownie.</string>
+    <string name="networks_fix_done">%1$s znów działa.</string>
 </resources>

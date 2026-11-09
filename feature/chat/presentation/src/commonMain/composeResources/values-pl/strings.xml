@@ -193,4 +193,10 @@
     <string name="call_ended_video_duration">📹 Połączenie wideo · %1$s</string>
     <string name="call_started">📞 Rozpoczęto rozmowę · dołącz w aplikacji %1$s</string>
     <string name="call_started_video">📹 Rozpoczęto rozmowę wideo · dołącz w aplikacji %1$s</string>
+    <string name="problem_reconnect_didnt_help_title">Ponowne łączenie z %1$s nie pomogło</string>
+    <string name="problem_reconnect_didnt_help_text">Stuknij, aby zobaczyć, jak to naprawić: odłącz %1$s i połącz ponownie.</string>
+    <string name="offline_title">Jesteś offline</string>
+    <string name="offline_text">Możesz czytać wiadomości zapisane na tym telefonie. Nowe dotrą, gdy wrócisz do sieci.</string>
+    <string name="offline_chat_note">Offline: widzisz wiadomości zapisane na tym telefonie</string>
+    <string name="offline_cant_send">Jesteś offline, więc nie wysłano. Spróbuj ponownie po powrocie do sieci.</string>
 </resources>

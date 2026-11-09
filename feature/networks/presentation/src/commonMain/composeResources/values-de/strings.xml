@@ -220,4 +220,11 @@
     <string name="connect_calls_joined">HowYouDoin benachrichtigt dich, wenn jemand einen %1$s-Anruf startet, dem du in der %1$s-App beitrittst. Anrufe bleiben danach im Chat.</string>
     <string name="connect_calls_logged">%1$s sagt anderen Apps nicht, wenn ein Anruf klingelt. Verpasste und beendete Anrufe erscheinen danach im Chat.</string>
     <string name="connect_calls_not_shown">HowYouDoin kann %1$s-Anrufe weder anzeigen noch dich darüber benachrichtigen: %1$s teilt sie nicht mit anderen Apps.</string>
+    <string name="networks_fix_title">Neu verbinden hat bei %1$s nicht geholfen</string>
+    <string name="networks_fix_reason">Fehler: %1$s</string>
+    <string name="networks_fix_intro">Meist hilft es, sich neu anzumelden:</string>
+    <string name="networks_fix_step_disconnect">1. Tippe unten bei %1$s auf Trennen.</string>
+    <string name="networks_fix_step_connect">2. Tippe dann auf Verbinden und melde dich neu an.</string>
+    <string name="networks_fix_now_connect">Getrennt. Tippe jetzt unten auf Verbinden und melde dich neu an.</string>
+    <string name="networks_fix_done">%1$s funktioniert wieder.</string>
 </resources>

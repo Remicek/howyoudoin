@@ -220,4 +220,11 @@
     <string name="connect_calls_joined">जब कोई %1$s कॉल शुरू करता है, तो HowYouDoin आपको सूचित करता है; आप उसमें %1$s ऐप में शामिल होते हैं। कॉल बाद में चैट में बनी रहती हैं।</string>
     <string name="connect_calls_logged">कॉल बजने पर %1$s दूसरे ऐप को नहीं बताता। मिस्ड और ख़त्म हुई कॉल बाद में चैट में दिखती हैं।</string>
     <string name="connect_calls_not_shown">HowYouDoin %1$s कॉल न दिखा सकता है, न उनकी सूचना दे सकता है: %1$s उन्हें दूसरे ऐप से साझा नहीं करता।</string>
+    <string name="networks_fix_title">%1$s को दोबारा जोड़ने से मदद नहीं मिली</string>
+    <string name="networks_fix_reason">त्रुटि: %1$s</string>
+    <string name="networks_fix_intro">आमतौर पर दोबारा लॉग इन करने से ठीक हो जाता है:</string>
+    <string name="networks_fix_step_disconnect">1. नीचे %1$s के नीचे डिस्कनेक्ट पर टैप करें।</string>
+    <string name="networks_fix_step_connect">2. फिर कनेक्ट पर टैप करके दोबारा लॉग इन करें।</string>
+    <string name="networks_fix_now_connect">डिस्कनेक्ट हो गया। अब नीचे कनेक्ट पर टैप करके दोबारा लॉग इन करें।</string>
+    <string name="networks_fix_done">%1$s फिर से काम कर रहा है।</string>
 </resources>

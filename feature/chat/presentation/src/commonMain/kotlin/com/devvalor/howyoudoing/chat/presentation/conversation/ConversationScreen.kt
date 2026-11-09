@@ -1,5 +1,7 @@
 package com.devvalor.howyoudoing.chat.presentation.conversation
 
+import androidx.compose.material.icons.rounded.CloudOff
+import howyoudoin.feature.chat.presentation.generated.resources.offline_chat_note
 import howyoudoin.feature.chat.presentation.generated.resources.conversation_copied
 import howyoudoin.feature.chat.presentation.generated.resources.conversation_unmute
 import howyoudoin.feature.chat.presentation.generated.resources.conversation_mute
@@ -284,7 +286,8 @@ fun ConversationScreen(
                 },
             )
         },
-        snackbarHost = { SnackbarHost(snackbarHostState) },
+        // Above the keyboard, or a send error while typing goes unseen
+        snackbarHost = { SnackbarHost(snackbarHostState, Modifier.imePadding()) },
         // The composer handles the bottom (navigation bar / keyboard) inset itself
         contentWindowInsets = ScaffoldDefaults.contentWindowInsets
             .only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
@@ -302,6 +305,7 @@ fun ConversationScreen(
                 onAction = onAction,
                 modifier = Modifier.weight(1f),
             )
+            if (state.isOffline) OfflineNote()
             if (state.isInvite) {
                 InviteBar(
                     isAnswering = state.isAnsweringInvite,
@@ -628,5 +632,30 @@ private fun InviteBar(isAnswering: Boolean, onAccept: () -> Unit, onDecline: () 
                 ) { Text(stringResource(Res.string.conversation_accept)) }
             }
         }
+    }
+}
+
+/** Above the composer while there's no internet: the messages here are the ones saved on this phone. */
+@Composable
+private fun OfflineNote() {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.secondaryContainer)
+            .padding(horizontal = HowYouDoinSpacing.md, vertical = HowYouDoinSpacing.sm),
+    ) {
+        Icon(
+            Icons.Rounded.CloudOff,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSecondaryContainer,
+            modifier = Modifier.size(18.dp),
+        )
+        Spacer(Modifier.width(HowYouDoinSpacing.sm))
+        Text(
+            stringResource(Res.string.offline_chat_note),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSecondaryContainer,
+        )
     }
 }

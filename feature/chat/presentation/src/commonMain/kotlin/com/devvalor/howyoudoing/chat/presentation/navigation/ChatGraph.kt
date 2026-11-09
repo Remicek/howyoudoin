@@ -15,6 +15,8 @@ fun NavGraphBuilder.chatGraph(
     onNetworksClick: () -> Unit,
     onSettingsClick: () -> Unit,
     onGuideClick: () -> Unit = {},
+    /** Reconnecting didn't help: how to disconnect and connect the network again. */
+    onFixConnectionClick: (ChatNetwork) -> Unit = { onNetworksClick() },
     inboxBanner: @Composable (encryptedNetworks: Set<ChatNetwork>) -> Unit = {},
 ) {
     navigation<ChatRoutes.Graph>(startDestination = ChatRoutes.Inbox) {
@@ -28,6 +30,7 @@ fun NavGraphBuilder.chatGraph(
                 onContactsClick = { navController.navigate(ChatRoutes.Contacts) { launchSingleTop = true } },
                 onNewMessageClick = { navController.navigate(ChatRoutes.NewMessage) { launchSingleTop = true } },
                 onGuideClick = onGuideClick,
+                onFixConnectionClick = onFixConnectionClick,
                 banner = inboxBanner,
             )
         }

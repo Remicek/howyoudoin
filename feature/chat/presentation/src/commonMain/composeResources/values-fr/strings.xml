@@ -191,4 +191,10 @@
     <string name="call_ended_video_duration">📹 Appel vidéo · %1$s</string>
     <string name="call_started">📞 Un appel a commencé · rejoignez-le dans %1$s</string>
     <string name="call_started_video">📹 Un appel vidéo a commencé · rejoignez-le dans %1$s</string>
+    <string name="problem_reconnect_didnt_help_title">La reconnexion de %1$s n'a pas fonctionné</string>
+    <string name="problem_reconnect_didnt_help_text">Touchez pour voir comment réparer : déconnectez %1$s puis reconnectez-le.</string>
+    <string name="offline_title">Vous êtes hors ligne</string>
+    <string name="offline_text">Vous pouvez lire les messages enregistrés sur ce téléphone. Les nouveaux arriveront une fois de retour en ligne.</string>
+    <string name="offline_chat_note">Hors ligne : messages enregistrés sur ce téléphone</string>
+    <string name="offline_cant_send">Vous êtes hors ligne, rien n'a été envoyé. Réessayez une fois de retour en ligne.</string>
 </resources>

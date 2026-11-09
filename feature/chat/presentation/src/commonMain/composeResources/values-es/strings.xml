@@ -191,4 +191,10 @@
     <string name="call_ended_video_duration">📹 Videollamada · %1$s</string>
     <string name="call_started">📞 Empezó una llamada · únete en %1$s</string>
     <string name="call_started_video">📹 Empezó una videollamada · únete en %1$s</string>
+    <string name="problem_reconnect_didnt_help_title">Reconectar %1$s no ha funcionado</string>
+    <string name="problem_reconnect_didnt_help_text">Toca para ver cómo arreglarlo: desconecta %1$s y vuelve a conectarlo.</string>
+    <string name="offline_title">Estás sin conexión</string>
+    <string name="offline_text">Puedes leer los mensajes guardados en este teléfono. Los nuevos llegarán cuando vuelvas a tener conexión.</string>
+    <string name="offline_chat_note">Sin conexión: mensajes guardados en este teléfono</string>
+    <string name="offline_cant_send">Estás sin conexión, así que no se ha enviado. Inténtalo de nuevo cuando vuelvas a tener conexión.</string>
 </resources>
