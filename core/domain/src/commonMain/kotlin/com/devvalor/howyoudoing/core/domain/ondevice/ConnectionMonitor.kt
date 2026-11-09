@@ -19,7 +19,13 @@ import kotlinx.coroutines.launch
  * A connected network that isn't working: shown in the inbox and as a notification until it's fixed (texts in chat
  * presentation).
  */
-data class ConnectionProblem(val network: ChatNetwork, val kind: Kind, val detail: String? = null) {
+data class ConnectionProblem(
+    val network: ChatNetwork,
+    val kind: Kind,
+    val detail: String? = null,
+    /** A page on the network's website where the user has to act before it works again; Reconnect opens it. */
+    val actionUrl: String? = null
+) {
     enum class Kind {
         /** Connecting failed (it keeps retrying in the background). */
         FAILED,
@@ -38,6 +44,12 @@ data class ConnectionProblem(val network: ChatNetwork, val kind: Kind, val detai
     }
 }
 
+/**
+ * A network's website page the user has to act on (accept its terms, confirm it's them) before it works again, opened
+ * signed in with the account's [cookies].
+ */
+data class AccountAction(val network: ChatNetwork, val url: String, val cookies: Map<String, String>)
+
 /** Watches the networks connected on this phone and reports the ones that stopped working. */
 @OptIn(ExperimentalCoroutinesApi::class)
 class ConnectionMonitor(
@@ -51,6 +63,11 @@ class ConnectionMonitor(
 
     private val _problems = MutableStateFlow<List<ConnectionProblem>>(emptyList())
     val problems: StateFlow<List<ConnectionProblem>> = _problems.asStateFlow()
+
+    private val _pendingAction = MutableStateFlow<AccountAction?>(null)
+
+    /** The page the user opened with Reconnect to act on; shown until they're done (see [finishAction]). */
+    val pendingAction: StateFlow<AccountAction?> = _pendingAction.asStateFlow()
 
     private val _linkedNetworks = MutableStateFlow<Set<ChatNetwork>>(emptySet())
 
@@ -95,7 +112,10 @@ class ConnectionMonitor(
         }
     }
 
-    /** The user asked to reconnect the networks that are stuck reconnecting or failed: each starts over. */
+    /**
+     * The user asked to reconnect the networks that are stuck reconnecting or failed: each starts over. One that
+     * waits for the user on its website opens that page instead (see [pendingAction]); it reconnects when they're done.
+     */
     fun reconnect() {
         scope.launch {
             val stuck = _problems.value.filter {
@@ -103,14 +123,39 @@ class ConnectionMonitor(
             }
             for (problem in stuck) {
                 val client = clients.firstOrNull { it.network == problem.network } ?: continue
-                if (problem.kind == ConnectionProblem.Kind.RECONNECTING) {
-                    // Gone while it tries; asks again if this attempt doesn't get it back either
-                    clear(problem.network)
-                    reconnectTimers.remove(problem.network)?.cancel()
-                    watchReconnect(client)
+                val actionUrl = problem.actionUrl
+                when {
+                    actionUrl != null -> if (_pendingAction.value == null) {
+                        _pendingAction.value = AccountAction(problem.network, actionUrl, client.sessionCookies())
+                    }
+
+                    else -> {
+                        if (problem.kind == ConnectionProblem.Kind.RECONNECTING) {
+                            // Gone while it tries; asks again if this attempt doesn't get it back either
+                            clear(problem.network)
+                            reconnectTimers.remove(problem.network)?.cancel()
+                            watchReconnect(client)
+                        }
+                        scope.launch { client.reconnect() }
+                    }
                 }
-                scope.launch { client.reconnect() }
             }
+        }
+    }
+
+    /**
+     * The user closed the page from [pendingAction]. Done ([cookies] being what the website has now, which may have
+     * renewed the login's): the network reconnects; cancelled: the problem stays.
+     */
+    fun finishAction(cookies: Map<String, String>?) {
+        scope.launch {
+            val action = _pendingAction.value ?: return@launch
+            _pendingAction.value = null
+            if (cookies == null) return@launch
+            val client = clients.firstOrNull { it.network == action.network } ?: return@launch
+            client.updateSessionCookies(cookies)
+            clear(action.network)
+            scope.launch { client.reconnect() }
         }
     }
 
@@ -138,7 +183,7 @@ class ConnectionMonitor(
                         ConnectionProblem.Kind.LOGIN_EXPIRED,
                         state.message
                     )
-                    else ConnectionProblem(network, ConnectionProblem.Kind.FAILED, state.message)
+                    else ConnectionProblem(network, ConnectionProblem.Kind.FAILED, state.message, state.actionUrl)
                 )
 
                 OnDeviceMessengerState.Connecting -> if (wasConnected && reconnectTimers[network]?.isActive != true) {

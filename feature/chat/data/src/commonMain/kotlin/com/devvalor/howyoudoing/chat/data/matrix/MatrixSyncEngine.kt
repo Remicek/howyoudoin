@@ -565,7 +565,7 @@ class MatrixSyncEngine(
             put("size", attachment.bytes.size)
             attachment.width?.let { put("w", it) }
             attachment.height?.let { put("h", it) }
-            attachment.voice?.let { put("duration", it.durationMillis) }
+            (attachment.voice?.durationMillis ?: attachment.durationMillis)?.let { put("duration", it) }
         }
         // A voice message (MSC3245): bridges send it as the network's voice note
         attachment.voice?.let { voice ->

@@ -116,6 +116,14 @@ func (m *Messenger) sendEncryptedMedia(threadKey string, isGroup bool, path stri
 		return "", errNotConnectedE2EE
 	}
 	kind, mediaType := mediaKind(mimeType)
+	var video videoMeta
+	if kind == "video" {
+		// Messenger's apps show an empty bubble for a video without its size and length
+		video = mp4Meta(data)
+		if width == 0 || height == 0 {
+			width, height = video.width, video.height
+		}
+	}
 	ctx := context.Background()
 	up, err := m.e2ee.Upload(ctx, data, mediaType)
 	if err != nil {
@@ -160,8 +168,10 @@ func (m *Messenger) sendEncryptedMedia(threadKey string, isGroup bool, path stri
 	case "video":
 		msg := &waConsumerApplication.ConsumerApplication_VideoMessage{Caption: captionText}
 		err = msg.Set(&waMediaTransport.VideoTransport{
-			Integral:  &waMediaTransport.VideoTransport_Integral{Transport: transport},
-			Ancillary: &waMediaTransport.VideoTransport_Ancillary{Width: proto.Uint32(uint32(width)), Height: proto.Uint32(uint32(height))},
+			Integral: &waMediaTransport.VideoTransport_Integral{Transport: transport},
+			Ancillary: &waMediaTransport.VideoTransport_Ancillary{
+				Width: proto.Uint32(uint32(width)), Height: proto.Uint32(uint32(height)), Seconds: optionalSeconds(video.seconds),
+			},
 		})
 		content = &waConsumerApplication.ConsumerApplication_Content_VideoMessage{VideoMessage: msg}
 	case "audio":
@@ -214,6 +224,8 @@ func (m *Messenger) sendEncryptedMedia(threadKey string, isGroup bool, path stri
 			}
 			if voiceMs > 0 {
 				event["durationMs"] = voiceMs
+			} else if video.seconds > 0 {
+				event["durationMs"] = int64(video.seconds) * 1000
 			}
 			m.emit(event)
 		}

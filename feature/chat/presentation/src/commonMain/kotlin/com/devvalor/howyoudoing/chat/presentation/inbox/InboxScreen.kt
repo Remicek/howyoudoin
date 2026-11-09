@@ -65,9 +65,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Surface
 import com.devvalor.howyoudoing.core.domain.ondevice.ConnectionProblem
 import androidx.compose.foundation.lazy.items
@@ -239,7 +239,8 @@ fun InboxScreen(
                     onRefresh = { onAction(InboxAction.OnRefresh) },
                     modifier = Modifier.fillMaxSize(),
                 ) {
-                    val listState = rememberLazyListState()
+                    // Each filter shows its list from the top, straight away (one list state would scroll there)
+                    val listState = rememberSaveable(state.filter, saver = LazyListState.Saver) { LazyListState() }
                     StayAtTop(listState, topChatId = state.chats.firstOrNull()?.id)
                     LazyColumn(
                         state = listState,

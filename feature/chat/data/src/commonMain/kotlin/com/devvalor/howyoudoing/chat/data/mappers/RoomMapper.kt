@@ -160,7 +160,9 @@ private fun MatrixEventDto.mediaInfo(type: MessageType): MediaInfo? {
         sizeBytes = info?.string("size")?.toLongOrNull(),
         width = info?.string("w")?.toIntOrNull(),
         height = info?.string("h")?.toIntOrNull(),
-        durationMillis = info?.string("duration")?.toLongOrNull()
+        durationMillis = info?.string("duration")?.toLongOrNull(),
+        // Videos' still (unencrypted rooms; encrypted ones carry it in "thumbnail_file")
+        thumbnailUrl = info?.string("thumbnail_url")
     )
 }
 

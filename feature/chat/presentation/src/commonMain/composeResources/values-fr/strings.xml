@@ -97,6 +97,7 @@
     <string name="inbox_empty">Aucune discussion pour l'instant</string>
     <string name="media_photo">Photo</string>
     <string name="media_video">Vidéo</string>
+    <string name="media_play_video">Lire la vidéo</string>
     <string name="media_audio">Audio</string>
     <string name="media_file">Fichier</string>
     <string name="media_tap_to_open">Touchez pour ouvrir</string>

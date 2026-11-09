@@ -167,6 +167,24 @@ open class NativeOnDeviceMessenger(
         scope.launch { connectIfLinked() }
     }
 
+    /** The page the network last said the user has to act on, kept for the next failure. */
+    @kotlin.concurrent.Volatile
+    private var actionUrl: String? = null
+
+    override fun sessionCookies(): Map<String, String> =
+        secrets.read()?.let { saved ->
+            runCatching { Json.parseToJsonElement(saved).jsonObject }.getOrNull()
+                ?.mapNotNull { (name, value) -> (value as? JsonPrimitive)?.contentOrNull?.let { name to it } }?.toMap()
+        }.orEmpty()
+
+    override fun updateSessionCookies(cookies: Map<String, String>) {
+        val saved = sessionCookies()
+        // Only the login's own cookies, renewed; the website's others aren't part of it
+        val renewed = cookies.filterKeys { it in saved }.filterValues { it.isNotBlank() }
+        if (saved.isEmpty() || renewed.isEmpty()) return
+        secrets.write(JsonObject((saved + renewed).mapValues { JsonPrimitive(it.value) }).toString())
+    }
+
     private var lastLinkError: String? = null
     override val linkError: String? get() = lastLinkError
 
@@ -213,6 +231,7 @@ open class NativeOnDeviceMessenger(
             client?.disconnect()
             client = null
             _events.resetReplayCache()
+            actionUrl = null
             _state.value = OnDeviceMessengerState.Connecting
             try {
                 val created = factory.create(cookiesJson, dataDir.path, ::onNativeEvent)
@@ -221,7 +240,7 @@ open class NativeOnDeviceMessenger(
                 Result.Success(Unit)
             } catch (e: Exception) {
                 log("Connecting failed: ${e.message}")
-                _state.value = OnDeviceMessengerState.Failed(e.message ?: "Couldn't connect")
+                _state.value = OnDeviceMessengerState.Failed(e.message ?: "Couldn't connect", actionUrl)
                 Result.Failure(DataError.Remote.UNKNOWN)
             }
         }
@@ -479,9 +498,15 @@ open class NativeOnDeviceMessenger(
                     .also { log("state $it ${event["error"]?.jsonPrimitive?.contentOrNull.orEmpty()}") }
             ) {
                 "error" -> _state.value =
-                    OnDeviceMessengerState.Failed(event["error"]?.jsonPrimitive?.contentOrNull ?: "Disconnected")
+                    OnDeviceMessengerState.Failed(
+                        event["error"]?.jsonPrimitive?.contentOrNull ?: "Disconnected",
+                        actionUrl
+                    )
 
                 "reconnecting" -> _state.value = OnDeviceMessengerState.Connecting
+
+                // Comes just before connecting fails; the failure carries it
+                "action_required" -> actionUrl = event["url"]?.jsonPrimitive?.contentOrNull
 
                 // Back after a dropped connection (the first connect says so with "self")
                 "connected" -> if (_state.value == OnDeviceMessengerState.Connecting && client != null) {

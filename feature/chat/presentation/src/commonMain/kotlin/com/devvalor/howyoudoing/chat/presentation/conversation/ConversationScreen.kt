@@ -96,6 +96,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -116,6 +117,7 @@ import com.devvalor.howyoudoing.chat.presentation.conversation.components.MediaR
 import com.devvalor.howyoudoing.chat.presentation.conversation.components.MessageActionsSheet
 import com.devvalor.howyoudoing.chat.presentation.conversation.components.MessageBubble
 import com.devvalor.howyoudoing.chat.presentation.platform.isAttachmentPickerSupported
+import com.devvalor.howyoudoing.chat.presentation.platform.VideoPlayerDialog
 import com.devvalor.howyoudoing.chat.presentation.platform.rememberAttachmentPicker
 import com.devvalor.howyoudoing.chat.presentation.platform.rememberFileOpener
 import androidx.compose.ui.platform.LocalClipboardManager
@@ -363,6 +365,19 @@ fun ConversationScreen(
     state.viewingImage?.media?.let { media ->
         ImageViewer(media = media, resolver = resolver, onClose = { onAction(ConversationAction.OnCloseImage) })
     }
+    VideoOverlay(state, onAction)
+}
+
+/** A video playing in the app, or downloading to play. */
+@Composable
+private fun VideoOverlay(state: ConversationState, onAction: (ConversationAction) -> Unit) {
+    state.playingVideo?.let { video ->
+        VideoPlayerDialog(video = video, onClose = { onAction(ConversationAction.OnCloseVideo) })
+    }
+    if (state.isLoadingVideo) {
+        // The video downloads before it plays
+        Dialog(onDismissRequest = {}) { CircularProgressIndicator() }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -441,7 +456,12 @@ private fun MessageList(
         modifier = modifier.fillMaxWidth(),
     ) {
         items(reversed, key = { it.id }) { message ->
-            MessageItem(message, isMatch = message.id == state.currentMatchId, resolver, onAction)
+            MessageItem(
+                message,
+                isMatch = message.id == state.currentMatchId || message.id == state.highlightedMessageId,
+                resolver,
+                onAction
+            )
         }
         if (!state.hasMoreHistory && !state.isLoadingOlder) {
             item(key = "history-start") { HistoryStartNote(state) }
@@ -522,6 +542,13 @@ private fun MessageListScrolling(
         val index = reversed.indexOfFirst { it.id == state.currentMatchId }
         if (index >= 0) listState.animateScrollToItem(index)
     }
+    // A reply's original, brought into view a little above the bottom so it isn't hidden under the composer
+    LaunchedEffect(state.highlightedMessageId) {
+        val index = reversed.indexOfFirst { it.id == state.highlightedMessageId }
+        if (index < 0) return@LaunchedEffect
+        followNewest = false
+        listState.animateScrollToItem(index, scrollOffset = -listState.layoutInfo.viewportSize.height / 3)
+    }
 }
 
 @Composable
@@ -544,6 +571,7 @@ private fun MessageItem(
             resolver = resolver,
             onLongPress = { onAction(ConversationAction.OnMessageLongPress(message.id)) },
             onMediaClick = { onAction(ConversationAction.OnMediaClick(message.id)) },
+            onQuoteClick = { onAction(ConversationAction.OnQuoteClick(it)) },
             onReactionClick = { onAction(ConversationAction.OnReactionClick(message.id, it)) },
         )
     }

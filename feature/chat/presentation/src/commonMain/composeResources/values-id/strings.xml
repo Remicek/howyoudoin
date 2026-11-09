@@ -97,6 +97,7 @@
     <string name="inbox_empty">Belum ada chat</string>
     <string name="media_photo">Foto</string>
     <string name="media_video">Video</string>
+    <string name="media_play_video">Putar video</string>
     <string name="media_audio">Audio</string>
     <string name="media_file">File</string>
     <string name="media_tap_to_open">Ketuk untuk membuka</string>

@@ -97,6 +97,7 @@
     <string name="inbox_empty">Henüz sohbet yok</string>
     <string name="media_photo">Fotoğraf</string>
     <string name="media_video">Video</string>
+    <string name="media_play_video">Videoyu oynat</string>
     <string name="media_audio">Ses</string>
     <string name="media_file">Dosya</string>
     <string name="media_tap_to_open">Açmak için dokunun</string>

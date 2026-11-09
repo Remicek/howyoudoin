@@ -97,6 +97,7 @@
     <string name="inbox_empty">まだチャットはありません</string>
     <string name="media_photo">写真</string>
     <string name="media_video">動画</string>
+    <string name="media_play_video">動画を再生</string>
     <string name="media_audio">音声</string>
     <string name="media_file">ファイル</string>
     <string name="media_tap_to_open">タップして開く</string>

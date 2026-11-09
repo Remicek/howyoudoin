@@ -413,4 +413,106 @@ class OnDeviceMessengerStoreTest {
         assertNull(restarted.failedMessage("pending-local-1"))
         assertEquals(listOf("Hi", "photo.jpg"), restarted.messages("2").map { it.body })
     }
+
+    private fun TestScope.whatsAppStore() = OnDeviceMessengerStore(
+        client,
+        MemoryCache(),
+        CoroutineScope(backgroundScope.coroutineContext + UnconfinedTestDispatcher(testScheduler)),
+        OnDeviceMessengerStore.WHATSAPP_CHAT_ID_PREFIX
+    )
+
+    private suspend fun attachment(thread: String, id: String, kind: String) = emit(
+        """{"type":"attachment","threadKey":"$thread","messageId":"$id","kind":"$kind","url":"file:///m/$id"}"""
+    )
+
+    @Test
+    fun whatsapp_album_announcements_are_hidden_and_replies_to_them_quote_the_first_photo() = runTest {
+        val store = whatsAppStore()
+        self()
+        contact("2", "Anna Nowak")
+        message("g@g.us", "album", "2", "", 1_000, kind = "album")
+        message("g@g.us", "p1", "2", "", 1_100, kind = "image")
+        attachment("g@g.us", "p1", "image")
+        message("g@g.us", "p2", "2", "", 1_200, kind = "image")
+        attachment("g@g.us", "p2", "image")
+        message("g@g.us", "r", "1", "Nice", 5_000, extra = ""","replyToId":"album"""")
+
+        val messages = store.messages("g@g.us")
+        assertEquals(listOf("p1", "p2", "r"), messages.map { it.id })
+        val reply = assertNotNull(messages.last().replyTo)
+        assertEquals("p1", reply.messageId)
+        assertEquals("📷 Photo", reply.body)
+    }
+
+    @Test
+    fun whatsapp_albums_cached_as_unknown_messages_are_recognised_too() = runTest {
+        val store = whatsAppStore()
+        self()
+        message("g@g.us", "album", "2", "", 1_000, kind = "other")
+        message("g@g.us", "p1", "2", "", 1_500, kind = "image")
+        attachment("g@g.us", "p1", "image")
+
+        assertEquals(listOf("p1"), store.messages("g@g.us").map { it.id })
+    }
+
+    @Test
+    fun cached_whatsapp_hd_copies_that_could_not_download_are_hidden() = runTest {
+        val store = whatsAppStore()
+        self()
+        message("g@g.us", "v1", "2", "", 1_000, kind = "video")
+        attachment("g@g.us", "v1", "video")
+        // The HD copy, cached before HD copies were recognised: no file and nothing to download it with
+        message("g@g.us", "v1hd", "2", "", 20_000, kind = "video")
+        // A video sent much later that failed to download stays
+        message("g@g.us", "v2", "2", "", 900_000, kind = "video")
+
+        assertEquals(listOf("v1", "v2"), store.messages("g@g.us").map { it.id })
+    }
+
+    @Test
+    fun whatsapp_media_that_failed_to_download_can_still_be_downloaded_and_videos_have_their_preview() = runTest {
+        val store = whatsAppStore()
+        self()
+        message("2@s.whatsapp.net", "p1", "2", "", 1_000, kind = "image", extra = ""","mediaRef":"cmVm"""")
+        message(
+            "2@s.whatsapp.net", "v1", "2", "", 2_000, kind = "video",
+            extra = ""","mediaRef":"cmVm","thumbnailUrl":"file:///m/v1.jpg","durationMs":13000"""
+        )
+
+        val (photo, video) = store.messages("2@s.whatsapp.net")
+        assertEquals(MessageType.IMAGE, photo.type)
+        assertEquals(OnDeviceMessengerStore.onRequestMediaUrl("wadevice:2@s.whatsapp.net", "p1"), photo.media?.url)
+        assertEquals(MessageType.VIDEO, video.type)
+        assertEquals("file:///m/v1.jpg", video.media?.thumbnailUrl)
+        assertEquals(13_000L, video.media?.durationMillis)
+    }
+
+    @Test
+    fun messenger_videos_use_the_preview_picture_sent_with_them_also_when_cached_without_it() = runTest {
+        val store = store()
+        self()
+        message("2", "v1", "2", "", 1_000, kind = "video")
+        // Cached before previews were kept
+        emit("""{"type":"attachment","threadKey":"2","messageId":"v1","kind":"video","url":"https://cdn/v.mp4"}""")
+        assertNull(store.messages("2").single().media?.thumbnailUrl)
+
+        emit(
+            """{"type":"attachment","threadKey":"2","messageId":"v1","kind":"video","url":"https://cdn/v.mp4",""" +
+                """"previewUrl":"https://cdn/v.jpg"}"""
+        )
+        assertEquals("https://cdn/v.jpg", store.messages("2").single().media?.thumbnailUrl)
+    }
+
+    @Test
+    fun a_video_not_downloaded_yet_shows_in_its_shape_and_gets_its_preview_picture_later() = runTest {
+        val store = store()
+        self()
+        message("2", "v1", "2", "", 1_000, kind = "video", extra = ""","mediaRef":"doc","width":480,"height":854""")
+        val media = store.messages("2").single().media
+        assertEquals(480 to 854, media?.width to media?.height)
+        assertNull(media?.thumbnailUrl)
+
+        emit("""{"type":"thumbnail","threadKey":"2","messageId":"v1","url":"file:///m/v1-thumb"}""")
+        assertEquals("file:///m/v1-thumb", store.messages("2").single().media?.thumbnailUrl)
+    }
 }

@@ -54,6 +54,7 @@ func (m *Messenger) downloadEncryptedMedia(threadKey, messageID string, content 
 		}
 		transport, mediaType, kind = t.GetIntegral().GetTransport(), whatsmeow.MediaVideo, "video"
 		seconds = t.GetAncillary().GetSeconds()
+		width, height = t.GetAncillary().GetWidth(), t.GetAncillary().GetHeight()
 	case content.GetAudioMessage() != nil:
 		t, err := content.GetAudioMessage().Decode()
 		if err != nil {
@@ -99,6 +100,15 @@ func (m *Messenger) downloadEncryptedMedia(threadKey, messageID string, content 
 		file := filepath.Join(dir, hex.EncodeToString(sum[:16]))
 		if err = writeFileAtomic(file, data); err != nil {
 			return
+		}
+		if kind == "video" {
+			// The file's own size and length win: the sender's may be missing, or not turned for a portrait video
+			if video := mp4Meta(data); video.width > 0 {
+				width, height = uint32(video.width), uint32(video.height)
+				if seconds == 0 {
+					seconds = video.seconds
+				}
+			}
 		}
 		event := map[string]any{
 			"type": "attachment", "threadKey": threadKey, "messageId": messageID, "kind": kind,

@@ -104,6 +104,7 @@
     <string name="inbox_empty">No chats yet</string>
     <string name="media_photo">Photo</string>
     <string name="media_video">Video</string>
+    <string name="media_play_video">Play video</string>
     <string name="media_audio">Audio</string>
     <string name="media_file">File</string>
     <string name="media_tap_to_open">Tap to open</string>

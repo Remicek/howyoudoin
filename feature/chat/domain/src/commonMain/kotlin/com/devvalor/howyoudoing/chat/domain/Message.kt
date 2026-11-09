@@ -75,7 +75,9 @@ data class MediaInfo(
     val sizeBytes: Long?,
     val width: Int?,
     val height: Int?,
-    val durationMillis: Long?
+    val durationMillis: Long?,
+    /** A still from a video, shown in the chat before it plays. */
+    val thumbnailUrl: String? = null
 )
 
 /** A file picked by the user, or a voice message they recorded, ready to upload. */

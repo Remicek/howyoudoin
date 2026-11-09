@@ -18,6 +18,7 @@ import com.devvalor.howyoudoing.chat.domain.MessageType
 import com.devvalor.howyoudoing.chat.presentation.model.toMessageUis
 import com.devvalor.howyoudoing.chat.presentation.model.typingText
 import com.devvalor.howyoudoing.chat.presentation.navigation.ChatRoutes
+import com.devvalor.howyoudoing.chat.presentation.platform.PlayableVideo
 import com.devvalor.howyoudoing.core.domain.util.onFailure
 import com.devvalor.howyoudoing.core.domain.util.onSuccess
 import com.devvalor.howyoudoing.core.presentation.util.UiText
@@ -101,6 +102,8 @@ class ConversationViewModel(
 
             is ConversationAction.OnMediaClick -> openMedia(action.messageId)
             ConversationAction.OnCloseImage -> _state.update { it.copy(viewingImage = null) }
+            ConversationAction.OnCloseVideo -> _state.update { it.copy(playingVideo = null) }
+            is ConversationAction.OnQuoteClick -> jumpToMessage(action.messageId)
             ConversationAction.OnToggleMute -> viewModelScope.launch {
                 notificationPreferences.setMuted(chatId, !state.value.isMuted)
             }
@@ -322,12 +325,29 @@ class ConversationViewModel(
     /** Media bytes for in-app playback (voice messages). */
     suspend fun loadMedia(url: String): ByteArray? = chatRepository.downloadMedia(url)
 
-    /** Images open in the in-app viewer; anything else is downloaded and handed to another app. */
+    /** Images open in the in-app viewer and videos play in the app; anything else is handed to another app. */
     private fun openMedia(messageId: String) {
         val message = state.value.messages.firstOrNull { it.id == messageId } ?: return
         val media = message.media ?: return
         if (message.type == MessageType.IMAGE || message.type == MessageType.STICKER) {
             _state.update { it.copy(viewingImage = message) }
+            return
+        }
+        if (message.type == MessageType.VIDEO) {
+            if (state.value.isLoadingVideo) return
+            _state.update { it.copy(isLoadingVideo = true) }
+            viewModelScope.launch {
+                val bytes = chatRepository.downloadMedia(media.url)
+                _state.update {
+                    it.copy(
+                        isLoadingVideo = false,
+                        playingVideo = bytes?.let { b -> PlayableVideo(b, media.mimeType, media.fileName) }
+                    )
+                }
+                if (bytes == null) {
+                    eventChannel.send(ConversationEvent.Error(UiText.Resource(Res.string.conversation_download_failed)))
+                }
+            }
             return
         }
         viewModelScope.launch {
@@ -363,6 +383,35 @@ class ConversationViewModel(
 
     private companion object {
         const val TYPING_IDLE_MILLIS = 4_000L
+        const val MAX_PAGES_TO_ORIGINAL = 20
+        const val PAGE_ARRIVAL_CHECKS = 10
+        const val PAGE_ARRIVAL_CHECK_MILLIS = 100L
+        const val HIGHLIGHT_MILLIS = 1_800L
+    }
+
+    /**
+     * Brings a reply's original message into view and highlights it for a moment, loading older messages until it
+     * is there (or the chat's history ends).
+     */
+    private fun jumpToMessage(messageId: String) {
+        viewModelScope.launch {
+            fun isLoaded() = _state.value.messages.any { it.id == messageId }
+            var pages = 0
+            while (!isLoaded() && _state.value.hasMoreHistory && pages < MAX_PAGES_TO_ORIGINAL) {
+                pages++
+                chatRepository.loadOlderMessages(chatId)
+                // The loaded page reaches the state through the chat's message flow
+                var checks = 0
+                while (!isLoaded() && checks < PAGE_ARRIVAL_CHECKS) {
+                    delay(PAGE_ARRIVAL_CHECK_MILLIS)
+                    checks++
+                }
+            }
+            if (!isLoaded()) return@launch
+            _state.update { it.copy(highlightedMessageId = messageId) }
+            delay(HIGHLIGHT_MILLIS)
+            _state.update { if (it.highlightedMessageId == messageId) it.copy(highlightedMessageId = null) else it }
+        }
     }
 
     private fun loadOlder() {

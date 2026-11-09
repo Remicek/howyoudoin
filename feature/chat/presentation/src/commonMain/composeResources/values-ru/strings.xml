@@ -97,6 +97,7 @@
     <string name="inbox_empty">Чатов пока нет</string>
     <string name="media_photo">Фото</string>
     <string name="media_video">Видео</string>
+    <string name="media_play_video">Воспроизвести видео</string>
     <string name="media_audio">Аудио</string>
     <string name="media_file">Файл</string>
     <string name="media_tap_to_open">Нажмите, чтобы открыть</string>

@@ -97,6 +97,7 @@
     <string name="inbox_empty">अभी कोई चैट नहीं</string>
     <string name="media_photo">फ़ोटो</string>
     <string name="media_video">वीडियो</string>
+    <string name="media_play_video">वीडियो चलाएँ</string>
     <string name="media_audio">ऑडियो</string>
     <string name="media_file">फ़ाइल</string>
     <string name="media_tap_to_open">खोलने के लिए टैप करें</string>

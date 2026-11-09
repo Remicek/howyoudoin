@@ -97,6 +97,7 @@
     <string name="inbox_empty">لا محادثات بعد</string>
     <string name="media_photo">صورة</string>
     <string name="media_video">فيديو</string>
+    <string name="media_play_video">تشغيل الفيديو</string>
     <string name="media_audio">صوت</string>
     <string name="media_file">ملف</string>
     <string name="media_tap_to_open">اضغط للفتح</string>
