@@ -1,5 +1,7 @@
 package com.devvalor.howyoudoing.chat.presentation.platform
 
+import android.os.Build
+import android.graphics.Bitmap
 import android.media.MediaMetadataRetriever
 import android.view.Gravity
 import android.widget.FrameLayout
@@ -105,12 +107,7 @@ actual fun rememberVideoFrame(url: String, headers: Map<String, String>): ImageB
                 } else {
                     retriever.setDataSource(url, headers)
                 }
-                retriever.getScaledFrameAtTime(
-                    FRAME_AT_MICROS,
-                    MediaMetadataRetriever.OPTION_CLOSEST_SYNC,
-                    FRAME_SIZE,
-                    FRAME_SIZE
-                )?.asImageBitmap()
+                retriever.frameAt(FRAME_AT_MICROS)?.asImageBitmap()
             } catch (e: Exception) {
                 null
             } finally {
@@ -120,6 +117,19 @@ actual fun rememberVideoFrame(url: String, headers: Map<String, String>): ImageB
     }
     return state.value
 }
+
+/** The frame at [micros], at most [FRAME_SIZE] on its longer side (Android 8.0 can only take it full size). */
+private fun MediaMetadataRetriever.frameAt(micros: Long): Bitmap? =
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+        getScaledFrameAtTime(micros, MediaMetadataRetriever.OPTION_CLOSEST_SYNC, FRAME_SIZE, FRAME_SIZE)
+    } else {
+        getFrameAtTime(micros, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)?.let { frame ->
+            val scale = FRAME_SIZE.toFloat() / maxOf(frame.width, frame.height)
+            if (scale >= 1f) frame else {
+                Bitmap.createScaledBitmap(frame, (frame.width * scale).toInt(), (frame.height * scale).toInt(), true)
+            }
+        }
+    }
 
 /** A frame a moment in, past a black first frame. */
 private const val FRAME_AT_MICROS = 500_000L

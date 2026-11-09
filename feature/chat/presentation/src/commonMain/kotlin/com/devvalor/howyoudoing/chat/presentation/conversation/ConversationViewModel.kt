@@ -39,6 +39,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+@Suppress("LongParameterList") // Built by Koin; each is something the chat screen uses
 class ConversationViewModel(
     savedStateHandle: SavedStateHandle,
     private val chatRepository: ChatRepository,
@@ -272,7 +273,9 @@ class ConversationViewModel(
     /** Offline, nothing goes out: the user is reminded, and what they wrote stays in the composer. */
     private fun remindIfOffline(): Boolean {
         if (!state.value.isOffline) return false
-        viewModelScope.launch { eventChannel.send(ConversationEvent.Error(UiText.Resource(Res.string.offline_cant_send))) }
+        viewModelScope.launch {
+            eventChannel.send(ConversationEvent.Error(UiText.Resource(Res.string.offline_cant_send)))
+        }
         return true
     }
 

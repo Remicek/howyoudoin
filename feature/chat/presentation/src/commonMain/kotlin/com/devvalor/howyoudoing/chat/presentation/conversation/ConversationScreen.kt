@@ -305,32 +305,7 @@ fun ConversationScreen(
                 onAction = onAction,
                 modifier = Modifier.weight(1f),
             )
-            if (state.isOffline) OfflineNote()
-            if (state.isInvite) {
-                InviteBar(
-                    isAnswering = state.isAnsweringInvite,
-                    onAccept = { onAction(ConversationAction.OnAcceptInviteClick) },
-                    onDecline = { onAction(ConversationAction.OnDeclineInviteClick) },
-                )
-            } else Composer(
-                draft = state.draft,
-                canSend = state.canSend,
-                replyingTo = state.replyingTo,
-                isSendingAttachment = state.isSendingAttachment,
-                canAttach = canAttach,
-                onDraftChange = { onAction(ConversationAction.OnDraftChange(it)) },
-                onSend = { onAction(ConversationAction.OnSendClick) },
-                onAttach = onAttach,
-                onCancelReply = { onAction(ConversationAction.OnCancelReply) },
-                editing = state.editing,
-                onCancelEdit = { onAction(ConversationAction.OnCancelEdit) },
-                chatName = state.chatName.takeIf { !state.isGroup },
-                canRecord = voice?.canRecord == true,
-                recording = voice?.recording,
-                onRecordStart = { voice?.start?.invoke() },
-                onRecordCancel = { voice?.cancel?.invoke() },
-                onRecordSend = { voice?.send?.invoke() },
-            )
+            ConversationBottom(state, onAction, canAttach, onAttach, voice)
         }
     }
 
@@ -633,6 +608,43 @@ private fun InviteBar(isAnswering: Boolean, onAccept: () -> Unit, onDecline: () 
             }
         }
     }
+}
+
+/** Under the messages: the offline note, then the invitation's answer buttons or the composer. */
+@Composable
+private fun ConversationBottom(
+    state: ConversationState,
+    onAction: (ConversationAction) -> Unit,
+    canAttach: Boolean,
+    onAttach: () -> Unit,
+    voice: VoiceMessagesUi?,
+) {
+    if (state.isOffline) OfflineNote()
+    if (state.isInvite) {
+        InviteBar(
+            isAnswering = state.isAnsweringInvite,
+            onAccept = { onAction(ConversationAction.OnAcceptInviteClick) },
+            onDecline = { onAction(ConversationAction.OnDeclineInviteClick) },
+        )
+    } else Composer(
+        draft = state.draft,
+        canSend = state.canSend,
+        replyingTo = state.replyingTo,
+        isSendingAttachment = state.isSendingAttachment,
+        canAttach = canAttach,
+        onDraftChange = { onAction(ConversationAction.OnDraftChange(it)) },
+        onSend = { onAction(ConversationAction.OnSendClick) },
+        onAttach = onAttach,
+        onCancelReply = { onAction(ConversationAction.OnCancelReply) },
+        editing = state.editing,
+        onCancelEdit = { onAction(ConversationAction.OnCancelEdit) },
+        chatName = state.chatName.takeIf { !state.isGroup },
+        canRecord = voice?.canRecord == true,
+        recording = voice?.recording,
+        onRecordStart = { voice?.start?.invoke() },
+        onRecordCancel = { voice?.cancel?.invoke() },
+        onRecordSend = { voice?.send?.invoke() },
+    )
 }
 
 /** Above the composer while there's no internet: the messages here are the ones saved on this phone. */

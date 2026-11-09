@@ -1,2 +1,5 @@
 # False positive: the code that stores X Chat's signing key, not a key
 ec2d957b849767c6c1f43ec89547cd799a7d7fc0:bridge-mobile/hydbridge/twitter.go:generic-api-key:710
+
+# False positive: the media key of a test video frame (testdata/messenger_preview.enc) from our own test accounts
+5cc9801e00be224bdd48b4fa7d8d6d0419525ba7:bridge-mobile/hydbridge/messenger_preview_test.go:generic-api-key:17

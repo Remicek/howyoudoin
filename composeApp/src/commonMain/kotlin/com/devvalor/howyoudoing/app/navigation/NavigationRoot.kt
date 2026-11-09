@@ -31,17 +31,20 @@ fun NavigationRoot(
         )
         chatGraph(
             navController = navController,
-            onNetworksClick = {
-                navController.navigate(NetworksRoutes.Graph) { launchSingleTop = true }
+            onNetworksClick = { troubleshoot ->
+                if (troubleshoot == null) {
+                    navController.navigate(NetworksRoutes.Graph) { launchSingleTop = true }
+                } else {
+                    navController.navigate(NetworksRoutes.List(troubleshoot = troubleshoot.name)) {
+                        launchSingleTop = true
+                    }
+                }
             },
             onSettingsClick = {
                 navController.navigate(SettingsRoutes.Graph) { launchSingleTop = true }
             },
             onGuideClick = {
                 navController.navigate(SettingsRoutes.ConnectGuide) { launchSingleTop = true }
-            },
-            onFixConnectionClick = { network ->
-                navController.navigate(NetworksRoutes.List(troubleshoot = network.name)) { launchSingleTop = true }
             },
             inboxBanner = { encryptedNetworks -> EncryptedHistoryBannerRoot(encryptedNetworks) },
         )

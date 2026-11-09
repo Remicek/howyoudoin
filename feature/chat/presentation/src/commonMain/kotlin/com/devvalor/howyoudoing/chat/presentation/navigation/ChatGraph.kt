@@ -12,11 +12,10 @@ import com.devvalor.howyoudoing.chat.presentation.inbox.InboxRoot
 
 fun NavGraphBuilder.chatGraph(
     navController: NavController,
-    onNetworksClick: () -> Unit,
+    /** Opens Networks; with a network, how to disconnect and connect it again (reconnecting didn't help). */
+    onNetworksClick: (troubleshoot: ChatNetwork?) -> Unit,
     onSettingsClick: () -> Unit,
     onGuideClick: () -> Unit = {},
-    /** Reconnecting didn't help: how to disconnect and connect the network again. */
-    onFixConnectionClick: (ChatNetwork) -> Unit = { onNetworksClick() },
     inboxBanner: @Composable (encryptedNetworks: Set<ChatNetwork>) -> Unit = {},
 ) {
     navigation<ChatRoutes.Graph>(startDestination = ChatRoutes.Inbox) {
@@ -25,12 +24,12 @@ fun NavGraphBuilder.chatGraph(
                 onChatClick = { chatId ->
                     navController.navigate(ChatRoutes.Conversation(chatId)) { launchSingleTop = true }
                 },
-                onNetworksClick = onNetworksClick,
+                onNetworksClick = { onNetworksClick(null) },
                 onSettingsClick = onSettingsClick,
                 onContactsClick = { navController.navigate(ChatRoutes.Contacts) { launchSingleTop = true } },
                 onNewMessageClick = { navController.navigate(ChatRoutes.NewMessage) { launchSingleTop = true } },
                 onGuideClick = onGuideClick,
-                onFixConnectionClick = onFixConnectionClick,
+                onFixConnectionClick = { network -> onNetworksClick(network) },
                 banner = inboxBanner,
             )
         }

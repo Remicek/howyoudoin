@@ -230,7 +230,10 @@ fun InboxScreen(
             } else {
                 val (didntHelp, problems) = state.connectionProblems.partition { it.reconnectDidntHelp }
                 didntHelp.forEach { problem ->
-                    ReconnectDidntHelp(problem, onClick = { onAction(InboxAction.OnFixConnectionClick(problem.network)) })
+                    ReconnectDidntHelp(
+                        problem,
+                        onClick = { onAction(InboxAction.OnFixConnectionClick(problem.network)) }
+                    )
                 }
                 ConnectionProblems(
                     problems = problems,
