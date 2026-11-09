@@ -24,4 +24,8 @@
     <string name="background_text">While your phone isn't in use, Android can pause HowYouDoin, and then your messages arrive late. Let it run in the background to keep your networks connected. It uses a little battery.</string>
     <string name="background_allow">Allow</string>
     <string name="background_not_now">Not now</string>
+    <string name="account_action_title">%1$s needs you to confirm something</string>
+    <string name="account_action_text">%1$s won't work in HowYouDoin until you confirm a step on its website, usually your cookie choices. You're signed in below as your account: make your choice on the page, then tap Done and HowYouDoin reconnects.</string>
+    <string name="account_action_done">Done</string>
+    <string name="account_action_cancel">Cancel</string>
 </resources>

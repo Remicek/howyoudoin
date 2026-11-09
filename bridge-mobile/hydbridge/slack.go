@@ -627,6 +627,10 @@ func (s *Slack) downloadFile(channelID, ts, kind string, file *slack.File) {
 			event["durationMs"] = ms
 		}
 	}
+	if kind == "video" && (file.OriginalW == 0 || file.DurationMS == 0) {
+		// Slack often leaves a video's size and length out: read them from the file
+		withVideoMeta(event, path)
+	}
 	s.emit(event)
 }
 

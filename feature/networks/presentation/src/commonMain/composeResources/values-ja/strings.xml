@@ -218,4 +218,11 @@
     <string name="connect_calls_joined">誰かが%1$sで通話を始めると、HowYouDoinがお知らせします。通話には%1$sアプリから参加します。通話は終了後もチャットに残ります。</string>
     <string name="connect_calls_logged">%1$s は着信を他のアプリに知らせません。不在着信や終了した通話は後でチャットに表示されます。</string>
     <string name="connect_calls_not_shown">%1$s は通話を他のアプリと共有しないため、HowYouDoin では %1$s の通話を表示も通知もできません。</string>
+    <string name="networks_fix_title">%1$s の再接続で直りませんでした</string>
+    <string name="networks_fix_reason">エラー：%1$s</string>
+    <string name="networks_fix_intro">ログインし直すと直ることがほとんどです：</string>
+    <string name="networks_fix_step_disconnect">1. 下の %1$s で「接続解除」をタップします。</string>
+    <string name="networks_fix_step_connect">2. 次に「接続」をタップして、もう一度ログインします。</string>
+    <string name="networks_fix_now_connect">接続を解除しました。下の「接続」をタップして、もう一度ログインしてください。</string>
+    <string name="networks_fix_done">%1$s は再び使えるようになりました。</string>
 </resources>

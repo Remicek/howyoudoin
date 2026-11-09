@@ -45,10 +45,11 @@ class DataStoreAppLockRepository(
 
     override suspend fun setPin(pin: String) {
         val salt = hasher.newSalt()
-        val hash = hasher.hash(pin, salt)
+        val hash = hasher.hash(pin, salt, PinHasher.ITERATIONS)
         dataStore.edit { prefs ->
             prefs[PIN_SALT] = Base64.encode(salt)
             prefs[PIN_HASH] = Base64.encode(hash)
+            prefs[PIN_ITERATIONS] = PinHasher.ITERATIONS
             prefs.remove(FAILED_ATTEMPTS)
             prefs.remove(LOCKED_OUT_UNTIL)
             // Choosing the lock answers the question asked after signing in
@@ -62,11 +63,17 @@ class DataStoreAppLockRepository(
         val lockedOutUntil = prefs[LOCKED_OUT_UNTIL] ?: 0L
         val salt = prefs[PIN_SALT]?.let { Base64.decode(it) }
         val expected = prefs[PIN_HASH]?.let { Base64.decode(it) }
+        val iterations = prefs[PIN_ITERATIONS] ?: PinHasher.LEGACY_ITERATIONS
         return when {
             lockedOutUntil > now -> PinCheck.TooManyAttempts(secondsUntil(lockedOutUntil - now))
             salt == null || expected == null -> PinCheck.Correct
-            constantTimeEquals(hasher.hash(pin, salt), expected) -> {
-                dataStore.edit { it.remove(FAILED_ATTEMPTS); it.remove(LOCKED_OUT_UNTIL) }
+            constantTimeEquals(hasher.hash(pin, salt, iterations), expected) -> {
+                if (iterations < PinHasher.ITERATIONS) {
+                    // A hash from before the rounds were raised: the PIN is known now, so it's hashed again with more
+                    setPin(pin)
+                } else {
+                    dataStore.edit { it.remove(FAILED_ATTEMPTS); it.remove(LOCKED_OUT_UNTIL) }
+                }
                 PinCheck.Correct
             }
 
@@ -103,7 +110,9 @@ class DataStoreAppLockRepository(
 
     override suspend fun disable() {
         dataStore.edit { prefs ->
-            listOf(PIN_HASH, PIN_SALT, BIOMETRIC, FAILED_ATTEMPTS, LOCKED_OUT_UNTIL).forEach { prefs.remove(it) }
+            listOf(PIN_HASH, PIN_SALT, PIN_ITERATIONS, BIOMETRIC, FAILED_ATTEMPTS, LOCKED_OUT_UNTIL).forEach {
+                prefs.remove(it)
+            }
             prefs[LOCK_OFFERED] = true
         }
     }
@@ -124,6 +133,9 @@ class DataStoreAppLockRepository(
     private companion object {
         val PIN_HASH = stringPreferencesKey("app_lock_pin_hash")
         val PIN_SALT = stringPreferencesKey("app_lock_pin_salt")
+
+        /** The rounds [PIN_HASH] was made with; missing for hashes from before it was stored. */
+        val PIN_ITERATIONS = intPreferencesKey("app_lock_pin_iterations")
         val BIOMETRIC = booleanPreferencesKey("app_lock_biometric")
         val LOCK_AFTER = stringPreferencesKey("app_lock_after")
         val HIDE_NOTIFICATION_CONTENT = booleanPreferencesKey("app_lock_hide_notification_content")

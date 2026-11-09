@@ -13,7 +13,7 @@ fun NavGraphBuilder.networksGraph(
     navController: NavController,
     onTermsClick: () -> Unit,
 ) {
-    navigation<NetworksRoutes.Graph>(startDestination = NetworksRoutes.List) {
+    navigation<NetworksRoutes.Graph>(startDestination = NetworksRoutes.List()) {
         composable<NetworksRoutes.List> {
             NetworksRoot(
                 onConnectClick = { network ->
@@ -39,7 +39,7 @@ fun NavGraphBuilder.networksGraph(
         }
         composable<NetworksRoutes.Connect> {
             ConnectNetworkRoot(
-                onDone = { navController.popBackStack(NetworksRoutes.List, inclusive = false) },
+                onDone = { navController.popBackStack<NetworksRoutes.List>(inclusive = false) },
                 onBack = { navController.navigateUp() },
             )
         }

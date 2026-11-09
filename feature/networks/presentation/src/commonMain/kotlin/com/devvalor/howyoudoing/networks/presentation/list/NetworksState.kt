@@ -12,6 +12,8 @@ data class NetworksState(
     val isRiskAccepted: Boolean = false,
     /** Networks connected from this phone (experimental), shown under each network. */
     val onDevice: Map<ChatNetwork, OnDeviceMessengerState> = emptyMap(),
+    /** Opened from the inbox because reconnecting didn't help: shown first, with how to fix it. */
+    val troubleshoot: ChatNetwork? = null,
     val items: List<NetworkItemUi> = ChatNetwork.connectable.map { network ->
         NetworkItemUi(
             network = network,

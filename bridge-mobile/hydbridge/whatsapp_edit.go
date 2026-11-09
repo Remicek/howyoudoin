@@ -19,12 +19,17 @@ func (w *WhatsApp) SendReply(chatJID, text, replyToID, replySenderJID, quotedTex
 	if sender, err := types.ParseJID(replySenderJID); err == nil {
 		quoteSender = sender.ToNonAD().String()
 	}
+	// WhatsApp shows a quoted photo or video with its preview only when the quote carries the message itself
+	quoted := w.recentMedia.get(replyToID)
+	if quoted == nil {
+		quoted = &waE2E.Message{Conversation: proto.String(quotedText)}
+	}
 	msg := &waE2E.Message{ExtendedTextMessage: &waE2E.ExtendedTextMessage{
 		Text: proto.String(text),
 		ContextInfo: &waE2E.ContextInfo{
 			StanzaID:      proto.String(replyToID),
 			Participant:   proto.String(quoteSender),
-			QuotedMessage: &waE2E.Message{Conversation: proto.String(quotedText)},
+			QuotedMessage: quoted,
 		},
 	}}
 	resp, err := client.SendMessage(context.Background(), chat, msg)
@@ -67,6 +72,12 @@ func (w *WhatsApp) Unsend(chatJID, messageID string) error {
 
 // waReplyTo is the ID of the message this one quotes, if any.
 func waReplyTo(msg *waE2E.Message) string {
+	if inner := waMediaMessage(msg); inner != msg && inner != nil {
+		// Disappearing, view-once and wrapped messages keep the reply on the message inside
+		if id := waReplyTo(inner); id != "" {
+			return id
+		}
+	}
 	for _, info := range []*waE2E.ContextInfo{
 		msg.GetExtendedTextMessage().GetContextInfo(), msg.GetImageMessage().GetContextInfo(),
 		msg.GetVideoMessage().GetContextInfo(), msg.GetAudioMessage().GetContextInfo(),

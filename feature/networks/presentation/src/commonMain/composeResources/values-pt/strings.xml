@@ -222,4 +222,11 @@
     <string name="connect_calls_joined">O HowYouDoin avisa quando alguém inicia uma chamada do %1$s, na qual você entra pelo app %1$s. As chamadas ficam no chat depois.</string>
     <string name="connect_calls_logged">O %1$s não avisa outros apps quando uma chamada toca. Chamadas perdidas e encerradas aparecem depois na conversa.</string>
     <string name="connect_calls_not_shown">O HowYouDoin não consegue mostrar chamadas do %1$s nem avisar sobre elas: o %1$s não as compartilha com outros apps.</string>
+    <string name="networks_fix_title">Reconectar o %1$s não resolveu</string>
+    <string name="networks_fix_reason">Erro: %1$s</string>
+    <string name="networks_fix_intro">Entrar de novo costuma resolver:</string>
+    <string name="networks_fix_step_disconnect">1. Toque em Desconectar no %1$s abaixo.</string>
+    <string name="networks_fix_step_connect">2. Depois toque em Conectar e entre de novo.</string>
+    <string name="networks_fix_now_connect">Desconectado. Agora toque em Conectar abaixo e entre de novo.</string>
+    <string name="networks_fix_done">O %1$s voltou a funcionar.</string>
 </resources>

@@ -116,15 +116,38 @@ func (m *Messenger) sendEncryptedMedia(threadKey string, isGroup bool, path stri
 		return "", errNotConnectedE2EE
 	}
 	kind, mediaType := mediaKind(mimeType)
+	var video videoMeta
+	if kind == "video" {
+		// Messenger's apps show an empty bubble for a video without its size and length
+		video = mp4Meta(data)
+		if width == 0 || height == 0 {
+			width, height = video.width, video.height
+		}
+	}
 	ctx := context.Background()
 	up, err := m.e2ee.Upload(ctx, data, mediaType)
 	if err != nil {
 		return "", fmt.Errorf("upload failed: %w", err)
 	}
-	// Messenger apps refuse to show media without thumbnail dimensions
+	// Messenger apps refuse to show media without thumbnail dimensions, and show a video as a grey box until it is
+	// played when it comes without the picture itself
 	thumbW, thumbH := clampTo400(width, height)
 	if thumbW == 0 {
 		thumbW, thumbH = 400, 400
+	}
+	var thumbJPEG []byte
+	if kind == "video" {
+		if thumb := takeVideoThumbnail(path); thumb.jpeg != nil {
+			thumbJPEG, thumbW, thumbH = thumb.jpeg, thumb.width, thumb.height
+		}
+	}
+	// Messenger's apps show the frame only from a separately uploaded preview; the inline JPEG stays for others
+	var preview *waMediaTransport.WAMediaTransport_Ancillary_Thumbnail_DownloadableThumbnail
+	if thumbJPEG != nil {
+		if preview, err = m.uploadPreview(ctx, thumbJPEG); err != nil {
+			m.log.Warn().Err(err).Msg("Video preview upload failed, sending without it")
+			preview, err = nil, nil
+		}
 	}
 	transport := &waMediaTransport.WAMediaTransport{
 		Integral: &waMediaTransport.WAMediaTransport_Integral{
@@ -138,8 +161,10 @@ func (m *Messenger) sendEncryptedMedia(threadKey string, isGroup bool, path stri
 			FileLength: proto.Uint64(uint64(len(data))),
 			Mimetype:   &mimeType,
 			Thumbnail: &waMediaTransport.WAMediaTransport_Ancillary_Thumbnail{
-				ThumbnailWidth:  proto.Uint32(uint32(thumbW)),
-				ThumbnailHeight: proto.Uint32(uint32(thumbH)),
+				JPEGThumbnail:         thumbJPEG,
+				DownloadableThumbnail: preview,
+				ThumbnailWidth:        proto.Uint32(uint32(thumbW)),
+				ThumbnailHeight:       proto.Uint32(uint32(thumbH)),
 			},
 			ObjectID: &up.ObjectID,
 		},
@@ -160,8 +185,10 @@ func (m *Messenger) sendEncryptedMedia(threadKey string, isGroup bool, path stri
 	case "video":
 		msg := &waConsumerApplication.ConsumerApplication_VideoMessage{Caption: captionText}
 		err = msg.Set(&waMediaTransport.VideoTransport{
-			Integral:  &waMediaTransport.VideoTransport_Integral{Transport: transport},
-			Ancillary: &waMediaTransport.VideoTransport_Ancillary{Width: proto.Uint32(uint32(width)), Height: proto.Uint32(uint32(height))},
+			Integral: &waMediaTransport.VideoTransport_Integral{Transport: transport},
+			Ancillary: &waMediaTransport.VideoTransport_Ancillary{
+				Width: proto.Uint32(uint32(width)), Height: proto.Uint32(uint32(height)), Seconds: optionalSeconds(video.seconds),
+			},
 		})
 		content = &waConsumerApplication.ConsumerApplication_Content_VideoMessage{VideoMessage: msg}
 	case "audio":
@@ -214,6 +241,8 @@ func (m *Messenger) sendEncryptedMedia(threadKey string, isGroup bool, path stri
 			}
 			if voiceMs > 0 {
 				event["durationMs"] = voiceMs
+			} else if video.seconds > 0 {
+				event["durationMs"] = int64(video.seconds) * 1000
 			}
 			m.emit(event)
 		}

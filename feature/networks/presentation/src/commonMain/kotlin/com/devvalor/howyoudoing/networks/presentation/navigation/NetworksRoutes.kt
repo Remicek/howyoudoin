@@ -4,7 +4,8 @@ import kotlinx.serialization.Serializable
 
 sealed interface NetworksRoutes {
     @Serializable data object Graph : NetworksRoutes
-    @Serializable data object List : NetworksRoutes
+    /** @param troubleshoot [com.devvalor.howyoudoing.core.domain.network.ChatNetwork] name to show how to fix first */
+    @Serializable data class List(val troubleshoot: String? = null) : NetworksRoutes
 
     /**
      * @param network [com.devvalor.howyoudoing.core.domain.network.ChatNetwork] name

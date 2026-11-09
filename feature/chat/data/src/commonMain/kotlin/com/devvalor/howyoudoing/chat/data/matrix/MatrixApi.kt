@@ -5,7 +5,9 @@ import com.devvalor.howyoudoing.chat.data.matrix.dto.MessagesResponseDto
 import com.devvalor.howyoudoing.chat.data.matrix.dto.SendEventResponseDto
 import com.devvalor.howyoudoing.chat.data.matrix.dto.SyncResponseDto
 import com.devvalor.howyoudoing.chat.data.matrix.dto.TurnServerDto
+import com.devvalor.howyoudoing.core.data.networking.readBodyLimited
 import com.devvalor.howyoudoing.core.data.networking.safeCall
+import com.devvalor.howyoudoing.core.data.networking.safeLimitedGet
 import com.devvalor.howyoudoing.core.domain.auth.AuthInfo
 import com.devvalor.howyoudoing.core.domain.util.DataError
 import com.devvalor.howyoudoing.core.domain.util.Result
@@ -17,6 +19,7 @@ import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.parameter
 import io.ktor.client.request.post
+import io.ktor.client.request.prepareGet
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
@@ -37,13 +40,11 @@ class MatrixApi(
         session: AuthInfo,
         since: String?,
         timeoutMillis: Long
-    ): Result<SyncResponseDto, DataError.Remote> = safeCall {
-        httpClient.get {
-            endpoint(session, "sync")
-            parameter("timeout", timeoutMillis)
-            parameter("filter", SYNC_FILTER)
-            since?.let { parameter("since", it) }
-        }
+    ): Result<SyncResponseDto, DataError.Remote> = httpClient.safeLimitedGet(MAX_JSON_BYTES) {
+        endpoint(session, "sync")
+        parameter("timeout", timeoutMillis)
+        parameter("filter", SYNC_FILTER)
+        since?.let { parameter("since", it) }
     }
 
     /** Like [sync], but the raw response: encryption needs parts the DTOs leave out (to-device events, key counts). */
@@ -51,13 +52,11 @@ class MatrixApi(
         session: AuthInfo,
         since: String?,
         timeoutMillis: Long
-    ): Result<JsonObject, DataError.Remote> = safeCall {
-        httpClient.get {
-            endpoint(session, "sync")
-            parameter("timeout", timeoutMillis)
-            parameter("filter", SYNC_FILTER)
-            since?.let { parameter("since", it) }
-        }
+    ): Result<JsonObject, DataError.Remote> = httpClient.safeLimitedGet(MAX_JSON_BYTES) {
+        endpoint(session, "sync")
+        parameter("timeout", timeoutMillis)
+        parameter("filter", SYNC_FILTER)
+        since?.let { parameter("since", it) }
     }
 
     suspend fun messages(
@@ -65,14 +64,12 @@ class MatrixApi(
         roomId: String,
         from: String,
         limit: Int = 30
-    ): Result<MessagesResponseDto, DataError.Remote> = safeCall {
-        httpClient.get {
-            endpoint(session, "rooms", roomId, "messages")
-            parameter("from", from)
-            parameter("dir", "b")
-            parameter("limit", limit)
-            parameter("filter", """{"lazy_load_members":true}""")
-        }
+    ): Result<MessagesResponseDto, DataError.Remote> = httpClient.safeLimitedGet(MAX_JSON_BYTES) {
+        endpoint(session, "rooms", roomId, "messages")
+        parameter("from", from)
+        parameter("dir", "b")
+        parameter("limit", limit)
+        parameter("filter", """{"lazy_load_members":true}""")
     }
 
     /** Sends any message-like event, e.g. `m.room.message` or `m.reaction`. */
@@ -214,9 +211,11 @@ class MatrixApi(
         }
     }
 
+    /** A file from the media repository; null on failure or when it is bigger than [MAX_MEDIA_BYTES]. */
     suspend fun download(url: String, headers: Map<String, String>): ByteArray? = runCatching {
-        val response = httpClient.get(url) { headers.forEach { (name, value) -> header(name, value) } }
-        if (response.status.isSuccess()) response.body<ByteArray>() else null
+        httpClient.prepareGet(url) { headers.forEach { (name, value) -> header(name, value) } }.execute { response ->
+            if (response.status.isSuccess()) response.readBodyLimited(MAX_MEDIA_BYTES) else null
+        }
     }.getOrNull()
 
     private fun HttpRequestBuilder.endpoint(session: AuthInfo, vararg path: String) {
@@ -228,6 +227,12 @@ class MatrixApi(
     }
 
     private companion object {
+        /** The most a /sync or /messages response may be: far above a real one, low enough not to run out of memory. */
+        const val MAX_JSON_BYTES = 64L * 1024 * 1024
+
+        /** The most a downloaded file may be: twice the 50 MB most homeservers accept as an upload. */
+        const val MAX_MEDIA_BYTES = 100L * 1024 * 1024
+
         const val SYNC_FILTER =
             """{"room":{"timeline":{"limit":30},"state":{"lazy_load_members":true}},"presence":{"not_types":["*"]}}"""
     }

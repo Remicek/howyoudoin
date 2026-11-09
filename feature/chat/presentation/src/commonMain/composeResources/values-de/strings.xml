@@ -97,6 +97,7 @@
     <string name="inbox_empty">Noch keine Chats</string>
     <string name="media_photo">Foto</string>
     <string name="media_video">Video</string>
+    <string name="media_play_video">Video abspielen</string>
     <string name="media_audio">Audio</string>
     <string name="media_file">Datei</string>
     <string name="media_tap_to_open">Zum Öffnen tippen</string>
@@ -188,4 +189,10 @@
     <string name="call_ended_video_duration">📹 Videoanruf · %1$s</string>
     <string name="call_started">📞 Ein Anruf hat begonnen · in %1$s beitreten</string>
     <string name="call_started_video">📹 Ein Videoanruf hat begonnen · in %1$s beitreten</string>
+    <string name="problem_reconnect_didnt_help_title">Neu verbinden hat bei %1$s nicht geholfen</string>
+    <string name="problem_reconnect_didnt_help_text">Tippe, um zu sehen, wie du es behebst: %1$s trennen und neu verbinden.</string>
+    <string name="offline_title">Du bist offline</string>
+    <string name="offline_text">Du kannst die auf diesem Telefon gespeicherten Nachrichten lesen. Neue kommen an, sobald du wieder online bist.</string>
+    <string name="offline_chat_note">Offline: auf diesem Telefon gespeicherte Nachrichten</string>
+    <string name="offline_cant_send">Du bist offline, daher wurde nichts gesendet. Versuche es erneut, wenn du wieder online bist.</string>
 </resources>

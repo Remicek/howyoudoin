@@ -1,5 +1,7 @@
 package com.devvalor.howyoudoing.app.di
 
+import com.devvalor.howyoudoing.core.domain.connectivity.AlwaysOnline
+import com.devvalor.howyoudoing.core.domain.connectivity.InternetConnection
 import com.devvalor.howyoudoing.chat.data.di.onDeviceClientName
 import com.devvalor.howyoudoing.chat.data.di.onDeviceCacheName
 import com.devvalor.howyoudoing.core.domain.ondevice.UnsupportedOnDeviceNetwork
@@ -52,6 +54,7 @@ actual val platformAppModule: Module = module {
     single<BuildInfo> { BuildInfo { kotlin.native.Platform.isDebugBinary } }
     single<BiometricAuthenticator> { IosBiometricAuthenticator }
     single<CrashReports> { IosCrashReports }
+    single<InternetConnection> { AlwaysOnline }
     single {
         val version = NSBundle.mainBundle.infoDictionary?.get("CFBundleShortVersionString") as? String
         AppInfo(versionName = version ?: "?", sourceCodeUrl = SOURCE_CODE_URL, privacyPolicyUrl = PRIVACY_POLICY_URL)

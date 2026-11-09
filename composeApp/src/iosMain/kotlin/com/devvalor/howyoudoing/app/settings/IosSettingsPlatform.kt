@@ -25,7 +25,7 @@ class IosPinHasher : PinHasher {
         salt.usePinned { SecRandomCopyBytes(kSecRandomDefault, salt.size.convert(), it.addressOf(0)) }
     }
 
-    override fun hash(pin: String, salt: ByteArray): ByteArray {
+    override fun hash(pin: String, salt: ByteArray, iterations: Int): ByteArray {
         val derived = ByteArray(KEY_BYTES)
         salt.usePinned { s ->
             derived.usePinned { d ->
@@ -33,7 +33,8 @@ class IosPinHasher : PinHasher {
                 CCKeyDerivationPBKDF(
                     kCCPBKDF2, pin, pin.encodeToByteArray().size.convert(),
                     s.addressOf(0).reinterpret<UByteVar>(), salt.size.convert(),
-                    kCCPRFHmacAlgSHA256, 120_000u, d.addressOf(0).reinterpret<UByteVar>(), derived.size.convert()
+                    kCCPRFHmacAlgSHA256, iterations.convert(),
+                    d.addressOf(0).reinterpret<UByteVar>(), derived.size.convert()
                 )
             }
         }
