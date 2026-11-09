@@ -1,1 +1,5 @@
-Fixes the app closing right after it opens.
+- Videos work on every network, with their thumbnail, length and replies
+- Video previews show in Messenger's own apps and from other Matrix apps
+- Offline: read the chats saved on your phone; sending tells you you're offline
+- If reconnecting doesn't help, the app shows how to log in to that network again
+- Security fixes

@@ -1,1 +1,5 @@
-Naprawia zamykanie się aplikacji zaraz po uruchomieniu.
+- Filmy działają w każdej sieci, z miniaturą, długością i odpowiedziami
+- Podgląd filmów widać w aplikacjach Messengera i z innych aplikacji Matrix
+- Offline: czytaj czaty zapisane w telefonie; przy wysyłaniu aplikacja przypomni, że jesteś offline
+- Gdy ponowne łączenie nie pomaga, aplikacja pokazuje, jak zalogować się ponownie
+- Poprawki bezpieczeństwa

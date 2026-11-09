@@ -47,12 +47,12 @@ compose-jetbrains = "1.9.0"
 jetbrains-savedstate = "1.4.0"
 
 projectApplicationId = "com.devvalor.howyoudoing"
-projectVersionName = "1.0.4"
+projectVersionName = "1.1.0"
 projectMinSdkVersion = "26"
 projectTargetSdkVersion = "36"
 projectCompileSdkVersion = "37"
 projectCompileSdkMinorVersion = "1"
-projectVersionCode = "5"
+projectVersionCode = "6"
 
 [libraries]
 play-services-auth = { module = "com.google.android.gms:play-services-auth", version.ref = "play-services-auth" }
