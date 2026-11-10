@@ -1,6 +1,7 @@
 package com.devvalor.howyoudoing.chat.presentation.inbox
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -90,21 +91,12 @@ fun InboxTour(targets: TourTargets, onDone: () -> Unit) {
     val scrim = Color.Black.copy(alpha = 0.72f)
     val isLast = index == stops.lastIndex
 
-    Layout(
-        content = {
-            TourCard(
-                stop = stop,
-                step = index + 1,
-                count = stops.size,
-                isLast = isLast,
-                onSkip = onDone,
-                onNext = { if (isLast) onDone() else index++ },
-            )
-        },
-        modifier = Modifier
+    Box(
+        Modifier
             .fillMaxSize()
             .onGloballyPositioned { origin = it.positionInRoot() }
-            // Swallow taps that miss the card, so the tour is answered first
+            // Swallows taps beside the card, so the tour is answered first. The card is a sibling on top, not a child:
+            // a tap whose events a parent consumes gets cancelled
             .pointerInput(Unit) {
                 awaitPointerEventScope {
                     while (true) awaitPointerEvent().changes.forEach { it.consume() }
@@ -121,7 +113,20 @@ fun InboxTour(targets: TourTargets, onDone: () -> Unit) {
                     cornerRadius = CornerRadius(16.dp.toPx()),
                     blendMode = BlendMode.Clear,
                 )
-            },
+            }
+    )
+    Layout(
+        content = {
+            TourCard(
+                stop = stop,
+                step = index + 1,
+                count = stops.size,
+                isLast = isLast,
+                onSkip = onDone,
+                onNext = { if (isLast) onDone() else index++ },
+            )
+        },
+        modifier = Modifier.fillMaxSize(),
     ) { measurables, constraints ->
         val margin = HowYouDoinSpacing.md.roundToPx()
         val card = measurables.single().measure(
