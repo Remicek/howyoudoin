@@ -1,0 +1,38 @@
+Tired of jumping between WhatsApp, Messenger, Telegram and a handful of other chat apps? HowYouDoin is an all-in-one messenger that puts every conversation in one unified inbox, so you can read and reply to everyone from a single app.
+
+It works with WhatsApp, Messenger, Instagram, Telegram, Signal, Discord, Slack, LinkedIn, Bluesky, X and Matrix. Connect the networks you use and your chats show up together, newest first.
+
+ONE INBOX FOR ALL YOUR MESSAGES
+• Every chat from every network in one list
+• Filter by network with a tap, or show only unread chats
+• Search your chats, and start a new chat with anyone on a connected network
+• Notifications for new messages without push servers: the app keeps its own connection
+
+PRIVATE BY DESIGN
+• Your accounts connect directly from this phone. There are no HowYouDoin servers in the middle, and nobody else sees your messages
+• No analytics, no tracking, no ads
+• Lock the app with your fingerprint or a PIN, and hide message text in notifications
+• Crash reports stay on your phone unless you choose to share them
+
+A FULL CHAT APP
+• Text, photos, videos, voice messages and files
+• Replies, reactions, edits, deletions, typing indicators and read receipts, wherever the network supports them
+• Voice and video calls with Matrix contacts
+• Offline? Your saved chats stay readable, and the app tells you when a message can't be sent yet
+
+EASY TO START
+• WhatsApp, Telegram and Signal link like their desktop apps, with a QR code or a pairing code
+• Messenger, Instagram, Slack, LinkedIn, Discord and X sign in through their own websites inside the app
+• A short tour shows you around the inbox
+• Try everything in demo mode first, without connecting an account
+• If a network stops working, the app tells you and shows how to fix it
+
+MAKE IT YOURS
+• Light and dark mode and four colour themes
+• Available in 12 languages
+
+FREE AND OPEN SOURCE
+No subscriptions, no in-app purchases. Licensed under the GNU AGPL v3; the source code is on GitHub.
+
+GOOD TO KNOW
+HowYouDoin is an unofficial app. It is not affiliated with or endorsed by Meta, Telegram, Signal, Slack, Discord, LinkedIn, Bluesky, X or the Matrix.org Foundation. Some of these services don't allow third-party apps and may limit an account that uses one. Use it only with your own accounts. All trademarks belong to their owners.

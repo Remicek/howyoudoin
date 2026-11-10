@@ -1,0 +1,38 @@
+Masz dość przeskakiwania między WhatsAppem, Messengerem, Telegramem i kilkoma innymi komunikatorami? HowYouDoin to komunikator wszystko w jednym: wszystkie rozmowy w jednej wspólnej skrzynce, więc czytasz i odpowiadasz wszystkim z jednej aplikacji.
+
+Działa z WhatsApp, Messenger, Instagram, Telegram, Signal, Discord, Slack, LinkedIn, Bluesky, X i Matrix. Połącz sieci, z których korzystasz, a Twoje czaty pojawią się razem, od najnowszych.
+
+JEDNA SKRZYNKA NA WSZYSTKIE WIADOMOŚCI
+• Każdy czat z każdej sieci na jednej liście
+• Filtruj według sieci jednym dotknięciem albo pokaż tylko nieprzeczytane
+• Szukaj czatów i zaczynaj nowe rozmowy z każdym w połączonej sieci
+• Powiadomienia o nowych wiadomościach bez serwerów push: aplikacja utrzymuje własne połączenie
+
+PRYWATNOŚĆ PRZEDE WSZYSTKIM
+• Twoje konta łączą się bezpośrednio z tego telefonu. Nie ma po drodze serwerów HowYouDoin i nikt inny nie widzi Twoich wiadomości
+• Bez analityki, śledzenia i reklam
+• Zablokuj aplikację odciskiem palca lub PIN-em i ukryj treść wiadomości w powiadomieniach
+• Raporty o awariach zostają na telefonie, chyba że zdecydujesz się je udostępnić
+
+PEŁNOPRAWNY KOMUNIKATOR
+• Wiadomości, zdjęcia, filmy, wiadomości głosowe i pliki
+• Odpowiedzi, reakcje, edycja, usuwanie, wskaźnik pisania i potwierdzenia przeczytania, tam gdzie sieć je obsługuje
+• Połączenia głosowe i wideo z kontaktami w Matrix
+• Bez internetu? Zapisane czaty da się czytać, a aplikacja powie, gdy wiadomości nie da się jeszcze wysłać
+
+ŁATWY START
+• WhatsApp, Telegram i Signal łączą się jak ich aplikacje na komputer, kodem QR lub kodem parowania
+• Messenger, Instagram, Slack, LinkedIn, Discord i X logują się przez swoje strony w aplikacji
+• Krótki przewodnik pokaże Ci skrzynkę
+• Wypróbuj wszystko najpierw w trybie demo, bez łączenia konta
+• Gdy sieć przestanie działać, aplikacja Ci o tym powie i pokaże, jak to naprawić
+
+TWÓJ STYL
+• Tryb jasny i ciemny oraz cztery motywy kolorystyczne
+• Dostępna w 12 językach
+
+DARMOWA I OTWARTA
+Bez subskrypcji i zakupów w aplikacji. Licencja GNU AGPL v3, kod źródłowy na GitHubie.
+
+DOBRZE WIEDZIEĆ
+HowYouDoin to nieoficjalna aplikacja. Nie jest powiązana z Meta, Telegram, Signal, Slack, Discord, LinkedIn, Bluesky, X ani Matrix.org Foundation, ani przez nie popierana. Niektóre z tych usług nie zezwalają na aplikacje innych firm i mogą ograniczyć konto, które z nich korzysta. Używaj jej tylko z własnymi kontami. Wszystkie znaki towarowe należą do ich właścicieli.
