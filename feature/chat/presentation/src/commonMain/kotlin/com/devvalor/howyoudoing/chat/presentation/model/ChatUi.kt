@@ -10,6 +10,9 @@ import com.devvalor.howyoudoing.chat.domain.MessageType
 import com.devvalor.howyoudoing.chat.domain.Reaction
 import com.devvalor.howyoudoing.chat.domain.ReplyPreview
 import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
+import com.devvalor.howyoudoing.core.domain.ondevice.AccountLabel
+import com.devvalor.howyoudoing.core.domain.ondevice.AccountRef
+import howyoudoin.feature.chat.presentation.generated.resources.account_default
 import com.devvalor.howyoudoing.core.presentation.util.TimestampFormatter
 import com.devvalor.howyoudoing.core.presentation.util.UiText
 import com.devvalor.howyoudoing.core.presentation.util.asUiText
@@ -57,8 +60,22 @@ data class ChatUi(
     val typingText: UiText? = null,
     val avatarUrl: String? = null,
     /** No notifications for this chat. */
-    val isMuted: Boolean = false
+    val isMuted: Boolean = false,
+    /** Which account the chat belongs to, where the network has more than one on the phone. */
+    val account: AccountTagUi? = null
 )
+
+/** An account's tag ("● Work"): its name, or "Account 2" until it's given one, and its colour. */
+data class AccountTagUi(val name: UiText, val colour: Int)
+
+/** The tag of [account], when it's one of several of its network's ([tags] from AccountTags). */
+fun accountTag(account: AccountRef, tags: Map<AccountRef, AccountLabel?>): AccountTagUi? {
+    if (account !in tags) return null
+    val label = tags[account]
+    val name = label?.name?.takeIf { it.isNotBlank() }?.asUiText()
+        ?: UiText.Resource(Res.string.account_default, arrayOf(account.slot + 1))
+    return AccountTagUi(name, label?.colour ?: account.slot)
+}
 
 data class MessageUi(
     val id: String,

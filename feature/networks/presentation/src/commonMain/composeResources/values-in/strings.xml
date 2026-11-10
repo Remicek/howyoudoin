@@ -225,4 +225,17 @@
     <string name="networks_fix_step_connect">2. Lalu ketuk Sambungkan dan masuk lagi.</string>
     <string name="networks_fix_now_connect">Terputus. Sekarang ketuk Sambungkan di bawah dan masuk lagi.</string>
     <string name="networks_fix_done">%1$s berfungsi lagi.</string>
+    <!-- Several accounts of one network on the phone -->
+    <string name="networks_add_account">Tambah akun lain · %1$d dari %2$d</string>
+    <string name="networks_accounts_full">%1$d dari %1$d akun terhubung: putuskan satu untuk menambah yang lain.</string>
+    <string name="networks_account_rename">Nama dan warna</string>
+    <string name="networks_account_reconnect">Hubungkan ulang</string>
+    <string name="networks_account_more">Opsi untuk %1$s</string>
+    <string name="networks_account_default">Akun %1$d</string>
+    <string name="networks_name_account_title">Beri nama akun %1$s ini</string>
+    <string name="networks_name_account_body">Nama dan warna membedakan akun %1$s Anda di kotak masuk, di chat, dan di notifikasi.</string>
+    <string name="networks_account_name_hint">Kerja, Pribadi…</string>
+    <string name="networks_account_colour">Warna</string>
+    <string name="networks_save">Simpan</string>
+    <string name="networks_duplicate_account">Akun %1$s itu sudah terhubung di ponsel ini, jadi login baru dihapus.</string>
 </resources>

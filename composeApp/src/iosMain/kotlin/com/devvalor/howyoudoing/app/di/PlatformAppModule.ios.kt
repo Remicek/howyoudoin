@@ -6,6 +6,7 @@ import com.devvalor.howyoudoing.chat.data.di.onDeviceClientName
 import com.devvalor.howyoudoing.chat.data.di.onDeviceCacheName
 import com.devvalor.howyoudoing.core.domain.ondevice.UnsupportedOnDeviceNetwork
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceNetworks
+import com.devvalor.howyoudoing.core.domain.ondevice.ExtraAccounts
 import com.devvalor.howyoudoing.app.ondevice.IosDataDirectory
 import com.devvalor.howyoudoing.app.ondevice.IosMessengerFactory
 import com.devvalor.howyoudoing.app.ondevice.IosSecretStore
@@ -60,7 +61,7 @@ actual val platformAppModule: Module = module {
         AppInfo(versionName = version ?: "?", sourceCodeUrl = SOURCE_CODE_URL, privacyPolicyUrl = PRIVACY_POLICY_URL)
     }
     single<MessageNotificationPresenter> { NoOpNotificationPresenter }
-    single(createdAtStart = true) { IncomingMessageNotifier(get(), get(), get(), get(), get(), get()) }
+    single(createdAtStart = true) { IncomingMessageNotifier(get(), get(), get(), get(), get(), get(), get()) }
     single<OnDeviceInboxCache>(named(ON_DEVICE_INSTAGRAM_CACHE)) { IosInboxCache(INSTAGRAM_DIR) }
     single<OnDeviceInstagram>(createdAtStart = true) {
         NativeOnDeviceInstagram(
@@ -104,6 +105,8 @@ actual val platformAppModule: Module = module {
     single {
         OnDeviceNetworks(OnDeviceNetworks.ALL.associateWith { get<OnDeviceMessenger>(named(onDeviceClientName(it))) })
     }
+    // One account per network on iOS for now
+    single { ExtraAccounts() }
     single<OnDeviceInboxCache>(named(ON_DEVICE_SLACK_CACHE)) { IosInboxCache("on_device_slack") }
     single<OnDeviceTelegram> { UnsupportedOnDeviceTelegram }
     single<OnDeviceSignal> { UnsupportedOnDeviceSignal }

@@ -71,6 +71,12 @@ import com.devvalor.howyoudoing.core.domain.util.DataError
 import com.devvalor.howyoudoing.core.domain.util.Result
 import com.devvalor.howyoudoing.core.presentation.util.toUiText
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceAccounts
+import com.devvalor.howyoudoing.core.domain.ondevice.AccountRef
+import com.devvalor.howyoudoing.core.domain.ondevice.DuplicateAccounts
+import howyoudoin.feature.networks.presentation.generated.resources.networks_duplicate_account
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceMessengerState
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceLinkedAccount
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceLoginPrompt
@@ -107,7 +113,8 @@ class ConnectNetworkViewModel(
     private val bridgeRepository: BridgeRepository,
     private val deviceRegion: DeviceRegionProvider,
     private val developerOptions: DeveloperOptions,
-    private val onDevice: OnDeviceAccounts
+    private val onDevice: OnDeviceAccounts,
+    duplicateAccounts: DuplicateAccounts
 ) : ViewModel() {
 
     private var pairingJob: Job? = null
@@ -117,6 +124,16 @@ class ConnectNetworkViewModel(
 
     private val route = savedStateHandle.toRoute<NetworksRoutes.Connect>()
     private val network = ChatNetwork.valueOf(route.network)
+
+
+    /** The account being logged in: the network's first, or a second or third one. */
+    private val account = AccountRef(network, route.slot)
+
+    /** The client of [account], else the given first-account one (for the networks with a field of their own). */
+    private fun <T : OnDeviceMessenger> clientOr(first: T): T {
+        @Suppress("UNCHECKED_CAST")
+        return (onDevice.forAccount(account) as? T)?.takeIf { it.network == first.network } ?: first
+    }
 
     /** Flow chosen in the tutorial; consumed once so "Try again" shows the chooser. */
     private var preselectedFlowId: String? = route.flowId
@@ -139,6 +156,21 @@ class ConnectNetworkViewModel(
             started = SharingStarted.WhileSubscribed(5_000L),
             initialValue = initialState
         )
+
+    init {
+        // The account just logged in was already connected here: its new login was removed
+        duplicateAccounts.rejected
+            .filter { it.account == AccountRef(network, route.slot) }
+            .onEach {
+                _state.update { state ->
+                    state.copy(
+                        isSubmitting = false,
+                        error = UiText.Resource(Res.string.networks_duplicate_account, arrayOf(network.displayName))
+                    )
+                }
+            }
+            .launchIn(viewModelScope)
+    }
 
     fun onAction(action: ConnectNetworkAction) {
         when (action) {
@@ -184,7 +216,7 @@ class ConnectNetworkViewModel(
                 }
             }
 
-            ON_DEVICE_WHATSAPP_QR_FLOW_ID -> linkAccountOnDevice(onDevice.whatsApp, phoneNumber = null)
+            ON_DEVICE_WHATSAPP_QR_FLOW_ID -> linkAccountOnDevice(clientOr(onDevice.whatsApp), phoneNumber = null)
             ON_DEVICE_WHATSAPP_CODE_FLOW_ID -> showStepWhenReady {
                 onDevicePhoneStep(
                     ON_DEVICE_WHATSAPP_CODE_FLOW_ID,
@@ -196,8 +228,8 @@ class ConnectNetworkViewModel(
                 onDevicePhoneStep(ON_DEVICE_TELEGRAM_FLOW_ID, getString(Res.string.telegram_phone_instructions))
             }
 
-            ON_DEVICE_TELEGRAM_QR_FLOW_ID -> linkAccountOnDevice(onDevice.telegram, phoneNumber = null)
-            ON_DEVICE_SIGNAL_FLOW_ID -> linkAccountOnDevice(onDevice.signal, phoneNumber = null)
+            ON_DEVICE_TELEGRAM_QR_FLOW_ID -> linkAccountOnDevice(clientOr(onDevice.telegram), phoneNumber = null)
+            ON_DEVICE_SIGNAL_FLOW_ID -> linkAccountOnDevice(clientOr(onDevice.signal), phoneNumber = null)
             ON_DEVICE_MATRIX_FLOW_ID -> showStepWhenReady { matrixLoginStep() }
             ON_DEVICE_GMESSAGES_QR_FLOW_ID -> googleMessages()?.let { linkAccountOnDevice(it, phoneNumber = null) }
             ON_DEVICE_GMESSAGES_GOOGLE_FLOW_ID -> showStepWhenReady { googleMessagesStep() }
@@ -270,12 +302,12 @@ class ConnectNetworkViewModel(
         val values = step.fields.associate { it.id to state.value.submittedValue(it) }
         val firstValue = step.fields.firstOrNull()?.let { values[it.id] }
         when (step.loginId) {
-            ON_DEVICE_WHATSAPP_CODE_FLOW_ID -> linkAccountOnDevice(onDevice.whatsApp, firstValue)
-            ON_DEVICE_TELEGRAM_FLOW_ID -> linkAccountOnDevice(onDevice.telegram, firstValue)
+            ON_DEVICE_WHATSAPP_CODE_FLOW_ID -> linkAccountOnDevice(clientOr(onDevice.whatsApp), firstValue)
+            ON_DEVICE_TELEGRAM_FLOW_ID -> linkAccountOnDevice(clientOr(onDevice.telegram), firstValue)
             ON_DEVICE_PROMPT_FLOW_ID -> submitPromptAnswer(step)
             ON_DEVICE_MATRIX_FLOW_ID -> signInWith(onDevice.matrix, values)
-            ON_DEVICE_CREDENTIALS_FLOW_ID -> onDevice.forNetwork(network)?.let { signInWith(it, values) }
-            ON_DEVICE_X_PASSCODE_FLOW_ID -> onDevice.forNetwork(network)?.let { client ->
+            ON_DEVICE_CREDENTIALS_FLOW_ID -> onDevice.forAccount(account)?.let { signInWith(it, values) }
+            ON_DEVICE_X_PASSCODE_FLOW_ID -> onDevice.forAccount(account)?.let { client ->
                 signInWith(client, pendingXCookies + ("passcode" to values["passcode"].orEmpty()))
             }
             else -> runStep { bridgeRepository.submitUserInput(network, step, values) }
@@ -416,7 +448,7 @@ class ConnectNetworkViewModel(
 
     /** The ways to connect [network] from the phone itself; Matrix needs no native client. */
     private suspend fun onDeviceFlows(): List<BridgeLoginFlow> {
-        val client = onDevice.all.firstOrNull { it.network == network }
+        val client = onDevice.forAccount(account) ?: onDevice.forNetwork(network)
         val available = network == ChatNetwork.MATRIX || client?.isSupported == true
         if (!available) return emptyList()
         return ON_DEVICE_OPTIONS[network].orEmpty().map { option ->
@@ -651,7 +683,7 @@ class ConnectNetworkViewModel(
     private fun OnDeviceMessenger.linkErrorText(): UiText? = linkError?.let(UiText::DynamicString)
 
     private fun googleMessages(): OnDeviceLinkedAccount? =
-        onDevice.forNetwork(ChatNetwork.GOOGLE_MESSAGES) as? OnDeviceLinkedAccount
+        onDevice.forAccount(AccountRef(ChatNetwork.GOOGLE_MESSAGES, account.slot)) as? OnDeviceLinkedAccount
 
     /** Bluesky's own chat API, signed in with the handle and an app password allowed to read direct messages. */
     private suspend fun blueskyLoginStep() = BridgeLoginStep.UserInput(
@@ -805,7 +837,7 @@ class ConnectNetworkViewModel(
             step.cookies.mapNotNull { cookie -> cookiesByName[cookie.cookieName]?.let { cookie.cookieName to it } }
                 .toMap()
         }
-        val client = onDevice.forNetwork(network) ?: onDevice.messenger
+        val client = onDevice.forAccount(account) ?: onDevice.messenger
         stepJob?.cancel()
         stepJob = viewModelScope.launch {
             _state.update { it.copy(isSubmitting = true, error = null) }

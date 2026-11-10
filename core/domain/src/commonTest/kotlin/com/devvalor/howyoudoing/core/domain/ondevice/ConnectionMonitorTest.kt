@@ -16,7 +16,8 @@ import kotlin.test.assertTrue
 @OptIn(ExperimentalCoroutinesApi::class)
 class ConnectionMonitorTest {
 
-    private class FakeClient(override val network: ChatNetwork) : OnDeviceMessenger by UnsupportedOnDeviceMessenger {
+    private class FakeClient(override val network: ChatNetwork, override val slot: Int = 0) :
+        OnDeviceMessenger by UnsupportedOnDeviceMessenger {
         override val state = MutableStateFlow<OnDeviceMessengerState>(OnDeviceMessengerState.NotLinked)
         var reconnects = 0
         override suspend fun reconnect() {
@@ -26,10 +27,11 @@ class ConnectionMonitorTest {
 
     private val whatsApp = FakeClient(ChatNetwork.WHATSAPP)
     private val slack = FakeClient(ChatNetwork.SLACK)
+    private val secondWhatsApp = FakeClient(ChatNetwork.WHATSAPP, slot = 1)
 
     private fun TestScope.monitor() =
         ConnectionMonitor(
-            listOf(whatsApp, slack),
+            listOf(whatsApp, slack, secondWhatsApp),
             backgroundScope,
             StandardTestDispatcher(testScheduler)
         ).also { runCurrent() }
@@ -74,7 +76,7 @@ class ConnectionMonitorTest {
         set(slack, OnDeviceMessengerState.NotLinked)
         assertEquals(ConnectionProblem.Kind.LOGGED_OUT, monitor.problems.value.single().kind)
 
-        monitor.dismiss(ChatNetwork.SLACK)
+        monitor.dismiss(AccountRef(ChatNetwork.SLACK))
         runCurrent()
         assertTrue(monitor.problems.value.isEmpty())
     }
@@ -83,7 +85,7 @@ class ConnectionMonitorTest {
     fun disconnectingOnPurposeIsNotAProblem() = runTest {
         val monitor = monitor()
         set(slack, OnDeviceMessengerState.Connected("Team"))
-        monitor.expectDisconnect(ChatNetwork.SLACK)
+        monitor.expectDisconnect(AccountRef(ChatNetwork.SLACK))
         set(slack, OnDeviceMessengerState.NotLinked)
         assertTrue(monitor.problems.value.isEmpty())
     }
@@ -229,5 +231,30 @@ class ConnectionMonitorTest {
         runCurrent()
         assertEquals(0, whatsApp.reconnects)
         assertEquals(1, slack.reconnects)
+    }
+
+    @Test
+    fun twoAccountsOfOneNetworkAreWatchedApart() = runTest {
+        val monitor = monitor()
+        set(whatsApp, OnDeviceMessengerState.Connected("Home"))
+        set(secondWhatsApp, OnDeviceMessengerState.Failed("No network"))
+        val problem = monitor.problems.value.single()
+        assertEquals(AccountRef(ChatNetwork.WHATSAPP, 1), problem.account)
+
+        // The first account connecting again doesn't clear the second's problem
+        set(whatsApp, OnDeviceMessengerState.Connecting)
+        set(whatsApp, OnDeviceMessengerState.Connected("Home"))
+        assertEquals(AccountRef(ChatNetwork.WHATSAPP, 1), monitor.problems.value.single().account)
+        assertEquals(
+            setOf(AccountRef(ChatNetwork.WHATSAPP), AccountRef(ChatNetwork.WHATSAPP, 1)),
+            monitor.linkedAccounts.value
+        )
+        assertEquals(setOf(ChatNetwork.WHATSAPP), monitor.linkedNetworks.value)
+
+        monitor.expectDisconnect(AccountRef(ChatNetwork.WHATSAPP, 1))
+        runCurrent()
+        set(secondWhatsApp, OnDeviceMessengerState.NotLinked)
+        assertTrue(monitor.problems.value.isEmpty())
+        assertEquals(setOf(AccountRef(ChatNetwork.WHATSAPP)), monitor.linkedAccounts.value)
     }
 }

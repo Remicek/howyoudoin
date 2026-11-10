@@ -9,6 +9,10 @@ import com.devvalor.howyoudoing.core.domain.auth.SessionStorage
 import com.devvalor.howyoudoing.core.domain.backup.LoginBackup
 import com.devvalor.howyoudoing.core.domain.backup.LoginRestoreOffer
 import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
+import com.devvalor.howyoudoing.core.domain.ondevice.AccountLabel
+import com.devvalor.howyoudoing.core.domain.ondevice.AccountLabels
+import com.devvalor.howyoudoing.core.domain.ondevice.AccountRef
+import com.devvalor.howyoudoing.app.ondevice.IN_USE_MARKER
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceMessenger
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceMessengerState
 import com.devvalor.howyoudoing.core.domain.util.Result
@@ -47,20 +51,26 @@ class AndroidLoginBackup(
 
     /** The accounts whose logins are backed up, and where they keep them. */
     data class BackupSources(
-        /** Networks restored from saved cookies, with where their cookies are kept. */
-        val cookieLogins: Map<ChatNetwork, Pair<OnDeviceMessenger, OnDeviceSecretStore>>,
-        val telegram: NativeOnDeviceLinkedAccount,
-        val telegramDir: File,
-        /** Networks that can't be restored but are worth mentioning (WhatsApp, Signal). */
+        /** Accounts restored from saved cookies, with where their cookies are kept. */
+        val cookieLogins: Map<AccountRef, Pair<OnDeviceMessenger, OnDeviceSecretStore>>,
+        /** Telegram's accounts by slot, with the folder of each one's session files. */
+        val telegram: Map<Int, Pair<NativeOnDeviceLinkedAccount, File>>,
+        /** Accounts that can't be restored but are worth mentioning (WhatsApp, Signal). */
         val relinkOnly: List<OnDeviceMessenger>,
-        val matrix: OnDeviceMessenger
+        val matrix: OnDeviceMessenger,
+        /** The accounts' names and colours, kept with the logins. */
+        val labels: AccountLabels
     )
 
     private val cookieLogins = sources.cookieLogins
     private val telegram = sources.telegram
-    private val telegramDir = sources.telegramDir
     private val relinkOnly = sources.relinkOnly
     private val matrix = sources.matrix
+    private val labels = sources.labels
+
+    /** The latest names and colours, for writing. */
+    @Volatile
+    private var currentLabels: Map<AccountRef, AccountLabel> = emptyMap()
 
     private val context = context.applicationContext
     private val prefs = this.context.getSharedPreferences("login_backup", Context.MODE_PRIVATE)
@@ -71,7 +81,8 @@ class AndroidLoginBackup(
     private val enabled = MutableStateFlow(prefs.getBoolean(KEY_ENABLED, true))
     private val decided = MutableStateFlow(decidedMarker.exists())
     private val offered = MutableStateFlow(prefs.getBoolean(KEY_OFFERED, false))
-    private val allClients = (cookieLogins.values.map { it.first } + telegram + relinkOnly + matrix)
+    private val allClients =
+        cookieLogins.values.map { it.first } + telegram.values.map { it.first } + relinkOnly + matrix
 
     override val isSupported = true
 
@@ -86,7 +97,8 @@ class AndroidLoginBackup(
                 enabled,
                 decided,
                 appSession.observeAuthInfo(),
-                matrixSession.observeAuthInfo()
+                matrixSession.observeAuthInfo(),
+                labels.observe().onEach { currentLabels = it }
             ) + states
         ) { it.toList() }
             .filter { decided.value }
@@ -150,17 +162,21 @@ class AndroidLoginBackup(
             savedAtMillis = System.currentTimeMillis(),
             enabled = true,
             appSession = appSession.get(),
-            cookieLogins = cookieLogins.mapNotNull { (network, login) ->
+            cookieLogins = cookieLogins.mapNotNull { (account, login) ->
                 val (client, secrets) = login
-                secrets.read()?.takeIf { client.state.value != OnDeviceMessengerState.NotLinked }?.let { network to it }
+                secrets.read()?.takeIf { client.state.value != OnDeviceMessengerState.NotLinked }?.let { account to it }
             }.toMap(),
             matrixAccount = matrixSession.get(),
-            telegram = if (telegram.state.value == OnDeviceMessengerState.NotLinked) null else {
-                val session = File(telegramDir, TELEGRAM_SESSION).textOrNull()
-                val state = File(telegramDir, TELEGRAM_STATE).textOrNull()
-                if (session != null && state != null) TelegramFiles(session, state) else null
-            },
+            telegram = telegram.mapNotNull { (slot, login) ->
+                val (client, dir) = login
+                if (client.state.value == OnDeviceMessengerState.NotLinked) return@mapNotNull null
+                val session = File(dir, TELEGRAM_SESSION).textOrNull()
+                val state = File(dir, TELEGRAM_STATE).textOrNull()
+                if (session != null && state != null) slot to TelegramFiles(session, state) else null
+            }.toMap(),
             relink = relinkOnly.filter { it.state.value != OnDeviceMessengerState.NotLinked }.map { it.network }
+                .distinct(),
+            labels = currentLabels
         )
         file.parentFile?.mkdirs()
         val tmp = File(file.parentFile, "logins.json.tmp")
@@ -178,7 +194,7 @@ class AndroidLoginBackup(
         saved.offerFor(
             LoginsHere(
                 cookieLogins = cookieLogins.filterValues { (_, secrets) -> secrets.read() != null }.keys,
-                hasTelegram = File(telegramDir, TELEGRAM_SESSION).isFile,
+                telegram = telegram.filterValues { (_, dir) -> File(dir, TELEGRAM_SESSION).isFile }.keys,
                 hasMatrixAccount = matrixSession.get() != null,
                 hasAppSession = appSession.get() != null,
                 linked = relinkOnly.filter { it.state.value != OnDeviceMessengerState.NotLinked }.map { it.network }
@@ -192,17 +208,9 @@ class AndroidLoginBackup(
         val failed = mutableListOf<ChatNetwork>()
         // The app's own session first, so the inbox opens once this is done
         saved.appSession?.let { if (appSession.get() == null) appSession.set(it) }
-        networks.forEach { network ->
-            val ok = when (network) {
-                ChatNetwork.MATRIX -> saved.matrixAccount?.let { matrixSession.set(it); true } ?: false
-                ChatNetwork.TELEGRAM -> saved.telegram?.let { restoreTelegram(it) } ?: false
-                else -> {
-                    val client = cookieLogins[network]?.first
-                    val cookies = saved.cookies(network)
-                    client != null && cookies != null && client.link(cookies) is Result.Success
-                }
-            }
-            if (!ok) failed += network
+        networks.forEach { network -> if (!restoreNetwork(saved, network)) failed += network }
+        saved.labels.forEach { (account, label) ->
+            if (account.network in networks && account !in currentLabels) labels.set(account, label)
         }
         // Whoever had backup on keeps it on here
         if (saved.enabled) setEnabled(true)
@@ -210,14 +218,28 @@ class AndroidLoginBackup(
         return failed
     }
 
-    private suspend fun restoreTelegram(saved: TelegramFiles): Boolean {
+    /** Every saved account of [network]; false if none came back. */
+    private suspend fun restoreNetwork(saved: SavedLogins, network: ChatNetwork): Boolean = when (network) {
+        ChatNetwork.MATRIX -> saved.matrixAccount?.let { matrixSession.set(it); true } ?: false
+        ChatNetwork.TELEGRAM -> saved.telegram.map { (slot, files) -> restoreTelegram(slot, files) }.any { it }
+        else -> saved.cookieLogins.keys.filter { it.network == network }.map { account ->
+            val client = cookieLogins[account]?.first
+            val cookies = saved.cookies(account)
+            client != null && cookies != null && client.link(cookies) is Result.Success
+        }.any { it }
+    }
+
+    private suspend fun restoreTelegram(slot: Int, saved: TelegramFiles): Boolean {
+        val (client, dir) = telegram[slot] ?: return false
         withContext(Dispatchers.IO) {
-            telegramDir.mkdirs()
-            File(telegramDir, TELEGRAM_SESSION).writeText(saved.session)
-            File(telegramDir, TELEGRAM_STATE).writeText(saved.state)
+            dir.mkdirs()
+            File(dir, TELEGRAM_SESSION).writeText(saved.session)
+            File(dir, TELEGRAM_STATE).writeText(saved.state)
+            // A second or third account is only opened once it's in use
+            File(dir, IN_USE_MARKER).createNewFile()
         }
         // Connects with the restored login; if Telegram no longer accepts it, the connection monitor says so
-        telegram.reloadFromDisk()
+        client.reloadFromDisk()
         return true
     }
 

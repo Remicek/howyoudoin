@@ -229,4 +229,17 @@
     <string name="networks_fix_step_connect">2. Touchez ensuite Connecter et reconnectez-vous.</string>
     <string name="networks_fix_now_connect">Déconnecté. Touchez maintenant Connecter ci-dessous et reconnectez-vous.</string>
     <string name="networks_fix_done">%1$s fonctionne à nouveau.</string>
+    <!-- Several accounts of one network on the phone -->
+    <string name="networks_add_account">Ajouter un autre compte · %1$d sur %2$d</string>
+    <string name="networks_accounts_full">%1$d comptes sur %1$d connectés : déconnectez-en un pour en ajouter un autre.</string>
+    <string name="networks_account_rename">Nom et couleur</string>
+    <string name="networks_account_reconnect">Reconnecter</string>
+    <string name="networks_account_more">Options pour %1$s</string>
+    <string name="networks_account_default">Compte %1$d</string>
+    <string name="networks_name_account_title">Nommer ce compte %1$s</string>
+    <string name="networks_name_account_body">Un nom et une couleur distinguent vos comptes %1$s dans la boîte de réception, les discussions et les notifications.</string>
+    <string name="networks_account_name_hint">Travail, Perso…</string>
+    <string name="networks_account_colour">Couleur</string>
+    <string name="networks_save">Enregistrer</string>
+    <string name="networks_duplicate_account">Ce compte %1$s est déjà connecté sur ce téléphone, la nouvelle connexion a donc été retirée.</string>
 </resources>

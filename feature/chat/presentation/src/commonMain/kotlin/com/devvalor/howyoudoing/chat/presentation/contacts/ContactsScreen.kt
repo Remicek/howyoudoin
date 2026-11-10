@@ -1,5 +1,7 @@
 package com.devvalor.howyoudoing.chat.presentation.contacts
 
+import com.devvalor.howyoudoing.core.designsystem.components.AccountDot
+import howyoudoin.feature.chat.presentation.generated.resources.contacts_choose_account
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -133,6 +135,7 @@ fun ContactsScreen(
                 state.isLoading -> Unit
                 state.networks.isEmpty() -> Message(stringResource(Res.string.contacts_no_networks))
                 state.isPickingNetwork -> NetworkPicker(state.networks) { onAction(ContactsAction.OnNetworkSelect(it)) }
+                state.isPickingAccount -> AccountPicker(state) { onAction(ContactsAction.OnAccountSelect(it)) }
                 else -> People(state, onAction, resolver)
             }
         }
@@ -159,6 +162,34 @@ private fun NetworkPicker(networks: List<ChatNetwork>, onPick: (ChatNetwork) -> 
                 NetworkBadge(network = network, size = 40.dp, borderColor = Color.Transparent)
                 Spacer(Modifier.width(HowYouDoinSpacing.md))
                 Text(network.displayName, style = MaterialTheme.typography.titleMedium)
+            }
+        }
+    }
+}
+
+/** Second step of a new message on a network with several accounts here: which one writes. */
+@Composable
+private fun AccountPicker(state: ContactsState, onPick: (Int) -> Unit) {
+    val network = state.network ?: return
+    Text(
+        stringResource(Res.string.contacts_choose_account, network.displayName),
+        style = MaterialTheme.typography.titleMedium,
+        modifier = Modifier.padding(HowYouDoinSpacing.md),
+    )
+    LazyColumn {
+        items(state.accounts, key = { it.slot }) { account ->
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onPick(account.slot) }
+                    .padding(horizontal = HowYouDoinSpacing.md, vertical = HowYouDoinSpacing.sm),
+            ) {
+                NetworkBadge(network = network, size = 40.dp, borderColor = Color.Transparent)
+                Spacer(Modifier.width(HowYouDoinSpacing.md))
+                AccountDot(account.tag.colour, size = 12.dp)
+                Spacer(Modifier.width(HowYouDoinSpacing.sm))
+                Text(account.tag.name.asString(), style = MaterialTheme.typography.titleMedium)
             }
         }
     }
@@ -194,7 +225,7 @@ private fun People(state: ContactsState, onAction: (ContactsAction) -> Unit, res
         return
     }
     LazyColumn(Modifier.fillMaxSize()) {
-        items(state.contacts, key = { "${it.network}/${it.id}" }) { contact ->
+        items(state.contacts, key = { "${it.network}/${it.accountSlot}/${it.id}" }) { contact ->
             ContactRow(contact, showNetwork = !state.isNewMessage, resolver) {
                 onAction(ContactsAction.OnContactClick(contact))
             }

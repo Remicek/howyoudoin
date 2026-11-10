@@ -229,4 +229,17 @@
     <string name="networks_fix_step_connect">2. Después toca Conectar e inicia sesión de nuevo.</string>
     <string name="networks_fix_now_connect">Desconectado. Ahora toca Conectar abajo e inicia sesión de nuevo.</string>
     <string name="networks_fix_done">%1$s vuelve a funcionar.</string>
+    <!-- Several accounts of one network on the phone -->
+    <string name="networks_add_account">Añadir otra cuenta · %1$d de %2$d</string>
+    <string name="networks_accounts_full">%1$d de %1$d cuentas conectadas: desconecta una para añadir otra.</string>
+    <string name="networks_account_rename">Nombre y color</string>
+    <string name="networks_account_reconnect">Reconectar</string>
+    <string name="networks_account_more">Opciones de %1$s</string>
+    <string name="networks_account_default">Cuenta %1$d</string>
+    <string name="networks_name_account_title">Pon nombre a esta cuenta de %1$s</string>
+    <string name="networks_name_account_body">Un nombre y un color distinguen tus cuentas de %1$s en la bandeja, en los chats y en las notificaciones.</string>
+    <string name="networks_account_name_hint">Trabajo, Personal…</string>
+    <string name="networks_account_colour">Color</string>
+    <string name="networks_save">Guardar</string>
+    <string name="networks_duplicate_account">Esa cuenta de %1$s ya está conectada en este teléfono, así que se quitó el nuevo inicio de sesión.</string>
 </resources>

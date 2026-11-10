@@ -223,4 +223,13 @@
     <string name="link_call_invite">चलो यहाँ बात करते हैं, यह आपके ब्राउज़र में खुलेगा: %1$s</string>
     <string name="link_call_invite_video">वीडियो कॉल पर जुड़ें, यह आपके ब्राउज़र में खुलेगा: %1$s</string>
     <string name="link_call_failed">कॉल शुरू नहीं हो सकी। थोड़ी देर में फिर कोशिश करें।</string>
+    <!-- Several accounts of one network on the phone -->
+    <string name="account_default">खाता %1$d</string>
+    <string name="inbox_all_of_network">सारा %1$s</string>
+    <string name="conversation_replying_as">%1$s के रूप में जवाब दे रहे हैं</string>
+    <string name="contacts_choose_account">किस %1$s खाते से लिखना है?</string>
+    <plurals name="inbox_network_accounts">
+        <item quantity="one">%1$s, %2$d खाता</item>
+        <item quantity="other">%1$s, %2$d खाते</item>
+    </plurals>
 </resources>

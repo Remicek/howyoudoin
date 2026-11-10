@@ -1,5 +1,8 @@
 package com.devvalor.howyoudoing.chat.presentation.conversation
 
+import androidx.compose.ui.text.style.TextOverflow
+import com.devvalor.howyoudoing.core.designsystem.components.AccountDot
+import howyoudoin.feature.chat.presentation.generated.resources.conversation_replying_as
 import androidx.compose.material.icons.rounded.CloudOff
 import howyoudoin.feature.chat.presentation.generated.resources.offline_chat_note
 import howyoudoin.feature.chat.presentation.generated.resources.conversation_copied
@@ -251,22 +254,34 @@ fun ConversationScreen(
                         )
                         Spacer(Modifier.width(HowYouDoinSpacing.sm))
                         Column {
-                            Text(state.chatName, style = MaterialTheme.typography.titleMedium, maxLines = 1)
+                            Text(
+                                state.chatName,
+                                style = MaterialTheme.typography.titleMedium,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
                             if (state.typingText != null) {
                                 Text(
                                     state.typingText.asString(),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.primary,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
                                 )
                             } else state.network?.let { network ->
                                 Text(
                                     listOfNotNull(
+                                        // Which account first: the avatar's badge already shows the network
+                                        state.account?.name?.asString(),
                                         network.displayName,
                                         stringResource(Res.string.conversation_e2e).takeIf { state.isEncrypted },
                                         stringResource(Res.string.conversation_on_device).takeIf { state.isOnDevice },
                                     ).joinToString(" · "),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = network.brandColor,
+                                    // One line; the account name is first, so it stays visible
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
                                 )
                             }
                         }
@@ -640,6 +655,20 @@ private fun ConversationBottom(
     voice: VoiceMessagesUi?,
 ) {
     if (state.isOffline) OfflineNote()
+    state.account?.takeIf { !state.isInvite }?.let { account ->
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(horizontal = HowYouDoinSpacing.md, vertical = 2.dp)
+        ) {
+            AccountDot(account.colour)
+            Spacer(Modifier.width(6.dp))
+            Text(
+                stringResource(Res.string.conversation_replying_as, account.name.asString()),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
     if (state.isInvite) {
         InviteBar(
             isAnswering = state.isAnsweringInvite,

@@ -1,11 +1,19 @@
 package com.devvalor.howyoudoing.networks.presentation.list
 
 import com.devvalor.howyoudoing.networks.presentation.navigation.NetworksRoutes
+import com.devvalor.howyoudoing.core.domain.ondevice.account
 import androidx.navigation.toRoute
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
+import com.devvalor.howyoudoing.core.domain.ondevice.AccountRef
+import com.devvalor.howyoudoing.core.domain.ondevice.AccountLabels
+import com.devvalor.howyoudoing.core.domain.ondevice.DuplicateAccounts
+import com.devvalor.howyoudoing.core.presentation.util.UiText
+import howyoudoin.feature.networks.presentation.generated.resources.Res
+import howyoudoin.feature.networks.presentation.generated.resources.networks_duplicate_account
+import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceMessengerState
 import com.devvalor.howyoudoing.core.domain.ondevice.ConnectionMonitor
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceAccounts
 import com.devvalor.howyoudoing.core.domain.util.Result
@@ -24,15 +32,18 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+@Suppress("LongParameterList") // Koin-injected collaborators
 class NetworksViewModel(
     savedStateHandle: SavedStateHandle,
     private val bridgeRepository: BridgeRepository,
     private val onboardingRepository: OnboardingRepository,
-    onDevice: OnDeviceAccounts,
-    private val connectionMonitor: ConnectionMonitor
+    private val onDevice: OnDeviceAccounts,
+    private val connectionMonitor: ConnectionMonitor,
+    private val accountLabels: AccountLabels,
+    duplicateAccounts: DuplicateAccounts
 ) : ViewModel() {
 
-    private val onDeviceClients = onDevice.all.associateBy { it.network }
+    private val onDeviceClients = onDevice.all.filter { it.slot == 0 }.associateBy { it.network }
 
     private val eventChannel = Channel<NetworksEvent>()
     val events = eventChannel.receiveAsFlow()
@@ -57,6 +68,23 @@ class NetworksViewModel(
                 .onEach { onDevice -> _state.update { it.copy(onDevice = it.onDevice + (client.network to onDevice)) } }
                 .launchIn(viewModelScope)
         }
+        onDevice.all.filter { it.isSupported }.forEach { client ->
+            client.state
+                .onEach { account -> onAccountState(client.account, account) }
+                .launchIn(viewModelScope)
+        }
+        duplicateAccounts.rejected
+            .onEach { duplicate ->
+                _state.update { if (it.naming == duplicate.account) it.copy(naming = null) else it }
+                val network = duplicate.account.network.displayName
+                eventChannel.send(
+                    NetworksEvent.Error(UiText.Resource(Res.string.networks_duplicate_account, arrayOf(network)))
+                )
+            }
+            .launchIn(viewModelScope)
+        accountLabels.observe()
+            .onEach { labels -> _state.update { it.copy(labels = labels) } }
+            .launchIn(viewModelScope)
     }
 
     fun onAction(action: NetworksAction) {
@@ -65,11 +93,37 @@ class NetworksViewModel(
             NetworksAction.OnRiskAccepted -> viewModelScope.launch { onboardingRepository.setRiskAccepted() }
             is NetworksAction.OnDisconnectClick -> disconnect(action.network, action.loginId)
             is NetworksAction.OnDisconnectOnDeviceClick -> viewModelScope.launch {
-                connectionMonitor.expectDisconnect(action.network)
-                onDeviceClients[action.network]?.unlink()
+                val account = AccountRef(action.network, action.slot)
+                connectionMonitor.expectDisconnect(account)
+                onDevice.forAccount(account)?.unlink()
+                // Its name goes with it (one that's only logged out keeps it, for logging in again)
+                accountLabels.remove(account)
+            }
+
+            is NetworksAction.OnReconnectAccountClick ->
+                viewModelScope.launch { onDevice.forAccount(action.account)?.reconnect() }
+            is NetworksAction.OnEditLabelClick -> _state.update { it.copy(naming = action.account) }
+            NetworksAction.OnLabelDismiss -> _state.update { it.copy(naming = null) }
+            is NetworksAction.OnLabelSave -> viewModelScope.launch {
+                _state.update { it.copy(naming = null) }
+                accountLabels.set(action.account, action.label.copy(name = action.label.name.trim()))
             }
 
             else -> Unit
+        }
+    }
+
+    /**
+     * Keeps [NetworksState.accounts] current. An account that just logged in next to another of its network, and has
+     * no name yet, is offered one.
+     */
+    private fun onAccountState(account: AccountRef, state: OnDeviceMessengerState) {
+        val before = _state.value.accounts[account]
+        _state.update { it.copy(accounts = it.accounts + (account to state)) }
+        val justLinked = before == OnDeviceMessengerState.NotLinked && state != OnDeviceMessengerState.NotLinked
+        val current = _state.value
+        if (justLinked && current.linkedAccounts(account.network).size > 1 && account !in current.labels) {
+            _state.update { it.copy(naming = account) }
         }
     }
 

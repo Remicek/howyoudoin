@@ -227,4 +227,15 @@
     <string name="link_call_invite">Давай поговорим здесь, откроется в браузере: %1$s</string>
     <string name="link_call_invite_video">Присоединяйся к видеозвонку, откроется в браузере: %1$s</string>
     <string name="link_call_failed">Не удалось начать звонок. Попробуйте ещё раз чуть позже.</string>
+    <!-- Several accounts of one network on the phone -->
+    <string name="account_default">Аккаунт %1$d</string>
+    <string name="inbox_all_of_network">Весь %1$s</string>
+    <string name="conversation_replying_as">Вы отвечаете как %1$s</string>
+    <string name="contacts_choose_account">С какого аккаунта %1$s написать?</string>
+    <plurals name="inbox_network_accounts">
+        <item quantity="one">%1$s, %2$d аккаунт</item>
+        <item quantity="few">%1$s, %2$d аккаунта</item>
+        <item quantity="many">%1$s, %2$d аккаунтов</item>
+        <item quantity="other">%1$s, %2$d аккаунта</item>
+    </plurals>
 </resources>

@@ -4,6 +4,10 @@ import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceNetworks
 import com.devvalor.howyoudoing.core.domain.auth.AuthInfo
 import com.devvalor.howyoudoing.core.domain.backup.LoginRestoreOffer
 import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
+import com.devvalor.howyoudoing.core.domain.ondevice.AccountLabel
+import com.devvalor.howyoudoing.core.domain.ondevice.AccountRef
+import com.devvalor.howyoudoing.core.domain.ondevice.MAX_ACCOUNTS_PER_NETWORK
+import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
@@ -27,23 +31,29 @@ data class SavedLogins(
     /** Backup was on when this was saved, so it stays on after restoring. */
     val enabled: Boolean,
     val appSession: AuthInfo?,
-    /** Networks logged in with web cookies (Messenger, Instagram, Slack): the cookies as a JSON object. */
-    val cookieLogins: Map<ChatNetwork, String>,
+    /** Accounts logged in with web cookies (Messenger, Instagram, Slack…): the cookies as a JSON object. */
+    val cookieLogins: Map<AccountRef, String>,
     val matrixAccount: AuthInfo?,
-    val telegram: TelegramFiles?,
+    /** Telegram's accounts, by slot. */
+    val telegram: Map<Int, TelegramFiles>,
     /** Connected, but never backed up: they have to be linked again (WhatsApp, Signal). */
-    val relink: List<ChatNetwork>
+    val relink: List<ChatNetwork>,
+    /** The names and colours the user gave accounts. */
+    val labels: Map<AccountRef, AccountLabel> = emptyMap()
 ) {
     /** The cookies of a cookie login, as name → value. */
-    fun cookies(network: ChatNetwork): Map<String, String>? =
-        cookieLogins[network]?.let { runCatching { Json.parseToJsonElement(it).jsonObject }.getOrNull() }
+    fun cookies(account: AccountRef): Map<String, String>? =
+        cookieLogins[account]?.let { runCatching { Json.parseToJsonElement(it).jsonObject }.getOrNull() }
             ?.mapValues { it.value.jsonPrimitive.content }
+
+    fun cookies(network: ChatNetwork): Map<String, String>? = cookies(AccountRef(network))
 }
 
 /** What's set up on this phone right now, which decides what a restore can add. */
 data class LoginsHere(
-    val cookieLogins: Set<ChatNetwork>,
-    val hasTelegram: Boolean,
+    val cookieLogins: Set<AccountRef>,
+    /** Telegram's account slots logged in here. */
+    val telegram: Set<Int>,
     val hasMatrixAccount: Boolean,
     val hasAppSession: Boolean,
     /** WhatsApp / Signal currently linked. */
@@ -53,10 +63,10 @@ data class LoginsHere(
 /** What a restore would offer: saved logins this phone doesn't have yet; null when there's nothing. */
 fun SavedLogins.offerFor(here: LoginsHere): LoginRestoreOffer? {
     val restorable = buildList {
-        cookieLogins.keys.filterNot { it in here.cookieLogins }.forEach(::add)
-        if (telegram != null && !here.hasTelegram) add(ChatNetwork.TELEGRAM)
+        cookieLogins.keys.filterNot { it in here.cookieLogins }.forEach { add(it.network) }
+        if (telegram.keys.any { it !in here.telegram }) add(ChatNetwork.TELEGRAM)
         if (matrixAccount != null && !here.hasMatrixAccount) add(ChatNetwork.MATRIX)
-    }.sortedBy { it.ordinal }
+    }.distinct().sortedBy { it.ordinal }
     val includesApp = appSession != null && !here.hasAppSession
     val toRelink = relink.filterNot { it in here.linked }
     if (restorable.isEmpty() && !includesApp && toRelink.isEmpty()) return null
@@ -67,7 +77,10 @@ fun SavedLogins.offerFor(here: LoginsHere): LoginRestoreOffer? {
 fun shouldOfferBackup(alreadyOffered: Boolean, restoreDecided: Boolean, connectedNetworks: Int): Boolean =
     !alreadyOffered && restoreDecided && connectedNetworks >= 2
 
-/** The logins file: a JSON object, version 1. */
+/**
+ * The logins file: a JSON object, version 1. A network's first account is under the network's name, as before there
+ * could be more; its second and third under "WHATSAPP/1" and "WHATSAPP/2" ([AccountRef.key]).
+ */
 object SavedLoginsFormat {
     private val json = Json { ignoreUnknownKeys = true }
 
@@ -77,14 +90,24 @@ object SavedLoginsFormat {
         put("enabled", saved.enabled)
         saved.appSession?.takeUnless { it.isDemo }?.let { put("appSession", it.toJson()) }
         saved.matrixAccount?.let { put(ChatNetwork.MATRIX.name, it.toJson()) }
-        saved.cookieLogins.forEach { (network, cookies) -> put(network.name, cookies) }
-        saved.telegram?.let {
-            put(ChatNetwork.TELEGRAM.name, buildJsonObject {
-                put("session", it.session)
-                put("state", it.state)
+        saved.cookieLogins.forEach { (account, cookies) -> put(account.fileKey, cookies) }
+        saved.telegram.forEach { (slot, files) ->
+            put(AccountRef(ChatNetwork.TELEGRAM, slot).fileKey, buildJsonObject {
+                put("session", files.session)
+                put("state", files.state)
             })
         }
         putJsonArray("relink") { saved.relink.forEach { add(JsonPrimitive(it.name)) } }
+        if (saved.labels.isNotEmpty()) {
+            put("labels", buildJsonObject {
+                saved.labels.forEach { (account, label) ->
+                    put(account.key, buildJsonObject {
+                        put("name", label.name)
+                        put("colour", label.colour)
+                    })
+                }
+            })
+        }
     }.toString()
 
     fun decode(text: String): SavedLogins? = runCatching {
@@ -93,23 +116,36 @@ object SavedLoginsFormat {
             savedAtMillis = o["savedAt"]?.jsonPrimitive?.longOrNull ?: 0L,
             enabled = o["enabled"]?.jsonPrimitive?.booleanOrNull == true,
             appSession = o["appSession"]?.toAuthInfo(),
-            cookieLogins = COOKIE_NETWORKS.mapNotNull { network ->
-                o[network.name]?.jsonPrimitive?.contentOrNull?.let { network to it }
+            cookieLogins = COOKIE_NETWORKS.flatMap { network -> slots(network) }.mapNotNull { account ->
+                o[account.fileKey]?.jsonPrimitive?.contentOrNull?.let { account to it }
             }.toMap(),
             matrixAccount = o[ChatNetwork.MATRIX.name]?.toAuthInfo(),
-            telegram = (o[ChatNetwork.TELEGRAM.name] as? JsonObject)?.let { t ->
+            telegram = slots(ChatNetwork.TELEGRAM).mapNotNull { account ->
+                val t = o[account.fileKey] as? JsonObject ?: return@mapNotNull null
                 val session = t["session"]?.jsonPrimitive?.contentOrNull
                 val state = t["state"]?.jsonPrimitive?.contentOrNull
-                if (session != null && state != null) TelegramFiles(session, state) else null
-            },
+                if (session != null && state != null) account.slot to TelegramFiles(session, state) else null
+            }.toMap(),
             relink = o["relink"]?.let { runCatching { it.jsonArray }.getOrNull() }.orEmpty()
-                .mapNotNull { name -> ChatNetwork.entries.firstOrNull { it.name == name.jsonPrimitive.contentOrNull } }
+                .mapNotNull { name -> ChatNetwork.entries.firstOrNull { it.name == name.jsonPrimitive.contentOrNull } },
+            labels = (o["labels"] as? JsonObject).orEmpty().mapNotNull { (key, value) ->
+                val account = AccountRef.fromKey(key) ?: return@mapNotNull null
+                val label = value as? JsonObject ?: return@mapNotNull null
+                val name = label["name"]?.jsonPrimitive?.contentOrNull ?: return@mapNotNull null
+                val colour = label["colour"]?.jsonPrimitive?.intOrNull ?: return@mapNotNull null
+                account to AccountLabel(name, colour)
+            }.toMap()
         )
     }.getOrNull()
 
     /** Networks restored from their saved login (web cookies, or Bluesky's handle and app password). */
     val COOKIE_NETWORKS = listOf(ChatNetwork.MESSENGER, ChatNetwork.INSTAGRAM, ChatNetwork.SLACK) +
         OnDeviceNetworks.WEB_LOGIN
+
+    /** Where an account's login is in the file: the first under the network's name, as it always was. */
+    private val AccountRef.fileKey: String get() = if (slot == 0) network.name else key
+
+    private fun slots(network: ChatNetwork) = (0 until MAX_ACCOUNTS_PER_NETWORK).map { AccountRef(network, it) }
 
     private fun AuthInfo.toJson() = buildJsonObject {
         put("homeserverUrl", homeserverUrl)

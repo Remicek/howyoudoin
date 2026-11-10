@@ -1,5 +1,8 @@
 package com.devvalor.howyoudoing.chat.presentation.conversation
 
+import com.devvalor.howyoudoing.chat.presentation.model.accountTag
+import com.devvalor.howyoudoing.core.domain.ondevice.AccountRef
+import com.devvalor.howyoudoing.core.domain.ondevice.AccountTags
 import com.devvalor.howyoudoing.core.domain.connectivity.InternetConnection
 import howyoudoin.feature.chat.presentation.generated.resources.offline_cant_send
 import howyoudoin.feature.chat.presentation.generated.resources.Res
@@ -59,6 +62,7 @@ class ConversationViewModel(
     private val linkCalls: LinkCalls,
     private val linkCallPreferences: LinkCallPreferences,
     private val linkCallLauncher: LinkCallLauncher,
+    private val accountTags: AccountTags,
 ) : ViewModel() {
 
     private val chatId = savedStateHandle.toRoute<ChatRoutes.Conversation>().chatId
@@ -270,13 +274,17 @@ class ConversationViewModel(
         combine(
             chatRepository.observeChat(chatId),
             chatRepository.observeMessages(chatId),
-            chatRepository.hasMoreHistory(chatId)
-        ) { chat, messages, hasMore ->
-            Triple(chat, messages, hasMore)
+            chatRepository.hasMoreHistory(chatId),
+            accountTags.observe()
+        ) { chat, messages, hasMore, tags ->
+            Triple(chat, messages, hasMore) to tags
         }
-            .onEach { (chat, messages, hasMore) ->
+            .onEach { (loaded, tags) ->
+                val (chat, messages, hasMore) = loaded
                 _state.update {
                     it.withChat(chat).copy(
+                        account = chat?.takeIf { c -> c.isOnDevice }
+                            ?.let { c -> accountTag(AccountRef(c.network, c.accountSlot), tags) },
                         typingText = chat?.let { c -> typingText(c.typingNames, c.isGroup) },
                         messages = messages.toMessageUis(
                             showSenderNames = chat?.isGroup == true,

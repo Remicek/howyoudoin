@@ -9,6 +9,7 @@ import com.devvalor.howyoudoing.core.domain.auth.MATRIX_ACCOUNT_SESSION
 import com.devvalor.howyoudoing.core.domain.ondevice.CaptchaSolver
 import com.devvalor.howyoudoing.core.domain.ondevice.ConnectionMonitor
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceAccounts
+import com.devvalor.howyoudoing.core.domain.ondevice.AccountTags
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceMatrix
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.module.dsl.viewModelOf
@@ -24,4 +25,5 @@ val appModule = module {
     singleOf(::OnDeviceAccounts)
     singleOf(::CaptchaSolver)
     single(createdAtStart = true) { ConnectionMonitor(clients = get<OnDeviceAccounts>().all, appScope = get()) }
+    single { AccountTags(get(), get()) }
 }

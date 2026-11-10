@@ -221,4 +221,12 @@
     <string name="link_call_invite">Kita bicara di sini saja, terbuka di browser: %1$s</string>
     <string name="link_call_invite_video">Ayo panggilan video, terbuka di browser: %1$s</string>
     <string name="link_call_failed">Tidak dapat memulai panggilan. Coba lagi sebentar lagi.</string>
+    <!-- Several accounts of one network on the phone -->
+    <string name="account_default">Akun %1$d</string>
+    <string name="inbox_all_of_network">Semua %1$s</string>
+    <string name="conversation_replying_as">Membalas sebagai %1$s</string>
+    <string name="contacts_choose_account">Tulis dari akun %1$s yang mana?</string>
+    <plurals name="inbox_network_accounts">
+        <item quantity="other">%1$s, %2$d akun</item>
+    </plurals>
 </resources>

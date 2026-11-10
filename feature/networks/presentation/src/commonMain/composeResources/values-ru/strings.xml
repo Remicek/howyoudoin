@@ -231,4 +231,17 @@
     <string name="networks_fix_step_connect">2. Затем нажмите «Подключить» и войдите снова.</string>
     <string name="networks_fix_now_connect">Отключено. Теперь нажмите «Подключить» ниже и войдите снова.</string>
     <string name="networks_fix_done">%1$s снова работает.</string>
+    <!-- Several accounts of one network on the phone -->
+    <string name="networks_add_account">Добавить ещё аккаунт · %1$d из %2$d</string>
+    <string name="networks_accounts_full">Подключено %1$d из %1$d аккаунтов: отключите один, чтобы добавить другой.</string>
+    <string name="networks_account_rename">Имя и цвет</string>
+    <string name="networks_account_reconnect">Переподключить</string>
+    <string name="networks_account_more">Параметры: %1$s</string>
+    <string name="networks_account_default">Аккаунт %1$d</string>
+    <string name="networks_name_account_title">Назовите этот аккаунт %1$s</string>
+    <string name="networks_name_account_body">Имя и цвет помогают различать ваши аккаунты %1$s во входящих, в чатах и в уведомлениях.</string>
+    <string name="networks_account_name_hint">Работа, Личное…</string>
+    <string name="networks_account_colour">Цвет</string>
+    <string name="networks_save">Сохранить</string>
+    <string name="networks_duplicate_account">Этот аккаунт %1$s уже подключён на этом телефоне, поэтому новый вход удалён.</string>
 </resources>

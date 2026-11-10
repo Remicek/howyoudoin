@@ -11,13 +11,26 @@ data class OnDeviceAccounts(
     val signal: OnDeviceSignal,
     val slack: OnDeviceSlack,
     val matrix: OnDeviceMatrix,
-    val more: OnDeviceNetworks = OnDeviceNetworks()
+    val more: OnDeviceNetworks = OnDeviceNetworks(),
+    /** The networks' second and third accounts (slots 1 and 2), where the phone can have more than one. */
+    val extra: ExtraAccounts = ExtraAccounts()
 ) {
+    /** The first account of each network, then the others. */
     val all: List<OnDeviceMessenger>
-        get() = listOf(messenger, whatsApp, instagram, telegram, signal, slack, matrix) + more.clients.values
+        get() = listOf(messenger, whatsApp, instagram, telegram, signal, slack, matrix) + more.clients.values +
+            extra.clients
 
-    /** The client that connects [network] from the phone, if there is one. */
-    fun forNetwork(network: ChatNetwork): OnDeviceMessenger? = all.firstOrNull { it.network == network }
+    /** The client of [network]'s first account, if the phone can connect it. */
+    fun forNetwork(network: ChatNetwork): OnDeviceMessenger? = forAccount(AccountRef(network))
+
+    fun forAccount(account: AccountRef): OnDeviceMessenger? = all.firstOrNull { it.account == account }
+
+    /** Every account slot of [network], first account first (linked or not). */
+    fun accountsOf(network: ChatNetwork): List<OnDeviceMessenger> =
+        all.filter { it.network == network }.sortedBy { it.slot }
+
+    /** Whether [network] can have more than one account on the phone. */
+    fun hasExtraAccounts(network: ChatNetwork): Boolean = extra.clients.any { it.network == network }
 }
 
 /**
@@ -41,3 +54,6 @@ data class OnDeviceNetworks(val clients: Map<ChatNetwork, OnDeviceMessenger> = e
         val ALL = PAIRED + WEB_LOGIN
     }
 }
+
+/** The clients of the networks' second and third accounts on the phone (see [AccountRef]). */
+data class ExtraAccounts(val clients: List<OnDeviceMessenger> = emptyList())

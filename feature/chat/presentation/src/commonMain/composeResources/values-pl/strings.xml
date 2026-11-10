@@ -227,4 +227,15 @@
     <string name="link_call_invite">Porozmawiajmy tutaj, link otworzy się w przeglądarce: %1$s</string>
     <string name="link_call_invite_video">Dołącz do rozmowy wideo, link otworzy się w przeglądarce: %1$s</string>
     <string name="link_call_failed">Nie udało się rozpocząć rozmowy. Spróbuj za chwilę.</string>
+    <!-- Several accounts of one network on the phone -->
+    <string name="account_default">Konto %1$d</string>
+    <string name="inbox_all_of_network">Cały %1$s</string>
+    <string name="conversation_replying_as">Odpowiadasz jako %1$s</string>
+    <string name="contacts_choose_account">Z którego konta %1$s piszesz?</string>
+    <plurals name="inbox_network_accounts">
+        <item quantity="one">%1$s, %2$d konto</item>
+        <item quantity="few">%1$s, %2$d konta</item>
+        <item quantity="many">%1$s, %2$d kont</item>
+        <item quantity="other">%1$s, %2$d konta</item>
+    </plurals>
 </resources>

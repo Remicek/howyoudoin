@@ -1,6 +1,7 @@
 package com.devvalor.howyoudoing.chat.presentation.inbox
 
 import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
+import com.devvalor.howyoudoing.core.domain.ondevice.AccountRef
 
 sealed interface InboxAction {
     data class OnQueryChange(val query: String) : InboxAction
@@ -13,7 +14,7 @@ sealed interface InboxAction {
     data object OnGuideClick : InboxAction
     data object OnRefresh : InboxAction
     data object OnLogoutClick : InboxAction
-    data class OnDismissProblem(val network: ChatNetwork) : InboxAction
+    data class OnDismissProblem(val account: AccountRef) : InboxAction
     data object OnReconnectClick : InboxAction
 
     /** The inbox tour was finished or skipped. */

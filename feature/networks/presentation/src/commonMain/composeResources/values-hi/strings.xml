@@ -227,4 +227,17 @@
     <string name="networks_fix_step_connect">2. फिर कनेक्ट पर टैप करके दोबारा लॉग इन करें।</string>
     <string name="networks_fix_now_connect">डिस्कनेक्ट हो गया। अब नीचे कनेक्ट पर टैप करके दोबारा लॉग इन करें।</string>
     <string name="networks_fix_done">%1$s फिर से काम कर रहा है।</string>
+    <!-- Several accounts of one network on the phone -->
+    <string name="networks_add_account">एक और खाता जोड़ें · %2$d में से %1$d</string>
+    <string name="networks_accounts_full">%1$d में से %1$d खाते जुड़े हैं: दूसरा जोड़ने के लिए एक को डिस्कनेक्ट करें।</string>
+    <string name="networks_account_rename">नाम और रंग</string>
+    <string name="networks_account_reconnect">फिर से कनेक्ट करें</string>
+    <string name="networks_account_more">%1$s के विकल्प</string>
+    <string name="networks_account_default">खाता %1$d</string>
+    <string name="networks_name_account_title">इस %1$s खाते को नाम दें</string>
+    <string name="networks_name_account_body">नाम और रंग से इनबॉक्स, चैट और सूचनाओं में आपके %1$s खाते अलग पहचाने जाते हैं।</string>
+    <string name="networks_account_name_hint">काम, निजी…</string>
+    <string name="networks_account_colour">रंग</string>
+    <string name="networks_save">सहेजें</string>
+    <string name="networks_duplicate_account">यह %1$s खाता इस फ़ोन पर पहले से जुड़ा है, इसलिए नया लॉगिन हटा दिया गया।</string>
 </resources>

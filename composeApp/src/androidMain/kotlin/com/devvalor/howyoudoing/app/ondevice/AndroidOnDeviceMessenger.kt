@@ -136,6 +136,13 @@ class AndroidDataDirectory(context: Context, name: String = "on_device_messenger
 
     override fun read(path: String): ByteArray? = inside(path)?.takeIf { it.isFile }?.readBytes()
 
+    override fun hasMarker(name: String): Boolean = File(dir, name).exists()
+
+    override fun writeMarker(name: String) {
+        dir.mkdirs()
+        File(dir, name).createNewFile()
+    }
+
     override fun writeThumbnail(mediaPath: String, jpeg: ByteArray) {
         inside(thumbnailPathOf(mediaPath))?.writeBytes(jpeg)
     }

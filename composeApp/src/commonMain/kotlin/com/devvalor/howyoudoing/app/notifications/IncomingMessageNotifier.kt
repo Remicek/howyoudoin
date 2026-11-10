@@ -1,5 +1,9 @@
 package com.devvalor.howyoudoing.app.notifications
 
+import com.devvalor.howyoudoing.chat.presentation.model.accountTag
+import com.devvalor.howyoudoing.core.domain.ondevice.AccountLabel
+import com.devvalor.howyoudoing.core.domain.ondevice.AccountRef
+import com.devvalor.howyoudoing.core.domain.ondevice.AccountTags
 import howyoudoin.composeapp.generated.resources.Res
 import howyoudoin.composeapp.generated.resources.notification_new_message
 import org.jetbrains.compose.resources.getString
@@ -40,14 +44,19 @@ object NotificationRouter {
  * never notify.
  */
 @OptIn(ExperimentalTime::class)
+@Suppress("LongParameterList") // Koin-injected collaborators
 class IncomingMessageNotifier(
     chatRepository: ChatRepository,
     private val openChatTracker: OpenChatTracker,
     notificationPreferences: NotificationPreferences,
     private val presenter: MessageNotificationPresenter,
     appLock: AppLockRepository,
+    accountTags: AccountTags,
     scope: CoroutineScope
 ) {
+    /** The accounts to name in notifications (their network has several here). */
+    private var tags: Map<AccountRef, AccountLabel?> = emptyMap()
+
     private val lastSeenMessage = HashMap<String, String>()
 
     /**
@@ -59,6 +68,7 @@ class IncomingMessageNotifier(
     private val startedAt = now()
 
     init {
+        accountTags.observe().onEach { tags = it }.launchIn(scope)
         combine(
             chatRepository.observeChats(),
             notificationPreferences.observeMutedChats(),
@@ -117,7 +127,11 @@ class IncomingMessageNotifier(
                 chat.id, "HowYouDoin", getString(Res.string.notification_new_message), message.timestamp, silent
             )
         } else {
-            presenter.show(chat.id, chat.name, chat.toChatUi().preview.asStringAsync(), message.timestamp, silent)
+            // "Anna · Work" when the network has several accounts here
+            val account = chat.takeIf { it.isOnDevice }
+                ?.let { accountTag(AccountRef(it.network, it.accountSlot), tags) }
+            val title = account?.let { "${chat.name} · ${it.name.asStringAsync()}" } ?: chat.name
+            presenter.show(chat.id, title, chat.toChatUi().preview.asStringAsync(), message.timestamp, silent)
         }
     }
 

@@ -221,4 +221,12 @@
     <string name="link_call_invite">こちらで話しましょう。ブラウザで開きます: %1$s</string>
     <string name="link_call_invite_video">ビデオ通話に参加してください。ブラウザで開きます: %1$s</string>
     <string name="link_call_failed">通話を開始できませんでした。しばらくしてからもう一度お試しください。</string>
+    <!-- Several accounts of one network on the phone -->
+    <string name="account_default">アカウント %1$d</string>
+    <string name="inbox_all_of_network">%1$s すべて</string>
+    <string name="conversation_replying_as">%1$s として返信</string>
+    <string name="contacts_choose_account">どの %1$s アカウントで送りますか？</string>
+    <plurals name="inbox_network_accounts">
+        <item quantity="other">%1$s、%2$d 件のアカウント</item>
+    </plurals>
 </resources>

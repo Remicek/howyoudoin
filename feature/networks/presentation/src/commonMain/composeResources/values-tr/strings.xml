@@ -227,4 +227,17 @@
     <string name="networks_fix_step_connect">2. Sonra Bağlan'a dokun ve yeniden giriş yap.</string>
     <string name="networks_fix_now_connect">Bağlantı kesildi. Şimdi aşağıdaki Bağlan'a dokun ve yeniden giriş yap.</string>
     <string name="networks_fix_done">%1$s yeniden çalışıyor.</string>
+    <!-- Several accounts of one network on the phone -->
+    <string name="networks_add_account">Başka hesap ekle · %1$d / %2$d</string>
+    <string name="networks_accounts_full">%1$d / %1$d hesap bağlı: başka birini eklemek için birinin bağlantısını kesin.</string>
+    <string name="networks_account_rename">Ad ve renk</string>
+    <string name="networks_account_reconnect">Yeniden bağlan</string>
+    <string name="networks_account_more">%1$s seçenekleri</string>
+    <string name="networks_account_default">Hesap %1$d</string>
+    <string name="networks_name_account_title">Bu %1$s hesabına ad verin</string>
+    <string name="networks_name_account_body">Ad ve renk, %1$s hesaplarınızı gelen kutusunda, sohbetlerde ve bildirimlerde ayırt eder.</string>
+    <string name="networks_account_name_hint">İş, Kişisel…</string>
+    <string name="networks_account_colour">Renk</string>
+    <string name="networks_save">Kaydet</string>
+    <string name="networks_duplicate_account">Bu %1$s hesabı bu telefonda zaten bağlı, bu yüzden yeni giriş kaldırıldı.</string>
 </resources>

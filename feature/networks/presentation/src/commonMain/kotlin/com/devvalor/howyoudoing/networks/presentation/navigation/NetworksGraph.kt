@@ -16,8 +16,10 @@ fun NavGraphBuilder.networksGraph(
     navigation<NetworksRoutes.Graph>(startDestination = NetworksRoutes.List()) {
         composable<NetworksRoutes.List> {
             NetworksRoot(
-                onConnectClick = { network ->
-                    navController.navigate(NetworksRoutes.Connect(network.name)) { launchSingleTop = true }
+                onConnectClick = { network, slot ->
+                    navController.navigate(NetworksRoutes.Connect(network.name, slot = slot)) {
+                        launchSingleTop = true
+                    }
                 },
                 onTutorialClick = { network ->
                     navController.navigate(NetworksRoutes.Tutorial(network.name)) { launchSingleTop = true }

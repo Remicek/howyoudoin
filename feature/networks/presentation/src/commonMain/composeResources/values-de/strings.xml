@@ -227,4 +227,17 @@
     <string name="networks_fix_step_connect">2. Tippe dann auf Verbinden und melde dich neu an.</string>
     <string name="networks_fix_now_connect">Getrennt. Tippe jetzt unten auf Verbinden und melde dich neu an.</string>
     <string name="networks_fix_done">%1$s funktioniert wieder.</string>
+    <!-- Several accounts of one network on the phone -->
+    <string name="networks_add_account">Weiteres Konto hinzufügen · %1$d von %2$d</string>
+    <string name="networks_accounts_full">%1$d von %1$d Konten verbunden: Trenne eins, um ein anderes hinzuzufügen.</string>
+    <string name="networks_account_rename">Name und Farbe</string>
+    <string name="networks_account_reconnect">Neu verbinden</string>
+    <string name="networks_account_more">Optionen für %1$s</string>
+    <string name="networks_account_default">Konto %1$d</string>
+    <string name="networks_name_account_title">Dieses %1$s-Konto benennen</string>
+    <string name="networks_name_account_body">Name und Farbe unterscheiden deine %1$s-Konten im Posteingang, in Chats und in Benachrichtigungen.</string>
+    <string name="networks_account_name_hint">Arbeit, Privat…</string>
+    <string name="networks_account_colour">Farbe</string>
+    <string name="networks_save">Speichern</string>
+    <string name="networks_duplicate_account">Dieses %1$s-Konto ist auf diesem Telefon schon verbunden, daher wurde die neue Anmeldung entfernt.</string>
 </resources>

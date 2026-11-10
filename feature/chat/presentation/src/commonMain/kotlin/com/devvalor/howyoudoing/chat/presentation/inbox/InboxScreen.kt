@@ -1,5 +1,8 @@
 package com.devvalor.howyoudoing.chat.presentation.inbox
 
+import howyoudoin.feature.chat.presentation.generated.resources.inbox_network_accounts
+import org.jetbrains.compose.resources.pluralStringResource
+import androidx.compose.ui.unit.sp
 import howyoudoin.feature.chat.presentation.generated.resources.inbox_more_filters
 import howyoudoin.feature.chat.presentation.generated.resources.inbox_search
 import howyoudoin.feature.chat.presentation.generated.resources.inbox_add_network
@@ -128,6 +131,11 @@ import com.devvalor.howyoudoing.core.designsystem.components.ChatAvatar
 import com.devvalor.howyoudoing.core.designsystem.components.NetworkBadge
 import com.devvalor.howyoudoing.core.designsystem.theme.HowYouDoinSpacing
 import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
+import com.devvalor.howyoudoing.core.domain.ondevice.AccountRef
+import com.devvalor.howyoudoing.core.designsystem.components.AccountDot
+import com.devvalor.howyoudoing.core.designsystem.components.AccountTag
+import com.devvalor.howyoudoing.chat.presentation.model.AccountTagUi
+import howyoudoin.feature.chat.presentation.generated.resources.inbox_all_of_network
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -231,6 +239,7 @@ fun InboxScreen(
                     onAction = onAction,
                     modifier = Modifier.tourTarget(tourTargets, TourStop.FILTERS)
                 )
+                AccountFilterRow(state, onAction)
                 if (state.isOffline) {
                     // Offline, every network looks broken: that's the one thing worth saying
                     OfflineBanner()
@@ -244,6 +253,7 @@ fun InboxScreen(
                     }
                     ConnectionProblems(
                         problems = problems,
+                        tags = state.accountTags,
                         onClick = { onAction(InboxAction.OnNetworksClick) },
                         onReconnect = { onAction(InboxAction.OnReconnectClick) },
                         onDismiss = { onAction(InboxAction.OnDismissProblem(it)) },
@@ -330,9 +340,10 @@ private fun InboxTopBar(
 @Composable
 private fun ConnectionProblems(
     problems: List<ConnectionProblem>,
+    tags: Map<AccountRef, AccountTagUi>,
     onClick: () -> Unit,
     onReconnect: () -> Unit,
-    onDismiss: (ChatNetwork) -> Unit
+    onDismiss: (AccountRef) -> Unit
 ) {
     if (problems.isEmpty()) return
     Surface(
@@ -353,9 +364,13 @@ private fun ConnectionProblems(
             ),
         ) {
             Column(Modifier.weight(1f).padding(end = HowYouDoinSpacing.md)) {
-                Row(horizontalArrangement = Arrangement.spacedBy(HowYouDoinSpacing.xs)) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(HowYouDoinSpacing.xs),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     problems.forEach {
                         NetworkBadge(network = it.network, size = 24.dp, borderColor = Color.Transparent)
+                        tags[it.account]?.let { tag -> AccountTag(tag.name.asString(), tag.colour) }
                     }
                 }
                 Spacer(Modifier.height(HowYouDoinSpacing.xs))
@@ -377,7 +392,7 @@ private fun ConnectionProblems(
             }
             // Logged-out networks can be ignored; the others clear themselves once they reconnect
             if (problems.all { it.kind == ConnectionProblem.Kind.LOGGED_OUT }) {
-                IconButton(onClick = { problems.forEach { onDismiss(it.network) } }) {
+                IconButton(onClick = { problems.forEach { onDismiss(it.account) } }) {
                     Icon(Icons.Rounded.Close, contentDescription = stringResource(Res.string.inbox_dismiss))
                 }
             }
@@ -501,9 +516,10 @@ private fun FilterRow(state: InboxState, onAction: (InboxAction) -> Unit, modifi
             shape = CircleShape,
         )
         state.networksInInbox.forEach { network ->
-            val filter = InboxFilter.Network(network)
-            NetworkFilter(network, isSelected = state.filter == filter) {
-                onAction(InboxAction.OnFilterSelect(if (state.filter == filter) InboxFilter.All else filter))
+            val isSelected = (state.filter as? InboxFilter.Network)?.network == network
+            val accounts = state.accountsInInbox[network].orEmpty().size
+            NetworkFilter(network, isSelected = isSelected, accountCount = accounts) {
+                onAction(InboxAction.OnFilterSelect(if (isSelected) InboxFilter.All else InboxFilter.Network(network)))
             }
         }
         Box {
@@ -530,10 +546,83 @@ private fun FilterRow(state: InboxState, onAction: (InboxAction) -> Unit, modifi
     }
 }
 
-/** A network's round icon; selected, it gets a ring in the primary colour. */
+/** Under a selected network that has more than one account here: all of them, or one account's chats. */
 @Composable
-private fun NetworkFilter(network: ChatNetwork, isSelected: Boolean, onClick: () -> Unit) {
+private fun AccountFilterRow(state: InboxState, onAction: (InboxAction) -> Unit) {
+    val selected = state.filter as? InboxFilter.Network ?: return
+    val accounts = state.accountsInInbox[selected.network].orEmpty()
+    if (accounts.isEmpty()) return
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(HowYouDoinSpacing.sm),
+        modifier = Modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState())
+            .padding(horizontal = HowYouDoinSpacing.md),
+    ) {
+        FilterChip(
+            selected = selected.slot == null,
+            onClick = { onAction(InboxAction.OnFilterSelect(InboxFilter.Network(selected.network))) },
+            label = { Text(stringResource(Res.string.inbox_all_of_network, selected.network.displayName)) },
+            shape = CircleShape,
+        )
+        accounts.forEach { account ->
+            FilterChip(
+                selected = selected.slot == account.slot,
+                onClick = {
+                    onAction(InboxAction.OnFilterSelect(InboxFilter.Network(selected.network, account.slot)))
+                },
+                leadingIcon = { AccountDot(account.tag.colour) },
+                label = {
+                    val name = account.tag.name.asString()
+                    Text(if (account.unread > 0) "$name · ${account.unread}" else name)
+                },
+                shape = CircleShape,
+            )
+        }
+    }
+}
+
+/**
+ * A network's round icon; selected, it gets a ring in the primary colour. With more than one account here, their
+ * number sits on its corner.
+ */
+@Composable
+private fun NetworkFilter(network: ChatNetwork, isSelected: Boolean, accountCount: Int = 0, onClick: () -> Unit) {
     val ring = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent
+    val accountsLabel = if (accountCount > 1) {
+        pluralStringResource(Res.plurals.inbox_network_accounts, accountCount, network.displayName, accountCount)
+    } else {
+        network.displayName
+    }
+    Box(contentAlignment = Alignment.BottomEnd) {
+        NetworkFilterIcon(network, isSelected, ring, accountsLabel, onClick)
+        if (accountCount > 1) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .size(16.dp)
+                    .background(MaterialTheme.colorScheme.inverseSurface, CircleShape)
+                    .border(1.5.dp, MaterialTheme.colorScheme.background, CircleShape)
+            ) {
+                Text(
+                    accountCount.toString(),
+                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp, lineHeight = 10.sp),
+                    color = MaterialTheme.colorScheme.inverseOnSurface,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun NetworkFilterIcon(
+    network: ChatNetwork,
+    isSelected: Boolean,
+    ring: Color,
+    description: String,
+    onClick: () -> Unit
+) {
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
@@ -541,7 +630,7 @@ private fun NetworkFilter(network: ChatNetwork, isSelected: Boolean, onClick: ()
             .border(2.dp, ring, CircleShape)
             .clip(CircleShape)
             .selectable(selected = isSelected, role = Role.Tab, onClick = onClick)
-            .semantics { contentDescription = network.displayName },
+            .semantics { contentDescription = description },
     ) {
         NetworkBadge(network = network, size = NETWORK_FILTER_SIZE - 8.dp, borderColor = Color.Transparent)
     }
@@ -568,6 +657,10 @@ private fun ChatRow(chat: ChatUi, resolver: MediaResolver, onClick: () -> Unit) 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 NetworkBadge(network = chat.network, size = 16.dp, borderColor = Color.Transparent)
                 Spacer(Modifier.width(6.dp))
+                chat.account?.let { account ->
+                    AccountTag(account.name.asString(), account.colour, Modifier.widthIn(max = 96.dp))
+                    Spacer(Modifier.width(6.dp))
+                }
                 if (chat.isGroup) {
                     Icon(
                         Icons.Rounded.Groups,

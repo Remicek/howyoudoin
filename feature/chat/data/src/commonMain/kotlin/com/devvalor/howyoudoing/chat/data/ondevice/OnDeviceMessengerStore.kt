@@ -576,7 +576,8 @@ class OnDeviceMessengerStore(
                     name = contact.name,
                     network = network,
                     avatarUrl = contact.avatarUrl,
-                    chatId = directChats[contact.id]?.let { chatIdPrefix + it }
+                    chatId = directChats[contact.id]?.let { chatIdPrefix + it },
+                    accountSlot = messenger.slot
                 )
             }
     }
@@ -737,7 +738,8 @@ class OnDeviceMessengerStore(
                 ?: if (isGroup) null else others.firstNotNullOfOrNull { s.contacts[it]?.avatarUrl },
             isEncrypted = isEncrypted,
             typingNames = s.typing[key].orEmpty().mapNotNull { s.contacts[it]?.name },
-            isOnDevice = true
+            isOnDevice = true,
+            accountSlot = messenger.slot
         )
     }
 
@@ -860,6 +862,23 @@ class OnDeviceMessengerStore(
 
         /** Chat ID prefix of the networks added later, from the network's name ("bluesky", "googlevoice"). */
         fun chatIdPrefix(network: ChatNetwork) = network.name.lowercase().replace("_", "") + "device:"
+
+        /**
+         * Chat ID prefix of one of a network's accounts: the first keeps the prefix it always had ("wadevice:"),
+         * the second and third add their number ("wadevice2:", "wadevice3:").
+         */
+        fun chatIdPrefix(network: ChatNetwork, slot: Int): String {
+            val first = when (network) {
+                ChatNetwork.MESSENGER -> MESSENGER_CHAT_ID_PREFIX
+                ChatNetwork.WHATSAPP -> WHATSAPP_CHAT_ID_PREFIX
+                ChatNetwork.INSTAGRAM -> INSTAGRAM_CHAT_ID_PREFIX
+                ChatNetwork.TELEGRAM -> TELEGRAM_CHAT_ID_PREFIX
+                ChatNetwork.SIGNAL -> SIGNAL_CHAT_ID_PREFIX
+                ChatNetwork.SLACK -> SLACK_CHAT_ID_PREFIX
+                else -> chatIdPrefix(network)
+            }
+            return if (slot == 0) first else first.removeSuffix(":") + (slot + 1) + ":"
+        }
         private const val CACHE_WRITE_DELAY_MILLIS = 2_000L
         private val cacheJson = Json { ignoreUnknownKeys = true }
         private val MEDIA_TYPES =
