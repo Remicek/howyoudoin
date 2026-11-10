@@ -4,6 +4,7 @@
 # - Secrets: gitleaks scans the whole git history for keys, tokens and passwords
 # - Go vulnerabilities: govulncheck reports known vulnerabilities the network clients actually call
 # - Gradle wrapper: the gradle-wrapper.jar is an official Gradle release
+# - Call link: the call-link/ worker's tests, its page builds, and npm audit of its dependencies
 # - Android lint (correctness, security and translation checks) and detekt (Kotlin static analysis, rules in
 #   config/detekt/detekt.yml, no baseline): any finding fails
 name: Checks
@@ -42,6 +43,23 @@ jobs:
           bridge-mobile/scripts/fetch-bridges.sh
           cd bridge-mobile
           go run golang.org/x/vuln/cmd/govulncheck@v1.9.0 -tags goolm ./...
+
+  call-link:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: call-link
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "26"
+          cache: npm
+          cache-dependency-path: call-link/package-lock.json
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+      - run: npm audit --omit=dev --audit-level=high
 
   gradle-wrapper:
     runs-on: ubuntu-latest

@@ -9,7 +9,7 @@ JEDNA SKRZYNKA NA WSZYSTKIE WIADOMOŚCI
 • Powiadomienia o nowych wiadomościach bez serwerów push: aplikacja utrzymuje własne połączenie
 
 PRYWATNOŚĆ PRZEDE WSZYSTKIM
-• Twoje konta łączą się bezpośrednio z tego telefonu. Nie ma po drodze serwerów HowYouDoin i nikt inny nie widzi Twoich wiadomości
+• Twoje konta łączą się bezpośrednio z tego telefonu. Twoje wiadomości nie przechodzą przez serwery HowYouDoin i nikt inny ich nie widzi
 • Bez analityki, śledzenia i reklam
 • Zablokuj aplikację odciskiem palca lub PIN-em i ukryj treść wiadomości w powiadomieniach
 • Raporty o awariach zostają na telefonie, chyba że zdecydujesz się je udostępnić

@@ -44,7 +44,9 @@ class LinkCallActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         val hostUrl = intent.getStringExtra(EXTRA_HOST_URL)
-        if (hostUrl == null) {
+        // "Hang up" from the notification after the screen was already gone, or nothing to open
+        if (hostUrl == null || intent.action == ACTION_HANG_UP) {
+            LinkCallService.stop(this)
             finish()
             return
         }
@@ -91,6 +93,20 @@ class LinkCallActivity : ComponentActivity() {
         }
         webView = view
         setContentView(view)
+        LinkCallService.start(this)
+    }
+
+    /** From the call notification (return to the call, or hang up), or a new call started while this one is open. */
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        when {
+            intent.action == ACTION_HANG_UP -> finish()
+            intent.getStringExtra(EXTRA_HOST_URL) != null -> {
+                // The new call replaces this one: leaving the page ends it for the other person
+                setIntent(intent)
+                webView?.loadUrl(intent.getStringExtra(EXTRA_HOST_URL).orEmpty())
+            }
+        }
     }
 
     /** What the page tells the app; its methods run on a background thread. */
@@ -102,6 +118,7 @@ class LinkCallActivity : ComponentActivity() {
     }
 
     override fun onDestroy() {
+        LinkCallService.stop(this)
         // Leaving the screen ends the call: the page goes, and with it the connection
         webView?.apply {
             loadUrl("about:blank")
@@ -116,6 +133,7 @@ class LinkCallActivity : ComponentActivity() {
 
     companion object {
         private const val EXTRA_HOST_URL = "host_url"
+        const val ACTION_HANG_UP = "com.devvalor.howyoudoing.LINK_CALL_HANG_UP"
 
         fun start(context: Context, hostUrl: String) {
             context.startActivity(

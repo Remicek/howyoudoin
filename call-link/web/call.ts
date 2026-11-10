@@ -65,10 +65,215 @@ const TEXTS = {
     camera: "Kamera",
     leave: "Zakończ rozmowę",
   },
+  de: {
+    inviteTitle: "Du bist zu einem Anruf eingeladen",
+    inviteSeparate: "Jemand, der HowYouDoin nutzt, lädt dich zu einem Anruf ein. Er ist unabhängig von WhatsApp, Messenger und anderen Apps und läuft direkt hier im Browser: Du musst nichts installieren.",
+    inviteEncrypted: "Er ist Ende-zu-Ende-verschlüsselt: Nur ihr beide könnt ihn sehen und hören.",
+    invitePermissions: "Dein Browser fragt nach dem Mikrofon und, wenn du mit Video beitrittst, nach der Kamera.",
+    joinVideo: "Mit Video beitreten",
+    joinAudio: "Nur mit Audio beitreten",
+    connecting: "Verbindung wird hergestellt…",
+    waiting: "Warten, bis der Link geöffnet wird…",
+    audioOnly: "Audioanruf",
+    endedTitle: "Der Anruf ist beendet",
+    endedText: "Du kannst diese Seite schließen.",
+    goneTitle: "Dieser Anruf ist nicht verfügbar",
+    unsupportedTitle: "Dieser Browser kann nicht beitreten",
+    unsupportedText: "Verschlüsselte Anrufe brauchen ein aktuelles Chrome, Edge, Firefox oder Safari.",
+    errorTitle: "Beitritt fehlgeschlagen",
+    mic: "Mikrofon",
+    camera: "Kamera",
+    leave: "Anruf verlassen",
+  },
+  es: {
+    inviteTitle: "Te han invitado a una llamada",
+    inviteSeparate: "Alguien que usa HowYouDoin te invita a una llamada. Es independiente de WhatsApp, Messenger y cualquier otra app, y ocurre aquí mismo, en tu navegador: no hay nada que instalar.",
+    inviteEncrypted: "Está cifrada de extremo a extremo: solo vosotros dos podéis verla y oírla.",
+    invitePermissions: "Tu navegador pedirá usar el micrófono, y la cámara si te unes con vídeo.",
+    joinVideo: "Unirse con vídeo",
+    joinAudio: "Unirse solo con audio",
+    connecting: "Conectando…",
+    waiting: "Esperando a que abra el enlace…",
+    audioOnly: "Llamada de voz",
+    endedTitle: "La llamada ha terminado",
+    endedText: "Puedes cerrar esta página.",
+    goneTitle: "Esta llamada no está disponible",
+    unsupportedTitle: "Este navegador no puede unirse",
+    unsupportedText: "Las llamadas cifradas necesitan una versión reciente de Chrome, Edge, Firefox o Safari.",
+    errorTitle: "No se pudo unir a la llamada",
+    mic: "Micrófono",
+    camera: "Cámara",
+    leave: "Salir de la llamada",
+  },
+  fr: {
+    inviteTitle: "Vous êtes invité à un appel",
+    inviteSeparate: "Quelqu'un qui utilise HowYouDoin vous invite à un appel. Il est indépendant de WhatsApp, Messenger et de toute autre appli, et se passe ici même, dans votre navigateur : rien à installer.",
+    inviteEncrypted: "Il est chiffré de bout en bout : vous seuls pouvez le voir et l'entendre.",
+    invitePermissions: "Votre navigateur demandera l'accès au micro, et à la caméra si vous rejoignez en vidéo.",
+    joinVideo: "Rejoindre en vidéo",
+    joinAudio: "Rejoindre en audio seulement",
+    connecting: "Connexion…",
+    waiting: "En attente de l'ouverture du lien…",
+    audioOnly: "Appel audio",
+    endedTitle: "L'appel est terminé",
+    endedText: "Vous pouvez fermer cette page.",
+    goneTitle: "Cet appel n'est pas disponible",
+    unsupportedTitle: "Ce navigateur ne peut pas rejoindre l'appel",
+    unsupportedText: "Les appels chiffrés nécessitent une version récente de Chrome, Edge, Firefox ou Safari.",
+    errorTitle: "Impossible de rejoindre l'appel",
+    mic: "Micro",
+    camera: "Caméra",
+    leave: "Quitter l'appel",
+  },
+  pt: {
+    inviteTitle: "Você foi convidado para uma chamada",
+    inviteSeparate: "Alguém que usa o HowYouDoin está convidando você para uma chamada. Ela é separada do WhatsApp, do Messenger e de qualquer outro app, e acontece aqui mesmo, no seu navegador: não é preciso instalar nada.",
+    inviteEncrypted: "Ela tem criptografia de ponta a ponta: só vocês dois podem vê-la e ouvi-la.",
+    invitePermissions: "Seu navegador vai pedir para usar o microfone, e a câmera se você entrar com vídeo.",
+    joinVideo: "Entrar com vídeo",
+    joinAudio: "Entrar só com áudio",
+    connecting: "Conectando…",
+    waiting: "Aguardando a pessoa abrir o link…",
+    audioOnly: "Chamada de voz",
+    endedTitle: "A chamada terminou",
+    endedText: "Você pode fechar esta página.",
+    goneTitle: "Esta chamada não está disponível",
+    unsupportedTitle: "Este navegador não consegue entrar",
+    unsupportedText: "Chamadas criptografadas precisam de uma versão recente do Chrome, Edge, Firefox ou Safari.",
+    errorTitle: "Não foi possível entrar na chamada",
+    mic: "Microfone",
+    camera: "Câmera",
+    leave: "Sair da chamada",
+  },
+  ru: {
+    inviteTitle: "Вас приглашают на звонок",
+    inviteSeparate: "Пользователь HowYouDoin приглашает вас на звонок. Он не связан с WhatsApp, Messenger и другими приложениями и проходит прямо здесь, в браузере: ничего устанавливать не нужно.",
+    inviteEncrypted: "Звонок защищён сквозным шифрованием: видеть и слышать его можете только вы двое.",
+    invitePermissions: "Браузер попросит доступ к микрофону, а если вы подключитесь с видео — и к камере.",
+    joinVideo: "Подключиться с видео",
+    joinAudio: "Подключиться только со звуком",
+    connecting: "Подключение…",
+    waiting: "Ждём, пока собеседник откроет ссылку…",
+    audioOnly: "Голосовой звонок",
+    endedTitle: "Звонок завершён",
+    endedText: "Эту страницу можно закрыть.",
+    goneTitle: "Этот звонок недоступен",
+    unsupportedTitle: "Этот браузер не может подключиться",
+    unsupportedText: "Для зашифрованных звонков нужен свежий Chrome, Edge, Firefox или Safari.",
+    errorTitle: "Не удалось подключиться",
+    mic: "Микрофон",
+    camera: "Камера",
+    leave: "Завершить звонок",
+  },
+  tr: {
+    inviteTitle: "Bir aramaya davet edildiniz",
+    inviteSeparate: "HowYouDoin kullanan biri sizi bir aramaya davet ediyor. Arama WhatsApp, Messenger ve diğer uygulamalardan bağımsızdır ve doğrudan burada, tarayıcınızda gerçekleşir: hiçbir şey yüklemeniz gerekmez.",
+    inviteEncrypted: "Arama uçtan uca şifrelidir: yalnızca ikiniz görebilir ve duyabilirsiniz.",
+    invitePermissions: "Tarayıcınız mikrofonu, görüntülü katılırsanız kamerayı da kullanmak için izin isteyecek.",
+    joinVideo: "Görüntülü katıl",
+    joinAudio: "Yalnızca sesli katıl",
+    connecting: "Bağlanıyor…",
+    waiting: "Bağlantıyı açması bekleniyor…",
+    audioOnly: "Sesli arama",
+    endedTitle: "Arama sona erdi",
+    endedText: "Bu sayfayı kapatabilirsiniz.",
+    goneTitle: "Bu arama kullanılamıyor",
+    unsupportedTitle: "Bu tarayıcı katılamıyor",
+    unsupportedText: "Şifreli aramalar için güncel bir Chrome, Edge, Firefox veya Safari gerekir.",
+    errorTitle: "Aramaya katılınamadı",
+    mic: "Mikrofon",
+    camera: "Kamera",
+    leave: "Aramadan ayrıl",
+  },
+  ja: {
+    inviteTitle: "通話に招待されています",
+    inviteSeparate: "HowYouDoin を使っている人が、あなたを通話に招待しています。WhatsApp や Messenger などのアプリとは別の通話で、このブラウザ上で行われます。インストールは不要です。",
+    inviteEncrypted: "エンドツーエンドで暗号化されており、見聞きできるのはお二人だけです。",
+    invitePermissions: "ブラウザからマイクの使用、ビデオで参加する場合はカメラの使用の許可を求められます。",
+    joinVideo: "ビデオで参加",
+    joinAudio: "音声のみで参加",
+    connecting: "接続中…",
+    waiting: "相手がリンクを開くのを待っています…",
+    audioOnly: "音声通話",
+    endedTitle: "通話は終了しました",
+    endedText: "このページを閉じてかまいません。",
+    goneTitle: "この通話は利用できません",
+    unsupportedTitle: "このブラウザでは参加できません",
+    unsupportedText: "暗号化通話には最新の Chrome、Edge、Firefox、Safari が必要です。",
+    errorTitle: "通話に参加できませんでした",
+    mic: "マイク",
+    camera: "カメラ",
+    leave: "通話を終了",
+  },
+  hi: {
+    inviteTitle: "आपको एक कॉल पर बुलाया गया है",
+    inviteSeparate: "HowYouDoin इस्तेमाल करने वाला कोई व्यक्ति आपको एक कॉल पर बुला रहा है। यह WhatsApp, Messenger या किसी दूसरे ऐप से अलग है और यहीं आपके ब्राउज़र में होती है: कुछ भी इंस्टॉल नहीं करना है।",
+    inviteEncrypted: "यह एंड-टू-एंड एन्क्रिप्टेड है: इसे सिर्फ़ आप दोनों देख और सुन सकते हैं।",
+    invitePermissions: "आपका ब्राउज़र माइक्रोफ़ोन, और वीडियो के साथ जुड़ने पर कैमरा इस्तेमाल करने की अनुमति माँगेगा।",
+    joinVideo: "वीडियो के साथ जुड़ें",
+    joinAudio: "सिर्फ़ ऑडियो के साथ जुड़ें",
+    connecting: "कनेक्ट हो रहा है…",
+    waiting: "उनके लिंक खोलने का इंतज़ार…",
+    audioOnly: "ऑडियो कॉल",
+    endedTitle: "कॉल खत्म हो गई",
+    endedText: "आप यह पेज बंद कर सकते हैं।",
+    goneTitle: "यह कॉल उपलब्ध नहीं है",
+    unsupportedTitle: "यह ब्राउज़र नहीं जुड़ सकता",
+    unsupportedText: "एन्क्रिप्टेड कॉल के लिए नया Chrome, Edge, Firefox या Safari चाहिए।",
+    errorTitle: "कॉल से नहीं जुड़ सके",
+    mic: "माइक्रोफ़ोन",
+    camera: "कैमरा",
+    leave: "कॉल छोड़ें",
+  },
+  id: {
+    inviteTitle: "Anda diundang ke panggilan",
+    inviteSeparate: "Seseorang yang memakai HowYouDoin mengundang Anda ke panggilan. Panggilan ini terpisah dari WhatsApp, Messenger, atau aplikasi lain, dan berlangsung di browser ini: tidak perlu memasang apa pun.",
+    inviteEncrypted: "Panggilan terenkripsi end-to-end: hanya kalian berdua yang bisa melihat dan mendengarnya.",
+    invitePermissions: "Browser akan meminta izin memakai mikrofon, dan kamera jika Anda bergabung dengan video.",
+    joinVideo: "Gabung dengan video",
+    joinAudio: "Gabung dengan audio saja",
+    connecting: "Menghubungkan…",
+    waiting: "Menunggu mereka membuka tautan…",
+    audioOnly: "Panggilan suara",
+    endedTitle: "Panggilan telah berakhir",
+    endedText: "Anda bisa menutup halaman ini.",
+    goneTitle: "Panggilan ini tidak tersedia",
+    unsupportedTitle: "Browser ini tidak bisa bergabung",
+    unsupportedText: "Panggilan terenkripsi memerlukan Chrome, Edge, Firefox, atau Safari versi terbaru.",
+    errorTitle: "Tidak bisa bergabung ke panggilan",
+    mic: "Mikrofon",
+    camera: "Kamera",
+    leave: "Tinggalkan panggilan",
+  },
+  ar: {
+    inviteTitle: "أنت مدعو إلى مكالمة",
+    inviteSeparate: "يدعوك شخص يستخدم HowYouDoin إلى مكالمة. إنها منفصلة عن واتساب وماسنجر وأي تطبيق آخر، وتجري هنا في متصفحك: لا حاجة لتثبيت أي شيء.",
+    inviteEncrypted: "المكالمة مشفرة من طرف إلى طرف: لا يمكن لأحد غيركما رؤيتها أو سماعها.",
+    invitePermissions: "سيطلب متصفحك استخدام الميكروفون، والكاميرا إذا انضممت بالفيديو.",
+    joinVideo: "الانضمام بالفيديو",
+    joinAudio: "الانضمام بالصوت فقط",
+    connecting: "جارٍ الاتصال…",
+    waiting: "في انتظار أن يفتح الرابط…",
+    audioOnly: "مكالمة صوتية",
+    endedTitle: "انتهت المكالمة",
+    endedText: "يمكنك إغلاق هذه الصفحة.",
+    goneTitle: "هذه المكالمة غير متاحة",
+    unsupportedTitle: "لا يمكن لهذا المتصفح الانضمام",
+    unsupportedText: "تحتاج المكالمات المشفرة إلى إصدار حديث من Chrome أو Edge أو Firefox أو Safari.",
+    errorTitle: "تعذر الانضمام إلى المكالمة",
+    mic: "الميكروفون",
+    camera: "الكاميرا",
+    leave: "مغادرة المكالمة",
+  },
 };
 
 type TextKey = keyof typeof TEXTS.en;
-const lang = navigator.language.toLowerCase().startsWith("pl") ? "pl" : "en";
+type Lang = keyof typeof TEXTS;
+/** The browser's first language the page has, e.g. "pt-BR" → pt; "in" is Indonesian's old code. */
+const lang: Lang =
+  navigator.languages
+    .map((l) => l.toLowerCase().split("-")[0].replace(/^in$/, "id"))
+    .find((l): l is Lang => l in TEXTS) ?? "en";
 const t = (key: TextKey) => TEXTS[lang][key];
 
 const ICONS = {
@@ -97,6 +302,7 @@ function message(title: string, text = "") {
 
 function translate() {
   document.documentElement.lang = lang;
+  document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
   document.querySelectorAll<HTMLElement>("[data-text]").forEach((el) => {
     el.textContent = t(el.dataset.text as TextKey);
   });
@@ -199,12 +405,19 @@ async function join(url: string, token: string, key: string, video: boolean) {
     await call.setE2EEEnabled(true);
     await call.connect(url, token);
     await call.localParticipant.setMicrophoneEnabled(true);
-    if (video) await call.localParticipant.setCameraEnabled(true);
   } catch (e) {
-    console.error(e);
+    console.error("Couldn't join", e);
+    call.removeAllListeners(RoomEvent.Disconnected);
+    await call.disconnect();
     message(t("errorTitle"), String((e as Error)?.message ?? e));
     window.HydCall?.ended();
     return;
+  }
+  // Without the camera (refused, busy, or the app went to the background while it started) it's an audio call
+  if (video) {
+    await call.localParticipant
+      .setCameraEnabled(true)
+      .catch((e) => console.warn("Continuing without the camera", e));
   }
   updateStatus();
 

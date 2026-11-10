@@ -9,7 +9,7 @@ ONE INBOX FOR ALL YOUR MESSAGES
 • Notifications for new messages without push servers: the app keeps its own connection
 
 PRIVATE BY DESIGN
-• Your accounts connect directly from this phone. There are no HowYouDoin servers in the middle, and nobody else sees your messages
+• Your accounts connect directly from this phone. There are no HowYouDoin servers in the middle of your messages, and nobody else sees them
 • No analytics, no tracking, no ads
 • Lock the app with your fingerprint or a PIN, and hide message text in notifications
 • Crash reports stay on your phone unless you choose to share them

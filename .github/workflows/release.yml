@@ -4,7 +4,8 @@
 # it (v1.2.3) and publishes a GitHub release with the APK and the bundle attached.
 #
 # Needs repository secrets for signing: RELEASE_KEYSTORE_BASE64 (base64 of the .jks file), RELEASE_STORE_PASSWORD,
-# RELEASE_KEY_ALIAS and RELEASE_KEY_PASSWORD. Optional: TELEGRAM_API_ID and TELEGRAM_API_HASH.
+# RELEASE_KEY_ALIAS and RELEASE_KEY_PASSWORD. Optional: TELEGRAM_API_ID and TELEGRAM_API_HASH, and CALL_LINK_URL (the
+# deployed call-link/ worker, e.g. https://call.howyoudoin.app; without it, calls through a link are left out).
 name: Release
 
 on:
@@ -78,6 +79,7 @@ jobs:
           KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
           TELEGRAM_API_ID: ${{ secrets.TELEGRAM_API_ID }}
           TELEGRAM_API_HASH: ${{ secrets.TELEGRAM_API_HASH }}
+          CALL_LINK_URL: ${{ secrets.CALL_LINK_URL }}
         run: |
           if [ -z "$KEYSTORE" ] || [ -z "$STORE_PASSWORD" ] || [ -z "$KEY_ALIAS" ] || [ -z "$KEY_PASSWORD" ]; then
             echo "::error::Signing secrets missing: RELEASE_KEYSTORE_BASE64, RELEASE_STORE_PASSWORD, RELEASE_KEY_ALIAS, RELEASE_KEY_PASSWORD"
@@ -92,6 +94,9 @@ jobs:
             if [ -n "$TELEGRAM_API_ID" ]; then
               echo "telegram.apiId=$TELEGRAM_API_ID"
               echo "telegram.apiHash=$TELEGRAM_API_HASH"
+            fi
+            if [ -n "$CALL_LINK_URL" ]; then
+              echo "callLink.url=$CALL_LINK_URL"
             fi
           } > local.properties
 

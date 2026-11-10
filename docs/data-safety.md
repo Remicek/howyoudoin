@@ -59,3 +59,8 @@ sheet, to whoever they pick, which Google treats as user-initiated.
   (for example with GitHub Pages, or by making the repository public) and enter that URL in Play Console.
 - Play Console asks for a developer contact email; the policy's "open an issue" only works once the repository
   is public.
+- Calls through a link (when `callLink.url` is set for the build): the call's audio and video pass through LiveKit's
+  servers, end-to-end encrypted with a key that never leaves the two devices; the call service and LiveKit see IP
+  addresses. Check Play's current rules for end-to-end encrypted data before answering "Audio" and "Photos and
+  videos" (the table above already lists them as collected for calls), and name LiveKit and Cloudflare if asked
+  about service providers.

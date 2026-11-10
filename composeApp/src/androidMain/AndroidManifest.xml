@@ -62,6 +62,12 @@
             android:turnScreenOn="true"
             android:theme="@android:style/Theme.Material.NoActionBar" />
 
+        <!-- Keeps a call through a link's microphone on while its screen is in the background -->
+        <service
+            android:name=".call.LinkCallService"
+            android:exported="false"
+            android:foregroundServiceType="microphone" />
+
         <service
             android:name=".call.CallService"
             android:exported="false"

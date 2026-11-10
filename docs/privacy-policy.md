@@ -7,8 +7,8 @@ Bluesky, LinkedIn, Discord, X and Matrix conversations into one inbox. This poli
 
 ## What we collect
 
-**Nothing.** In its default mode HowYouDoin has no servers of its own, no accounts with us, no analytics, no
-advertising and no tracking. The developers never receive your messages, contacts, login details or usage data. The
+**Nothing.** In its default mode HowYouDoin has no servers of its own (only the optional calls through a link,
+below, use one), no accounts with us, no analytics, no advertising and no tracking. The developers never receive your messages, contacts, login details or usage data. The
 app contains no analytics, advertising or crash-reporting libraries from other companies either.
 
 ## What stays on your phone
@@ -44,6 +44,18 @@ own privacy policies apply to what they receive.
 - Profile pictures, photos and files are downloaded from those networks' servers.
 - Voice and video calls (Matrix) connect to the other person directly or through the relay server of your Matrix
   homeserver.
+
+## Calls through a link (optional)
+
+The other networks' own calls can't be made or answered in HowYouDoin. Instead, you can start a separate call and
+send its link in a chat; the other person joins it in their browser. Only when you start one:
+
+- The app asks HowYouDoin's call service (a Cloudflare Worker) for a call, and the call itself is connected through
+  LiveKit's servers. Both see your IP address, as any server you connect to does, and the call's random name.
+- The call is end-to-end encrypted with a key that only goes in the link you send, after the `#`, a part browsers
+  never send to a server. Neither the call service nor LiveKit can see or hear the call, and neither stores it.
+- The link is sent as an ordinary message in that chat, so the network carries it like any other message.
+- A call has room for two people; it closes 15 minutes after it's created if nobody joins, and when you both leave.
 
 ## Server mode (optional)
 
