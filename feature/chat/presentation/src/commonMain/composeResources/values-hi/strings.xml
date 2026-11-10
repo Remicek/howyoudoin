@@ -208,11 +208,11 @@
     <string name="tour_search_title">चैट ढूँढें</string>
     <string name="tour_search_text">नाम से अपनी चैट खोजें।</string>
 
-    <!-- Calls through a link (LinkCallDialog, "Call back here", the invite sent in the chat) -->
-    <string name="link_call_back_here">यहाँ वापस कॉल करें</string>
+    <!-- Calls through a link (LinkCallDialog, "Call back through a link", the invite sent in the chat) -->
+    <string name="link_call_back_here">लिंक से वापस कॉल करें</string>
     <string name="link_call_title">लिंक से कॉल</string>
     <string name="link_call_title_video">लिंक से वीडियो कॉल</string>
-    <string name="link_call_how_new">HowYouDoin %1$s कॉल न कर सकता है न उठा सकता है, इसलिए यह अपनी एक अलग कॉल शुरू करता है।</string>
+    <string name="link_call_how_new">HowYouDoin %1$s कॉल न उठा सकता है न शुरू कर सकता है: यह सिर्फ़ %1$s ऐप कर सकता है। इसके बजाय यह अपनी एक कॉल शुरू करता है और आप उसका लिंक भेजते हैं, मीटिंग लिंक की तरह।</string>
     <string name="link_call_how_link">इसका लिंक इस चैट में %1$s को भेजा जाता है।</string>
     <string name="link_call_how_browser">वे अपने ब्राउज़र में लिंक खोलकर जुड़ते हैं: कोई ऐप या अकाउंट नहीं चाहिए। उनके जुड़ने तक आप कॉल स्क्रीन पर इंतज़ार करते हैं।</string>
     <string name="link_call_how_ringing">उनकी %1$s कॉल नहीं उठाई जाती: वह तब तक बजती रहती है जब तक वे काट नहीं देते।</string>

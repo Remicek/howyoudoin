@@ -12,6 +12,8 @@
     <string name="call_return">Touchez pour revenir à l\'appel</string>
     <string name="call_hang_up">Raccrocher</string>
     <string name="call_needs_mic">Les appels nécessitent le micro</string>
+    <!-- The call screen in the list of recent apps -->
+    <string name="link_call_task_label">Appel</string>
     <string name="call_start_failed">Impossible de lancer l\'appel</string>
     <string name="call_answer_needs_mic">Répondre nécessite le micro</string>
     <string name="call_video">Vidéo</string>

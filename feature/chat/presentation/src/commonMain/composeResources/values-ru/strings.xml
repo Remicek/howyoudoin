@@ -212,11 +212,11 @@
     <string name="tour_search_title">Найти чат</string>
     <string name="tour_search_text">Ищите чаты по названию.</string>
 
-    <!-- Calls through a link (LinkCallDialog, "Call back here", the invite sent in the chat) -->
-    <string name="link_call_back_here">Перезвонить здесь</string>
+    <!-- Calls through a link (LinkCallDialog, "Call back through a link", the invite sent in the chat) -->
+    <string name="link_call_back_here">Перезвонить по ссылке</string>
     <string name="link_call_title">Звонок по ссылке</string>
     <string name="link_call_title_video">Видеозвонок по ссылке</string>
-    <string name="link_call_how_new">HowYouDoin не может звонить или отвечать на звонки в %1$s, поэтому начинает отдельный, собственный звонок.</string>
+    <string name="link_call_how_new">HowYouDoin не может отвечать на звонки %1$s или начинать их: это умеет только приложение %1$s. Вместо этого он начинает собственный звонок, а вы отправляете ссылку на него, как ссылку на встречу.</string>
     <string name="link_call_how_link">Ссылка на него отправляется собеседнику %1$s в этом чате.</string>
     <string name="link_call_how_browser">Собеседник подключается, открыв ссылку в браузере: без приложения и аккаунта. Вы ждёте на экране звонка, пока он не подключится.</string>
     <string name="link_call_how_ringing">Звонок в %1$s не будет принят: он звонит, пока собеседник не положит трубку.</string>

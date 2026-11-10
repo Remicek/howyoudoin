@@ -8,7 +8,7 @@ import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-/** Which call messages offer "Call back here" (a call through a link). */
+/** Which call messages offer "Call back through a link" (a call through a link). */
 class CallBackTest {
 
     private fun call(state: CallOutcome, video: Boolean = false, outgoing: Boolean = false) = Message(

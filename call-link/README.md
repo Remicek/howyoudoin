@@ -4,7 +4,7 @@ HowYouDoin can't place or answer calls on WhatsApp, Messenger, Instagram, Telegr
 networks it reads (only Matrix calls work in the app). Instead, it offers a separate call: the app creates a room
 here, sends its link in the chat, and the other person joins from their browser with nothing to install.
 
-- **In the app:** the call buttons in a one-to-one chat's header, and **Call back here** under a call they made
+- **In the app:** the call buttons in a one-to-one chat's header, and **Call back through a link** under a call they made
   (ringing, missed or declined). Before the first call, a dialog explains what will happen; **Don't show this again**
   skips it.
 - **This folder:** a Cloudflare Worker that runs each call (a Durable Object per call), and the call page (`web/`,

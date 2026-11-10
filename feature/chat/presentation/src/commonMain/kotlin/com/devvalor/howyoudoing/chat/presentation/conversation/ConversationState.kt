@@ -61,6 +61,6 @@ data class ConversationState(
 
 data class LinkCallPrompt(
     val video: Boolean,
-    /** Started from a call they made on the network ("Call back here"): theirs keeps ringing. */
+    /** Started from a call they made on the network ("Call back through a link"): theirs keeps ringing. */
     val isCallBack: Boolean,
 )

@@ -49,7 +49,9 @@
         <activity
             android:name=".call.LinkCallActivity"
             android:exported="false"
-            android:launchMode="singleTop"
+            android:label="@string/link_call_task_label"
+            android:launchMode="singleTask"
+            android:taskAffinity="${applicationId}.call"
             android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden"
             android:theme="@android:style/Theme.Material.NoActionBar" />
         <activity

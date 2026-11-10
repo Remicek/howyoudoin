@@ -208,11 +208,11 @@
     <string name="tour_search_title">Chat finden</string>
     <string name="tour_search_text">Durchsuche deine Chats nach Namen.</string>
 
-    <!-- Calls through a link (LinkCallDialog, "Call back here", the invite sent in the chat) -->
-    <string name="link_call_back_here">Hier zurückrufen</string>
+    <!-- Calls through a link (LinkCallDialog, "Call back through a link", the invite sent in the chat) -->
+    <string name="link_call_back_here">Per Link zurückrufen</string>
     <string name="link_call_title">Anruf über einen Link</string>
     <string name="link_call_title_video">Videoanruf über einen Link</string>
-    <string name="link_call_how_new">HowYouDoin kann keine %1$s-Anrufe tätigen oder annehmen, daher startet es einen eigenen, separaten Anruf.</string>
+    <string name="link_call_how_new">HowYouDoin kann %1$s-Anrufe weder annehmen noch starten: Das kann nur die %1$s-App. Stattdessen startet es einen eigenen Anruf, und du schickst einen Link dazu, wie einen Meeting-Link.</string>
     <string name="link_call_how_link">Ein Link dazu wird in diesem Chat an %1$s gesendet.</string>
     <string name="link_call_how_browser">Die andere Person tritt bei, indem sie den Link im Browser öffnet: ohne App oder Konto. Du wartest im Anrufbildschirm, bis sie beitritt.</string>
     <string name="link_call_how_ringing">Der %1$s-Anruf wird nicht angenommen: Er klingelt weiter, bis aufgelegt wird.</string>

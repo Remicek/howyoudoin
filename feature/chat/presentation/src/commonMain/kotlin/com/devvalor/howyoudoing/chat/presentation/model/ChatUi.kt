@@ -80,7 +80,7 @@ data class MessageUi(
     val isReadByOthers: Boolean = false,
     val isEdited: Boolean = false,
     val canRetry: Boolean = false,
-    /** A call from the other person that can be returned through a link ("Call back here"): whether it was video. */
+    /** A call from the other person that "Call back through a link" can return: whether it was video. */
     val callBackVideo: Boolean? = null
 )
 

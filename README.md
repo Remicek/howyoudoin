@@ -37,7 +37,7 @@ Status: experimental, Android only for now. (An iOS build exists in the code but
 - 12 languages, four colour themes, light and dark
 - Try everything in demo mode without connecting an account
 - A short tour of the inbox for new users (skippable, and shown again from Settings)
-- Calls through a link on the networks whose calls the app can't make or answer: a separate, end-to-end encrypted call the other person joins from their browser, with "Call back here" under their calls ([call-link/](call-link/README.md))
+- Calls through a link on the networks whose calls the app can't make or answer: a separate, end-to-end encrypted call the other person joins from their browser, with "Call back through a link" under their calls ([call-link/](call-link/README.md))
 - Rate the app on Google Play or share it with friends from Settings
 - Optional: connect through your own Matrix homeserver with mautrix bridges instead (server mode)
 

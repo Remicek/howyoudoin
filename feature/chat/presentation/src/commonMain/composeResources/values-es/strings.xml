@@ -210,11 +210,11 @@
     <string name="tour_search_title">Encuentra un chat</string>
     <string name="tour_search_text">Busca tus chats por nombre.</string>
 
-    <!-- Calls through a link (LinkCallDialog, "Call back here", the invite sent in the chat) -->
-    <string name="link_call_back_here">Devolver la llamada aquí</string>
+    <!-- Calls through a link (LinkCallDialog, "Call back through a link", the invite sent in the chat) -->
+    <string name="link_call_back_here">Devolver la llamada con un enlace</string>
     <string name="link_call_title">Llamada mediante enlace</string>
     <string name="link_call_title_video">Videollamada mediante enlace</string>
-    <string name="link_call_how_new">HowYouDoin no puede hacer ni contestar llamadas de %1$s, así que inicia una llamada aparte, propia.</string>
+    <string name="link_call_how_new">HowYouDoin no puede contestar ni iniciar llamadas de %1$s: solo puede hacerlo la app de %1$s. En su lugar, inicia una llamada propia y tú envías un enlace para unirse, como un enlace de reunión.</string>
     <string name="link_call_how_link">Se envía un enlace a %1$s en este chat.</string>
     <string name="link_call_how_browser">Se une abriendo el enlace en su navegador: sin app ni cuenta. Esperas en la pantalla de llamada hasta que se una.</string>
     <string name="link_call_how_ringing">Su llamada de %1$s no se contesta: sigue sonando hasta que cuelgue.</string>

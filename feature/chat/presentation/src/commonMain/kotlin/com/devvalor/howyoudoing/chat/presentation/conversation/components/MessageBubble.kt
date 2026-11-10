@@ -68,7 +68,7 @@ fun MessageBubble(
     onReactionClick: (String) -> Unit,
     /** The quoted message of a reply was tapped: its ID. */
     onQuoteClick: (String) -> Unit = {},
-    /** "Call back here", on a call from them that can be returned through a link. */
+    /** "Call back through a link", on a call from them that can be returned through a link. */
     onCallBack: (() -> Unit)? = null,
 ) {
     val isOutgoing = message.isOutgoing

@@ -12,6 +12,8 @@
     <string name="call_return">Ketuk untuk kembali ke panggilan</string>
     <string name="call_hang_up">Tutup</string>
     <string name="call_needs_mic">Panggilan memerlukan mikrofon</string>
+    <!-- The call screen in the list of recent apps -->
+    <string name="link_call_task_label">Panggilan</string>
     <string name="call_start_failed">Tidak dapat memulai panggilan</string>
     <string name="call_answer_needs_mic">Menjawab memerlukan mikrofon</string>
     <string name="call_video">Video</string>

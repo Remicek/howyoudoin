@@ -212,11 +212,11 @@
     <string name="tour_search_title">Znajdź czat</string>
     <string name="tour_search_text">Szukaj czatów po nazwie.</string>
 
-    <!-- Calls through a link (LinkCallDialog, "Call back here", the invite sent in the chat) -->
-    <string name="link_call_back_here">Oddzwoń tutaj</string>
+    <!-- Calls through a link (LinkCallDialog, "Call back through a link", the invite sent in the chat) -->
+    <string name="link_call_back_here">Oddzwoń przez link</string>
     <string name="link_call_title">Rozmowa przez link</string>
     <string name="link_call_title_video">Rozmowa wideo przez link</string>
-    <string name="link_call_how_new">HowYouDoin nie może dzwonić ani odbierać połączeń w %1$s, więc rozpoczyna osobną, własną rozmowę.</string>
+    <string name="link_call_how_new">HowYouDoin nie może odbierać ani rozpoczynać połączeń w %1$s: może to tylko aplikacja %1$s. Zamiast tego rozpoczyna własną rozmowę, a Ty wysyłasz do niej link, jak link do spotkania.</string>
     <string name="link_call_how_link">Link do niej zostanie wysłany do: %1$s w tym czacie.</string>
     <string name="link_call_how_browser">Rozmówca dołącza, otwierając link w przeglądarce: bez aplikacji i konta. Czekasz na ekranie rozmowy, aż dołączy.</string>
     <string name="link_call_how_ringing">Połączenie z %1$s nie zostanie odebrane: będzie dzwonić, dopóki rozmówca się nie rozłączy.</string>

@@ -12,6 +12,8 @@
     <string name="call_return">اضغط للعودة إلى المكالمة</string>
     <string name="call_hang_up">إنهاء</string>
     <string name="call_needs_mic">تحتاج المكالمات إلى الميكروفون</string>
+    <!-- The call screen in the list of recent apps -->
+    <string name="link_call_task_label">مكالمة</string>
     <string name="call_start_failed">تعذّر بدء المكالمة</string>
     <string name="call_answer_needs_mic">يحتاج الرد إلى الميكروفون</string>
     <string name="call_video">فيديو</string>

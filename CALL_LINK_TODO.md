@@ -40,11 +40,12 @@ the guest, a local worker with a real SFU app, Wi-Fi):
 
 ## Needs a real phone
 
-- [ ] A call started from the app's call screen (the WebView) with Realtime SFU. The phone test above used Chrome
-      on both sides, so as not to send an invite into a personal chat. The A16 has a debug build pointing at
-      `http://localhost:8787`.
+- [x] A call started from the app's call screen (the WebView) on `call.howyoudoin.app`: done 2026-11-10 on the
+      Pixel_10 emulator (Slack chat "remicek") with desktop Chrome as the guest; video and audio both ways, hanging
+      up in the app ended it for both. The A16 has a debug build pointing at `http://localhost:8787` (rebuild to
+      use it there).
 - [ ] The guest on Safari on an iPhone, and on mobile data (with TURN set up).
-- [ ] **Call back here** under a real incoming/missed call on WhatsApp, Messenger, Signal, Telegram, Instagram.
+- [ ] **Call back through a link** under a real incoming/missed call on WhatsApp, Messenger, Signal, Telegram, Instagram.
 - [ ] The link as received in each network's own app: is it clickable, does the preview look fine.
 - [ ] The emulator showed an ANR when pressing Home during a call (load average around 7). Check it doesn't happen
       on a phone.
@@ -72,13 +73,15 @@ SFU handles groups; what it would take:
 
 ## Clean-up
 
-- [ ] Delete the six test messages "Join me on a video call, it opens in your browser: http://localhost:8787/…"
-      sent to the Slack chat "remicek" on 2026-11-10 (they point at a local server and can't be opened).
+- [ ] Delete the test messages sent to the Slack chat "remicek" on 2026-11-10: six "Join me on a video call…
+      http://localhost:8787/…" (they can't be opened) and one with a `call.howyoudoin.app` link (that call has
+      ended).
 
 ## Decisions
 
-- **Back on the call screen ends the call** (like closing a browser tab). Alternative: Back returns to the chat
-  and the call goes on in the background, back through the notification.
+- **Back on the call screen returns to the chat** (decided 2026-11-10): the call goes on in the background, in a task
+  of its own ("Call" in recent apps), back through the notification or recent apps. Opening the app shows the
+  chats. When the call ends with its screen showing, the app comes back to the chat. Tested on the emulator.
 - **The call notification is low-importance** (it shares the `calls_ongoing` channel with Matrix calls, so it
   sits under "Silent"). The green microphone indicator still shows.
 - **Privacy wording:** `docs/privacy-policy.md`, `docs/data-safety.md` and the Play descriptions (en, pl) say the

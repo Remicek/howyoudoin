@@ -16,15 +16,22 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.Lifecycle
 import com.devvalor.howyoudoing.app.BuildConfig
+import com.devvalor.howyoudoing.app.MainActivity
 import com.devvalor.howyoudoing.app.R
 
 /**
  * A call through a link, on this side: the call server's own page (call-link/web), signed in by the link's
  * fragment. The page does the call (WebRTC in the WebView, end-to-end encrypted), so the app needs no second WebRTC
- * library next to the one Matrix calls use. It closes when the call ends.
+ * library next to the one Matrix calls use.
+ *
+ * It runs in a task of its own: Back (or opening the app) shows the chats while the call goes on, with LinkCallService
+ * keeping the microphone; its notification leads back here. When the call ends with this screen showing, the app
+ * comes back where it was, the chat.
  */
 class LinkCallActivity : ComponentActivity() {
 
@@ -34,7 +41,7 @@ class LinkCallActivity : ComponentActivity() {
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
             if (!isGranted(Manifest.permission.RECORD_AUDIO)) {
                 Toast.makeText(this, R.string.call_needs_mic, Toast.LENGTH_LONG).show()
-                finish()
+                endCall()
             } else {
                 load()
             }
@@ -43,6 +50,12 @@ class LinkCallActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        // Back leaves the call running behind the chat; hanging up is the page's red button or the notification's
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                showApp()
+            }
+        })
         val hostUrl = intent.getStringExtra(EXTRA_HOST_URL)
         // "Hang up" from the notification after the screen was already gone, or nothing to open
         if (hostUrl == null || intent.action == ACTION_HANG_UP) {
@@ -100,7 +113,7 @@ class LinkCallActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         when {
-            intent.action == ACTION_HANG_UP -> finish()
+            intent.action == ACTION_HANG_UP -> endCall()
             intent.getStringExtra(EXTRA_HOST_URL) != null -> {
                 // The new call replaces this one: leaving the page ends it for the other person
                 setIntent(intent)
@@ -113,8 +126,26 @@ class LinkCallActivity : ComponentActivity() {
     private inner class CallBridge {
         @JavascriptInterface
         fun ended() {
-            runOnUiThread { finish() }
+            runOnUiThread { endCall() }
         }
+    }
+
+    /** Closes the call; if it was on screen, the app (the chat it was started from) takes its place. */
+    private fun endCall() {
+        if (isFinishing) return
+        val onScreen = lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)
+        finish()
+        if (onScreen) showApp()
+    }
+
+    /** Brings the app's own task forward as it was, like its launcher icon does. */
+    private fun showApp() {
+        startActivity(
+            Intent(this, MainActivity::class.java)
+                .setAction(Intent.ACTION_MAIN)
+                .addCategory(Intent.CATEGORY_LAUNCHER)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        )
     }
 
     override fun onDestroy() {

@@ -12,6 +12,8 @@
     <string name="call_return">タップして通話に戻る</string>
     <string name="call_hang_up">通話を終了</string>
     <string name="call_needs_mic">通話にはマイクが必要です</string>
+    <!-- The call screen in the list of recent apps -->
+    <string name="link_call_task_label">通話</string>
     <string name="call_start_failed">通話を開始できませんでした</string>
     <string name="call_answer_needs_mic">応答するにはマイクが必要です</string>
     <string name="call_video">ビデオ</string>

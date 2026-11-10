@@ -12,6 +12,8 @@
     <string name="call_return">Aramaya dönmek için dokunun</string>
     <string name="call_hang_up">Kapat</string>
     <string name="call_needs_mic">Aramalar için mikrofon gerekir</string>
+    <!-- The call screen in the list of recent apps -->
+    <string name="link_call_task_label">Arama</string>
     <string name="call_start_failed">Arama başlatılamadı</string>
     <string name="call_answer_needs_mic">Cevaplamak için mikrofon gerekir</string>
     <string name="call_video">Video</string>
