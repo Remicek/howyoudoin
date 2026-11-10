@@ -52,7 +52,6 @@ keeps its one account.
 
 ## Not done
 
-- **iOS:** one account per network (`ExtraAccounts()` is empty there).
 - **Server bridge logins** are unchanged (they already allowed several).
 
 ## Emulator note

@@ -240,4 +240,8 @@
     <string name="networks_account_colour">Renk</string>
     <string name="networks_save">Kaydet</string>
     <string name="networks_duplicate_account">Bu %1$s hesabı bu telefonda zaten bağlı, bu yüzden yeni giriş kaldırıldı.</string>
+    <string name="networks_premium_accounts_title">Daha fazla hesap Premium'da</string>
+    <string name="networks_premium_accounts_body">Ücretsiz planda her ağdan bir hesap vardır. Premium ile her ağdan %1$d hesaba kadar ekleyebilirsiniz; eklediğiniz hesaplar çalışmaya devam eder.</string>
+    <string name="networks_premium_see">Premium'u gör</string>
+    <string name="networks_premium_not_now">Şimdi değil</string>
 </resources>

@@ -74,6 +74,27 @@ button:disabled { opacity: 0.5; cursor: default; }
   color: var(--text);
 }
 
+#notice {
+  position: absolute;
+  top: max(1rem, env(safe-area-inset-top));
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: min(22rem, 90vw);
+  margin: 0;
+  padding: 0.5rem 0.9rem;
+  border-radius: 999px;
+  background: rgb(0 0 0 / 0.6);
+  color: #fff;
+  font-size: 0.9rem;
+  text-align: center;
+  z-index: 2;
+}
+
+button.round:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 #local {
   position: absolute;
   top: max(1rem, env(safe-area-inset-top));
@@ -88,6 +109,13 @@ button:disabled { opacity: 0.5; cursor: default; }
 }
 
 #local:not(.active) { display: none; }
+
+/* With the self-view in the top right, the notice moves to its left */
+body:has(#local.active) #notice {
+  left: 1rem;
+  transform: none;
+  max-width: calc(100vw - min(28vw, 10rem) - 3rem);
+}
 
 .controls {
   position: absolute;

@@ -229,4 +229,9 @@
     <plurals name="inbox_network_accounts">
         <item quantity="other">%1$s, %2$d akun</item>
     </plurals>
+    <string name="link_call_no_minutes_title">Menit panggilan bulan ini sudah habis</string>
+    <string name="link_call_no_minutes_body">Panggilan lewat tautan yang Anda mulai punya jatah bulanan. Premium memberi jauh lebih banyak, atau Anda bisa membeli waktu video tambahan. Jatah dimulai lagi bulan depan.</string>
+    <string name="link_call_see_premium">Lihat Premium</string>
+    <string name="link_call_not_now">Nanti saja</string>
+    <string name="link_call_audio_instead">Menit video bulan ini habis, jadi ini panggilan audio.</string>
 </resources>

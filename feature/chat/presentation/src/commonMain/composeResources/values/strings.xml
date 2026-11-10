@@ -235,4 +235,9 @@
         <item quantity="one">%1$s, %2$d account</item>
         <item quantity="other">%1$s, %2$d accounts</item>
     </plurals>
+    <string name="link_call_no_minutes_title">No call minutes left this month</string>
+    <string name="link_call_no_minutes_body">Calls you start through a link have a monthly allowance. Premium gives you much more, or you can buy extra video time. It starts again next month.</string>
+    <string name="link_call_see_premium">See Premium</string>
+    <string name="link_call_not_now">Not now</string>
+    <string name="link_call_audio_instead">No video minutes left this month, so it's an audio call.</string>
 </resources>

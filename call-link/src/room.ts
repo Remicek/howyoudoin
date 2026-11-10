@@ -5,6 +5,8 @@
 // dropped connection). Once both have been in the call, either one hanging up, or staying away longer than
 // RECONNECT_MS, ends it for good.
 
+import { LIMITS, type Plan } from "./plans.ts";
+
 export type Role = "host" | "guest";
 
 export interface Member {
@@ -28,19 +30,51 @@ export interface Member {
   camera: boolean;
 }
 
+/** What the host's plan allows this call, fixed when it's created. */
+export interface CallLimits {
+  plan: Plan;
+  /** Whose minutes it uses (see Accounts in worker.ts). */
+  owner: string;
+  /** The host's minutes left when the call was created. */
+  videoLeftMs: number;
+  audioLeftMs: number;
+}
+
+/** The call's time so far, counted while both are in it. */
+export interface Meter {
+  /** Up to when it has been counted. */
+  at?: number;
+  /** When both were first in the call. */
+  activeAt?: number;
+  videoMs: number;
+  audioMs: number;
+  /** How much of it the host's account has been charged. */
+  chargedVideoMs: number;
+  chargedAudioMs: number;
+  /** False once the video minutes are used up: the rest of the call is audio. */
+  videoAllowed: boolean;
+}
+
 export interface Room {
   createdAt: number;
   hostToken: string;
   /** waiting: the two haven't both been in it yet; active: they have; ended: over, the link no longer works. */
   phase: "waiting" | "active" | "ended";
+  /** Why it ended, when it was a limit: "minutes" (none left) or "length" (the longest call). */
+  endReason?: "minutes" | "length";
   host: Member;
   guest: Member;
+  /** Missing for calls created before plans. */
+  limits?: CallLimits;
+  meter: Meter;
 }
 
 /** How long the call waits for the invited person. */
 export const JOIN_WINDOW_MS = 15 * 60 * 1000;
-/** The longest call, so a forgotten one doesn't run up the bill. */
+/** The longest call, so a forgotten one doesn't run up the bill (and the longest a plan allows). */
 export const MAX_CALL_MS = 4 * 60 * 60 * 1000;
+/** How often a running call charges the host's account, so a crash loses little. */
+export const CHARGE_EVERY_MS = 60 * 1000;
 /** How long someone whose connection dropped has to come back (a phone changing networks, a tunnel). */
 export const RECONNECT_MS = 20 * 1000;
 /** Most publications one connection may make (each time the camera is turned on is one). */
@@ -68,12 +102,119 @@ export interface PeerView {
   session?: string;
   tracks: string[];
   camera: boolean;
+  limits: LimitsView;
+}
+
+/** What the call pages need to know about the plan's limits. */
+export interface LimitsView {
+  videoAllowed: boolean;
+  /** Highest video to send, and its bitrate cap. */
+  videoHeight: number;
+  videoBitrate: number;
+  /** When the call will end if nothing changes (its longest length, or the minutes running out). */
+  endsAt?: number;
+  /** When video will stop if the cameras stay on. */
+  videoEndsAt?: number;
+  /** The server's time, so the pages can count down whatever their own clock says. */
+  now: number;
 }
 
 const emptyMember = (gen = 0): Member => ({ connected: false, gen, pending: [], tracks: [], camera: false });
 
-export function newRoom(hostToken: string, now: number): Room {
-  return { createdAt: now, hostToken, phase: "waiting", host: emptyMember(), guest: emptyMember() };
+export function newRoom(hostToken: string, now: number, limits?: CallLimits): Room {
+  return {
+    createdAt: now,
+    hostToken,
+    phase: "waiting",
+    host: emptyMember(),
+    guest: emptyMember(),
+    limits,
+    meter: { videoMs: 0, audioMs: 0, chargedVideoMs: 0, chargedAudioMs: 0, videoAllowed: limits?.videoLeftMs !== 0 },
+  };
+}
+
+const bothIn = (room: Room) => room.phase === "active" && room.host.connected && room.guest.connected;
+const videoOn = (room: Room) => room.host.camera || room.guest.camera;
+
+/**
+ * Counts the time since the last count, as the call was until now. Call it before anything changes (someone joining,
+ * leaving, a camera) and after, which starts the count once both are in.
+ */
+export function meter(room: Room, now: number): void {
+  const m = room.meter;
+  if (m.at !== undefined && bothIn(room)) {
+    const elapsed = Math.max(0, now - m.at);
+    if (videoOn(room)) m.videoMs += elapsed;
+    else m.audioMs += elapsed;
+  }
+  if (room.phase === "active") {
+    m.activeAt ??= now;
+    m.at = now;
+  }
+}
+
+/** The longest this call may last. */
+const maxLength = (room: Room) => (room.limits ? LIMITS[room.limits.plan].maxCallMs : MAX_CALL_MS);
+
+/**
+ * Applies the plan's limits to the time counted so far: video stops once its minutes are gone, and the call ends at
+ * its longest length or when no minutes are left. Returns whether anything changed.
+ */
+export function enforce(room: Room, now: number): boolean {
+  const { limits, meter: m } = room;
+  if (room.phase === "ended" || !limits) return false;
+  let changed = false;
+  if (m.videoAllowed && m.videoMs >= limits.videoLeftMs) {
+    m.videoAllowed = false;
+    changed = true;
+  }
+  if (!m.videoAllowed && videoOn(room)) {
+    room.host.camera = false;
+    room.guest.camera = false;
+    changed = true;
+  }
+  if (m.activeAt !== undefined && now >= m.activeAt + maxLength(room)) {
+    room.phase = "ended";
+    room.endReason = "length";
+    return true;
+  }
+  if (m.activeAt !== undefined && m.audioMs >= limits.audioLeftMs && !videoOn(room)) {
+    room.phase = "ended";
+    room.endReason = "minutes";
+    return true;
+  }
+  return changed;
+}
+
+/** The time not yet charged to the host's account; marks it charged. */
+export function takeCharge(room: Room): { videoMs: number; audioMs: number } {
+  const m = room.meter;
+  const due = { videoMs: m.videoMs - m.chargedVideoMs, audioMs: m.audioMs - m.chargedAudioMs };
+  m.chargedVideoMs = m.videoMs;
+  m.chargedAudioMs = m.audioMs;
+  return due;
+}
+
+export function limitsView(room: Room, now: number): LimitsView {
+  const plan = LIMITS[room.limits?.plan ?? "premium"];
+  const m = room.meter;
+  const view: LimitsView = {
+    videoAllowed: m.videoAllowed,
+    videoHeight: plan.videoHeight,
+    videoBitrate: plan.videoBitrate,
+    now,
+  };
+  if (m.activeAt === undefined || !room.limits) return view;
+  const { videoLeftMs, audioLeftMs } = room.limits;
+  const longest = m.activeAt + maxLength(room);
+  const counted = m.at ?? now;
+  if (videoOn(room) && m.videoAllowed) {
+    view.videoEndsAt = counted + Math.max(0, videoLeftMs - m.videoMs);
+    view.endsAt = Math.min(longest, view.videoEndsAt + Math.max(0, audioLeftMs - m.audioMs));
+  } else {
+    view.endsAt = Math.min(longest, counted + Math.max(0, audioLeftMs - m.audioMs));
+  }
+  return view;
 }
 
 export const other = (role: Role): Role => (role === "host" ? "guest" : "host");
@@ -136,9 +277,19 @@ export function tick(room: Room, now: number): boolean {
   return changed;
 }
 
-/** When tick has something to do next. */
-export function nextDeadline(room: Room): number {
+/** When tick (or the limits, or charging the account) has something to do next. */
+export function nextDeadline(room: Room, now: number): number {
   const deadlines = [room.createdAt + MAX_CALL_MS];
+  const m = room.meter;
+  if (room.limits && m.activeAt !== undefined) {
+    deadlines.push(m.activeAt + maxLength(room));
+    if (bothIn(room)) {
+      deadlines.push(now + CHARGE_EVERY_MS);
+      const view = limitsView(room, now);
+      if (view.videoEndsAt !== undefined) deadlines.push(view.videoEndsAt);
+      if (view.endsAt !== undefined) deadlines.push(view.endsAt);
+    }
+  }
   if (room.phase === "waiting") deadlines.push(room.createdAt + JOIN_WINDOW_MS);
   for (const member of [room.host, room.guest]) {
     if (member.leftAt !== undefined) deadlines.push(member.leftAt + RECONNECT_MS);
@@ -178,14 +329,15 @@ export function canSubscribe(room: Room, role: Role, session: string, names: str
   );
 }
 
-/** What this person needs to know about the other one. */
-export function peerView(room: Room, role: Role): PeerView {
+/** What this person needs to know about the other one, and about the call's limits. */
+export function peerView(room: Room, role: Role, now: number): PeerView {
   const peer = room[other(role)];
   return {
     present: peer.connected,
     session: peer.tracks.length ? peer.pubSession : undefined,
     tracks: peer.tracks,
     camera: peer.camera,
+    limits: limitsView(room, now),
   };
 }
 

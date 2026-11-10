@@ -44,4 +44,5 @@
     <string name="month_11">نوفمبر</string>
     <string name="month_12">ديسمبر</string>
     <string name="date_long">%1$d %2$s %3$d</string>
+    <string name="error_payment_required">لم يتبقَّ شيء للاستخدام: راجع Premium في الإعدادات.</string>
 </resources>

@@ -235,4 +235,9 @@
         <item quantity="many">%1$s, %2$d cuentas</item>
         <item quantity="other">%1$s, %2$d cuentas</item>
     </plurals>
+    <string name="link_call_no_minutes_title">No quedan minutos de llamada este mes</string>
+    <string name="link_call_no_minutes_body">Las llamadas que inicias por enlace tienen un límite mensual. Premium te da mucho más, o puedes comprar tiempo de vídeo extra. Se renueva el mes que viene.</string>
+    <string name="link_call_see_premium">Ver Premium</string>
+    <string name="link_call_not_now">Ahora no</string>
+    <string name="link_call_audio_instead">No quedan minutos de vídeo este mes, así que es una llamada de audio.</string>
 </resources>

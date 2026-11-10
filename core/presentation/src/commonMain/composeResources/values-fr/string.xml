@@ -44,4 +44,5 @@
     <string name="month_11">novembre</string>
     <string name="month_12">décembre</string>
     <string name="date_long">%1$d %2$s %3$d</string>
+    <string name="error_payment_required">Plus rien à utiliser : voir Premium dans les Réglages.</string>
 </resources>

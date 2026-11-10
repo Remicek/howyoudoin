@@ -15,6 +15,9 @@ sealed interface DataError : Error {
         SERVICE_UNAVAILABLE,
         SERIALIZATION,
 
+        /** Nothing left to use: e.g. no call minutes this month. */
+        PAYMENT_REQUIRED,
+
         /** The user stopped it (e.g. closed a CAPTCHA it needed). */
         CANCELLED,
         UNKNOWN

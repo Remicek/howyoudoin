@@ -235,4 +235,9 @@
         <item quantity="many">%1$s, %2$d comptes</item>
         <item quantity="other">%1$s, %2$d comptes</item>
     </plurals>
+    <string name="link_call_no_minutes_title">Plus de minutes d'appel ce mois-ci</string>
+    <string name="link_call_no_minutes_body">Les appels que vous lancez par lien ont un quota mensuel. Premium vous en donne bien plus, ou vous pouvez acheter du temps vidéo en plus. Le quota repart le mois prochain.</string>
+    <string name="link_call_see_premium">Voir Premium</string>
+    <string name="link_call_not_now">Pas maintenant</string>
+    <string name="link_call_audio_instead">Plus de minutes vidéo ce mois-ci : c'est un appel audio.</string>
 </resources>

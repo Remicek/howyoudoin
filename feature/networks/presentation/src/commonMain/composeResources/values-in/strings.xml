@@ -238,4 +238,8 @@
     <string name="networks_account_colour">Warna</string>
     <string name="networks_save">Simpan</string>
     <string name="networks_duplicate_account">Akun %1$s itu sudah terhubung di ponsel ini, jadi login baru dihapus.</string>
+    <string name="networks_premium_accounts_title">Akun tambahan adalah bagian dari Premium</string>
+    <string name="networks_premium_accounts_body">Paket gratis memiliki satu akun untuk tiap jaringan. Dengan Premium Anda bisa menambahkan hingga %1$d untuk tiap jaringan, dan akun yang ditambahkan tetap berfungsi.</string>
+    <string name="networks_premium_see">Lihat Premium</string>
+    <string name="networks_premium_not_now">Nanti saja</string>
 </resources>

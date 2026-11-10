@@ -238,4 +238,8 @@
     <string name="networks_account_colour">色</string>
     <string name="networks_save">保存</string>
     <string name="networks_duplicate_account">その %1$s アカウントはこのスマートフォンで既に接続されているため、新しいログインは削除されました。</string>
+    <string name="networks_premium_accounts_title">アカウントの追加は Premium の機能です</string>
+    <string name="networks_premium_accounts_body">無料プランでは各ネットワークにつき 1 アカウントです。Premium では各ネットワークで最大 %1$d アカウントまで追加でき、追加したアカウントはそのまま使えます。</string>
+    <string name="networks_premium_see">Premium を見る</string>
+    <string name="networks_premium_not_now">後で</string>
 </resources>

@@ -14,7 +14,10 @@ interface LinkCalls {
     /** Whether this build can start one (a call server is set up). */
     val isAvailable: Boolean
 
-    /** Creates the call: [LinkCall.inviteUrl] goes in the chat, [LinkCall.hostUrl] is opened here. */
+    /**
+     * Creates the call: [LinkCall.inviteUrl] goes in the chat, [LinkCall.hostUrl] is opened here. Fails with
+     * [DataError.Remote.PAYMENT_REQUIRED] when this month's call minutes are used up.
+     */
     suspend fun start(video: Boolean): Result<LinkCall, DataError.Remote>
 }
 
@@ -23,6 +26,8 @@ data class LinkCall(
     val inviteUrl: String,
     /** For this device's call screen: the same call, already signed in. */
     val hostUrl: String,
+    /** A video call was asked for, but there are no video minutes left: it's an audio call. */
+    val isAudioInstead: Boolean = false,
 )
 
 /** Whether the explanation shown before a call through a link was turned off ("Don't show this again"). */

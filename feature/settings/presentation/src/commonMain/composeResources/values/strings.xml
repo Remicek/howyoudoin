@@ -158,4 +158,46 @@
     <string name="settings_share_message">I keep my WhatsApp, Messenger, Telegram and other chats in one private inbox with HowYouDoin. Try it: %1$s</string>
     <string name="settings_tour">Inbox tour</string>
     <string name="settings_tour_sub">Show what the inbox buttons do again</string>
+    <string name="settings_premium">Premium</string>
+    <string name="settings_premium_sub">More call minutes, sharper video, more accounts</string>
+    <string name="settings_premium_sub_active">Active. Thank you!</string>
+    <string name="premium_title_free">HowYouDoin Premium</string>
+    <string name="premium_free_body">You're on the free plan. Premium gives you more and supports the app.</string>
+    <string name="premium_title_active">You have Premium</string>
+    <string name="premium_active_body">Thank you for supporting HowYouDoin.</string>
+    <string name="premium_minutes_header">Calls through a link this month</string>
+    <string name="premium_video_left">Video: %1$s left</string>
+    <string name="premium_video_bought">Includes %1$s you bought</string>
+    <string name="premium_audio_left">Audio: %1$s left</string>
+    <plurals name="premium_resets_in">
+        <item quantity="one">Starts again in %1$d day</item>
+        <item quantity="other">Starts again in %1$d days</item>
+    </plurals>
+    <string name="premium_guests_free">Only calls you start use minutes. The person you call never pays.</string>
+    <string name="premium_minutes_failed">Couldn't load your minutes. Check your connection.</string>
+    <string name="premium_duration_hm">%1$d h %2$d min</string>
+    <string name="premium_duration_h">%1$d h</string>
+    <string name="premium_duration_m">%1$d min</string>
+    <string name="premium_includes">Premium includes</string>
+    <string name="premium_benefit_video">%1$d hours of video a month (free: %2$d minutes)</string>
+    <string name="premium_benefit_audio">%1$d hours of audio a month (free: %2$d hours)</string>
+    <string name="premium_benefit_quality">Sharper video: %1$dp (free: %2$dp)</string>
+    <string name="premium_benefit_length">Calls up to %1$d hours long (free: %2$d minutes)</string>
+    <string name="premium_benefit_accounts">Up to %1$d accounts of each network (free: 1)</string>
+    <plurals name="premium_try_free">
+        <item quantity="one">Try %1$d day free</item>
+        <item quantity="other">Try %1$d days free</item>
+    </plurals>
+    <string name="premium_then_price">Then %1$s a month. Cancel anytime in Google Play.</string>
+    <string name="premium_subscribe">Get Premium: %1$s a month</string>
+    <string name="premium_manage">Manage subscription</string>
+    <string name="premium_not_available">Premium can only be bought in HowYouDoin installed from Google Play.</string>
+    <string name="premium_top_up_header">More video without a subscription</string>
+    <string name="premium_top_up_body">Never expires. It's used once the month's video minutes run out.</string>
+    <string name="premium_top_up_button">%1$d hours of video: %2$s</string>
+    <string name="premium_restore">Restore purchases</string>
+    <string name="premium_thanks">Thank you! Premium is on.</string>
+    <string name="premium_pending">Waiting for your payment to go through. It's added once Google Play confirms it.</string>
+    <string name="premium_failed">The purchase didn't go through.</string>
+    <string name="premium_top_up_added">%1$d hours of video added.</string>
 </resources>

@@ -156,4 +156,44 @@
     <string name="settings_share_message">WhatsApp、Messenger、Telegramなどのチャットを、HowYouDoinでひとつのプライベートな受信箱にまとめています。試してみて：%1$s</string>
     <string name="settings_tour">受信箱ツアー</string>
     <string name="settings_tour_sub">ボタンの使い方をもう一度表示</string>
+    <string name="settings_premium">Premium</string>
+    <string name="settings_premium_sub">通話時間の追加、より鮮明なビデオ、アカウントの追加</string>
+    <string name="settings_premium_sub_active">有効です。ありがとうございます!</string>
+    <string name="premium_title_free">HowYouDoin Premium</string>
+    <string name="premium_free_body">無料プランをご利用中です。Premium ではより多くの機能が使え、アプリの支援にもなります。</string>
+    <string name="premium_title_active">Premium をご利用中です</string>
+    <string name="premium_active_body">HowYouDoin を支援していただきありがとうございます。</string>
+    <string name="premium_minutes_header">今月のリンク通話</string>
+    <string name="premium_video_left">ビデオ: 残り %1$s</string>
+    <string name="premium_video_bought">うち購入分 %1$s</string>
+    <string name="premium_audio_left">音声: 残り %1$s</string>
+    <plurals name="premium_resets_in">
+        <item quantity="other">%1$d 日後にリセット</item>
+    </plurals>
+    <string name="premium_guests_free">時間を使うのは、あなたが始めた通話だけです。通話の相手が支払うことはありません。</string>
+    <string name="premium_minutes_failed">残り時間を読み込めませんでした。接続を確認してください。</string>
+    <string name="premium_duration_hm">%1$d 時間 %2$d 分</string>
+    <string name="premium_duration_h">%1$d 時間</string>
+    <string name="premium_duration_m">%1$d 分</string>
+    <string name="premium_includes">Premium の内容</string>
+    <string name="premium_benefit_video">毎月 %1$d 時間のビデオ (無料: %2$d 分)</string>
+    <string name="premium_benefit_audio">毎月 %1$d 時間の音声 (無料: %2$d 時間)</string>
+    <string name="premium_benefit_quality">より鮮明なビデオ: %1$dp (無料: %2$dp)</string>
+    <string name="premium_benefit_length">最長 %1$d 時間の通話 (無料: %2$d 分)</string>
+    <string name="premium_benefit_accounts">各ネットワークで最大 %1$d アカウント (無料: 1)</string>
+    <plurals name="premium_try_free">
+        <item quantity="other">%1$d 日間無料で試す</item>
+    </plurals>
+    <string name="premium_then_price">その後は月額 %1$s。Google Play からいつでも解約できます。</string>
+    <string name="premium_subscribe">Premium を購入: 月額 %1$s</string>
+    <string name="premium_manage">定期購入を管理</string>
+    <string name="premium_not_available">Premium は Google Play からインストールした HowYouDoin でのみ購入できます。</string>
+    <string name="premium_top_up_header">定期購入なしでビデオを追加</string>
+    <string name="premium_top_up_body">有効期限はありません。その月のビデオ時間がなくなると使われます。</string>
+    <string name="premium_top_up_button">ビデオ %1$d 時間: %2$s</string>
+    <string name="premium_restore">購入を復元</string>
+    <string name="premium_thanks">ありがとうございます! Premium が有効になりました。</string>
+    <string name="premium_pending">お支払いを待っています。Google Play で確認されると追加されます。</string>
+    <string name="premium_failed">購入を完了できませんでした。</string>
+    <string name="premium_top_up_added">ビデオ %1$d 時間を追加しました。</string>
 </resources>

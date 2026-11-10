@@ -101,6 +101,7 @@ suspend inline fun <reified T> responseToResult(
 @PublishedApi
 internal fun HttpStatusCode.toRemoteError(): DataError.Remote = when (this) {
     HttpStatusCode.BadRequest -> DataError.Remote.BAD_REQUEST
+    HttpStatusCode.PaymentRequired -> DataError.Remote.PAYMENT_REQUIRED
     HttpStatusCode.Unauthorized -> DataError.Remote.UNAUTHORIZED
     HttpStatusCode.Forbidden -> DataError.Remote.FORBIDDEN
     HttpStatusCode.NotFound -> DataError.Remote.NOT_FOUND

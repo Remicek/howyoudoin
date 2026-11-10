@@ -1,5 +1,10 @@
 package com.devvalor.howyoudoing.settings.presentation.main
 
+import howyoudoin.feature.settings.presentation.generated.resources.settings_premium_sub_active
+import howyoudoin.feature.settings.presentation.generated.resources.settings_premium_sub
+import howyoudoin.feature.settings.presentation.generated.resources.settings_premium
+import androidx.compose.material.icons.rounded.WorkspacePremium
+import com.devvalor.howyoudoing.core.domain.premium.Premium
 import androidx.compose.material.icons.rounded.Key
 import androidx.compose.material.icons.rounded.Explore
 import androidx.compose.material.icons.rounded.Share
@@ -150,13 +155,30 @@ fun SettingsRoot(
     onTermsClick: () -> Unit,
     onGuideClick: () -> Unit,
     onTelegramKeysClick: () -> Unit,
+    onPremiumClick: () -> Unit,
     onBack: () -> Unit,
     viewModel: SettingsViewModel = koinViewModel(),
     promotion: AppPromotion = koinInject(),
+    premium: Premium = koinInject(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val premiumStatus by premium.status.collectAsStateWithLifecycle()
     val shareMessage = stringResource(Res.string.settings_share_message, AppPromotion.PLAY_STORE_URL)
     SettingsScaffold(title = stringResource(Res.string.settings_title), onBack = onBack) {
+        item {
+            SettingsRow(
+                title = stringResource(Res.string.settings_premium),
+                subtitle = stringResource(
+                    if (premiumStatus.isPremium) {
+                        Res.string.settings_premium_sub_active
+                    } else {
+                        Res.string.settings_premium_sub
+                    }
+                ),
+                icon = Icons.Rounded.WorkspacePremium,
+                onClick = onPremiumClick,
+            )
+        }
         item {
             SettingsRow(
                 title = stringResource(Res.string.settings_networks),

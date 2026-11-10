@@ -240,4 +240,8 @@
     <string name="networks_account_colour">Colour</string>
     <string name="networks_save">Save</string>
     <string name="networks_duplicate_account">That %1$s account is already connected on this phone, so the new login was removed.</string>
+    <string name="networks_premium_accounts_title">More accounts are part of Premium</string>
+    <string name="networks_premium_accounts_body">The free plan has one account of each network. With Premium you can add up to %1$d of each, and the ones you add keep working.</string>
+    <string name="networks_premium_see">See Premium</string>
+    <string name="networks_premium_not_now">Not now</string>
 </resources>

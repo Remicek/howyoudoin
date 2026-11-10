@@ -13,6 +13,8 @@ sealed interface ConversationAction {
     data class OnCallBackClick(val video: Boolean) : ConversationAction
     data class OnLinkCallConfirm(val dontShowAgain: Boolean) : ConversationAction
     data object OnLinkCallDismiss : ConversationAction
+    data object OnCallMinutesDismiss : ConversationAction
+    data object OnSeePremiumClick : ConversationAction
     data object OnAcceptInviteClick : ConversationAction
     data object OnDeclineInviteClick : ConversationAction
     data class OnRetryClick(val messageId: String) : ConversationAction

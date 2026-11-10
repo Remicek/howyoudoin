@@ -1,5 +1,10 @@
 package com.devvalor.howyoudoing.app.di
 
+import com.devvalor.howyoudoing.app.premium.PlayPremium
+import com.devvalor.howyoudoing.core.domain.premium.CallAllowance
+import com.devvalor.howyoudoing.core.domain.premium.Premium
+import org.koin.dsl.binds
+import org.koin.android.ext.koin.androidApplication
 import com.devvalor.howyoudoing.app.promotion.AndroidAppPromotion
 import com.devvalor.howyoudoing.core.domain.ondevice.account
 import com.devvalor.howyoudoing.core.domain.app.AppPromotion
@@ -200,10 +205,13 @@ actual val platformAppModule: Module = module {
     single<CallLauncher> { CallLauncher { chatId, video -> CallActivity.startCall(androidContext(), chatId, video) } }
     single<OnDeviceInboxCache> { AndroidInboxCache(androidContext()) }
     single<AppPromotion> { AndroidAppPromotion(androidContext()) }
-    single<LinkCalls> {
+    single<Premium>(createdAtStart = true) { PlayPremium(androidApplication(), get()) }
+    single {
         val random = SecureRandom()
-        HttpLinkCalls(get(), BuildConfig.CALL_LINK_URL) { size -> ByteArray(size).also(random::nextBytes) }
-    }
+        HttpLinkCalls(get(), BuildConfig.CALL_LINK_URL, get(), get()) { size ->
+            ByteArray(size).also(random::nextBytes)
+        }
+    } binds arrayOf(LinkCalls::class, CallAllowance::class)
     single<LinkCallLauncher> { LinkCallLauncher { hostUrl -> LinkCallActivity.start(androidContext(), hostUrl) } }
     single<LoginBackup>(createdAtStart = true) {
         AndroidLoginBackup(

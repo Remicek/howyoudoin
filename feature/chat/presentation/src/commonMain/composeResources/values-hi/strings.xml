@@ -232,4 +232,9 @@
         <item quantity="one">%1$s, %2$d खाता</item>
         <item quantity="other">%1$s, %2$d खाते</item>
     </plurals>
+    <string name="link_call_no_minutes_title">इस महीने कॉल मिनट नहीं बचे</string>
+    <string name="link_call_no_minutes_body">लिंक से शुरू की गई आपकी कॉल की एक मासिक सीमा होती है। Premium आपको कहीं ज़्यादा देता है, या आप अतिरिक्त वीडियो समय खरीद सकते हैं। अगले महीने यह फिर से शुरू होगा।</string>
+    <string name="link_call_see_premium">Premium देखें</string>
+    <string name="link_call_not_now">अभी नहीं</string>
+    <string name="link_call_audio_instead">इस महीने वीडियो मिनट नहीं बचे, इसलिए यह ऑडियो कॉल है।</string>
 </resources>

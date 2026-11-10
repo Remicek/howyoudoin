@@ -1,5 +1,7 @@
 package com.devvalor.howyoudoing.chat.presentation.conversation
 
+import com.devvalor.howyoudoing.core.domain.util.DataError
+import howyoudoin.feature.chat.presentation.generated.resources.link_call_audio_instead
 import com.devvalor.howyoudoing.chat.presentation.model.accountTag
 import com.devvalor.howyoudoing.core.domain.ondevice.AccountRef
 import com.devvalor.howyoudoing.core.domain.ondevice.AccountTags
@@ -124,6 +126,8 @@ class ConversationViewModel(
             is ConversationAction.OnCallBackClick -> askToCallByLink(LinkCallPrompt(action.video, isCallBack = true))
             is ConversationAction.OnLinkCallConfirm -> confirmLinkCall(action.dontShowAgain)
             ConversationAction.OnLinkCallDismiss -> _state.update { it.copy(linkCallPrompt = null) }
+            ConversationAction.OnCallMinutesDismiss, ConversationAction.OnSeePremiumClick ->
+                _state.update { it.copy(isOutOfCallMinutes = false) }
             ConversationAction.OnAcceptInviteClick -> answerInvite(accept = true)
             ConversationAction.OnDeclineInviteClick -> answerInvite(accept = false)
             ConversationAction.OnLoadOlder -> loadOlder()
@@ -356,15 +360,28 @@ class ConversationViewModel(
         viewModelScope.launch {
             linkCalls.start(video)
                 .onSuccess { call ->
+                    val withVideo = video && !call.isAudioInstead
                     val invite = getString(
-                        if (video) Res.string.link_call_invite_video else Res.string.link_call_invite,
+                        if (withVideo) Res.string.link_call_invite_video else Res.string.link_call_invite,
                         call.inviteUrl
                     )
                     chatRepository.sendMessage(chatId, invite, null)
-                        .onSuccess { linkCallLauncher.open(call.hostUrl) }
+                        .onSuccess {
+                            linkCallLauncher.open(call.hostUrl)
+                            if (call.isAudioInstead) {
+                                val audioInstead = UiText.Resource(Res.string.link_call_audio_instead)
+                                eventChannel.send(ConversationEvent.Error(audioInstead))
+                            }
+                        }
                         .onFailure { error -> eventChannel.send(ConversationEvent.Error(error.toUiText())) }
                 }
-                .onFailure { eventChannel.send(ConversationEvent.Error(UiText.Resource(Res.string.link_call_failed))) }
+                .onFailure { error ->
+                    if (error == DataError.Remote.PAYMENT_REQUIRED) {
+                        _state.update { it.copy(isOutOfCallMinutes = true) }
+                    } else {
+                        eventChannel.send(ConversationEvent.Error(UiText.Resource(Res.string.link_call_failed)))
+                    }
+                }
             _state.update { it.copy(isStartingLinkCall = false) }
         }
     }

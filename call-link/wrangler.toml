@@ -23,9 +23,20 @@ run_worker_first = ["/api/*"]
 name = "CALLS"
 class_name = "CallRoom"
 
+[[durable_objects.bindings]]
+name = "ACCOUNTS"
+class_name = "CallAccount"
+
 [[migrations]]
 tag = "v1"
 new_sqlite_classes = ["CallRoom"]
+
+[[migrations]]
+tag = "v2"
+new_sqlite_classes = ["CallAccount"]
+
+[vars]
+PLAY_PACKAGE = "com.devvalor.howyoudoing"
 
 # At most this many calls created per IP address a minute, so nobody can run up the bill
 [[ratelimits]]

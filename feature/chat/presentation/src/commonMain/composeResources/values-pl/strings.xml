@@ -238,4 +238,9 @@
         <item quantity="many">%1$s, %2$d kont</item>
         <item quantity="other">%1$s, %2$d konta</item>
     </plurals>
+    <string name="link_call_no_minutes_title">Brak minut rozmów w tym miesiącu</string>
+    <string name="link_call_no_minutes_body">Rozmowy przez link, które zaczynasz, mają miesięczny limit. Premium daje dużo więcej, możesz też dokupić czas wideo. Limit odnowi się w przyszłym miesiącu.</string>
+    <string name="link_call_see_premium">Zobacz Premium</string>
+    <string name="link_call_not_now">Nie teraz</string>
+    <string name="link_call_audio_instead">Skończyły się minuty wideo w tym miesiącu, więc to rozmowa głosowa.</string>
 </resources>

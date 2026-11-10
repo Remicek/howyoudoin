@@ -42,7 +42,12 @@ here, sends its link in the chat, and the other person joins from their browser 
 
 | Request | Answer |
 |---|---|
-| `POST /api/calls` | `{ room, joinUrl, hostUrl }`: the app starts a call |
+| `POST /api/calls` | `{ room, joinUrl, hostUrl, plan, videoAllowed }`: the app starts a call (402 when no minutes are left) |
+| `POST /api/usage` | the minutes left this month |
+| `POST /api/topups` | adds a bought 5-hour video top-up, checked with Google Play |
+
+The app's requests carry `{ install, subscription?, video?, token? }`: a random install ID and, with Premium, its
+Google Play subscription token.
 | `GET /api/calls/<room>/ws` | WebSocket to the call (JSON messages, see `CallRoom` in `src/worker.ts`) |
 | `GET /call/<room>` | the call page |
 
@@ -84,6 +89,39 @@ For a debug build on an emulator or phone: `callLink.url=http://localhost:8787` 
 `adb reverse tcp:8787 tcp:8787` (a phone's Chrome can join the same way: open `http://localhost:8787/call/…`).
 The media goes straight to Cloudflare. The app's call page can be inspected from `chrome://inspect` in debug
 builds.
+
+## Plans
+
+Only the person who starts a call uses minutes; the person who joins from the link never does. Time counts from
+when both are in the call: as video while either camera is on, otherwise as audio (`src/plans.ts`, `src/room.ts`).
+
+| | Free | Premium |
+|---|---|---|
+| Video a month | 60 min | 50 h |
+| Audio a month | 10 h | 100 h |
+| Longest call | 60 min | 4 h |
+| Video quality | 360p | 540p |
+
+When the video minutes run out the call goes on as audio; when nothing is left it ends. Both pages are told 5 minutes
+before. A top-up (`video_5h`) adds 5 hours of video that never expire, used after the month's.
+
+Premium is checked with Google Play on every request; usage is counted per subscription (its first order ID), so a
+shared purchase token doesn't multiply the allowance. Without the service account below everyone is on the free plan.
+
+### Set up Google Play
+
+1. Play Console → Monetize → Products:
+   - **Subscriptions**: `premium_monthly`, a monthly base plan at $2.99, with a 7-day free-trial offer for new
+     customers.
+   - **One-time products**: `video_5h` at $1.99.
+2. Google Cloud: create a service account and a JSON key, and enable the Google Play Android Developer API.
+3. Play Console → Users and permissions → invite the service account's email with **View financial data** and
+   **Manage orders and subscriptions**.
+4. `npx wrangler secret put PLAY_SERVICE_ACCOUNT` and paste the JSON key there (not into a chat).
+5. Deploy. The first deploy with plans adds the `CallAccount` Durable Object (migration `v2`).
+
+Purchases only work in a build installed from Google Play (internal testing is enough), by a license tester or a real
+buyer.
 
 ## Cost
 

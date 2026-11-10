@@ -44,4 +44,5 @@
     <string name="month_11">11月</string>
     <string name="month_12">12月</string>
     <string name="date_long">%3$d年%2$s%1$d日</string>
+    <string name="error_payment_required">上限に達しました。設定の Premium をご覧ください。</string>
 </resources>

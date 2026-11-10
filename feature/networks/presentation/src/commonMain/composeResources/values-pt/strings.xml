@@ -242,4 +242,8 @@
     <string name="networks_account_colour">Cor</string>
     <string name="networks_save">Salvar</string>
     <string name="networks_duplicate_account">Essa conta do %1$s já está conectada neste telefone, então o novo login foi removido.</string>
+    <string name="networks_premium_accounts_title">Mais contas fazem parte do Premium</string>
+    <string name="networks_premium_accounts_body">O plano gratuito tem uma conta de cada rede. Com o Premium você pode adicionar até %1$d de cada, e as que adicionar continuam funcionando.</string>
+    <string name="networks_premium_see">Ver Premium</string>
+    <string name="networks_premium_not_now">Agora não</string>
 </resources>

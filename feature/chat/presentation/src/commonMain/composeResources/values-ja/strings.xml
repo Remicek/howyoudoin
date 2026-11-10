@@ -229,4 +229,9 @@
     <plurals name="inbox_network_accounts">
         <item quantity="other">%1$s、%2$d 件のアカウント</item>
     </plurals>
+    <string name="link_call_no_minutes_title">今月の通話時間がなくなりました</string>
+    <string name="link_call_no_minutes_body">あなたが始めるリンク通話には毎月の上限があります。Premium ではずっと多く使えます。ビデオ時間を追加購入することもできます。来月にはリセットされます。</string>
+    <string name="link_call_see_premium">Premium を見る</string>
+    <string name="link_call_not_now">後で</string>
+    <string name="link_call_audio_instead">今月のビデオ時間がないため、音声通話になります。</string>
 </resources>

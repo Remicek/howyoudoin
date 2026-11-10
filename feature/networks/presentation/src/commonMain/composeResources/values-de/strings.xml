@@ -240,4 +240,8 @@
     <string name="networks_account_colour">Farbe</string>
     <string name="networks_save">Speichern</string>
     <string name="networks_duplicate_account">Dieses %1$s-Konto ist auf diesem Telefon schon verbunden, daher wurde die neue Anmeldung entfernt.</string>
+    <string name="networks_premium_accounts_title">Weitere Konten gehören zu Premium</string>
+    <string name="networks_premium_accounts_body">Im kostenlosen Plan hast du ein Konto pro Netzwerk. Mit Premium kannst du bis zu %1$d pro Netzwerk hinzufügen, und hinzugefügte Konten funktionieren weiter.</string>
+    <string name="networks_premium_see">Premium ansehen</string>
+    <string name="networks_premium_not_now">Nicht jetzt</string>
 </resources>

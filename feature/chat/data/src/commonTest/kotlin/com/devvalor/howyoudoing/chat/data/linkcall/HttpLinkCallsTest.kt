@@ -9,6 +9,10 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
+import io.ktor.http.content.TextContent
+import com.devvalor.howyoudoing.core.domain.premium.CallMinutes
+import com.devvalor.howyoudoing.core.domain.premium.InstallId
+import com.devvalor.howyoudoing.core.domain.premium.NoPremium
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -17,6 +21,15 @@ import kotlin.test.assertTrue
 
 class HttpLinkCallsTest {
 
+    private val install = InstallId { "0123456789abcdef0123456789abcdef" }
+    private val json = headersOf(HttpHeaders.ContentType, "application/json")
+
+    private fun calls(
+        engine: MockEngine,
+        url: String = "https://call.example",
+        bytes: (Int) -> ByteArray = { ByteArray(it) },
+    ) = HttpLinkCalls(HttpClientFactory.create(engine), url, install, NoPremium, bytes)
+
     private val created = """
         {"room":"r","joinUrl":"https://call.example/call/r","hostUrl":"https://call.example/call/r?host=1#t=tok&u=wss"}
     """.trimIndent()
@@ -24,15 +37,19 @@ class HttpLinkCallsTest {
     @Test
     fun theKeyIsMadeHereAndOnlyGoesInTheFragments() = runTest {
         var requested: String? = null
+        var body: String? = null
         val engine = MockEngine { request ->
             requested = "${request.method.value} ${request.url}"
+            body = (request.body as TextContent).text
             respond(created, HttpStatusCode.OK, headersOf(HttpHeaders.ContentType, "application/json"))
         }
-        val calls = HttpLinkCalls(HttpClientFactory.create(engine), "https://call.example/") { ByteArray(it) { 1 } }
+        val calls = calls(engine, "https://call.example/") { ByteArray(it) { 1 } }
 
         val call = (calls.start(video = true) as Result.Success).data
 
         assertEquals("${HttpMethod.Post.value} https://call.example/api/calls", requested)
+        // Whose minutes; never the key
+        assertEquals("""{"install":"0123456789abcdef0123456789abcdef","video":true}""", body)
         val key = "AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE"
         assertEquals("https://call.example/call/r#k=$key", call.inviteUrl)
         assertEquals("https://call.example/call/r?host=1#t=tok&u=wss&k=$key&v=1", call.hostUrl)
@@ -40,7 +57,7 @@ class HttpLinkCallsTest {
 
     @Test
     fun withoutAServerItIsntOffered() = runTest {
-        val calls = HttpLinkCalls(HttpClientFactory.create(MockEngine { error("no request") }), "") { ByteArray(it) }
+        val calls = calls(MockEngine { error("no request") }, url = "")
         assertFalse(calls.isAvailable)
         assertEquals(Result.Failure(DataError.Remote.SERVICE_UNAVAILABLE), calls.start(video = false))
     }
@@ -48,8 +65,43 @@ class HttpLinkCallsTest {
     @Test
     fun aBusyServerIsReported() = runTest {
         val engine = MockEngine { respond("""{"error":"Too many calls"}""", HttpStatusCode.TooManyRequests) }
-        val calls = HttpLinkCalls(HttpClientFactory.create(engine), "https://call.example") { ByteArray(it) }
+        val calls = calls(engine)
         assertTrue(calls.isAvailable)
         assertEquals(Result.Failure(DataError.Remote.TOO_MANY_REQUESTS), calls.start(video = false))
+    }
+
+    @Test
+    fun noMinutesLeftIsReported() = runTest {
+        val engine = MockEngine {
+            respond("""{"error":"No call minutes left","code":"no_minutes"}""", HttpStatusCode.PaymentRequired)
+        }
+        val calls = calls(engine)
+        assertEquals(Result.Failure(DataError.Remote.PAYMENT_REQUIRED), calls.start(video = true))
+    }
+
+    @Test
+    fun withoutVideoMinutesTheCallIsAudio() = runTest {
+        val engine = MockEngine {
+            respond(created.replace("}", ",\"videoAllowed\":false}"), HttpStatusCode.OK, json)
+        }
+        val calls = calls(engine)
+        val call = (calls.start(video = true) as Result.Success).data
+        assertTrue(call.isAudioInstead)
+        assertTrue(call.hostUrl.endsWith("&v=0"))
+    }
+
+    @Test
+    fun theMinutesLeftAreRead() = runTest {
+        val engine = MockEngine {
+            respond(
+                """{"plan":"free","videoLeftMs":2520000,"audioLeftMs":36000000,"topUpMs":0,""" +
+                    """"resetsAt":1796083200000}""",
+                HttpStatusCode.OK,
+                json,
+            )
+        }
+        val calls = calls(engine)
+        val minutes = (calls.minutes() as Result.Success).data
+        assertEquals(CallMinutes(false, 2_520_000, 36_000_000, 0, 1_796_083_200_000), minutes)
     }
 }
