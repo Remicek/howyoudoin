@@ -155,4 +155,11 @@
     <string name="telegram_keys_use_builtin">Использовать ключи HowYouDoin</string>
     <string name="telegram_keys_saved">Перезапустите HowYouDoin, чтобы использовать эти ключи. Если Telegram подключён, отключите его и подключите снова.</string>
     <string name="telegram_keys_invalid">Введите api_id (число) и api_hash (32 буквы и цифры) с my.telegram.org.</string>
+    <string name="settings_rate">Оценить HowYouDoin</string>
+    <string name="settings_rate_sub">Расскажите нам и другим в Google Play, что вы думаете</string>
+    <string name="settings_share">Поделиться HowYouDoin</string>
+    <string name="settings_share_sub">Отправьте приложение друзьям</string>
+    <string name="settings_share_message">Все мои чаты из WhatsApp, Messenger, Telegram и других — в одном приватном списке с HowYouDoin. Попробуйте: %1$s</string>
+    <string name="settings_tour">Обзор списка чатов</string>
+    <string name="settings_tour_sub">Снова показать, для чего нужны кнопки</string>
 </resources>

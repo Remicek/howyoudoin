@@ -1,6 +1,19 @@
 package com.devvalor.howyoudoing.settings.presentation.main
 
 import androidx.compose.material.icons.rounded.Key
+import androidx.compose.material.icons.rounded.Explore
+import androidx.compose.material.icons.rounded.Share
+import androidx.compose.material.icons.rounded.StarRate
+import com.devvalor.howyoudoing.core.domain.app.AppPromotion
+import com.devvalor.howyoudoing.core.domain.app.AppTour
+import howyoudoin.feature.settings.presentation.generated.resources.settings_rate
+import howyoudoin.feature.settings.presentation.generated.resources.settings_rate_sub
+import howyoudoin.feature.settings.presentation.generated.resources.settings_share
+import howyoudoin.feature.settings.presentation.generated.resources.settings_share_message
+import howyoudoin.feature.settings.presentation.generated.resources.settings_share_sub
+import howyoudoin.feature.settings.presentation.generated.resources.settings_tour
+import howyoudoin.feature.settings.presentation.generated.resources.settings_tour_sub
+import org.koin.compose.koinInject
 import com.devvalor.howyoudoing.core.domain.ondevice.TelegramApiKeys
 import howyoudoin.feature.settings.presentation.generated.resources.settings_telegram_keys
 import howyoudoin.feature.settings.presentation.generated.resources.telegram_keys_using_builtin
@@ -88,7 +101,8 @@ class SettingsViewModel(
     crashReports: CrashReports,
     private val loginBackup: LoginBackup,
     private val authService: AuthService,
-    private val telegramKeys: TelegramApiKeys
+    private val telegramKeys: TelegramApiKeys,
+    private val appTour: AppTour
 ) : ViewModel() {
     val state = combine(
         appLock.observeSettings(),
@@ -114,6 +128,11 @@ class SettingsViewModel(
         viewModelScope.launch { loginBackup.setEnabled(on) }
     }
 
+    /** The inbox shows its tour again (Settings then goes back to it). */
+    fun showTourAgain() {
+        viewModelScope.launch { appTour.showAgain() }
+    }
+
     /** Ends the session; the app then goes back to the welcome screen. */
     fun logOut() {
         viewModelScope.launch { authService.logout() }
@@ -133,8 +152,10 @@ fun SettingsRoot(
     onTelegramKeysClick: () -> Unit,
     onBack: () -> Unit,
     viewModel: SettingsViewModel = koinViewModel(),
+    promotion: AppPromotion = koinInject(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val shareMessage = stringResource(Res.string.settings_share_message, AppPromotion.PLAY_STORE_URL)
     SettingsScaffold(title = stringResource(Res.string.settings_title), onBack = onBack) {
         item {
             SettingsRow(
@@ -150,6 +171,17 @@ fun SettingsRoot(
                 subtitle = stringResource(Res.string.settings_guide_sub),
                 icon = Icons.AutoMirrored.Rounded.HelpOutline,
                 onClick = onGuideClick,
+            )
+        }
+        item {
+            SettingsRow(
+                title = stringResource(Res.string.settings_tour),
+                subtitle = stringResource(Res.string.settings_tour_sub),
+                icon = Icons.Rounded.Explore,
+                onClick = {
+                    viewModel.showTourAgain()
+                    onBack()
+                },
             )
         }
         item {
@@ -225,6 +257,24 @@ fun SettingsRoot(
             }
         }
         item { SettingsSectionHeader(stringResource(Res.string.settings_section_about)) }
+        if (promotion.isSupported) {
+            item {
+                SettingsRow(
+                    title = stringResource(Res.string.settings_rate),
+                    subtitle = stringResource(Res.string.settings_rate_sub),
+                    icon = Icons.Rounded.StarRate,
+                    onClick = promotion::openStorePage,
+                )
+            }
+            item {
+                SettingsRow(
+                    title = stringResource(Res.string.settings_share),
+                    subtitle = stringResource(Res.string.settings_share_sub),
+                    icon = Icons.Rounded.Share,
+                    onClick = { promotion.share(shareMessage) },
+                )
+            }
+        }
         item {
             SettingsRow(
                 title = stringResource(Res.string.settings_licenses),

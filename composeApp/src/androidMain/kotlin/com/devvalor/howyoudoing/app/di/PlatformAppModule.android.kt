@@ -1,5 +1,7 @@
 package com.devvalor.howyoudoing.app.di
 
+import com.devvalor.howyoudoing.app.promotion.AndroidAppPromotion
+import com.devvalor.howyoudoing.core.domain.app.AppPromotion
 import com.devvalor.howyoudoing.app.connectivity.AndroidInternetConnection
 import com.devvalor.howyoudoing.core.domain.connectivity.InternetConnection
 import com.devvalor.howyoudoing.app.ondevice.AndroidTelegramApiKeys
@@ -178,6 +180,7 @@ actual val platformAppModule: Module = module {
     single(createdAtStart = true) { ConnectionProblemNotifier(androidContext(), get(), get()) }
     single<CallLauncher> { CallLauncher { chatId, video -> CallActivity.startCall(androidContext(), chatId, video) } }
     single<OnDeviceInboxCache> { AndroidInboxCache(androidContext()) }
+    single<AppPromotion> { AndroidAppPromotion(androidContext()) }
     single<LoginBackup>(createdAtStart = true) {
         AndroidLoginBackup(
             context = androidContext(),

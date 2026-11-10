@@ -149,4 +149,11 @@
     <string name="telegram_keys_use_builtin">HowYouDoinのキーを使う</string>
     <string name="telegram_keys_saved">これらのキーを使うにはHowYouDoinを再起動してください。Telegramが接続されている場合は、接続を解除してから再接続してください。</string>
     <string name="telegram_keys_invalid">my.telegram.orgのapi_id(数字)とapi_hash(英数字32文字)を入力してください。</string>
+    <string name="settings_rate">HowYouDoinを評価</string>
+    <string name="settings_rate_sub">Google Playで感想を教えてください</string>
+    <string name="settings_share">HowYouDoinを共有</string>
+    <string name="settings_share_sub">友だちにアプリを送る</string>
+    <string name="settings_share_message">WhatsApp、Messenger、Telegramなどのチャットを、HowYouDoinでひとつのプライベートな受信箱にまとめています。試してみて：%1$s</string>
+    <string name="settings_tour">受信箱ツアー</string>
+    <string name="settings_tour_sub">ボタンの使い方をもう一度表示</string>
 </resources>

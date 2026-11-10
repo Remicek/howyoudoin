@@ -151,4 +151,11 @@
     <string name="telegram_keys_use_builtin">HowYouDoin की कुंजियाँ इस्तेमाल करें</string>
     <string name="telegram_keys_saved">इन कुंजियों का इस्तेमाल करने के लिए HowYouDoin को फिर से शुरू करें। अगर Telegram जुड़ा है, तो उसे डिस्कनेक्ट करके फिर से जोड़ें।</string>
     <string name="telegram_keys_invalid">my.telegram.org से api_id (एक संख्या) और api_hash (32 अक्षर और अंक) डालें।</string>
+    <string name="settings_rate">HowYouDoin को रेटिंग दें</string>
+    <string name="settings_rate_sub">Google Play पर बताएँ कि आपको कैसा लगा</string>
+    <string name="settings_share">HowYouDoin शेयर करें</string>
+    <string name="settings_share_sub">दोस्तों को ऐप भेजें</string>
+    <string name="settings_share_message">HowYouDoin में WhatsApp, Messenger, Telegram और बाकी सारी चैट एक निजी इनबॉक्स में। आज़माएँ: %1$s</string>
+    <string name="settings_tour">इनबॉक्स टूर</string>
+    <string name="settings_tour_sub">बटनों का काम फिर से दिखाएँ</string>
 </resources>

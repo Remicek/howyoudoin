@@ -1,6 +1,9 @@
 package com.devvalor.howyoudoing.app.e2e
 
 import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.test.performScrollToNode
+import androidx.compose.ui.test.onFirst
+import androidx.compose.ui.test.hasScrollToNodeAction
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasText
@@ -65,6 +68,44 @@ class HomeTest {
         app.waitForText("Mom")
     }
 
+    /** A new user is walked through the inbox once; afterwards the inbox works and Settings can show it again. */
+    @Test
+    fun tourWalksThroughTheInboxOnce() {
+        startDemo(skipTour = false)
+        listOf("Connect your networks", "Filter by network", "Start a new chat").forEach { title ->
+            app.waitForText(title)
+            app.onNodeWithText("Next").performClick()
+        }
+        app.waitForText("Find a chat")
+        app.onNodeWithText("Got it").performClick()
+        app.waitUntil(TIMEOUT_MILLIS) { app.onAllNodes(hasText("Find a chat")).fetchSemanticsNodes().isEmpty() }
+
+        // The inbox can be used now, and the tour doesn't come back by itself
+        app.onNodeWithText("Settings").performClick()
+        app.waitForText("App lock")
+        app.pressBack()
+        app.waitForText("Mom")
+        check(app.onAllNodes(hasText(SKIP_TOUR)).fetchSemanticsNodes().isEmpty()) { "The tour came back" }
+
+        // Settings shows it again
+        app.onNodeWithText("Settings").performClick()
+        app.waitForText("App lock")
+        app.scrollToAndClick("Inbox tour")
+        app.waitForText("Connect your networks")
+        app.skipTour()
+    }
+
+    /** Settings → About offers rating the app and sharing it. */
+    @Test
+    fun settingsOffersRatingAndSharing() {
+        startDemo()
+        app.onNodeWithText("Settings").performClick()
+        app.waitForText("App lock")
+        app.onAllNodes(hasScrollToNodeAction()).onFirst().performScrollToNode(hasText("Share HowYouDoin"))
+        app.waitForText("Rate HowYouDoin")
+        app.waitForText("Share HowYouDoin")
+    }
+
     @Test
     fun settingsLogsOut() {
         startDemo()
@@ -82,13 +123,14 @@ class HomeTest {
         app.waitForNode(hasContentDescription("Voice and video calls", substring = true) or hasText("WhatsApp"))
     }
 
-    private fun startDemo() {
+    private fun startDemo(skipTour: Boolean = true) {
         app.waitForText("Try demo mode")
         app.onNodeWithText("Try demo mode").performClick()
         app.waitForText("Lock HowYouDoin?")
         app.onNodeWithText("Not now").performClick()
         app.clickIfShown("Skip")
         app.waitForText("Mom")
+        if (skipTour) app.skipTour()
     }
 
     /** The filter chip, not other text that says "Messenger". */

@@ -149,4 +149,11 @@
     <string name="telegram_keys_use_builtin">Pakai kunci HowYouDoin</string>
     <string name="telegram_keys_saved">Mulai ulang HowYouDoin untuk memakai kunci ini. Jika Telegram terhubung, putuskan lalu hubungkan lagi.</string>
     <string name="telegram_keys_invalid">Masukkan api_id (angka) dan api_hash (32 huruf dan angka) dari my.telegram.org.</string>
+    <string name="settings_rate">Beri rating HowYouDoin</string>
+    <string name="settings_rate_sub">Ceritakan pendapat Anda di Google Play</string>
+    <string name="settings_share">Bagikan HowYouDoin</string>
+    <string name="settings_share_sub">Kirim aplikasi ini ke teman</string>
+    <string name="settings_share_message">Saya menyimpan chat WhatsApp, Messenger, Telegram, dan lainnya di satu kotak masuk pribadi dengan HowYouDoin. Coba: %1$s</string>
+    <string name="settings_tour">Tur kotak masuk</string>
+    <string name="settings_tour_sub">Tampilkan lagi fungsi tombol-tombolnya</string>
 </resources>

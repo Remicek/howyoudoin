@@ -195,4 +195,16 @@
     <string name="offline_text">आप इस फ़ोन पर सेव किए गए संदेश पढ़ सकते हैं। ऑनलाइन होने पर नए संदेश आएँगे।</string>
     <string name="offline_chat_note">ऑफ़लाइन: इस फ़ोन पर सेव किए गए संदेश</string>
     <string name="offline_cant_send">आप ऑफ़लाइन हैं, इसलिए यह नहीं भेजा गया। ऑनलाइन होने पर फिर से कोशिश करें।</string>
+    <string name="tour_step">%2$d में से %1$d</string>
+    <string name="tour_skip">टूर छोड़ें</string>
+    <string name="tour_next">आगे</string>
+    <string name="tour_done">ठीक है</string>
+    <string name="tour_networks_title">अपने नेटवर्क जोड़ें</string>
+    <string name="tour_networks_text">WhatsApp, Messenger, Telegram और बाकी यहाँ जोड़ें। ये सीधे इसी फ़ोन से जुड़ते हैं।</string>
+    <string name="tour_filters_title">नेटवर्क के हिसाब से फ़िल्टर करें</string>
+    <string name="tour_filters_text">किसी नेटवर्क पर टैप करें तो सिर्फ़ उसकी चैट दिखेंगी, फिर से टैप करें तो सभी। ⋯ से बिना पढ़ी चैट दिखती हैं।</string>
+    <string name="tour_new_title">नई चैट शुरू करें</string>
+    <string name="tour_new_text">किसी भी जुड़े नेटवर्क पर किसी को भी लिखें।</string>
+    <string name="tour_search_title">चैट ढूँढें</string>
+    <string name="tour_search_text">नाम से अपनी चैट खोजें।</string>
 </resources>

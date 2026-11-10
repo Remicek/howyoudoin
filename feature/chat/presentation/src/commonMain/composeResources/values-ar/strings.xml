@@ -203,4 +203,16 @@
     <string name="offline_text">يمكنك قراءة الرسائل المحفوظة على هذا الهاتف. ستصل الرسائل الجديدة عند عودة الاتصال.</string>
     <string name="offline_chat_note">غير متصل: الرسائل المحفوظة على هذا الهاتف</string>
     <string name="offline_cant_send">أنت غير متصل، لذا لم يتم الإرسال. حاول مرة أخرى عند عودة الاتصال.</string>
+    <string name="tour_step">%1$d من %2$d</string>
+    <string name="tour_skip">تخطَّ الجولة</string>
+    <string name="tour_next">التالي</string>
+    <string name="tour_done">حسنًا</string>
+    <string name="tour_networks_title">اربط شبكاتك</string>
+    <string name="tour_networks_text">أضف WhatsApp وMessenger وTelegram وغيرها من هنا. تتصل مباشرةً من هذا الهاتف.</string>
+    <string name="tour_filters_title">صفِّ حسب الشبكة</string>
+    <string name="tour_filters_text">انقر على شبكة لرؤية محادثاتها فقط، وانقر عليها مجددًا لرؤية الكل. يعرض الزر ⋯ المحادثات غير المقروءة.</string>
+    <string name="tour_new_title">ابدأ محادثة جديدة</string>
+    <string name="tour_new_text">راسل أي شخص على شبكة متصلة.</string>
+    <string name="tour_search_title">ابحث عن محادثة</string>
+    <string name="tour_search_text">ابحث في محادثاتك بالاسم.</string>
 </resources>

@@ -85,6 +85,9 @@ actual val platformAppModule: Module = module {
     single<com.devvalor.howyoudoing.core.domain.ondevice.BackgroundDelivery> {
         com.devvalor.howyoudoing.core.domain.ondevice.NoBackgroundDelivery
     }
+    single<com.devvalor.howyoudoing.core.domain.app.AppPromotion> {
+        com.devvalor.howyoudoing.core.domain.app.NoAppPromotion
+    }
     single<com.devvalor.howyoudoing.core.domain.backup.LoginBackup> {
         com.devvalor.howyoudoing.core.domain.backup.NoLoginBackup
     }

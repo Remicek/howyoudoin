@@ -195,4 +195,16 @@
     <string name="offline_text">Du kannst die auf diesem Telefon gespeicherten Nachrichten lesen. Neue kommen an, sobald du wieder online bist.</string>
     <string name="offline_chat_note">Offline: auf diesem Telefon gespeicherte Nachrichten</string>
     <string name="offline_cant_send">Du bist offline, daher wurde nichts gesendet. Versuche es erneut, wenn du wieder online bist.</string>
+    <string name="tour_step">%1$d von %2$d</string>
+    <string name="tour_skip">Tour überspringen</string>
+    <string name="tour_next">Weiter</string>
+    <string name="tour_done">Verstanden</string>
+    <string name="tour_networks_title">Netzwerke verbinden</string>
+    <string name="tour_networks_text">Füge hier WhatsApp, Messenger, Telegram und mehr hinzu. Sie verbinden sich direkt von diesem Handy aus.</string>
+    <string name="tour_filters_title">Nach Netzwerk filtern</string>
+    <string name="tour_filters_text">Tippe auf ein Netzwerk, um nur seine Chats zu sehen, und erneut, um alle zu sehen. ⋯ zeigt ungelesene Chats.</string>
+    <string name="tour_new_title">Neuen Chat starten</string>
+    <string name="tour_new_text">Schreib jedem in einem verbundenen Netzwerk.</string>
+    <string name="tour_search_title">Chat finden</string>
+    <string name="tour_search_text">Durchsuche deine Chats nach Namen.</string>
 </resources>

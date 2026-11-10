@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.devvalor.howyoudoing.chat.domain.Chat
 import com.devvalor.howyoudoing.chat.domain.ChatRepository
 import com.devvalor.howyoudoing.chat.presentation.model.toChatUi
+import com.devvalor.howyoudoing.core.domain.app.AppTour
 import com.devvalor.howyoudoing.core.domain.auth.AuthService
 import com.devvalor.howyoudoing.core.domain.connectivity.InternetConnection
 import com.devvalor.howyoudoing.core.domain.ondevice.ConnectionMonitor
@@ -28,7 +29,8 @@ class InboxViewModel(
     private val authService: AuthService,
     private val notificationPreferences: NotificationPreferences,
     private val connectionMonitor: ConnectionMonitor,
-    private val internetConnection: InternetConnection
+    private val internetConnection: InternetConnection,
+    private val appTour: AppTour
 ) : ViewModel() {
 
     private var hasLoadedInitialData = false
@@ -47,6 +49,9 @@ class InboxViewModel(
                     .launchIn(viewModelScope)
                 internetConnection.isOnline
                     .onEach { online -> _state.update { it.copy(isOffline = !online) } }
+                    .launchIn(viewModelScope)
+                appTour.observeShouldShow()
+                    .onEach { show -> _state.update { it.copy(showTour = show) } }
                     .launchIn(viewModelScope)
                 hasLoadedInitialData = true
             }
@@ -73,6 +78,10 @@ class InboxViewModel(
             InboxAction.OnRefresh -> refresh()
             is InboxAction.OnDismissProblem -> connectionMonitor.dismiss(action.network)
             InboxAction.OnReconnectClick -> connectionMonitor.reconnect()
+            InboxAction.OnTourDone -> {
+                _state.update { it.copy(showTour = false) }
+                viewModelScope.launch { appTour.markSeen() }
+            }
             else -> Unit
         }
     }

@@ -193,4 +193,16 @@
     <string name="offline_text">Kamu bisa membaca pesan yang tersimpan di ponsel ini. Pesan baru masuk saat kamu online lagi.</string>
     <string name="offline_chat_note">Offline: pesan yang tersimpan di ponsel ini</string>
     <string name="offline_cant_send">Kamu offline, jadi pesan tidak terkirim. Coba lagi saat sudah online.</string>
+    <string name="tour_step">%1$d dari %2$d</string>
+    <string name="tour_skip">Lewati tur</string>
+    <string name="tour_next">Berikutnya</string>
+    <string name="tour_done">Mengerti</string>
+    <string name="tour_networks_title">Hubungkan jaringan Anda</string>
+    <string name="tour_networks_text">Tambahkan WhatsApp, Messenger, Telegram, dan lainnya di sini. Semuanya terhubung langsung dari ponsel ini.</string>
+    <string name="tour_filters_title">Filter menurut jaringan</string>
+    <string name="tour_filters_text">Ketuk jaringan untuk melihat chat-nya saja, lalu ketuk lagi untuk melihat semuanya. ⋯ menampilkan yang belum dibaca.</string>
+    <string name="tour_new_title">Mulai chat baru</string>
+    <string name="tour_new_text">Kirim pesan ke siapa pun di jaringan yang terhubung.</string>
+    <string name="tour_search_title">Temukan chat</string>
+    <string name="tour_search_text">Cari chat Anda berdasarkan nama.</string>
 </resources>

@@ -193,4 +193,16 @@
     <string name="offline_text">この端末に保存されたメッセージは読めます。新しいメッセージはオンラインに戻ると届きます。</string>
     <string name="offline_chat_note">オフライン：この端末に保存されたメッセージを表示中</string>
     <string name="offline_cant_send">オフラインのため送信されませんでした。オンラインに戻ってからもう一度お試しください。</string>
+    <string name="tour_step">%1$d / %2$d</string>
+    <string name="tour_skip">ツアーをスキップ</string>
+    <string name="tour_next">次へ</string>
+    <string name="tour_done">OK</string>
+    <string name="tour_networks_title">ネットワークを接続</string>
+    <string name="tour_networks_text">WhatsApp、Messenger、Telegramなどをここで追加できます。このスマートフォンから直接接続します。</string>
+    <string name="tour_filters_title">ネットワークで絞り込む</string>
+    <string name="tour_filters_text">ネットワークをタップするとそのチャットだけを表示し、もう一度タップするとすべて表示します。⋯ で未読を表示します。</string>
+    <string name="tour_new_title">新しいチャットを始める</string>
+    <string name="tour_new_text">接続したネットワークの誰にでもメッセージを送れます。</string>
+    <string name="tour_search_title">チャットを探す</string>
+    <string name="tour_search_text">名前でチャットを検索します。</string>
 </resources>

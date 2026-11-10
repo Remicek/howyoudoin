@@ -199,4 +199,16 @@
     <string name="offline_text">Можно читать сообщения, сохранённые на этом телефоне. Новые придут, когда интернет вернётся.</string>
     <string name="offline_chat_note">Офлайн: сообщения, сохранённые на этом телефоне</string>
     <string name="offline_cant_send">Нет интернета, поэтому ничего не отправлено. Попробуйте снова, когда подключение вернётся.</string>
+    <string name="tour_step">%1$d из %2$d</string>
+    <string name="tour_skip">Пропустить обзор</string>
+    <string name="tour_next">Далее</string>
+    <string name="tour_done">Понятно</string>
+    <string name="tour_networks_title">Подключите сети</string>
+    <string name="tour_networks_text">Добавьте здесь WhatsApp, Messenger, Telegram и другие. Они подключаются прямо с этого телефона.</string>
+    <string name="tour_filters_title">Фильтр по сети</string>
+    <string name="tour_filters_text">Нажмите на сеть, чтобы видеть только её чаты, и нажмите снова, чтобы видеть все. ⋯ показывает непрочитанные.</string>
+    <string name="tour_new_title">Новый чат</string>
+    <string name="tour_new_text">Напишите любому в подключённой сети.</string>
+    <string name="tour_search_title">Найти чат</string>
+    <string name="tour_search_text">Ищите чаты по названию.</string>
 </resources>

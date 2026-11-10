@@ -197,4 +197,16 @@
     <string name="offline_text">Puedes leer los mensajes guardados en este teléfono. Los nuevos llegarán cuando vuelvas a tener conexión.</string>
     <string name="offline_chat_note">Sin conexión: mensajes guardados en este teléfono</string>
     <string name="offline_cant_send">Estás sin conexión, así que no se ha enviado. Inténtalo de nuevo cuando vuelvas a tener conexión.</string>
+    <string name="tour_step">%1$d de %2$d</string>
+    <string name="tour_skip">Saltar el recorrido</string>
+    <string name="tour_next">Siguiente</string>
+    <string name="tour_done">Entendido</string>
+    <string name="tour_networks_title">Conecta tus redes</string>
+    <string name="tour_networks_text">Añade aquí WhatsApp, Messenger, Telegram y más. Se conectan directamente desde este teléfono.</string>
+    <string name="tour_filters_title">Filtra por red</string>
+    <string name="tour_filters_text">Toca una red para ver solo sus chats y vuelve a tocarla para verlos todos. ⋯ muestra los no leídos.</string>
+    <string name="tour_new_title">Empieza un chat</string>
+    <string name="tour_new_text">Escribe a cualquiera en una red que hayas conectado.</string>
+    <string name="tour_search_title">Encuentra un chat</string>
+    <string name="tour_search_text">Busca tus chats por nombre.</string>
 </resources>

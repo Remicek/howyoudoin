@@ -153,4 +153,11 @@
     <string name="telegram_keys_use_builtin">Usar las claves de HowYouDoin</string>
     <string name="telegram_keys_saved">Reinicia HowYouDoin para usar estas claves. Si Telegram está conectado, desconéctalo y vuelve a conectarlo.</string>
     <string name="telegram_keys_invalid">Introduce el api_id (un número) y el api_hash (32 letras y cifras) de my.telegram.org.</string>
+    <string name="settings_rate">Valorar HowYouDoin</string>
+    <string name="settings_rate_sub">Cuéntanos a nosotros y a otros qué te parece en Google Play</string>
+    <string name="settings_share">Compartir HowYouDoin</string>
+    <string name="settings_share_sub">Envía la app a tus amigos</string>
+    <string name="settings_share_message">Tengo mis chats de WhatsApp, Messenger, Telegram y más en una bandeja privada con HowYouDoin. Pruébala: %1$s</string>
+    <string name="settings_tour">Recorrido por la bandeja</string>
+    <string name="settings_tour_sub">Volver a ver para qué sirve cada botón</string>
 </resources>

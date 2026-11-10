@@ -151,4 +151,11 @@
     <string name="telegram_keys_use_builtin">Use HowYouDoin's keys</string>
     <string name="telegram_keys_saved">Restart HowYouDoin to use these keys. If Telegram is connected, disconnect it and connect again.</string>
     <string name="telegram_keys_invalid">Enter the api_id (a number) and the api_hash (32 letters and digits) from my.telegram.org.</string>
+    <string name="settings_rate">Rate HowYouDoin</string>
+    <string name="settings_rate_sub">Tell us and others what you think on Google Play</string>
+    <string name="settings_share">Share HowYouDoin</string>
+    <string name="settings_share_sub">Send the app to friends</string>
+    <string name="settings_share_message">I keep my WhatsApp, Messenger, Telegram and other chats in one private inbox with HowYouDoin. Try it: %1$s</string>
+    <string name="settings_tour">Inbox tour</string>
+    <string name="settings_tour_sub">Show what the inbox buttons do again</string>
 </resources>

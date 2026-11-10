@@ -197,4 +197,16 @@
     <string name="offline_text">Você pode ler as mensagens salvas neste telefone. As novas chegam quando você voltar a ficar online.</string>
     <string name="offline_chat_note">Offline: mensagens salvas neste telefone</string>
     <string name="offline_cant_send">Você está offline, então nada foi enviado. Tente de novo quando estiver online.</string>
+    <string name="tour_step">%1$d de %2$d</string>
+    <string name="tour_skip">Pular tour</string>
+    <string name="tour_next">Próximo</string>
+    <string name="tour_done">Entendi</string>
+    <string name="tour_networks_title">Conecte suas redes</string>
+    <string name="tour_networks_text">Adicione aqui WhatsApp, Messenger, Telegram e mais. Elas se conectam direto deste celular.</string>
+    <string name="tour_filters_title">Filtre por rede</string>
+    <string name="tour_filters_text">Toque em uma rede para ver só as conversas dela e toque de novo para ver todas. ⋯ mostra as não lidas.</string>
+    <string name="tour_new_title">Comece uma conversa</string>
+    <string name="tour_new_text">Escreva para qualquer pessoa em uma rede conectada.</string>
+    <string name="tour_search_title">Encontre uma conversa</string>
+    <string name="tour_search_text">Pesquise suas conversas pelo nome.</string>
 </resources>

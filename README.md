@@ -36,6 +36,8 @@ Status: experimental, Android only for now. (An iOS build exists in the code but
 - Crash reports stay on the phone; you choose whether to share them
 - 12 languages, four colour themes, light and dark
 - Try everything in demo mode without connecting an account
+- A short tour of the inbox for new users (skippable, and shown again from Settings)
+- Rate the app on Google Play or share it with friends from Settings
 - Optional: connect through your own Matrix homeserver with mautrix bridges instead (server mode)
 
 ## How it works

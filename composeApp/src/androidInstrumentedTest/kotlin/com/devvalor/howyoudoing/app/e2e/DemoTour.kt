@@ -89,6 +89,7 @@ class DemoTour {
         app.clickIfShown("Skip")
 
         app.waitForText("Mom")
+        app.skipTour()
         pause(LONG)
     }
 

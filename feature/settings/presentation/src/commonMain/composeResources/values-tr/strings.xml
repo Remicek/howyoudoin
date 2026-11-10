@@ -151,4 +151,11 @@
     <string name="telegram_keys_use_builtin">HowYouDoin'in anahtarlarını kullan</string>
     <string name="telegram_keys_saved">Bu anahtarları kullanmak için HowYouDoin'i yeniden başlat. Telegram bağlıysa bağlantıyı kesip yeniden bağlan.</string>
     <string name="telegram_keys_invalid">my.telegram.org'daki api_id'yi (bir sayı) ve api_hash'i (32 harf ve rakam) gir.</string>
+    <string name="settings_rate">HowYouDoin'i değerlendir</string>
+    <string name="settings_rate_sub">Ne düşündüğünüzü Google Play'de bize ve başkalarına söyleyin</string>
+    <string name="settings_share">HowYouDoin'i paylaş</string>
+    <string name="settings_share_sub">Uygulamayı arkadaşlarınıza gönderin</string>
+    <string name="settings_share_message">WhatsApp, Messenger, Telegram ve diğer sohbetlerimi HowYouDoin ile tek bir özel gelen kutusunda tutuyorum. Dene: %1$s</string>
+    <string name="settings_tour">Gelen kutusu turu</string>
+    <string name="settings_tour_sub">Düğmelerin ne işe yaradığını yeniden göster</string>
 </resources>

@@ -77,6 +77,15 @@ fun AppRule.clickIfShown(text: String) {
     if (onAllNodesWithText(text).fetchSemanticsNodes().isNotEmpty()) onNodeWithText(text).performClick()
 }
 
+/** A new user's inbox tour covers the inbox until it's answered: tests go past it (HomeTest walks through it). */
+fun AppRule.skipTour() {
+    waitForText(SKIP_TOUR)
+    onNodeWithText(SKIP_TOUR).performClick()
+    waitUntil(TIMEOUT_MILLIS) { onAllNodesWithText(SKIP_TOUR).fetchSemanticsNodes().isEmpty() }
+}
+
+const val SKIP_TOUR = "Skip tour"
+
 /** The system back button, as the user presses it. */
 fun AppRule.pressBack() {
     activityRule.scenario.onActivity { it.onBackPressedDispatcher.onBackPressed() }

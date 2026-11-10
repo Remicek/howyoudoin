@@ -154,6 +154,7 @@ class AppJourneyTest {
         app.onNodeWithText("Not now").performClick()
         app.clickIfShown("Skip")
         app.waitForText("Mom")
+        app.skipTour()
     }
 
     private fun openSettings() {

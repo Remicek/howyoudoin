@@ -177,114 +177,129 @@ fun InboxScreen(
     resolver: MediaResolver = { _, _ -> null },
 ) {
     var isSearchOpen by remember { mutableStateOf(false) }
+    val tourTargets = remember { TourTargets() }
 
-    Scaffold(
-        topBar = {
-            InboxTopBar(
-                onNewMessage = { onAction(InboxAction.OnNewMessageClick) },
-                onAddNetwork = { onAction(InboxAction.OnNetworksClick) },
-                onSearch = {
-                    if (isSearchOpen) onAction(InboxAction.OnQueryChange(""))
-                    isSearchOpen = !isSearchOpen
-                },
-            )
-        },
-        bottomBar = {
-            HomeBottomBar(
-                selected = HomeTab.CHATS,
-                unread = state.totalUnread,
-                onSelect = { tab ->
-                    when (tab) {
-                        HomeTab.CONTACTS -> onAction(InboxAction.OnContactsClick)
-                        HomeTab.SETTINGS -> onAction(InboxAction.OnSettingsClick)
-                        HomeTab.CHATS -> Unit
-                    }
-                },
-            )
-        },
-        containerColor = MaterialTheme.colorScheme.background,
-    ) { padding ->
-        Column(modifier = Modifier.fillMaxSize().padding(padding)) {
-            Row(
-                verticalAlignment = Alignment.Bottom,
-                modifier = Modifier.padding(horizontal = HowYouDoinSpacing.md, vertical = HowYouDoinSpacing.xs),
-            ) {
-                Text(
-                    stringResource(Res.string.home_chats),
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold,
+    Box(Modifier.fillMaxSize()) {
+        Scaffold(
+            topBar = {
+                InboxTopBar(
+                    tourTargets = tourTargets,
+                    onNewMessage = { onAction(InboxAction.OnNewMessageClick) },
+                    onAddNetwork = { onAction(InboxAction.OnNetworksClick) },
+                    onSearch = {
+                        if (isSearchOpen) onAction(InboxAction.OnQueryChange(""))
+                        isSearchOpen = !isSearchOpen
+                    },
                 )
-                Spacer(Modifier.width(HowYouDoinSpacing.sm))
-                if (!state.isOffline) SyncStatusLabel(state.syncState)
-            }
-            if (isSearchOpen || state.query.isNotEmpty()) {
-                SearchField(
-                    query = state.query,
-                    onQueryChange = { onAction(InboxAction.OnQueryChange(it)) },
+            },
+            bottomBar = {
+                HomeBottomBar(
+                    selected = HomeTab.CHATS,
+                    unread = state.totalUnread,
+                    onSelect = { tab ->
+                        when (tab) {
+                            HomeTab.CONTACTS -> onAction(InboxAction.OnContactsClick)
+                            HomeTab.SETTINGS -> onAction(InboxAction.OnSettingsClick)
+                            HomeTab.CHATS -> Unit
+                        }
+                    },
                 )
-            }
-            FilterRow(state = state, onAction = onAction)
-            if (state.isOffline) {
-                // Offline, every network looks broken: that's the one thing worth saying
-                OfflineBanner()
-            } else {
-                val (didntHelp, problems) = state.connectionProblems.partition { it.reconnectDidntHelp }
-                didntHelp.forEach { problem ->
-                    ReconnectDidntHelp(
-                        problem,
-                        onClick = { onAction(InboxAction.OnFixConnectionClick(problem.network)) }
+            },
+            containerColor = MaterialTheme.colorScheme.background,
+        ) { padding ->
+            Column(modifier = Modifier.fillMaxSize().padding(padding)) {
+                Row(
+                    verticalAlignment = Alignment.Bottom,
+                    modifier = Modifier.padding(horizontal = HowYouDoinSpacing.md, vertical = HowYouDoinSpacing.xs),
+                ) {
+                    Text(
+                        stringResource(Res.string.home_chats),
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    Spacer(Modifier.width(HowYouDoinSpacing.sm))
+                    if (!state.isOffline) SyncStatusLabel(state.syncState)
+                }
+                if (isSearchOpen || state.query.isNotEmpty()) {
+                    SearchField(
+                        query = state.query,
+                        onQueryChange = { onAction(InboxAction.OnQueryChange(it)) },
                     )
                 }
-                ConnectionProblems(
-                    problems = problems,
-                    onClick = { onAction(InboxAction.OnNetworksClick) },
-                    onReconnect = { onAction(InboxAction.OnReconnectClick) },
-                    onDismiss = { onAction(InboxAction.OnDismissProblem(it)) },
+                FilterRow(
+                    state = state,
+                    onAction = onAction,
+                    modifier = Modifier.tourTarget(tourTargets, TourStop.FILTERS)
                 )
-            }
-            banner()
-
-            when {
-                state.isLoading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
+                if (state.isOffline) {
+                    // Offline, every network looks broken: that's the one thing worth saying
+                    OfflineBanner()
+                } else {
+                    val (didntHelp, problems) = state.connectionProblems.partition { it.reconnectDidntHelp }
+                    didntHelp.forEach { problem ->
+                        ReconnectDidntHelp(
+                            problem,
+                            onClick = { onAction(InboxAction.OnFixConnectionClick(problem.network)) }
+                        )
+                    }
+                    ConnectionProblems(
+                        problems = problems,
+                        onClick = { onAction(InboxAction.OnNetworksClick) },
+                        onReconnect = { onAction(InboxAction.OnReconnectClick) },
+                        onDismiss = { onAction(InboxAction.OnDismissProblem(it)) },
+                    )
                 }
+                banner()
 
-                state.chats.isEmpty() -> EmptyInbox(
-                    isFiltered = state.query.isNotBlank() || state.filter != InboxFilter.All,
-                    onNetworksClick = { onAction(InboxAction.OnNetworksClick) },
-                    onGuideClick = { onAction(InboxAction.OnGuideClick) },
-                )
+                when {
+                    state.isLoading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
+                    }
 
-                else -> PullToRefreshBox(
-                    isRefreshing = state.isRefreshing,
-                    onRefresh = { onAction(InboxAction.OnRefresh) },
-                    modifier = Modifier.fillMaxSize(),
-                ) {
-                    // Each filter shows its list from the top, straight away (one list state would scroll there)
-                    val listState = rememberSaveable(state.filter, saver = LazyListState.Saver) { LazyListState() }
-                    StayAtTop(listState, topChatId = state.chats.firstOrNull()?.id)
-                    LazyColumn(
-                        state = listState,
-                        contentPadding = PaddingValues(bottom = HowYouDoinSpacing.lg),
+                    state.chats.isEmpty() -> EmptyInbox(
+                        isFiltered = state.query.isNotBlank() || state.filter != InboxFilter.All,
+                        onNetworksClick = { onAction(InboxAction.OnNetworksClick) },
+                        onGuideClick = { onAction(InboxAction.OnGuideClick) },
+                    )
+
+                    else -> PullToRefreshBox(
+                        isRefreshing = state.isRefreshing,
+                        onRefresh = { onAction(InboxAction.OnRefresh) },
                         modifier = Modifier.fillMaxSize(),
                     ) {
-                        items(state.chats, key = { it.id }) { chat ->
-                            ChatRow(
-                                chat = chat,
-                                resolver = resolver,
-                                onClick = { onAction(InboxAction.OnChatClick(chat.id)) })
+                        // Each filter shows its list from the top, straight away (one list state would scroll there)
+                        val listState = rememberSaveable(state.filter, saver = LazyListState.Saver) { LazyListState() }
+                        StayAtTop(listState, topChatId = state.chats.firstOrNull()?.id)
+                        LazyColumn(
+                            state = listState,
+                            contentPadding = PaddingValues(bottom = HowYouDoinSpacing.lg),
+                            modifier = Modifier.fillMaxSize(),
+                        ) {
+                            items(state.chats, key = { it.id }) { chat ->
+                                ChatRow(
+                                    chat = chat,
+                                    resolver = resolver,
+                                    onClick = { onAction(InboxAction.OnChatClick(chat.id)) })
+                            }
                         }
                     }
                 }
             }
         }
+        // A new user's first look: what the main controls are for
+        if (state.showTour) InboxTour(tourTargets, onDone = { onAction(InboxAction.OnTourDone) })
     }
 }
 
 /** The logo and name, then direct buttons: add a network, a new message, and search. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun InboxTopBar(onNewMessage: () -> Unit, onAddNetwork: () -> Unit, onSearch: () -> Unit) {
+private fun InboxTopBar(
+    tourTargets: TourTargets,
+    onNewMessage: () -> Unit,
+    onAddNetwork: () -> Unit,
+    onSearch: () -> Unit,
+) {
     TopAppBar(
         title = {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -294,13 +309,13 @@ private fun InboxTopBar(onNewMessage: () -> Unit, onAddNetwork: () -> Unit, onSe
             }
         },
         actions = {
-            IconButton(onClick = onAddNetwork) {
+            IconButton(onClick = onAddNetwork, Modifier.tourTarget(tourTargets, TourStop.NETWORKS)) {
                 Icon(Icons.Rounded.Hub, contentDescription = stringResource(Res.string.inbox_add_network))
             }
-            IconButton(onClick = onNewMessage) {
+            IconButton(onClick = onNewMessage, Modifier.tourTarget(tourTargets, TourStop.NEW_MESSAGE)) {
                 Icon(Icons.Rounded.Edit, contentDescription = stringResource(Res.string.inbox_new_message))
             }
-            IconButton(onClick = onSearch) {
+            IconButton(onClick = onSearch, Modifier.tourTarget(tourTargets, TourStop.SEARCH)) {
                 Icon(Icons.Rounded.Search, contentDescription = stringResource(Res.string.inbox_search))
             }
         },
@@ -469,12 +484,12 @@ private fun SearchField(query: String, onQueryChange: (String) -> Unit) {
 }
 
 @Composable
-private fun FilterRow(state: InboxState, onAction: (InboxAction) -> Unit) {
+private fun FilterRow(state: InboxState, onAction: (InboxAction) -> Unit, modifier: Modifier = Modifier) {
     var isMoreOpen by remember { mutableStateOf(false) }
     Row(
         horizontalArrangement = Arrangement.spacedBy(HowYouDoinSpacing.sm),
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .horizontalScroll(rememberScrollState())
             .padding(horizontal = HowYouDoinSpacing.md, vertical = HowYouDoinSpacing.xs),

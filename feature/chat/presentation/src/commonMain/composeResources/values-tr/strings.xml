@@ -195,4 +195,16 @@
     <string name="offline_text">Bu telefonda kayıtlı mesajları okuyabilirsin. Yenileri tekrar çevrimiçi olduğunda gelir.</string>
     <string name="offline_chat_note">Çevrimdışı: bu telefonda kayıtlı mesajlar</string>
     <string name="offline_cant_send">Çevrimdışısın, bu yüzden gönderilmedi. Tekrar çevrimiçi olduğunda dene.</string>
+    <string name="tour_step">%1$d / %2$d</string>
+    <string name="tour_skip">Turu atla</string>
+    <string name="tour_next">İleri</string>
+    <string name="tour_done">Anladım</string>
+    <string name="tour_networks_title">Ağlarınızı bağlayın</string>
+    <string name="tour_networks_text">WhatsApp, Messenger, Telegram ve daha fazlasını buradan ekleyin. Doğrudan bu telefondan bağlanırlar.</string>
+    <string name="tour_filters_title">Ağa göre filtreleyin</string>
+    <string name="tour_filters_text">Yalnızca bir ağın sohbetlerini görmek için ona dokunun, hepsini görmek için yeniden dokunun. ⋯ okunmamışları gösterir.</string>
+    <string name="tour_new_title">Yeni sohbet başlatın</string>
+    <string name="tour_new_text">Bağlı bir ağdaki herkese yazın.</string>
+    <string name="tour_search_title">Sohbet bulun</string>
+    <string name="tour_search_text">Sohbetlerinizi ada göre arayın.</string>
 </resources>

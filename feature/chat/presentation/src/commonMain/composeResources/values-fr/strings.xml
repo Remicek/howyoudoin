@@ -197,4 +197,16 @@
     <string name="offline_text">Vous pouvez lire les messages enregistrés sur ce téléphone. Les nouveaux arriveront une fois de retour en ligne.</string>
     <string name="offline_chat_note">Hors ligne : messages enregistrés sur ce téléphone</string>
     <string name="offline_cant_send">Vous êtes hors ligne, rien n'a été envoyé. Réessayez une fois de retour en ligne.</string>
+    <string name="tour_step">%1$d sur %2$d</string>
+    <string name="tour_skip">Passer la visite</string>
+    <string name="tour_next">Suivant</string>
+    <string name="tour_done">Compris</string>
+    <string name="tour_networks_title">Connectez vos réseaux</string>
+    <string name="tour_networks_text">Ajoutez ici WhatsApp, Messenger, Telegram et d'autres. Ils se connectent directement depuis ce téléphone.</string>
+    <string name="tour_filters_title">Filtrez par réseau</string>
+    <string name="tour_filters_text">Touchez un réseau pour ne voir que ses discussions, puis touchez-le à nouveau pour toutes les voir. ⋯ affiche les non lues.</string>
+    <string name="tour_new_title">Démarrez une discussion</string>
+    <string name="tour_new_text">Écrivez à n'importe qui sur un réseau connecté.</string>
+    <string name="tour_search_title">Trouvez une discussion</string>
+    <string name="tour_search_text">Recherchez vos discussions par nom.</string>
 </resources>

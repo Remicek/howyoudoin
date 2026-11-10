@@ -199,4 +199,16 @@
     <string name="offline_text">Możesz czytać wiadomości zapisane na tym telefonie. Nowe dotrą, gdy wrócisz do sieci.</string>
     <string name="offline_chat_note">Offline: widzisz wiadomości zapisane na tym telefonie</string>
     <string name="offline_cant_send">Jesteś offline, więc nie wysłano. Spróbuj ponownie po powrocie do sieci.</string>
+    <string name="tour_step">%1$d z %2$d</string>
+    <string name="tour_skip">Pomiń przewodnik</string>
+    <string name="tour_next">Dalej</string>
+    <string name="tour_done">Rozumiem</string>
+    <string name="tour_networks_title">Połącz swoje sieci</string>
+    <string name="tour_networks_text">Tutaj dodasz WhatsApp, Messenger, Telegram i inne. Łączą się bezpośrednio z tego telefonu.</string>
+    <string name="tour_filters_title">Filtruj według sieci</string>
+    <string name="tour_filters_text">Dotknij sieci, aby zobaczyć tylko jej czaty, i dotknij ponownie, aby zobaczyć wszystkie. Przycisk ⋯ pokazuje nieprzeczytane.</string>
+    <string name="tour_new_title">Zacznij nowy czat</string>
+    <string name="tour_new_text">Napisz do kogokolwiek w połączonej sieci.</string>
+    <string name="tour_search_title">Znajdź czat</string>
+    <string name="tour_search_text">Szukaj czatów po nazwie.</string>
 </resources>

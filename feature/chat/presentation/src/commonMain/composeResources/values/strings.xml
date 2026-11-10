@@ -198,4 +198,16 @@
     <string name="offline_text">You can read the messages saved on this phone. New ones arrive when you're back online.</string>
     <string name="offline_chat_note">Offline: showing messages saved on this phone</string>
     <string name="offline_cant_send">You're offline, so this wasn't sent. Try again when you're back online.</string>
+    <string name="tour_step">%1$d of %2$d</string>
+    <string name="tour_skip">Skip tour</string>
+    <string name="tour_next">Next</string>
+    <string name="tour_done">Got it</string>
+    <string name="tour_networks_title">Connect your networks</string>
+    <string name="tour_networks_text">Add WhatsApp, Messenger, Telegram and more here. They connect straight from this phone.</string>
+    <string name="tour_filters_title">Filter by network</string>
+    <string name="tour_filters_text">Tap a network to see only its chats, and tap it again to see them all. The ⋯ button shows unread chats.</string>
+    <string name="tour_new_title">Start a new chat</string>
+    <string name="tour_new_text">Write to anyone on a network you've connected.</string>
+    <string name="tour_search_title">Find a chat</string>
+    <string name="tour_search_text">Search your chats by name.</string>
 </resources>
