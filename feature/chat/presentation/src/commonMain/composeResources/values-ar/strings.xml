@@ -244,4 +244,9 @@
         <item quantity="many">%1$s، %2$d حسابًا</item>
         <item quantity="other">%1$s، %2$d حساب</item>
     </plurals>
+    <string name="link_call_no_minutes_title">لم تتبقَّ دقائق مكالمات هذا الشهر</string>
+    <string name="link_call_no_minutes_body">للمكالمات التي تبدأها عبر رابط حد شهري. يمنحك Premium أكثر بكثير، أو يمكنك شراء وقت فيديو إضافي. يتجدد الحد الشهر القادم.</string>
+    <string name="link_call_see_premium">عرض Premium</string>
+    <string name="link_call_not_now">ليس الآن</string>
+    <string name="link_call_audio_instead">نفدت دقائق الفيديو هذا الشهر، لذا هذه مكالمة صوتية.</string>
 </resources>

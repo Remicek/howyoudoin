@@ -244,4 +244,8 @@
     <string name="networks_account_colour">Цвет</string>
     <string name="networks_save">Сохранить</string>
     <string name="networks_duplicate_account">Этот аккаунт %1$s уже подключён на этом телефоне, поэтому новый вход удалён.</string>
+    <string name="networks_premium_accounts_title">Дополнительные аккаунты входят в Premium</string>
+    <string name="networks_premium_accounts_body">В бесплатном плане один аккаунт в каждой сети. С Premium можно добавить до %1$d в каждой, и добавленные аккаунты продолжат работать.</string>
+    <string name="networks_premium_see">О Premium</string>
+    <string name="networks_premium_not_now">Не сейчас</string>
 </resources>

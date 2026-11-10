@@ -24,6 +24,8 @@ data class ConversationState(
     /** What happens with a call through a link, shown before it starts (until the user hides it). */
     val linkCallPrompt: LinkCallPrompt? = null,
     val isStartingLinkCall: Boolean = false,
+    /** This month's call minutes are used up: offers Premium or a top-up. */
+    val isOutOfCallMinutes: Boolean = false,
     /** An invitation not answered yet: Accept / Decline instead of the composer. */
     val isInvite: Boolean = false,
     val isAnsweringInvite: Boolean = false,

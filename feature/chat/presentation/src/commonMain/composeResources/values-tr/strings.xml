@@ -232,4 +232,9 @@
         <item quantity="one">%1$s, %2$d hesap</item>
         <item quantity="other">%1$s, %2$d hesap</item>
     </plurals>
+    <string name="link_call_no_minutes_title">Bu ay arama dakikası kalmadı</string>
+    <string name="link_call_no_minutes_body">Bağlantıyla başlattığınız aramaların aylık bir hakkı vardır. Premium çok daha fazlasını verir ya da ek görüntülü süre satın alabilirsiniz. Gelecek ay yenilenir.</string>
+    <string name="link_call_see_premium">Premium'u gör</string>
+    <string name="link_call_not_now">Şimdi değil</string>
+    <string name="link_call_audio_instead">Bu ay görüntülü dakika kalmadı, bu yüzden sesli arama.</string>
 </resources>

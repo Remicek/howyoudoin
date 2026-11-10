@@ -248,4 +248,8 @@
     <string name="networks_account_colour">اللون</string>
     <string name="networks_save">حفظ</string>
     <string name="networks_duplicate_account">حساب %1$s هذا متصل بالفعل على هذا الهاتف، لذا أُزيل تسجيل الدخول الجديد.</string>
+    <string name="networks_premium_accounts_title">الحسابات الإضافية جزء من Premium</string>
+    <string name="networks_premium_accounts_body">تتضمن الخطة المجانية حسابًا واحدًا لكل شبكة. مع Premium يمكنك إضافة حتى %1$d حسابات لكل شبكة، وتبقى الحسابات المضافة تعمل.</string>
+    <string name="networks_premium_see">عرض Premium</string>
+    <string name="networks_premium_not_now">ليس الآن</string>
 </resources>

@@ -54,11 +54,15 @@ fun NavigationRoot(
             onGuideClick = {
                 navController.navigate(SettingsRoutes.ConnectGuide) { launchSingleTop = true }
             },
+            onPremiumClick = {
+                navController.navigate(SettingsRoutes.Premium) { launchSingleTop = true }
+            },
             inboxBanner = { encryptedNetworks -> EncryptedHistoryBannerRoot(encryptedNetworks) },
         )
         networksGraph(
             navController = navController,
             onTermsClick = { navController.navigate(SettingsRoutes.Terms) { launchSingleTop = true } },
+            onPremiumClick = { navController.navigate(SettingsRoutes.Premium) { launchSingleTop = true } },
         )
         settingsGraph(
             navController = navController,

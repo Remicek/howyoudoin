@@ -103,6 +103,8 @@ kotlin {
             implementation(libs.koin.android)
             implementation(libs.androidx.biometric)
             implementation(libs.androidx.work.runtime)
+            // Premium and call-minute top-ups (Google Play)
+            implementation(libs.android.billing.ktx)
             // WorkManager brings 1.1.0, the instrumented-test libraries need 1.2.0, and AGP pins the test classpath
             // to the app's versions
             implementation(libs.androidx.concurrent.futures)
@@ -147,6 +149,7 @@ kotlin {
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
+            implementation(libs.kotlinx.coroutines.test)
         }
         androidInstrumentedTest.dependencies {
             implementation(libs.androidx.test.runner)

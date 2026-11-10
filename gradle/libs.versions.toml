@@ -1,4 +1,5 @@
 [versions]
+billing = "9.1.0"
 play-services-auth = "22.0.0"
 androidx-work = "2.12.0"
 androidx-concurrent = "1.2.0"
@@ -55,6 +56,7 @@ projectCompileSdkMinorVersion = "1"
 projectVersionCode = "6"
 
 [libraries]
+android-billing-ktx = { module = "com.android.billingclient:billing-ktx", version.ref = "billing" }
 play-services-auth = { module = "com.google.android.gms:play-services-auth", version.ref = "play-services-auth" }
 androidx-work-runtime = { module = "androidx.work:work-runtime-ktx", version.ref = "androidx-work" }
 androidx-concurrent-futures = { module = "androidx.concurrent:concurrent-futures-ktx", version.ref = "androidx-concurrent" }

@@ -1,5 +1,13 @@
 package com.devvalor.howyoudoing.networks.presentation.list
 
+import howyoudoin.feature.networks.presentation.generated.resources.networks_premium_not_now
+import howyoudoin.feature.networks.presentation.generated.resources.networks_premium_see
+import howyoudoin.feature.networks.presentation.generated.resources.networks_premium_accounts_body
+import howyoudoin.feature.networks.presentation.generated.resources.networks_premium_accounts_title
+import com.devvalor.howyoudoing.core.domain.ondevice.MAX_ACCOUNTS_PER_NETWORK
+import androidx.compose.material.icons.rounded.WorkspacePremium
+import org.koin.compose.koinInject
+import com.devvalor.howyoudoing.core.domain.premium.Premium
 import howyoudoin.feature.networks.presentation.generated.resources.networks_fix_title
 import howyoudoin.feature.networks.presentation.generated.resources.networks_fix_reason
 import howyoudoin.feature.networks.presentation.generated.resources.networks_fix_intro
@@ -98,10 +106,13 @@ fun NetworksRoot(
     onConnectClick: (network: ChatNetwork, slot: Int) -> Unit,
     onTutorialClick: (ChatNetwork) -> Unit,
     onTermsClick: () -> Unit,
+    onPremiumClick: () -> Unit,
     onBack: () -> Unit,
-    viewModel: NetworksViewModel = koinViewModel()
+    viewModel: NetworksViewModel = koinViewModel(),
+    premium: Premium = koinInject(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val premiumStatus by premium.status.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
 
     // Re-runs whenever we come back from the connect flow.
@@ -134,13 +145,27 @@ fun NetworksRoot(
         )
     }
 
+    // A 2nd or 3rd account of a network is part of Premium; the ones already added keep working without it
+    var premiumNeeded by rememberSaveable { mutableStateOf(false) }
+    if (premiumNeeded) {
+        MoreAccountsPremiumDialog(
+            onSeePremium = {
+                premiumNeeded = false
+                onPremiumClick()
+            },
+            onDismiss = { premiumNeeded = false },
+        )
+    }
+
     NetworksScreen(
         state = state,
         snackbarHostState = snackbarHostState,
         onAction = { action ->
             when (action) {
                 is NetworksAction.OnConnectClick ->
-                    if (state.shouldWarnAboutRisk(action.network) && action.slot == 0) {
+                    if (action.slot > 0 && !premiumStatus.isPremium && !state.isLinked(action.network, action.slot)) {
+                        premiumNeeded = true
+                    } else if (state.shouldWarnAboutRisk(action.network) && action.slot == 0) {
                         riskWarningFor = action.network
                     } else {
                         connect(action.network, action.slot)
@@ -477,5 +502,21 @@ private fun RiskWarningDialog(
             TextButton(onClick = onAccept) { Text(stringResource(Res.string.networks_i_understand_continue)) }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(Res.string.networks_cancel)) } },
+    )
+}
+
+@Composable
+private fun MoreAccountsPremiumDialog(onSeePremium: () -> Unit, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        icon = { Icon(Icons.Rounded.WorkspacePremium, contentDescription = null) },
+        title = { Text(stringResource(Res.string.networks_premium_accounts_title)) },
+        text = { Text(stringResource(Res.string.networks_premium_accounts_body, MAX_ACCOUNTS_PER_NETWORK)) },
+        confirmButton = {
+            TextButton(onClick = onSeePremium) { Text(stringResource(Res.string.networks_premium_see)) }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(Res.string.networks_premium_not_now)) }
+        },
     )
 }

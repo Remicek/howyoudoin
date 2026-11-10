@@ -41,6 +41,8 @@ data class NetworksState(
         accounts.filter { (account, state) -> account.network == network && state != OnDeviceMessengerState.NotLinked }
             .keys.sortedBy { it.slot }
 
+    fun isLinked(network: ChatNetwork, slot: Int): Boolean = linkedAccounts(network).any { it.slot == slot }
+
     /** Whether [network] can have more than one account on this phone. */
     fun isMultiAccount(network: ChatNetwork): Boolean = accounts.keys.count { it.network == network } > 1
 

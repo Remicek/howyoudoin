@@ -36,6 +36,9 @@ const TEXTS = {
     mic: "Microphone",
     camera: "Camera",
     leave: "Leave the call",
+    videoUsedUp: "No video minutes left: the call goes on with audio.",
+    endsIn: "The call ends in {n} min",
+    endedLimit: "This call reached its time limit.",
   },
   pl: {
     inviteTitle: "Zaproszenie do rozmowy",
@@ -58,6 +61,9 @@ const TEXTS = {
     mic: "Mikrofon",
     camera: "Kamera",
     leave: "Zakończ rozmowę",
+    videoUsedUp: "Skończyły się minuty wideo: rozmowa trwa dalej z samym dźwiękiem.",
+    endsIn: "Rozmowa skończy się za {n} min",
+    endedLimit: "Ta rozmowa osiągnęła limit czasu.",
   },
   de: {
     inviteTitle: "Du bist zu einem Anruf eingeladen",
@@ -78,6 +84,9 @@ const TEXTS = {
     mic: "Mikrofon",
     camera: "Kamera",
     leave: "Anruf verlassen",
+    videoUsedUp: "Keine Videominuten mehr: Der Anruf geht nur mit Ton weiter.",
+    endsIn: "Der Anruf endet in {n} Min.",
+    endedLimit: "Dieser Anruf hat sein Zeitlimit erreicht.",
   },
   es: {
     inviteTitle: "Te han invitado a una llamada",
@@ -98,6 +107,9 @@ const TEXTS = {
     mic: "Micrófono",
     camera: "Cámara",
     leave: "Salir de la llamada",
+    videoUsedUp: "No quedan minutos de vídeo: la llamada sigue solo con audio.",
+    endsIn: "La llamada termina en {n} min",
+    endedLimit: "Esta llamada alcanzó su límite de tiempo.",
   },
   fr: {
     inviteTitle: "Vous êtes invité à un appel",
@@ -118,6 +130,9 @@ const TEXTS = {
     mic: "Micro",
     camera: "Caméra",
     leave: "Quitter l'appel",
+    videoUsedUp: "Plus de minutes vidéo : l'appel continue en audio.",
+    endsIn: "L'appel se termine dans {n} min",
+    endedLimit: "Cet appel a atteint sa limite de durée.",
   },
   pt: {
     inviteTitle: "Você foi convidado para uma chamada",
@@ -138,6 +153,9 @@ const TEXTS = {
     mic: "Microfone",
     camera: "Câmera",
     leave: "Sair da chamada",
+    videoUsedUp: "Acabaram os minutos de vídeo: a chamada continua só com áudio.",
+    endsIn: "A chamada termina em {n} min",
+    endedLimit: "Esta chamada atingiu o limite de tempo.",
   },
   ru: {
     inviteTitle: "Вас приглашают на звонок",
@@ -158,6 +176,9 @@ const TEXTS = {
     mic: "Микрофон",
     camera: "Камера",
     leave: "Завершить звонок",
+    videoUsedUp: "Минуты видео закончились: звонок продолжается только со звуком.",
+    endsIn: "Звонок завершится через {n} мин",
+    endedLimit: "Звонок достиг ограничения по времени.",
   },
   tr: {
     inviteTitle: "Bir aramaya davet edildiniz",
@@ -178,6 +199,9 @@ const TEXTS = {
     mic: "Mikrofon",
     camera: "Kamera",
     leave: "Aramadan ayrıl",
+    videoUsedUp: "Görüntülü dakika kalmadı: arama sesli devam ediyor.",
+    endsIn: "Arama {n} dk içinde bitecek",
+    endedLimit: "Bu arama süre sınırına ulaştı.",
   },
   ja: {
     inviteTitle: "通話に招待されています",
@@ -198,6 +222,9 @@ const TEXTS = {
     mic: "マイク",
     camera: "カメラ",
     leave: "通話を終了",
+    videoUsedUp: "ビデオの時間がなくなりました。音声のみで通話を続けます。",
+    endsIn: "通話はあと {n} 分で終了します",
+    endedLimit: "この通話は時間の上限に達しました。",
   },
   hi: {
     inviteTitle: "आपको एक कॉल पर बुलाया गया है",
@@ -218,6 +245,9 @@ const TEXTS = {
     mic: "माइक्रोफ़ोन",
     camera: "कैमरा",
     leave: "कॉल छोड़ें",
+    videoUsedUp: "वीडियो मिनट खत्म हो गए: कॉल ऑडियो के साथ जारी है।",
+    endsIn: "कॉल {n} मिनट में खत्म होगी",
+    endedLimit: "यह कॉल अपनी समय सीमा तक पहुँच गई।",
   },
   id: {
     inviteTitle: "Anda diundang ke panggilan",
@@ -238,6 +268,9 @@ const TEXTS = {
     mic: "Mikrofon",
     camera: "Kamera",
     leave: "Tinggalkan panggilan",
+    videoUsedUp: "Menit video habis: panggilan berlanjut dengan audio saja.",
+    endsIn: "Panggilan berakhir dalam {n} menit",
+    endedLimit: "Panggilan ini mencapai batas waktunya.",
   },
   ar: {
     inviteTitle: "أنت مدعو إلى مكالمة",
@@ -258,6 +291,9 @@ const TEXTS = {
     mic: "الميكروفون",
     camera: "الكاميرا",
     leave: "مغادرة المكالمة",
+    videoUsedUp: "نفدت دقائق الفيديو: تستمر المكالمة بالصوت فقط.",
+    endsIn: "تنتهي المكالمة خلال {n} د",
+    endedLimit: "بلغت هذه المكالمة حدها الزمني.",
   },
 };
 
@@ -309,11 +345,22 @@ function translate() {
 }
 
 
+/** The host's plan's limits for this call (see LimitsView in src/room.ts). */
+interface Limits {
+  videoAllowed: boolean;
+  videoHeight: number;
+  videoBitrate: number;
+  endsAt?: number;
+  videoEndsAt?: number;
+  now: number;
+}
+
 interface Peer {
   present: boolean;
   session?: string;
   tracks: string[];
   camera: boolean;
+  limits?: Limits;
 }
 
 interface Welcome {
@@ -325,9 +372,17 @@ interface Welcome {
 
 /** How long to keep trying after the connection drops; the call itself waits 20 s for someone to come back. */
 const RECONNECT_FOR_MS = 25_000;
-const VIDEO = { width: { ideal: 960 }, height: { ideal: 540 }, frameRate: { ideal: 24 }, facingMode: "user" };
-/** Enough for 540p on a phone screen, and light on data. */
-const VIDEO_MAX_BITRATE = 700_000;
+/** The camera at the plan's height (the server says which: 360p free, 540p Premium). */
+const video = (height: number) => ({
+  width: { ideal: Math.round((height * 16) / 9) },
+  height: { ideal: height },
+  frameRate: { ideal: 24 },
+  facingMode: "user",
+});
+/** Until the server says otherwise: the free plan's, the least. */
+const DEFAULT_LIMITS: Limits = { videoAllowed: true, videoHeight: 360, videoBitrate: 350_000, now: Date.now() };
+/** Warn this long before the call or its video ends. */
+const WARN_MS = 5 * 60 * 1000;
 
 const encryptionSupported = () =>
   "RTCRtpScriptTransform" in window || "createEncodedStreams" in RTCRtpSender.prototype;
@@ -444,6 +499,11 @@ class Call {
   private readonly received = new Map<string, string>(); // trackName -> mid
   private readonly receivedTracks = new Map<string, MediaStreamTrack>(); // mid -> track
   private peer: Peer = { present: false, tracks: [], camera: false };
+  private limits: Limits = DEFAULT_LIMITS;
+  /** The server's clock minus this one's. */
+  private clockOffset = 0;
+  private noticeTimer?: ReturnType<typeof setInterval>;
+  private readonly notice = $("notice");
 
   private readonly worker = new Worker("/e2ee-worker.js", { type: "module" });
   private readonly status = $("status");
@@ -458,6 +518,13 @@ class Call {
   ) {
     this.remoteAudio.autoplay = true;
     $("audio").appendChild(this.remoteAudio);
+    // Android's WebView pauses media while the app is in the background and doesn't start it again on return
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState !== "visible") return;
+      for (const media of [this.remoteVideo, this.localVideo, this.remoteAudio]) {
+        if (media.srcObject && media.paused) media.play().catch(() => undefined);
+      }
+    });
   }
 
   async start(video: boolean) {
@@ -499,12 +566,14 @@ class Call {
     });
     this.secret = welcome.secret ?? this.secret;
     this.ice = welcome.iceServers;
+    // Before sending: without video minutes the camera goes off first
+    if (welcome.peer.limits) this.applyLimits(welcome.peer.limits);
     await this.run(() => this.startSending());
     this.onPeer(welcome.peer);
   }
 
-  private onNews(news: { type: string; peer?: Peer }) {
-    if (news.type === "ended") this.end();
+  private onNews(news: { type: string; peer?: Peer; reason?: string }) {
+    if (news.type === "ended") this.end((news as { reason?: string }).reason);
     else if (news.type === "peer" && news.peer) this.onPeer(news.peer);
   }
 
@@ -579,7 +648,7 @@ class Call {
     const vp8 = RTCRtpReceiver.getCapabilities("video")?.codecs.filter((c) => /\/(VP8|rtx)$/i.test(c.mimeType));
     if (vp8?.length) transceiver.setCodecPreferences(vp8);
     const parameters = transceiver.sender.getParameters();
-    parameters.encodings = [{ ...(parameters.encodings?.[0] ?? {}), maxBitrate: VIDEO_MAX_BITRATE }];
+    parameters.encodings = [{ ...(parameters.encodings?.[0] ?? {}), maxBitrate: this.limits.videoBitrate }];
     transceiver.sender.setParameters(parameters).catch(() => {});
     this.videoSender = transceiver.sender;
     return added;
@@ -603,6 +672,7 @@ class Call {
   /** Receives what the other person sends: their audio and their newest video. */
   private onPeer(peer: Peer) {
     this.peer = peer;
+    if (peer.limits) this.applyLimits(peer.limits);
     this.run(async () => {
       const latest = this.peer;
       if (!latest.session) {
@@ -663,7 +733,7 @@ class Call {
   private peerEverSeen = false;
 
   private async openCamera() {
-    this.camera = (await navigator.mediaDevices.getUserMedia({ video: VIDEO })).getVideoTracks()[0];
+    this.camera = (await navigator.mediaDevices.getUserMedia({ video: video(this.limits.videoHeight) })).getVideoTracks()[0];
     this.cameraOn = true;
     this.localVideo.srcObject = new MediaStream([this.camera]);
     this.localVideo.classList.add("active");
@@ -710,6 +780,44 @@ class Call {
     $("leave").addEventListener("click", () => this.hangUp());
   }
 
+  /** The plan's limits, from the server: the video's quality, video turned off once its minutes are gone, and warnings. */
+  private applyLimits(limits: Limits) {
+    const before = this.limits;
+    this.limits = limits;
+    this.clockOffset = limits.now - Date.now();
+    if (limits.videoHeight !== before.videoHeight && this.camera) {
+      this.camera.applyConstraints(video(limits.videoHeight)).catch(() => {});
+    }
+    if (limits.videoBitrate !== before.videoBitrate && this.videoSender) {
+      const parameters = this.videoSender.getParameters();
+      if (parameters.encodings?.[0]) parameters.encodings[0].maxBitrate = limits.videoBitrate;
+      this.videoSender.setParameters(parameters).catch(() => {});
+    }
+    const cameraButton = $<HTMLButtonElement>("camera");
+    cameraButton.disabled = !limits.videoAllowed;
+    if (!limits.videoAllowed && this.cameraOn) {
+      this.run(async () => {
+        this.closeCamera();
+        this.videoSender?.replaceTrack(null);
+        cameraButton.setAttribute("aria-pressed", "false");
+      });
+    }
+    this.showNotice();
+    this.noticeTimer ??= setInterval(() => this.showNotice(), 15_000);
+  }
+
+  /** "No video minutes left", or the minutes until the end (or the video's end) once it's close. */
+  private showNotice() {
+    const now = Date.now() + this.clockOffset;
+    const soon = (at?: number) => (at !== undefined && at - now <= WARN_MS ? Math.max(1, Math.ceil((at - now) / 60_000)) : 0);
+    const end = soon(this.limits.endsAt);
+    let text = "";
+    if (end) text = t("endsIn").replace("{n}", String(end));
+    else if (!this.limits.videoAllowed) text = t("videoUsedUp");
+    this.notice.textContent = text;
+    this.notice.hidden = !text;
+  }
+
   /** Tells the call it's over for both, then ends here. */
   private hangUp() {
     if (this.ended) return;
@@ -717,14 +825,15 @@ class Call {
     this.end();
   }
 
-  private end() {
+  private end(reason?: string) {
     if (this.ended) return;
     this.ended = true;
+    clearInterval(this.noticeTimer);
     this.signal?.close();
     this.closeConnections();
     this.mic?.stop();
     this.closeCamera();
-    message(t("endedTitle"), t("endedText"));
+    message(t("endedTitle"), reason ? t("endedLimit") : t("endedText"));
     window.HydCall?.ended();
   }
 

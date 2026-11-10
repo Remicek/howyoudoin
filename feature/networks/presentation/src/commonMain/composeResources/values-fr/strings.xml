@@ -242,4 +242,8 @@
     <string name="networks_account_colour">Couleur</string>
     <string name="networks_save">Enregistrer</string>
     <string name="networks_duplicate_account">Ce compte %1$s est déjà connecté sur ce téléphone, la nouvelle connexion a donc été retirée.</string>
+    <string name="networks_premium_accounts_title">Plus de comptes avec Premium</string>
+    <string name="networks_premium_accounts_body">L'offre gratuite comprend un compte par réseau. Avec Premium, vous pouvez en ajouter jusqu'à %1$d par réseau, et ceux ajoutés continuent de fonctionner.</string>
+    <string name="networks_premium_see">Voir Premium</string>
+    <string name="networks_premium_not_now">Pas maintenant</string>
 </resources>

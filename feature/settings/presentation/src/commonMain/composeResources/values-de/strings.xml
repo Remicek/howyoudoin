@@ -158,4 +158,46 @@
     <string name="settings_share_message">Ich habe meine Chats aus WhatsApp, Messenger, Telegram und mehr in einem privaten Posteingang – mit HowYouDoin. Probier es aus: %1$s</string>
     <string name="settings_tour">Posteingang-Tour</string>
     <string name="settings_tour_sub">Noch einmal zeigen, wofür die Knöpfe sind</string>
+    <string name="settings_premium">Premium</string>
+    <string name="settings_premium_sub">Mehr Anrufminuten, schärferes Video, mehr Konten</string>
+    <string name="settings_premium_sub_active">Aktiv. Danke!</string>
+    <string name="premium_title_free">HowYouDoin Premium</string>
+    <string name="premium_free_body">Du nutzt den kostenlosen Plan. Premium bietet mehr und unterstützt die App.</string>
+    <string name="premium_title_active">Du hast Premium</string>
+    <string name="premium_active_body">Danke, dass du HowYouDoin unterstützt.</string>
+    <string name="premium_minutes_header">Anrufe per Link in diesem Monat</string>
+    <string name="premium_video_left">Video: noch %1$s</string>
+    <string name="premium_video_bought">Davon %1$s gekauft</string>
+    <string name="premium_audio_left">Audio: noch %1$s</string>
+    <plurals name="premium_resets_in">
+        <item quantity="one">Beginnt in %1$d Tag neu</item>
+        <item quantity="other">Beginnt in %1$d Tagen neu</item>
+    </plurals>
+    <string name="premium_guests_free">Nur Anrufe, die du startest, verbrauchen Minuten. Wer angerufen wird, zahlt nie.</string>
+    <string name="premium_minutes_failed">Minuten konnten nicht geladen werden. Prüfe deine Verbindung.</string>
+    <string name="premium_duration_hm">%1$d Std. %2$d Min.</string>
+    <string name="premium_duration_h">%1$d Std.</string>
+    <string name="premium_duration_m">%1$d Min.</string>
+    <string name="premium_includes">Premium enthält</string>
+    <string name="premium_benefit_video">%1$d Stunden Video pro Monat (kostenlos: %2$d Minuten)</string>
+    <string name="premium_benefit_audio">%1$d Stunden Audio pro Monat (kostenlos: %2$d Stunden)</string>
+    <string name="premium_benefit_quality">Schärferes Video: %1$dp (kostenlos: %2$dp)</string>
+    <string name="premium_benefit_length">Anrufe bis %1$d Stunden (kostenlos: %2$d Minuten)</string>
+    <string name="premium_benefit_accounts">Bis zu %1$d Konten pro Netzwerk (kostenlos: 1)</string>
+    <plurals name="premium_try_free">
+        <item quantity="one">%1$d Tag kostenlos testen</item>
+        <item quantity="other">%1$d Tage kostenlos testen</item>
+    </plurals>
+    <string name="premium_then_price">Danach %1$s pro Monat. Jederzeit in Google Play kündbar.</string>
+    <string name="premium_subscribe">Premium holen: %1$s pro Monat</string>
+    <string name="premium_manage">Abo verwalten</string>
+    <string name="premium_not_available">Premium gibt es nur in HowYouDoin aus Google Play.</string>
+    <string name="premium_top_up_header">Mehr Video ohne Abo</string>
+    <string name="premium_top_up_body">Verfällt nie. Wird genutzt, wenn die Videominuten des Monats aufgebraucht sind.</string>
+    <string name="premium_top_up_button">%1$d Stunden Video: %2$s</string>
+    <string name="premium_restore">Käufe wiederherstellen</string>
+    <string name="premium_thanks">Danke! Premium ist aktiv.</string>
+    <string name="premium_pending">Warte auf deine Zahlung. Es wird hinzugefügt, sobald Google Play sie bestätigt.</string>
+    <string name="premium_failed">Der Kauf hat nicht geklappt.</string>
+    <string name="premium_top_up_added">%1$d Stunden Video hinzugefügt.</string>
 </resources>

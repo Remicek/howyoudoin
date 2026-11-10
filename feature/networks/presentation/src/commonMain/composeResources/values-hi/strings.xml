@@ -240,4 +240,8 @@
     <string name="networks_account_colour">रंग</string>
     <string name="networks_save">सहेजें</string>
     <string name="networks_duplicate_account">यह %1$s खाता इस फ़ोन पर पहले से जुड़ा है, इसलिए नया लॉगिन हटा दिया गया।</string>
+    <string name="networks_premium_accounts_title">ज़्यादा खाते Premium का हिस्सा हैं</string>
+    <string name="networks_premium_accounts_body">मुफ़्त प्लान में हर नेटवर्क का एक खाता होता है। Premium से आप हर नेटवर्क के %1$d खाते तक जोड़ सकते हैं, और जोड़े गए खाते काम करते रहते हैं।</string>
+    <string name="networks_premium_see">Premium देखें</string>
+    <string name="networks_premium_not_now">अभी नहीं</string>
 </resources>

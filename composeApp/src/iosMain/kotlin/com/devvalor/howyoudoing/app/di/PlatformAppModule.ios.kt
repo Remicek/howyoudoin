@@ -81,6 +81,12 @@ actual val platformAppModule: Module = module {
     }
     single { com.devvalor.howyoudoing.chat.domain.CallLauncher { _, _ -> } }
     single<com.devvalor.howyoudoing.chat.domain.LinkCalls> { com.devvalor.howyoudoing.chat.domain.NoLinkCalls }
+    single<com.devvalor.howyoudoing.core.domain.premium.Premium> {
+        com.devvalor.howyoudoing.core.domain.premium.NoPremium
+    }
+    single<com.devvalor.howyoudoing.core.domain.premium.CallAllowance> {
+        com.devvalor.howyoudoing.core.domain.premium.NoCallAllowance
+    }
     single { com.devvalor.howyoudoing.chat.domain.LinkCallLauncher { } }
     single<com.devvalor.howyoudoing.core.domain.ondevice.TelegramApiKeys> {
         com.devvalor.howyoudoing.core.domain.ondevice.NoTelegramApiKeys

@@ -10,12 +10,14 @@ import androidx.navigation.navigation
 import com.devvalor.howyoudoing.chat.presentation.conversation.ConversationRoot
 import com.devvalor.howyoudoing.chat.presentation.inbox.InboxRoot
 
+@Suppress("LongParameterList") // one callback per screen it leads out to
 fun NavGraphBuilder.chatGraph(
     navController: NavController,
     /** Opens Networks; with a network, how to disconnect and connect it again (reconnecting didn't help). */
     onNetworksClick: (troubleshoot: ChatNetwork?) -> Unit,
     onSettingsClick: () -> Unit,
     onGuideClick: () -> Unit = {},
+    onPremiumClick: () -> Unit = {},
     inboxBanner: @Composable (encryptedNetworks: Set<ChatNetwork>) -> Unit = {},
 ) {
     navigation<ChatRoutes.Graph>(startDestination = ChatRoutes.Inbox) {
@@ -55,7 +57,7 @@ fun NavGraphBuilder.chatGraph(
             )
         }
         composable<ChatRoutes.Conversation> {
-            ConversationRoot(onBack = { navController.navigateUp() })
+            ConversationRoot(onBack = { navController.navigateUp() }, onPremiumClick = onPremiumClick)
         }
     }
 }

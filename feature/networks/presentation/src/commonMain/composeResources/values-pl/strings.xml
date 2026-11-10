@@ -244,4 +244,8 @@
     <string name="networks_account_colour">Kolor</string>
     <string name="networks_save">Zapisz</string>
     <string name="networks_duplicate_account">To konto %1$s jest już połączone na tym telefonie, więc nowe logowanie zostało usunięte.</string>
+    <string name="networks_premium_accounts_title">Więcej kont to część Premium</string>
+    <string name="networks_premium_accounts_body">W darmowym planie masz jedno konto w każdej sieci. Z Premium dodasz do %1$d w każdej, a dodane konta będą działać dalej.</string>
+    <string name="networks_premium_see">Zobacz Premium</string>
+    <string name="networks_premium_not_now">Nie teraz</string>
 </resources>

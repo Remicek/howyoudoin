@@ -238,4 +238,9 @@
         <item quantity="many">%1$s, %2$d аккаунтов</item>
         <item quantity="other">%1$s, %2$d аккаунта</item>
     </plurals>
+    <string name="link_call_no_minutes_title">Минуты звонков на этот месяц закончились</string>
+    <string name="link_call_no_minutes_body">У звонков по ссылке, которые вы начинаете, есть месячный лимит. Premium даёт намного больше, или можно докупить время видео. Лимит обновится в следующем месяце.</string>
+    <string name="link_call_see_premium">О Premium</string>
+    <string name="link_call_not_now">Не сейчас</string>
+    <string name="link_call_audio_instead">Минуты видео на этот месяц закончились, поэтому это аудиозвонок.</string>
 </resources>

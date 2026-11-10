@@ -1,5 +1,9 @@
 package com.devvalor.howyoudoing.chat.presentation.conversation
 
+import howyoudoin.feature.chat.presentation.generated.resources.link_call_not_now
+import howyoudoin.feature.chat.presentation.generated.resources.link_call_see_premium
+import howyoudoin.feature.chat.presentation.generated.resources.link_call_no_minutes_body
+import howyoudoin.feature.chat.presentation.generated.resources.link_call_no_minutes_title
 import androidx.compose.ui.text.style.TextOverflow
 import com.devvalor.howyoudoing.core.designsystem.components.AccountDot
 import howyoudoin.feature.chat.presentation.generated.resources.conversation_replying_as
@@ -139,6 +143,7 @@ import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
 @Composable
 fun ConversationRoot(
     onBack: () -> Unit,
+    onPremiumClick: () -> Unit = {},
     viewModel: ConversationViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -181,6 +186,10 @@ fun ConversationRoot(
             onAction = { action ->
                 when (action) {
                     ConversationAction.OnBackClick -> onBack()
+                    ConversationAction.OnSeePremiumClick -> {
+                        viewModel.onAction(action)
+                        onPremiumClick()
+                    }
                     else -> viewModel.onAction(action)
                 }
             }
@@ -332,6 +341,23 @@ fun ConversationScreen(
             chatName = state.chatName,
             onConfirm = { onAction(ConversationAction.OnLinkCallConfirm(it)) },
             onDismiss = { onAction(ConversationAction.OnLinkCallDismiss) },
+        )
+    }
+    if (state.isOutOfCallMinutes) {
+        AlertDialog(
+            onDismissRequest = { onAction(ConversationAction.OnCallMinutesDismiss) },
+            title = { Text(stringResource(Res.string.link_call_no_minutes_title)) },
+            text = { Text(stringResource(Res.string.link_call_no_minutes_body)) },
+            confirmButton = {
+                TextButton(onClick = { onAction(ConversationAction.OnSeePremiumClick) }) {
+                    Text(stringResource(Res.string.link_call_see_premium))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { onAction(ConversationAction.OnCallMinutesDismiss) }) {
+                    Text(stringResource(Res.string.link_call_not_now))
+                }
+            },
         )
     }
     state.confirmingDelete?.let {

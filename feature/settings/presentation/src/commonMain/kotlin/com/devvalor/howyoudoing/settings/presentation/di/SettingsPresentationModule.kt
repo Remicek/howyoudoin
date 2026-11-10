@@ -7,6 +7,7 @@ import com.devvalor.howyoudoing.settings.presentation.lock.AppLockSettingsViewMo
 import com.devvalor.howyoudoing.settings.presentation.lock.AppLockViewModel
 import com.devvalor.howyoudoing.settings.presentation.main.SettingsViewModel
 import com.devvalor.howyoudoing.settings.presentation.appearance.AppearanceViewModel
+import com.devvalor.howyoudoing.settings.presentation.premium.PremiumViewModel
 import com.devvalor.howyoudoing.settings.presentation.telegram.TelegramKeysViewModel
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
@@ -20,4 +21,5 @@ val settingsPresentationModule = module {
     viewModelOf(::LicensesViewModel)
     viewModelOf(::AppearanceViewModel)
     viewModelOf(::TelegramKeysViewModel)
+    viewModelOf(::PremiumViewModel)
 }

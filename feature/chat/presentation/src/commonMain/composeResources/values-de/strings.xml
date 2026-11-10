@@ -232,4 +232,9 @@
         <item quantity="one">%1$s, %2$d Konto</item>
         <item quantity="other">%1$s, %2$d Konten</item>
     </plurals>
+    <string name="link_call_no_minutes_title">Keine Anrufminuten mehr in diesem Monat</string>
+    <string name="link_call_no_minutes_body">Anrufe, die du per Link startest, haben ein monatliches Kontingent. Premium bietet viel mehr, oder du kaufst zusätzliche Videozeit. Nächsten Monat geht es von vorn los.</string>
+    <string name="link_call_see_premium">Premium ansehen</string>
+    <string name="link_call_not_now">Nicht jetzt</string>
+    <string name="link_call_audio_instead">Keine Videominuten mehr in diesem Monat, daher ist es ein Audioanruf.</string>
 </resources>

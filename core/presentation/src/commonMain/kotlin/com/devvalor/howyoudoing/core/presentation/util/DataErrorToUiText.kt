@@ -10,6 +10,7 @@ import howyoudoin.core.presentation.generated.resources.error_forbidden
 import howyoudoin.core.presentation.generated.resources.error_no_internet
 import howyoudoin.core.presentation.generated.resources.error_not_found
 import howyoudoin.core.presentation.generated.resources.error_payload_too_large
+import howyoudoin.core.presentation.generated.resources.error_payment_required
 import howyoudoin.core.presentation.generated.resources.error_request_timeout
 import howyoudoin.core.presentation.generated.resources.error_serialization
 import howyoudoin.core.presentation.generated.resources.error_server
@@ -35,6 +36,7 @@ fun DataError.toUiText(): UiText {
         DataError.Remote.SERVER_ERROR -> Res.string.error_server
         DataError.Remote.SERVICE_UNAVAILABLE -> Res.string.error_service_unavailable
         DataError.Remote.SERIALIZATION -> Res.string.error_serialization
+        DataError.Remote.PAYMENT_REQUIRED -> Res.string.error_payment_required
         DataError.Remote.CANCELLED -> Res.string.error_cancelled
         DataError.Remote.UNKNOWN -> Res.string.error_unknown
     }

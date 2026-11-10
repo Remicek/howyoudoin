@@ -44,4 +44,5 @@
     <string name="month_11">listopada</string>
     <string name="month_12">grudnia</string>
     <string name="date_long">%1$d %2$s %3$d</string>
+    <string name="error_payment_required">Wykorzystano limit: zobacz Premium w Ustawieniach.</string>
 </resources>

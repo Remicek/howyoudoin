@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "node build.mjs",
-    "dev": "npm run build && wrangler dev",
+    "dev": "npm run build && wrangler dev --local-upstream localhost:8787",
     "deploy": "npm run build && wrangler deploy",
     "types": "wrangler types",
     "typecheck": "tsc --noEmit -p . && tsc --noEmit -p web",
