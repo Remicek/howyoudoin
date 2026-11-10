@@ -211,4 +211,20 @@
     <string name="tour_new_text">Напишите любому в подключённой сети.</string>
     <string name="tour_search_title">Найти чат</string>
     <string name="tour_search_text">Ищите чаты по названию.</string>
+
+    <!-- Calls through a link (LinkCallDialog, "Call back here", the invite sent in the chat) -->
+    <string name="link_call_back_here">Перезвонить здесь</string>
+    <string name="link_call_title">Звонок по ссылке</string>
+    <string name="link_call_title_video">Видеозвонок по ссылке</string>
+    <string name="link_call_how_new">HowYouDoin не может звонить или отвечать на звонки в %1$s, поэтому начинает отдельный, собственный звонок.</string>
+    <string name="link_call_how_link">Ссылка на него отправляется собеседнику %1$s в этом чате.</string>
+    <string name="link_call_how_browser">Собеседник подключается, открыв ссылку в браузере: без приложения и аккаунта. Вы ждёте на экране звонка, пока он не подключится.</string>
+    <string name="link_call_how_ringing">Звонок в %1$s не будет принят: он звонит, пока собеседник не положит трубку.</string>
+    <string name="link_call_how_encrypted">Звонок защищён сквозным шифрованием. Он идёт через сервер звонков HowYouDoin, который не может его видеть или слышать.</string>
+    <string name="link_call_dont_show">Больше не показывать</string>
+    <string name="link_call_start">Позвонить</string>
+    <string name="link_call_cancel">Отмена</string>
+    <string name="link_call_invite">Давай поговорим здесь, откроется в браузере: %1$s</string>
+    <string name="link_call_invite_video">Присоединяйся к видеозвонку, откроется в браузере: %1$s</string>
+    <string name="link_call_failed">Не удалось начать звонок. Попробуйте ещё раз чуть позже.</string>
 </resources>

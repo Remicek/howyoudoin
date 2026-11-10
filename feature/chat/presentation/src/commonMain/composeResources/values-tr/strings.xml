@@ -207,4 +207,20 @@
     <string name="tour_new_text">Bağlı bir ağdaki herkese yazın.</string>
     <string name="tour_search_title">Sohbet bulun</string>
     <string name="tour_search_text">Sohbetlerinizi ada göre arayın.</string>
+
+    <!-- Calls through a link (LinkCallDialog, "Call back here", the invite sent in the chat) -->
+    <string name="link_call_back_here">Buradan geri ara</string>
+    <string name="link_call_title">Bağlantıyla arama</string>
+    <string name="link_call_title_video">Bağlantıyla görüntülü arama</string>
+    <string name="link_call_how_new">HowYouDoin %1$s aramaları yapamaz veya yanıtlayamaz, bu yüzden kendine ait ayrı bir arama başlatır.</string>
+    <string name="link_call_how_link">Aramanın bağlantısı bu sohbette %1$s kişisine gönderilir.</string>
+    <string name="link_call_how_browser">Karşı taraf bağlantıyı tarayıcısında açarak katılır: uygulama veya hesap gerekmez. Katılana kadar arama ekranında beklersiniz.</string>
+    <string name="link_call_how_ringing">%1$s araması yanıtlanmaz: karşı taraf kapatana kadar çalmaya devam eder.</string>
+    <string name="link_call_how_encrypted">Arama uçtan uca şifrelidir. HowYouDoin'in arama sunucusundan geçer; sunucu aramayı göremez ve duyamaz.</string>
+    <string name="link_call_dont_show">Bir daha gösterme</string>
+    <string name="link_call_start">Aramayı başlat</string>
+    <string name="link_call_cancel">İptal</string>
+    <string name="link_call_invite">Burada konuşalım, tarayıcında açılır: %1$s</string>
+    <string name="link_call_invite_video">Görüntülü aramaya katıl, tarayıcında açılır: %1$s</string>
+    <string name="link_call_failed">Arama başlatılamadı. Birazdan tekrar deneyin.</string>
 </resources>

@@ -79,7 +79,9 @@ data class MessageUi(
     val media: MediaInfo? = null,
     val isReadByOthers: Boolean = false,
     val isEdited: Boolean = false,
-    val canRetry: Boolean = false
+    val canRetry: Boolean = false,
+    /** A call from the other person that can be returned through a link ("Call back here"): whether it was video. */
+    val callBackVideo: Boolean? = null
 )
 
 fun typingText(names: List<String>, isGroup: Boolean): UiText? = when {
@@ -129,9 +131,15 @@ fun List<Message>.toMessageUis(showSenderNames: Boolean, network: ChatNetwork? =
             media = message.media,
             isReadByOthers = message.isReadByOthers,
             isEdited = message.isEdited,
-            canRetry = message.canRetry
+            canRetry = message.canRetry,
+            callBackVideo = message.call
+                ?.takeIf { !message.isOutgoing && it.state in CALL_BACK_STATES && network != ChatNetwork.MATRIX }
+                ?.isVideo
         )
     }
+
+/** Calls not talked through: ringing now, missed or turned down. */
+private val CALL_BACK_STATES = setOf(CallOutcome.INCOMING, CallOutcome.MISSED, CallOutcome.DECLINED)
 
 private fun Message.previewText(isGroup: Boolean, network: ChatNetwork): UiText = when {
     // A call says who it was from itself ("Missed call" in the chat with them)

@@ -27,7 +27,7 @@ Status: experimental, Android only for now. (An iOS build exists in the code but
 - Bluesky, LinkedIn, Discord and X are new and have all been tested with real accounts; see
   [docs/networks.md](docs/networks.md) for what each one can do and which networks were left out and why
 - New messages to anyone: each network is searched by name or username (WhatsApp and Signal by phone number)
-- Voice and video calls with Matrix contacts (calls on the other networks aren't supported)
+- Voice and video calls with Matrix contacts (the other networks' own calls can't be made or answered here; see calls through a link below)
 - Notifications from a background connection, without push servers
 - Works offline for reading: chats saved on the phone stay open, and sending says you're offline instead of failing
 - Connection trouble is shown above the inbox with a Reconnect button; if reconnecting doesn't help, the app shows
@@ -37,6 +37,7 @@ Status: experimental, Android only for now. (An iOS build exists in the code but
 - 12 languages, four colour themes, light and dark
 - Try everything in demo mode without connecting an account
 - A short tour of the inbox for new users (skippable, and shown again from Settings)
+- Calls through a link on the networks whose calls the app can't make or answer: a separate, end-to-end encrypted call the other person joins from their browser, with "Call back here" under their calls ([call-link/](call-link/README.md))
 - Rate the app on Google Play or share it with friends from Settings
 - Optional: connect through your own Matrix homeserver with mautrix bridges instead (server mode)
 

@@ -205,4 +205,20 @@
     <string name="tour_new_text">接続したネットワークの誰にでもメッセージを送れます。</string>
     <string name="tour_search_title">チャットを探す</string>
     <string name="tour_search_text">名前でチャットを検索します。</string>
+
+    <!-- Calls through a link (LinkCallDialog, "Call back here", the invite sent in the chat) -->
+    <string name="link_call_back_here">ここで折り返す</string>
+    <string name="link_call_title">リンクで通話</string>
+    <string name="link_call_title_video">リンクでビデオ通話</string>
+    <string name="link_call_how_new">HowYouDoin は %1$s の通話の発信・応答ができないため、別の独自の通話を開始します。</string>
+    <string name="link_call_how_link">通話へのリンクがこのチャットで %1$s に送信されます。</string>
+    <string name="link_call_how_browser">相手はブラウザでリンクを開くだけで参加できます（アプリやアカウントは不要）。参加するまで通話画面で待ちます。</string>
+    <string name="link_call_how_ringing">相手の %1$s 通話には応答されず、相手が切るまで鳴り続けます。</string>
+    <string name="link_call_how_encrypted">通話はエンドツーエンドで暗号化されます。HowYouDoin の通話サーバーを経由しますが、サーバーは内容を見聞きできません。</string>
+    <string name="link_call_dont_show">今後表示しない</string>
+    <string name="link_call_start">通話を開始</string>
+    <string name="link_call_cancel">キャンセル</string>
+    <string name="link_call_invite">こちらで話しましょう。ブラウザで開きます: %1$s</string>
+    <string name="link_call_invite_video">ビデオ通話に参加してください。ブラウザで開きます: %1$s</string>
+    <string name="link_call_failed">通話を開始できませんでした。しばらくしてからもう一度お試しください。</string>
 </resources>

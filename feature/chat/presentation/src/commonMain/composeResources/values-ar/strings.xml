@@ -215,4 +215,20 @@
     <string name="tour_new_text">راسل أي شخص على شبكة متصلة.</string>
     <string name="tour_search_title">ابحث عن محادثة</string>
     <string name="tour_search_text">ابحث في محادثاتك بالاسم.</string>
+
+    <!-- Calls through a link (LinkCallDialog, "Call back here", the invite sent in the chat) -->
+    <string name="link_call_back_here">معاودة الاتصال هنا</string>
+    <string name="link_call_title">مكالمة عبر رابط</string>
+    <string name="link_call_title_video">مكالمة فيديو عبر رابط</string>
+    <string name="link_call_how_new">لا يستطيع HowYouDoin إجراء مكالمات %1$s أو الرد عليها، لذا يبدأ مكالمة منفصلة خاصة به.</string>
+    <string name="link_call_how_link">يُرسل رابط المكالمة إلى %1$s في هذه المحادثة.</string>
+    <string name="link_call_how_browser">ينضم الطرف الآخر بفتح الرابط في المتصفح: دون تطبيق أو حساب. تنتظر في شاشة المكالمة حتى ينضم.</string>
+    <string name="link_call_how_ringing">لن يتم الرد على مكالمة %1$s: ستظل ترن حتى يُنهيها.</string>
+    <string name="link_call_how_encrypted">المكالمة مشفرة من طرف إلى طرف. تمر عبر خادم مكالمات HowYouDoin الذي لا يمكنه رؤيتها أو سماعها.</string>
+    <string name="link_call_dont_show">عدم الإظهار مرة أخرى</string>
+    <string name="link_call_start">بدء المكالمة</string>
+    <string name="link_call_cancel">إلغاء</string>
+    <string name="link_call_invite">لنتحدث هنا بدلًا من ذلك، يفتح في متصفحك: %1$s</string>
+    <string name="link_call_invite_video">انضم إلى مكالمة فيديو، تفتح في متصفحك: %1$s</string>
+    <string name="link_call_failed">تعذّر بدء المكالمة. حاول مرة أخرى بعد قليل.</string>
 </resources>

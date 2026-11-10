@@ -117,6 +117,7 @@ import com.devvalor.howyoudoing.chat.presentation.conversation.components.Compos
 import com.devvalor.howyoudoing.chat.presentation.conversation.components.ImageViewer
 import com.devvalor.howyoudoing.chat.presentation.conversation.components.MediaResolver
 import com.devvalor.howyoudoing.chat.presentation.conversation.components.MessageActionsSheet
+import com.devvalor.howyoudoing.chat.presentation.conversation.components.LinkCallDialog
 import com.devvalor.howyoudoing.chat.presentation.conversation.components.MessageBubble
 import com.devvalor.howyoudoing.chat.presentation.platform.isAttachmentPickerSupported
 import com.devvalor.howyoudoing.chat.presentation.platform.VideoPlayerDialog
@@ -216,20 +217,7 @@ fun ConversationScreen(
             }
             TopAppBar(
                 actions = {
-                    if (state.canCall) {
-                        IconButton(onClick = { onAction(ConversationAction.OnCallClick(video = false)) }) {
-                            Icon(
-                                Icons.Rounded.Call,
-                                contentDescription = stringResource(Res.string.conversation_audio_call)
-                            )
-                        }
-                        IconButton(onClick = { onAction(ConversationAction.OnCallClick(video = true)) }) {
-                            Icon(
-                                Icons.Rounded.Videocam,
-                                contentDescription = stringResource(Res.string.conversation_video_call)
-                            )
-                        }
-                    }
+                    CallButtons(state, onAction)
                     IconButton(onClick = { onAction(ConversationAction.OnSearchClick) }) {
                         Icon(
                             Icons.Rounded.Search,
@@ -320,6 +308,15 @@ fun ConversationScreen(
             onDelete = if (message.canDelete()) ({ onAction(ConversationAction.OnDeleteClick(message.id)) }) else null,
             onRetry = { onAction(ConversationAction.OnRetryClick(message.id)) },
             onDiscard = { onAction(ConversationAction.OnDiscardClick(message.id)) },
+        )
+    }
+    state.linkCallPrompt?.let { prompt ->
+        LinkCallDialog(
+            prompt = prompt,
+            networkName = state.network?.displayName.orEmpty(),
+            chatName = state.chatName,
+            onConfirm = { onAction(ConversationAction.OnLinkCallConfirm(it)) },
+            onDismiss = { onAction(ConversationAction.OnLinkCallDismiss) },
         )
     }
     state.confirmingDelete?.let {
@@ -439,7 +436,8 @@ private fun MessageList(
                 message,
                 isMatch = message.id == state.currentMatchId || message.id == state.highlightedMessageId,
                 resolver,
-                onAction
+                onAction,
+                canCallBack = state.canCallByLink && !state.isStartingLinkCall,
             )
         }
         if (!state.hasMoreHistory && !state.isLoadingOlder) {
@@ -530,12 +528,31 @@ private fun MessageListScrolling(
     }
 }
 
+/** Audio and video calls: Matrix's own, or through a link on the other networks. */
+@Composable
+private fun CallButtons(state: ConversationState, onAction: (ConversationAction) -> Unit) {
+    if (!state.canCall && !state.canCallByLink) return
+    IconButton(
+        onClick = { onAction(ConversationAction.OnCallClick(video = false)) },
+        enabled = !state.isStartingLinkCall,
+    ) {
+        Icon(Icons.Rounded.Call, contentDescription = stringResource(Res.string.conversation_audio_call))
+    }
+    IconButton(
+        onClick = { onAction(ConversationAction.OnCallClick(video = true)) },
+        enabled = !state.isStartingLinkCall,
+    ) {
+        Icon(Icons.Rounded.Videocam, contentDescription = stringResource(Res.string.conversation_video_call))
+    }
+}
+
 @Composable
 private fun MessageItem(
     message: MessageUi,
     isMatch: Boolean,
     resolver: MediaResolver,
-    onAction: (ConversationAction) -> Unit
+    onAction: (ConversationAction) -> Unit,
+    canCallBack: Boolean = false,
 ) {
     Column(
         modifier = if (isMatch) {
@@ -552,6 +569,9 @@ private fun MessageItem(
             onMediaClick = { onAction(ConversationAction.OnMediaClick(message.id)) },
             onQuoteClick = { onAction(ConversationAction.OnQuoteClick(it)) },
             onReactionClick = { onAction(ConversationAction.OnReactionClick(message.id, it)) },
+            onCallBack = message.callBackVideo
+                ?.takeIf { canCallBack }
+                ?.let { video -> { onAction(ConversationAction.OnCallBackClick(video)) } },
         )
     }
 }

@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex">
+  <meta name="referrer" content="no-referrer">
+  <title>HowYouDoin call</title>
+  <link rel="stylesheet" href="/style.css">
+  <script type="module" src="/call.js"></script>
+</head>
+<body>
+  <main id="invite" hidden>
+    <h1 data-text="inviteTitle"></h1>
+    <p data-text="inviteSeparate"></p>
+    <p data-text="inviteEncrypted"></p>
+    <p class="small" data-text="invitePermissions"></p>
+    <div class="buttons">
+      <button id="join-video" class="primary" data-text="joinVideo"></button>
+      <button id="join-audio" data-text="joinAudio"></button>
+    </div>
+  </main>
+
+  <main id="call" hidden>
+    <video id="remote" autoplay playsinline></video>
+    <p id="status"></p>
+    <video id="local" autoplay playsinline muted></video>
+    <div id="audio"></div>
+    <nav class="controls">
+      <button id="mic" class="round" aria-pressed="true"></button>
+      <button id="camera" class="round" aria-pressed="false"></button>
+      <button id="leave" class="round danger" data-label="leave"></button>
+    </nav>
+  </main>
+
+  <main id="message" hidden>
+    <h1 id="message-title"></h1>
+    <p id="message-text"></p>
+  </main>
+</body>
+</html>

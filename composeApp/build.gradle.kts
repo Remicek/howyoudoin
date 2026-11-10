@@ -89,6 +89,9 @@ android {
         fun hex(bytes: List<Byte>) = bytes.joinToString("") { "%02x".format(it) }
         buildConfigField("String", "TELEGRAM_KEYS", "\"${hex(masked)}\"")
         buildConfigField("String", "TELEGRAM_KEYS_SALT", "\"${hex(salt.toList())}\"")
+        // Calls through a link (call-link/): the deployed worker's address; blank leaves the feature out
+        val callLinkUrl = localProperties.getProperty("callLink.url")?.trim().orEmpty()
+        buildConfigField("String", "CALL_LINK_URL", "\"$callLinkUrl\"")
     }
 }
 

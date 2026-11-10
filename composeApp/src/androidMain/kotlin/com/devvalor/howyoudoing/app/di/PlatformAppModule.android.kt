@@ -76,6 +76,11 @@ import java.io.File
 import org.koin.dsl.bind
 import com.devvalor.howyoudoing.app.call.AndroidCallMediaEngine
 import com.devvalor.howyoudoing.app.call.CallActivity
+import com.devvalor.howyoudoing.app.call.LinkCallActivity
+import com.devvalor.howyoudoing.chat.data.linkcall.HttpLinkCalls
+import com.devvalor.howyoudoing.chat.domain.LinkCallLauncher
+import com.devvalor.howyoudoing.chat.domain.LinkCalls
+import java.security.SecureRandom
 import com.devvalor.howyoudoing.app.call.CallNotifier
 import com.devvalor.howyoudoing.app.notifications.ConnectionProblemNotifier
 import com.devvalor.howyoudoing.chat.domain.CallLauncher
@@ -181,6 +186,11 @@ actual val platformAppModule: Module = module {
     single<CallLauncher> { CallLauncher { chatId, video -> CallActivity.startCall(androidContext(), chatId, video) } }
     single<OnDeviceInboxCache> { AndroidInboxCache(androidContext()) }
     single<AppPromotion> { AndroidAppPromotion(androidContext()) }
+    single<LinkCalls> {
+        val random = SecureRandom()
+        HttpLinkCalls(get(), BuildConfig.CALL_LINK_URL) { size -> ByteArray(size).also(random::nextBytes) }
+    }
+    single<LinkCallLauncher> { LinkCallLauncher { hostUrl -> LinkCallActivity.start(androidContext(), hostUrl) } }
     single<LoginBackup>(createdAtStart = true) {
         AndroidLoginBackup(
             context = androidContext(),

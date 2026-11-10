@@ -209,4 +209,20 @@
     <string name="tour_new_text">Escribe a cualquiera en una red que hayas conectado.</string>
     <string name="tour_search_title">Encuentra un chat</string>
     <string name="tour_search_text">Busca tus chats por nombre.</string>
+
+    <!-- Calls through a link (LinkCallDialog, "Call back here", the invite sent in the chat) -->
+    <string name="link_call_back_here">Devolver la llamada aquí</string>
+    <string name="link_call_title">Llamada mediante enlace</string>
+    <string name="link_call_title_video">Videollamada mediante enlace</string>
+    <string name="link_call_how_new">HowYouDoin no puede hacer ni contestar llamadas de %1$s, así que inicia una llamada aparte, propia.</string>
+    <string name="link_call_how_link">Se envía un enlace a %1$s en este chat.</string>
+    <string name="link_call_how_browser">Se une abriendo el enlace en su navegador: sin app ni cuenta. Esperas en la pantalla de llamada hasta que se una.</string>
+    <string name="link_call_how_ringing">Su llamada de %1$s no se contesta: sigue sonando hasta que cuelgue.</string>
+    <string name="link_call_how_encrypted">La llamada está cifrada de extremo a extremo. Pasa por el servidor de llamadas de HowYouDoin, que no puede verla ni oírla.</string>
+    <string name="link_call_dont_show">No volver a mostrar</string>
+    <string name="link_call_start">Llamar</string>
+    <string name="link_call_cancel">Cancelar</string>
+    <string name="link_call_invite">Hablemos aquí mejor, se abre en tu navegador: %1$s</string>
+    <string name="link_call_invite_video">Únete a una videollamada, se abre en tu navegador: %1$s</string>
+    <string name="link_call_failed">No se pudo iniciar la llamada. Inténtalo de nuevo en un momento.</string>
 </resources>

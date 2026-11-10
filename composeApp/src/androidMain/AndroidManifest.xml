@@ -45,6 +45,13 @@
             </intent-filter>
         </activity>
 
+        <!-- Calls through a link: the call page in a WebView, in the app's task so it can be returned to -->
+        <activity
+            android:name=".call.LinkCallActivity"
+            android:exported="false"
+            android:launchMode="singleTop"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden"
+            android:theme="@android:style/Theme.Material.NoActionBar" />
         <activity
             android:name=".call.CallActivity"
             android:exported="false"

@@ -1,0 +1,6 @@
+node_modules/
+.wrangler/
+.dev.vars
+# Built by npm run build
+public/call.js
+public/e2ee-worker.mjs

@@ -207,4 +207,20 @@
     <string name="tour_new_text">किसी भी जुड़े नेटवर्क पर किसी को भी लिखें।</string>
     <string name="tour_search_title">चैट ढूँढें</string>
     <string name="tour_search_text">नाम से अपनी चैट खोजें।</string>
+
+    <!-- Calls through a link (LinkCallDialog, "Call back here", the invite sent in the chat) -->
+    <string name="link_call_back_here">यहाँ वापस कॉल करें</string>
+    <string name="link_call_title">लिंक से कॉल</string>
+    <string name="link_call_title_video">लिंक से वीडियो कॉल</string>
+    <string name="link_call_how_new">HowYouDoin %1$s कॉल न कर सकता है न उठा सकता है, इसलिए यह अपनी एक अलग कॉल शुरू करता है।</string>
+    <string name="link_call_how_link">इसका लिंक इस चैट में %1$s को भेजा जाता है।</string>
+    <string name="link_call_how_browser">वे अपने ब्राउज़र में लिंक खोलकर जुड़ते हैं: कोई ऐप या अकाउंट नहीं चाहिए। उनके जुड़ने तक आप कॉल स्क्रीन पर इंतज़ार करते हैं।</string>
+    <string name="link_call_how_ringing">उनकी %1$s कॉल नहीं उठाई जाती: वह तब तक बजती रहती है जब तक वे काट नहीं देते।</string>
+    <string name="link_call_how_encrypted">कॉल एंड-टू-एंड एन्क्रिप्टेड है। यह HowYouDoin के कॉल सर्वर से होकर जाती है, जो इसे देख या सुन नहीं सकता।</string>
+    <string name="link_call_dont_show">फिर से न दिखाएँ</string>
+    <string name="link_call_start">कॉल शुरू करें</string>
+    <string name="link_call_cancel">रद्द करें</string>
+    <string name="link_call_invite">चलो यहाँ बात करते हैं, यह आपके ब्राउज़र में खुलेगा: %1$s</string>
+    <string name="link_call_invite_video">वीडियो कॉल पर जुड़ें, यह आपके ब्राउज़र में खुलेगा: %1$s</string>
+    <string name="link_call_failed">कॉल शुरू नहीं हो सकी। थोड़ी देर में फिर कोशिश करें।</string>
 </resources>

@@ -16,6 +16,11 @@ data class ConversationState(
     val isMuted: Boolean = false,
     /** A one-to-one Matrix chat: audio and video calls work here. */
     val canCall: Boolean = false,
+    /** Any other one-to-one chat: calls go through a link sent in the chat (see LinkCalls). */
+    val canCallByLink: Boolean = false,
+    /** What happens with a call through a link, shown before it starts (until the user hides it). */
+    val linkCallPrompt: LinkCallPrompt? = null,
+    val isStartingLinkCall: Boolean = false,
     /** An invitation not answered yet: Accept / Decline instead of the composer. */
     val isInvite: Boolean = false,
     val isAnsweringInvite: Boolean = false,
@@ -53,3 +58,9 @@ data class ConversationState(
     val canSend: Boolean get() = draft.isNotBlank()
     val currentMatchId: String? get() = searchMatches.getOrNull(searchIndex)
 }
+
+data class LinkCallPrompt(
+    val video: Boolean,
+    /** Started from a call they made on the network ("Call back here"): theirs keeps ringing. */
+    val isCallBack: Boolean,
+)

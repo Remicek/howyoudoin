@@ -6,6 +6,7 @@ import howyoudoin.feature.chat.presentation.generated.resources.bubble_sending
 import howyoudoin.feature.chat.presentation.generated.resources.bubble_failed
 import howyoudoin.feature.chat.presentation.generated.resources.bubble_read
 import howyoudoin.feature.chat.presentation.generated.resources.bubble_sent
+import howyoudoin.feature.chat.presentation.generated.resources.link_call_back_here
 import org.jetbrains.compose.resources.stringResource
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -30,10 +31,13 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Call
 import androidx.compose.material.icons.rounded.Done
 import androidx.compose.material.icons.rounded.DoneAll
 import androidx.compose.material.icons.rounded.ErrorOutline
 import androidx.compose.material.icons.rounded.Schedule
+import androidx.compose.material.icons.rounded.Videocam
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -64,6 +68,8 @@ fun MessageBubble(
     onReactionClick: (String) -> Unit,
     /** The quoted message of a reply was tapped: its ID. */
     onQuoteClick: (String) -> Unit = {},
+    /** "Call back here", on a call from them that can be returned through a link. */
+    onCallBack: (() -> Unit)? = null,
 ) {
     val isOutgoing = message.isOutgoing
     val bubbleColor = if (isOutgoing) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface
@@ -97,6 +103,7 @@ fun MessageBubble(
             }
             caption?.let { BubbleCaption(it, message.type, hasMedia = media != null, textColor) }
             BubbleMeta(message, metaColor, hasMedia = media != null, Modifier.align(Alignment.End))
+            CallBackButton(video = message.callBackVideo == true, onClick = onCallBack)
         }
         if (message.reactions.isNotEmpty()) {
             ReactionRow(message.reactions, onReactionClick)
@@ -126,6 +133,24 @@ private fun bubblePadding(isBareSticker: Boolean, hasMedia: Boolean): PaddingVal
     isBareSticker -> PaddingValues(0.dp)
     hasMedia -> PaddingValues(6.dp)
     else -> PaddingValues(horizontal = 14.dp, vertical = HowYouDoinSpacing.sm)
+}
+
+@Composable
+private fun CallBackButton(video: Boolean, onClick: (() -> Unit)?) {
+    if (onClick == null) return
+    FilledTonalButton(
+        onClick = onClick,
+        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp),
+        modifier = Modifier.padding(top = HowYouDoinSpacing.xs),
+    ) {
+        Icon(
+            if (video) Icons.Rounded.Videocam else Icons.Rounded.Call,
+            contentDescription = null,
+            modifier = Modifier.size(18.dp),
+        )
+        Spacer(Modifier.width(HowYouDoinSpacing.sm))
+        Text(stringResource(Res.string.link_call_back_here))
+    }
 }
 
 @Composable

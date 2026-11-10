@@ -207,4 +207,20 @@
     <string name="tour_new_text">Schreib jedem in einem verbundenen Netzwerk.</string>
     <string name="tour_search_title">Chat finden</string>
     <string name="tour_search_text">Durchsuche deine Chats nach Namen.</string>
+
+    <!-- Calls through a link (LinkCallDialog, "Call back here", the invite sent in the chat) -->
+    <string name="link_call_back_here">Hier zurückrufen</string>
+    <string name="link_call_title">Anruf über einen Link</string>
+    <string name="link_call_title_video">Videoanruf über einen Link</string>
+    <string name="link_call_how_new">HowYouDoin kann keine %1$s-Anrufe tätigen oder annehmen, daher startet es einen eigenen, separaten Anruf.</string>
+    <string name="link_call_how_link">Ein Link dazu wird in diesem Chat an %1$s gesendet.</string>
+    <string name="link_call_how_browser">Die andere Person tritt bei, indem sie den Link im Browser öffnet: ohne App oder Konto. Du wartest im Anrufbildschirm, bis sie beitritt.</string>
+    <string name="link_call_how_ringing">Der %1$s-Anruf wird nicht angenommen: Er klingelt weiter, bis aufgelegt wird.</string>
+    <string name="link_call_how_encrypted">Der Anruf ist Ende-zu-Ende-verschlüsselt. Er läuft über den Anrufserver von HowYouDoin, der ihn weder sehen noch hören kann.</string>
+    <string name="link_call_dont_show">Nicht mehr anzeigen</string>
+    <string name="link_call_start">Anruf starten</string>
+    <string name="link_call_cancel">Abbrechen</string>
+    <string name="link_call_invite">Lass uns lieber hier reden, es öffnet sich im Browser: %1$s</string>
+    <string name="link_call_invite_video">Komm in einen Videoanruf, er öffnet sich im Browser: %1$s</string>
+    <string name="link_call_failed">Der Anruf konnte nicht gestartet werden. Versuche es gleich noch einmal.</string>
 </resources>

@@ -209,4 +209,20 @@
     <string name="tour_new_text">Escreva para qualquer pessoa em uma rede conectada.</string>
     <string name="tour_search_title">Encontre uma conversa</string>
     <string name="tour_search_text">Pesquise suas conversas pelo nome.</string>
+
+    <!-- Calls through a link (LinkCallDialog, "Call back here", the invite sent in the chat) -->
+    <string name="link_call_back_here">Retornar a chamada aqui</string>
+    <string name="link_call_title">Chamada por link</string>
+    <string name="link_call_title_video">Videochamada por link</string>
+    <string name="link_call_how_new">O HowYouDoin não pode fazer nem atender chamadas do %1$s, então inicia uma chamada separada, própria.</string>
+    <string name="link_call_how_link">Um link para ela é enviado para %1$s nesta conversa.</string>
+    <string name="link_call_how_browser">A pessoa entra abrindo o link no navegador: sem app nem conta. Você aguarda na tela da chamada até ela entrar.</string>
+    <string name="link_call_how_ringing">A chamada do %1$s não é atendida: continua tocando até a pessoa desligar.</string>
+    <string name="link_call_how_encrypted">A chamada tem criptografia de ponta a ponta. Ela passa pelo servidor de chamadas do HowYouDoin, que não pode vê-la nem ouvi-la.</string>
+    <string name="link_call_dont_show">Não mostrar novamente</string>
+    <string name="link_call_start">Ligar</string>
+    <string name="link_call_cancel">Cancelar</string>
+    <string name="link_call_invite">Vamos conversar por aqui, abre no seu navegador: %1$s</string>
+    <string name="link_call_invite_video">Entre numa videochamada comigo, abre no seu navegador: %1$s</string>
+    <string name="link_call_failed">Não foi possível iniciar a chamada. Tente novamente em instantes.</string>
 </resources>

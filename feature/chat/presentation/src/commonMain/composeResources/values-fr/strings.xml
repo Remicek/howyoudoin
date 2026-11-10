@@ -209,4 +209,20 @@
     <string name="tour_new_text">Écrivez à n'importe qui sur un réseau connecté.</string>
     <string name="tour_search_title">Trouvez une discussion</string>
     <string name="tour_search_text">Recherchez vos discussions par nom.</string>
+
+    <!-- Calls through a link (LinkCallDialog, "Call back here", the invite sent in the chat) -->
+    <string name="link_call_back_here">Rappeler ici</string>
+    <string name="link_call_title">Appel par lien</string>
+    <string name="link_call_title_video">Appel vidéo par lien</string>
+    <string name="link_call_how_new">HowYouDoin ne peut ni passer ni recevoir d'appels %1$s, il lance donc un appel séparé, le sien.</string>
+    <string name="link_call_how_link">Un lien vers cet appel est envoyé à %1$s dans cette conversation.</string>
+    <string name="link_call_how_browser">La personne rejoint l'appel en ouvrant le lien dans son navigateur : ni appli ni compte. Vous patientez sur l'écran d'appel.</string>
+    <string name="link_call_how_ringing">Son appel %1$s n'est pas décroché : il continue de sonner jusqu'à ce qu'elle raccroche.</string>
+    <string name="link_call_how_encrypted">L'appel est chiffré de bout en bout. Il passe par le serveur d'appels de HowYouDoin, qui ne peut ni le voir ni l'entendre.</string>
+    <string name="link_call_dont_show">Ne plus afficher</string>
+    <string name="link_call_start">Appeler</string>
+    <string name="link_call_cancel">Annuler</string>
+    <string name="link_call_invite">Parlons plutôt ici, ça s'ouvre dans ton navigateur : %1$s</string>
+    <string name="link_call_invite_video">Rejoins-moi en appel vidéo, ça s'ouvre dans ton navigateur : %1$s</string>
+    <string name="link_call_failed">Impossible de lancer l'appel. Réessayez dans un instant.</string>
 </resources>

@@ -79,6 +79,8 @@ actual val platformAppModule: Module = module {
         com.devvalor.howyoudoing.chat.domain.NoCallMediaEngine
     }
     single { com.devvalor.howyoudoing.chat.domain.CallLauncher { _, _ -> } }
+    single<com.devvalor.howyoudoing.chat.domain.LinkCalls> { com.devvalor.howyoudoing.chat.domain.NoLinkCalls }
+    single { com.devvalor.howyoudoing.chat.domain.LinkCallLauncher { } }
     single<com.devvalor.howyoudoing.core.domain.ondevice.TelegramApiKeys> {
         com.devvalor.howyoudoing.core.domain.ondevice.NoTelegramApiKeys
     }

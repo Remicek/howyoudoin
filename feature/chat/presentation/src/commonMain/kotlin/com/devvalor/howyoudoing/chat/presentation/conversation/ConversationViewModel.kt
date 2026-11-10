@@ -13,6 +13,14 @@ import com.devvalor.howyoudoing.chat.domain.CallLauncher
 import com.devvalor.howyoudoing.chat.domain.CallManager
 import com.devvalor.howyoudoing.chat.domain.Chat
 import com.devvalor.howyoudoing.chat.domain.ChatRepository
+import com.devvalor.howyoudoing.chat.domain.LinkCallLauncher
+import com.devvalor.howyoudoing.chat.domain.LinkCallPreferences
+import com.devvalor.howyoudoing.chat.domain.LinkCalls
+import com.devvalor.howyoudoing.chat.domain.canCallByLink
+import howyoudoin.feature.chat.presentation.generated.resources.link_call_failed
+import howyoudoin.feature.chat.presentation.generated.resources.link_call_invite
+import howyoudoin.feature.chat.presentation.generated.resources.link_call_invite_video
+import org.jetbrains.compose.resources.getString
 import com.devvalor.howyoudoing.chat.domain.NotificationPreferences
 import com.devvalor.howyoudoing.chat.domain.OpenChatTracker
 import com.devvalor.howyoudoing.chat.domain.MediaRequest
@@ -47,7 +55,10 @@ class ConversationViewModel(
     private val notificationPreferences: NotificationPreferences,
     private val callManager: CallManager,
     private val callLauncher: CallLauncher,
-    private val internetConnection: InternetConnection
+    private val internetConnection: InternetConnection,
+    private val linkCalls: LinkCalls,
+    private val linkCallPreferences: LinkCallPreferences,
+    private val linkCallLauncher: LinkCallLauncher,
 ) : ViewModel() {
 
     private val chatId = savedStateHandle.toRoute<ChatRoutes.Conversation>().chatId
@@ -63,6 +74,7 @@ class ConversationViewModel(
     private var hasLoadedInitialData = false
     private var isTypingSent = false
     private var stopTypingJob: Job? = null
+    private var isLinkCallExplanationHidden = false
 
     private val _state = MutableStateFlow(ConversationState())
     val state = _state
@@ -87,6 +99,9 @@ class ConversationViewModel(
         internetConnection.isOnline
             .onEach { online -> _state.update { it.copy(isOffline = !online) } }
             .launchIn(viewModelScope)
+        linkCallPreferences.observeExplanationHidden()
+            .onEach { isLinkCallExplanationHidden = it }
+            .launchIn(viewModelScope)
     }
 
     fun onAction(action: ConversationAction) {
@@ -97,7 +112,14 @@ class ConversationViewModel(
             }
 
             ConversationAction.OnSendClick -> send()
-            is ConversationAction.OnCallClick -> callLauncher.call(chatId, action.video)
+            is ConversationAction.OnCallClick -> when {
+                state.value.canCall -> callLauncher.call(chatId, action.video)
+                state.value.canCallByLink -> askToCallByLink(LinkCallPrompt(action.video, isCallBack = false))
+            }
+
+            is ConversationAction.OnCallBackClick -> askToCallByLink(LinkCallPrompt(action.video, isCallBack = true))
+            is ConversationAction.OnLinkCallConfirm -> confirmLinkCall(action.dontShowAgain)
+            ConversationAction.OnLinkCallDismiss -> _state.update { it.copy(linkCallPrompt = null) }
             ConversationAction.OnAcceptInviteClick -> answerInvite(accept = true)
             ConversationAction.OnDeclineInviteClick -> answerInvite(accept = false)
             ConversationAction.OnLoadOlder -> loadOlder()
@@ -214,6 +236,7 @@ class ConversationViewModel(
             isEncrypted = chat.isEncrypted,
             isOnDevice = chat.isOnDevice,
             canCall = callManager.canCall(chat),
+            canCallByLink = linkCalls.isAvailable && chat.canCallByLink() && !chat.isInvite,
             isInvite = chat.isInvite
         )
     }
@@ -298,6 +321,43 @@ class ConversationViewModel(
         viewModelScope.launch {
             chatRepository.sendMessage(chatId, body, replyTo)
                 .onFailure { error -> eventChannel.send(ConversationEvent.Error(error.toUiText())) }
+        }
+    }
+
+    /** Explains what a call through a link is first, unless the user asked not to be told again. */
+    private fun askToCallByLink(prompt: LinkCallPrompt) {
+        if (!state.value.canCallByLink || state.value.isStartingLinkCall) return
+        if (isLinkCallExplanationHidden) {
+            startLinkCall(prompt.video)
+        } else {
+            _state.update { it.copy(linkCallPrompt = prompt) }
+        }
+    }
+
+    private fun confirmLinkCall(dontShowAgain: Boolean) {
+        val prompt = state.value.linkCallPrompt ?: return
+        _state.update { it.copy(linkCallPrompt = null) }
+        if (dontShowAgain) viewModelScope.launch { linkCallPreferences.setExplanationHidden(true) }
+        startLinkCall(prompt.video)
+    }
+
+    /** Creates the call, sends its link in this chat, and opens it here; the other person joins from the link. */
+    private fun startLinkCall(video: Boolean) {
+        if (remindIfOffline()) return
+        _state.update { it.copy(isStartingLinkCall = true) }
+        viewModelScope.launch {
+            linkCalls.start(video)
+                .onSuccess { call ->
+                    val invite = getString(
+                        if (video) Res.string.link_call_invite_video else Res.string.link_call_invite,
+                        call.inviteUrl
+                    )
+                    chatRepository.sendMessage(chatId, invite, null)
+                        .onSuccess { linkCallLauncher.open(call.hostUrl) }
+                        .onFailure { error -> eventChannel.send(ConversationEvent.Error(error.toUiText())) }
+                }
+                .onFailure { eventChannel.send(ConversationEvent.Error(UiText.Resource(Res.string.link_call_failed))) }
+            _state.update { it.copy(isStartingLinkCall = false) }
         }
     }
 
