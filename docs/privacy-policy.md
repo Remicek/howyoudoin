@@ -50,12 +50,14 @@ own privacy policies apply to what they receive.
 The other networks' own calls can't be made or answered in HowYouDoin. Instead, you can start a separate call and
 send its link in a chat; the other person joins it in their browser. Only when you start one:
 
-- The app asks HowYouDoin's call service (a Cloudflare Worker) for a call, and the call itself is connected through
-  LiveKit's servers. Both see your IP address, as any server you connect to does, and the call's random name.
+- The app asks HowYouDoin's call service for a call, and the call itself is connected through Cloudflare's servers
+  (the call service runs on Cloudflare too). They see your IP address, as any server you connect to does, and the
+  call's random name.
 - The call is end-to-end encrypted with a key that only goes in the link you send, after the `#`, a part browsers
-  never send to a server. Neither the call service nor LiveKit can see or hear the call, and neither stores it.
+  never send to a server. Neither the call service nor Cloudflare can see or hear the call, and neither stores it.
 - The link is sent as an ordinary message in that chat, so the network carries it like any other message.
-- A call has room for two people; it closes 15 minutes after it's created if nobody joins, and when you both leave.
+- A call has room for two people. It closes 15 minutes after it's created if nobody joins, when either of you hangs
+  up, and after at most 4 hours. Once it closes, the call service keeps nothing about it.
 
 ## Server mode (optional)
 

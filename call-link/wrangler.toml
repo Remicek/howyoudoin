@@ -1,7 +1,15 @@
-# Calls through a link (see README.md). Secrets: wrangler secret put LIVEKIT_API_KEY / LIVEKIT_API_SECRET
+# Calls through a link (see README.md).
+# Secrets: wrangler secret put SFU_APP_ID / SFU_APP_SECRET, and optionally TURN_KEY_ID / TURN_KEY_TOKEN
 name = "howyoudoin-call-link"
 main = "src/worker.ts"
 compatibility_date = "2026-11-01"
+
+# The address in every invite link: changing it breaks links already sent. Cloudflare makes the DNS record and
+# certificate (howyoudoin.app is a zone on the same account)
+routes = [{ pattern = "call.howyoudoin.app", custom_domain = true }]
+# Only that address: no *.workers.dev or preview addresses
+workers_dev = false
+preview_urls = false
 
 [assets]
 directory = "./public"
@@ -10,11 +18,16 @@ binding = "ASSETS"
 not_found_handling = "single-page-application"
 run_worker_first = ["/api/*"]
 
-[vars]
-# The LiveKit project's WebSocket URL, e.g. wss://howyoudoin-xxxx.livekit.cloud
-LIVEKIT_URL = ""
+# One Durable Object per call: who's in it, and the signalling between the two pages and Realtime SFU
+[[durable_objects.bindings]]
+name = "CALLS"
+class_name = "CallRoom"
 
-# At most this many calls created per IP address a minute, so nobody can run up the LiveKit bill
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["CallRoom"]
+
+# At most this many calls created per IP address a minute, so nobody can run up the bill
 [[ratelimits]]
 name = "CREATE_LIMIT"
 namespace_id = "1001"

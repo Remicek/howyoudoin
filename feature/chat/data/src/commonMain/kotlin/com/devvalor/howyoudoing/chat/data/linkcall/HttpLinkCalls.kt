@@ -12,8 +12,9 @@ import kotlinx.serialization.Serializable
 import kotlin.io.encoding.Base64
 
 /**
- * Asks the call server (call-link/ in this repository) for a room. The encryption key is made here and only put in
- * the links' #fragment, which browsers never send to a server: neither the call server nor LiveKit can read the call.
+ * Asks the call server (call-link/ in this repository) for a call. The encryption key is made here and only put in
+ * the links' #fragment, which browsers never send to a server: neither the call server nor Cloudflare, which carries
+ * the call's audio and video, can read the call.
  *
  * @param serverUrl e.g. https://call.howyoudoin.app; blank when this build has none
  * @param randomBytes cryptographically secure

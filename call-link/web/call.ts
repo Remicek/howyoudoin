@@ -1,22 +1,16 @@
 // The call page, for both sides: the person invited by link (in their browser) and the HowYouDoin user (in the app,
 // which opens it with ?host=1). The link's #fragment carries what no server may see: the encryption key (k) and, for
-// the app, its token (t), LiveKit's address (u) and whether to start with the camera on (v).
-
-import {
-  ExternalE2EEKeyProvider,
-  isE2EESupported,
-  LocalTrackPublication,
-  RemoteTrack,
-  Room,
-  RoomEvent,
-  Track,
-  VideoPresets,
-} from "livekit-client";
+// the app, the call's token (t) and whether to start with the camera on (v).
+//
+// Media goes through Cloudflare Realtime SFU over two WebRTC connections, one sending and one receiving, every frame
+// encrypted by e2ee-worker.ts. The worker's CallRoom says who's in the call and makes the SFU requests (over
+// /api/calls/<room>/ws).
 
 declare global {
   interface Window {
     /** Set by the HowYouDoin app: closes its call screen. */
     HydCall?: { ended(): void };
+    RTCRtpScriptTransform?: new (worker: Worker, options: unknown) => unknown;
   }
 }
 
@@ -314,129 +308,498 @@ function translate() {
   }
 }
 
+
+interface Peer {
+  present: boolean;
+  session?: string;
+  tracks: string[];
+  camera: boolean;
+}
+
+interface Welcome {
+  role: "host" | "guest";
+  secret?: string;
+  iceServers: RTCIceServer[];
+  peer: Peer;
+}
+
+/** How long to keep trying after the connection drops; the call itself waits 20 s for someone to come back. */
+const RECONNECT_FOR_MS = 25_000;
+const VIDEO = { width: { ideal: 960 }, height: { ideal: 540 }, frameRate: { ideal: 24 }, facingMode: "user" };
+/** Enough for 540p on a phone screen, and light on data. */
+const VIDEO_MAX_BITRATE = 700_000;
+
+const encryptionSupported = () =>
+  "RTCRtpScriptTransform" in window || "createEncodedStreams" in RTCRtpSender.prototype;
+
+/** The base64url key from the link. */
+function decodeKey(key: string): Uint8Array<ArrayBuffer> | null {
+  try {
+    const bytes = Uint8Array.from(atob(key.replace(/-/g, "+").replace(/_/g, "/")), (c) => c.charCodeAt(0));
+    return bytes.length === 32 ? bytes : null;
+  } catch {
+    return null;
+  }
+}
+
 async function start() {
   translate();
-  const key = fragment.get("k");
+  const key = decodeKey(fragment.get("k") ?? "");
   if (!room || !key) return message(t("goneTitle"));
-  if (!isE2EESupported()) return message(t("unsupportedTitle"), t("unsupportedText"));
+  if (!encryptionSupported()) return message(t("unsupportedTitle"), t("unsupportedText"));
 
   if (isHost) {
     const token = fragment.get("t");
-    const url = fragment.get("u");
-    if (!token || !url) return message(t("goneTitle"));
+    if (!token) return message(t("goneTitle"));
     // Out of the address bar and history: the token and key aren't needed again
     history.replaceState(null, "", location.pathname + location.search);
-    return join(url, token, key, fragment.get("v") === "1");
+    return new Call(room, key, { token }).start(fragment.get("v") === "1");
   }
 
   show("invite");
   const buttons = [$<HTMLButtonElement>("join-video"), $<HTMLButtonElement>("join-audio")];
   buttons.forEach((button, i) =>
-    button.addEventListener("click", async () => {
+    button.addEventListener("click", () => {
       buttons.forEach((b) => (b.disabled = true));
-      const response = await fetch(`/api/calls/${room}/join`, { method: "POST" }).catch(() => null);
-      const body = await response?.json().catch(() => null);
-      if (!response?.ok || !body?.token) {
-        return message(response?.status === 404 ? t("goneTitle") : t("errorTitle"), body?.error ?? "");
-      }
-      join(body.url, body.token, key, i === 0);
+      new Call(room, key, {}).start(i === 0);
     }),
   );
 }
 
-async function join(url: string, token: string, key: string, video: boolean) {
-  show("call");
-  const status = $("status");
-  status.textContent = t("connecting");
+/** The WebSocket to the call: requests with answers, and the call's news (the other person, the end). */
+class Signal {
+  private ws?: WebSocket;
+  private nextId = 1;
+  private readonly waiting = new Map<number, { resolve: (v: any) => void; reject: (e: Error) => void }>();
 
-  const keyProvider = new ExternalE2EEKeyProvider();
-  await keyProvider.setKey(key);
-  const call = new Room({
-    adaptiveStream: true,
-    dynacast: true,
-    // Enough for a phone screen, light on phones' decoders and on data (what the call service charges for)
-    videoCaptureDefaults: { resolution: VideoPresets.h540.resolution },
-    e2ee: { keyProvider, worker: new Worker("/e2ee-worker.mjs", { type: "module" }) },
-  });
+  constructor(
+    private readonly url: string,
+    private readonly onNews: (news: { type: string; peer?: Peer }) => void,
+    private readonly onClose: () => void,
+  ) {}
 
-  const remoteVideo = $<HTMLVideoElement>("remote");
-  const localVideo = $<HTMLVideoElement>("local");
-  const updateStatus = () => {
-    const other = [...call.remoteParticipants.values()][0];
-    if (!other) status.textContent = t("waiting");
-    else status.textContent = remoteVideo.classList.contains("active") ? "" : t("audioOnly");
-  };
-
-  call
-    .on(RoomEvent.TrackSubscribed, (track: RemoteTrack) => {
-      if (track.kind === Track.Kind.Video) {
-        track.attach(remoteVideo);
-        remoteVideo.classList.add("active");
-      } else {
-        $("audio").appendChild(track.attach());
-      }
-      updateStatus();
-    })
-    .on(RoomEvent.TrackUnsubscribed, (track: RemoteTrack) => {
-      track.detach().forEach((el) => {
-        if (el === remoteVideo) remoteVideo.classList.remove("active");
-        else el.remove();
-      });
-      updateStatus();
-    })
-    .on(RoomEvent.LocalTrackPublished, (publication: LocalTrackPublication) => {
-      if (publication.track?.kind === Track.Kind.Video) {
-        publication.track.attach(localVideo);
-        localVideo.classList.add("active");
-      }
-    })
-    .on(RoomEvent.LocalTrackUnpublished, (publication: LocalTrackPublication) => {
-      if (publication.track?.kind === Track.Kind.Video) localVideo.classList.remove("active");
-    })
-    .on(RoomEvent.ParticipantConnected, updateStatus)
-    // A call for two: when the other person leaves, it's over
-    .on(RoomEvent.ParticipantDisconnected, () => call.disconnect())
-    .on(RoomEvent.Disconnected, () => {
-      message(t("endedTitle"), t("endedText"));
-      window.HydCall?.ended();
+  open(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const ws = new WebSocket(this.url);
+      this.ws = ws;
+      ws.onopen = () => resolve();
+      ws.onerror = () => reject(new Error("Can't reach the call"));
+      ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        const waiter = data.id !== undefined ? this.waiting.get(data.id) : undefined;
+        if (waiter) {
+          this.waiting.delete(data.id);
+          if (data.error) waiter.reject(new Error(data.error));
+          else waiter.resolve(data);
+        } else {
+          this.onNews(data);
+        }
+      };
+      ws.onclose = () => {
+        if (this.ws !== ws) return;
+        for (const waiter of this.waiting.values()) waiter.reject(new Error("Disconnected"));
+        this.waiting.clear();
+        this.onClose();
+      };
     });
+  }
 
-  try {
-    await call.setE2EEEnabled(true);
-    await call.connect(url, token);
-    await call.localParticipant.setMicrophoneEnabled(true);
-  } catch (e) {
-    console.error("Couldn't join", e);
-    call.removeAllListeners(RoomEvent.Disconnected);
-    await call.disconnect();
-    message(t("errorTitle"), String((e as Error)?.message ?? e));
+  request<T = any>(message: object): Promise<T> {
+    const id = this.nextId++;
+    return new Promise((resolve, reject) => {
+      this.waiting.set(id, { resolve, reject });
+      this.ws?.send(JSON.stringify({ id, ...message }));
+    });
+  }
+
+  send(message: object) {
+    if (this.ws?.readyState === WebSocket.OPEN) this.ws.send(JSON.stringify(message));
+  }
+
+  close() {
+    const ws = this.ws;
+    this.ws = undefined;
+    ws?.close();
+  }
+}
+
+class Call {
+  private signal?: Signal;
+  private ice: RTCIceServer[] = [];
+  private secret?: string;
+  private ended = false;
+  private reconnecting = false;
+  /** Every change to the connections runs in turn: the SFU wants one negotiation at a time per session. */
+  private queue: Promise<unknown> = Promise.resolve();
+
+  private mic?: MediaStreamTrack;
+  private camera?: MediaStreamTrack;
+  private cameraOn = false;
+  private videoCount = 0;
+  private sending?: RTCPeerConnection;
+  private videoSender?: RTCRtpSender;
+
+  private receiving?: RTCPeerConnection;
+  private receivingFrom?: string;
+  private readonly received = new Map<string, string>(); // trackName -> mid
+  private readonly receivedTracks = new Map<string, MediaStreamTrack>(); // mid -> track
+  private peer: Peer = { present: false, tracks: [], camera: false };
+
+  private readonly worker = new Worker("/e2ee-worker.js", { type: "module" });
+  private readonly status = $("status");
+  private readonly remoteVideo = $<HTMLVideoElement>("remote");
+  private readonly localVideo = $<HTMLVideoElement>("local");
+  private readonly remoteAudio = document.createElement("audio");
+
+  constructor(
+    private readonly room: string,
+    private readonly key: Uint8Array<ArrayBuffer>,
+    private readonly credentials: { token?: string },
+  ) {
+    this.remoteAudio.autoplay = true;
+    $("audio").appendChild(this.remoteAudio);
+  }
+
+  async start(video: boolean) {
+    show("call");
+    this.status.textContent = t("connecting");
+    try {
+      this.mic = (
+        await navigator.mediaDevices.getUserMedia({
+          audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+        })
+      ).getAudioTracks()[0];
+    } catch (e) {
+      return this.fail(e);
+    }
+    // Without the camera (refused, busy, or the app went to the background while it started) it's an audio call
+    if (video) await this.openCamera().catch((e) => console.warn("Continuing without the camera", e));
+    this.setUpControls();
+    addEventListener("pagehide", () => this.hangUp());
+    try {
+      await this.connect();
+    } catch (e) {
+      this.fail(e);
+    }
+  }
+
+  /** Joins (or joins again after a dropped connection) and starts sending. */
+  private async connect() {
+    const url = `${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/api/calls/${this.room}/ws`;
+    const signal = new Signal(
+      url,
+      (news) => this.onNews(news),
+      () => this.onDropped(signal),
+    );
+    this.signal = signal;
+    await signal.open();
+    const welcome = await signal.request<Welcome>({
+      type: "hello",
+      ...(this.secret ? { secret: this.secret } : this.credentials),
+    });
+    this.secret = welcome.secret ?? this.secret;
+    this.ice = welcome.iceServers;
+    await this.run(() => this.startSending());
+    this.onPeer(welcome.peer);
+  }
+
+  private onNews(news: { type: string; peer?: Peer }) {
+    if (news.type === "ended") this.end();
+    else if (news.type === "peer" && news.peer) this.onPeer(news.peer);
+  }
+
+  /** The connection to the call dropped, or a media connection failed: try again for a while. */
+  private onDropped(signal: Signal) {
+    if (this.ended || this.reconnecting || this.signal !== signal) return;
+    this.reconnecting = true;
+    this.signal = undefined;
+    signal.close();
+    this.closeConnections();
+    this.status.textContent = t("connecting");
+    const until = Date.now() + RECONNECT_FOR_MS;
+    const retry = async () => {
+      if (this.ended) return;
+      try {
+        await this.connect();
+        this.reconnecting = false;
+      } catch (e) {
+        if ((e as Error).message === "ended" || (e as Error).message === "forbidden") return this.end();
+        this.signal?.close();
+        this.signal = undefined;
+        this.closeConnections();
+        if (Date.now() < until) setTimeout(retry, 2000);
+        else this.fail(e);
+      }
+    };
+    setTimeout(retry, 1000);
+  }
+
+  private newConnection(): RTCPeerConnection {
+    const config: RTCConfiguration & { encodedInsertableStreams?: boolean } = {
+      iceServers: this.ice,
+      bundlePolicy: "max-bundle",
+    };
+    if (!("RTCRtpScriptTransform" in window)) config.encodedInsertableStreams = true;
+    const pc = new RTCPeerConnection(config);
+    pc.addEventListener("connectionstatechange", () => {
+      if (pc.connectionState === "failed" && this.signal) this.onDropped(this.signal);
+    });
+    return pc;
+  }
+
+  private protect(target: RTCRtpSender | RTCRtpReceiver, op: "encrypt" | "decrypt") {
+    const options = { op, key: this.key };
+    if (window.RTCRtpScriptTransform) {
+      (target as any).transform = new window.RTCRtpScriptTransform(this.worker, options);
+    } else {
+      const { readable, writable } = (target as any).createEncodedStreams();
+      this.worker.postMessage({ ...options, readable, writable }, [readable, writable]);
+    }
+  }
+
+  private async startSending() {
+    this.sending = this.newConnection();
+    this.videoSender = undefined;
+    const tracks = [this.addSender(this.mic!, "audio")];
+    if (this.cameraOn && this.camera) tracks.push(this.addVideo(this.camera));
+    await this.publish(tracks);
+    if (this.cameraOn) this.signal!.send({ type: "camera", on: true });
+  }
+
+  private addSender(track: MediaStreamTrack, trackName: string) {
+    const transceiver = this.sending!.addTransceiver(track, { direction: "sendonly" });
+    this.protect(transceiver.sender, "encrypt");
+    return { transceiver, trackName };
+  }
+
+  private addVideo(track: MediaStreamTrack) {
+    const added = this.addSender(track, `video${++this.videoCount}`);
+    const { transceiver } = added;
+    // The encryption keeps VP8's header readable; other codecs would need other rules
+    const vp8 = RTCRtpReceiver.getCapabilities("video")?.codecs.filter((c) => /\/(VP8|rtx)$/i.test(c.mimeType));
+    if (vp8?.length) transceiver.setCodecPreferences(vp8);
+    const parameters = transceiver.sender.getParameters();
+    parameters.encodings = [{ ...(parameters.encodings?.[0] ?? {}), maxBitrate: VIDEO_MAX_BITRATE }];
+    transceiver.sender.setParameters(parameters).catch(() => {});
+    this.videoSender = transceiver.sender;
+    return added;
+  }
+
+  /** Offers the new tracks to the SFU, and once they're flowing, to the other person. */
+  private async publish(tracks: { transceiver: RTCRtpTransceiver; trackName: string }[]) {
+    const pc = this.sending!;
+    await pc.setLocalDescription(await pc.createOffer());
+    await gathered(pc);
+    const { answer } = await this.signal!.request({
+      type: "publish",
+      offer: pc.localDescription,
+      tracks: tracks.map(({ transceiver, trackName }) => ({ mid: transceiver.mid, trackName })),
+    });
+    await pc.setRemoteDescription(answer);
+    await connected(pc);
+    await this.signal!.request({ type: "announce" });
+  }
+
+  /** Receives what the other person sends: their audio and their newest video. */
+  private onPeer(peer: Peer) {
+    this.peer = peer;
+    this.run(async () => {
+      const latest = this.peer;
+      if (!latest.session) {
+        this.closeReceiving();
+      } else {
+        const wanted = latest.tracks.filter((n) => n === "audio" || n === newestVideo(latest.tracks));
+        const fresh = latest.session !== this.receivingFrom;
+        const missing = fresh ? wanted : wanted.filter((n) => !this.received.has(n));
+        if (missing.length) await this.subscribe(latest.session, missing, fresh);
+      }
+      this.showRemote();
+    }).catch((e) => console.warn("Couldn't receive", e));
+  }
+
+  private async subscribe(session: string, names: string[], fresh: boolean) {
+    if (fresh) {
+      this.closeReceiving();
+      const pc = this.newConnection();
+      pc.addEventListener("track", (event) => {
+        this.protect(event.receiver, "decrypt");
+        this.receivedTracks.set(event.transceiver.mid!, event.track);
+        this.showRemote();
+      });
+      this.receiving = pc;
+      this.receivingFrom = session;
+    }
+    const pc = this.receiving!;
+    const { offer, tracks } = await this.signal!.request<{
+      offer: RTCSessionDescriptionInit;
+      tracks: { mid: string; trackName: string }[];
+    }>({ type: "subscribe", session, tracks: names, fresh });
+    for (const track of tracks) this.received.set(track.trackName, track.mid);
+    await pc.setRemoteDescription(offer);
+    await pc.setLocalDescription(await pc.createAnswer());
+    await gathered(pc);
+    await this.signal!.request({ type: "answer", answer: pc.localDescription });
+  }
+
+  private showRemote() {
+    const peer = this.peer;
+    const track = (name: string | undefined) => {
+      const mid = name ? this.received.get(name) : undefined;
+      return mid ? this.receivedTracks.get(mid) : undefined;
+    };
+    const audio = track("audio");
+    if (audio && (this.remoteAudio.srcObject as MediaStream | null)?.getTracks()[0] !== audio) {
+      this.remoteAudio.srcObject = new MediaStream([audio]);
+    }
+    const video = peer.camera ? track(newestVideo(peer.tracks)) : undefined;
+    if (video && (this.remoteVideo.srcObject as MediaStream | null)?.getTracks()[0] !== video) {
+      this.remoteVideo.srcObject = new MediaStream([video]);
+    }
+    this.remoteVideo.classList.toggle("active", Boolean(video));
+    if (!peer.present) this.status.textContent = this.peerEverSeen ? t("connecting") : t("waiting");
+    else this.status.textContent = video ? "" : audio ? t("audioOnly") : t("connecting");
+    if (peer.present) this.peerEverSeen = true;
+  }
+  private peerEverSeen = false;
+
+  private async openCamera() {
+    this.camera = (await navigator.mediaDevices.getUserMedia({ video: VIDEO })).getVideoTracks()[0];
+    this.cameraOn = true;
+    this.localVideo.srcObject = new MediaStream([this.camera]);
+    this.localVideo.classList.add("active");
+  }
+
+  private closeCamera() {
+    this.camera?.stop();
+    this.camera = undefined;
+    this.cameraOn = false;
+    this.localVideo.classList.remove("active");
+  }
+
+  private setUpControls() {
+    const micButton = $("mic");
+    const cameraButton = $("camera");
+    const sync = () => {
+      micButton.setAttribute("aria-pressed", String(this.mic?.enabled ?? false));
+      cameraButton.setAttribute("aria-pressed", String(this.cameraOn));
+    };
+    sync();
+    micButton.addEventListener("click", () => {
+      if (this.mic) this.mic.enabled = !this.mic.enabled;
+      sync();
+    });
+    cameraButton.addEventListener("click", () => {
+      this.run(async () => {
+        if (this.cameraOn) {
+          // Stopped, not just hidden: the camera's light goes off too. Turning it on again publishes a new track
+          this.closeCamera();
+          this.videoSender?.replaceTrack(null);
+          this.signal?.send({ type: "camera", on: false });
+        } else {
+          await this.openCamera();
+          if (this.sending && this.signal) {
+            this.videoSender?.replaceTrack(null);
+            await this.publish([this.addVideo(this.camera!)]);
+            this.signal.send({ type: "camera", on: true });
+          }
+        }
+      })
+        .catch((e) => console.warn("Camera", e))
+        .finally(sync);
+    });
+    $("leave").addEventListener("click", () => this.hangUp());
+  }
+
+  /** Tells the call it's over for both, then ends here. */
+  private hangUp() {
+    if (this.ended) return;
+    this.signal?.send({ type: "bye" });
+    this.end();
+  }
+
+  private end() {
+    if (this.ended) return;
+    this.ended = true;
+    this.signal?.close();
+    this.closeConnections();
+    this.mic?.stop();
+    this.closeCamera();
+    message(t("endedTitle"), t("endedText"));
     window.HydCall?.ended();
-    return;
   }
-  // Without the camera (refused, busy, or the app went to the background while it started) it's an audio call
-  if (video) {
-    await call.localParticipant
-      .setCameraEnabled(true)
-      .catch((e) => console.warn("Continuing without the camera", e));
-  }
-  updateStatus();
 
-  const mic = $("mic");
-  const camera = $("camera");
-  const sync = () => {
-    mic.setAttribute("aria-pressed", String(call.localParticipant.isMicrophoneEnabled));
-    camera.setAttribute("aria-pressed", String(call.localParticipant.isCameraEnabled));
-  };
-  sync();
-  mic.addEventListener("click", async () => {
-    await call.localParticipant.setMicrophoneEnabled(!call.localParticipant.isMicrophoneEnabled);
-    sync();
+  private fail(e: unknown) {
+    console.error("Couldn't join", e);
+    const reason = (e as Error)?.message;
+    if (reason === "ended" || reason === "forbidden") return this.end();
+    this.ended = true;
+    this.signal?.close();
+    this.closeConnections();
+    this.mic?.stop();
+    this.closeCamera();
+    message(reason === "busy" ? t("goneTitle") : t("errorTitle"));
+    window.HydCall?.ended();
+  }
+
+  private closeConnections() {
+    this.sending?.close();
+    this.sending = undefined;
+    this.videoSender = undefined;
+    this.closeReceiving();
+  }
+
+  private closeReceiving() {
+    this.receiving?.close();
+    this.receiving = undefined;
+    this.receivingFrom = undefined;
+    this.received.clear();
+    this.receivedTracks.clear();
+  }
+
+  private run<T>(task: () => Promise<T>): Promise<T> {
+    const next = this.queue.then(task, task);
+    this.queue = next.catch(() => {});
+    return next;
+  }
+}
+
+function newestVideo(names: string[]): string | undefined {
+  return names.filter((n) => n.startsWith("video")).sort((a, b) => Number(a.slice(5)) - Number(b.slice(5))).pop();
+}
+
+/** Waits (briefly) for the connection's network addresses, which go in the description the SFU gets. */
+function gathered(pc: RTCPeerConnection): Promise<void> {
+  if (pc.iceGatheringState === "complete") return Promise.resolve();
+  return new Promise((resolve) => {
+    const done = () => {
+      pc.removeEventListener("icegatheringstatechange", check);
+      resolve();
+    };
+    const check = () => pc.iceGatheringState === "complete" && done();
+    pc.addEventListener("icegatheringstatechange", check);
+    setTimeout(done, 1500);
   });
-  camera.addEventListener("click", async () => {
-    await call.localParticipant.setCameraEnabled(!call.localParticipant.isCameraEnabled);
-    sync();
+}
+
+function connected(pc: RTCPeerConnection, timeoutMs = 15_000): Promise<void> {
+  if (pc.connectionState === "connected") return Promise.resolve();
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error("Couldn't connect the call")), timeoutMs);
+    const check = () => {
+      if (pc.connectionState === "connected") {
+        clearTimeout(timer);
+        pc.removeEventListener("connectionstatechange", check);
+        resolve();
+      } else if (pc.connectionState === "failed" || pc.connectionState === "closed") {
+        clearTimeout(timer);
+        pc.removeEventListener("connectionstatechange", check);
+        reject(new Error("Couldn't connect the call"));
+      }
+    };
+    pc.addEventListener("connectionstatechange", check);
   });
-  $("leave").addEventListener("click", () => call.disconnect());
 }
 
 start();
+
+export {};

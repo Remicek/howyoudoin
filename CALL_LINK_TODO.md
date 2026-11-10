@@ -1,43 +1,74 @@
 # Calls through a link: what's left
 
-The feature is built and tested on branch `feature/call-link` (not merged, not pushed). Everything below needs
-the owner's accounts, a real phone, or a decision. How the feature works, and the setup commands, are in
-[call-link/README.md](call-link/README.md).
+The feature is built on branch `feature/call-link` (not merged, not pushed). Calls go through Cloudflare Realtime
+SFU (it replaced LiveKit on 2026-11-10), end-to-end encrypted by the call page. How it works, and the setup
+commands, are in [call-link/README.md](call-link/README.md).
 
-## Done and tested (2026-11-10, Pixel_10 emulator + headless Chrome as the other person, local LiveKit server)
+## Done and tested
+
+On the Pixel_10 emulator with LiveKit (2026-11-10), still valid because the app side didn't change:
 
 - Header call buttons in one-to-one non-Matrix chats; the explanation dialog; "Don't show this again" skips it
 - The invite link arrives in the chat (sent to the Slack test chat "remicek")
-- The app's call screen waits for the guest; encrypted video and audio both ways; video capped at 540p
-- Hanging up on either side ends the call for both; an expired link says the call has ended
-- In the background: the foreground service keeps the microphone on ("Call in progress" notification, the
-  microphone not silenced after 25 s on the home screen); "Hang up" in the notification ends the call
-- A camera that fails to start (e.g. the app sent to the background while it starts) leaves an audio call
-  instead of ending it
+- In the background: the foreground service keeps the microphone on; "Hang up" in the notification ends the call
 - The guest's page in 12 languages (picked from the browser's), right-to-left for Arabic
-- Unit tests: `HttpLinkCallsTest`, `CallBackTest`, `call-link/test/token.test.ts`; CI runs the worker's tests
-  (checks.yml, job `call-link`)
+
+On two real phones with Realtime SFU (2026-11-10: Chrome on a Galaxy A16 as the host, Chrome on a Galaxy A53 as
+the guest, a local worker with a real SFU app, Wi-Fi):
+
+- Encrypted video both ways at 540p, and audio both ways (sound level measured, not silence); the browsers used
+  RTCRtpScriptTransform
+- Camera off: the other side shows "Audio call"; camera on again: video back within seconds
+- Wi-Fi off for 8 s: the call recovered within 5 s of it returning
+- The call server restarting mid-call: both pages reconnected within about 3 s, video back
+- Hanging up on one side ends it on the other; the old link then says the call has ended
+- Unit tests: `call-link/test/` (call rules, SFU requests, frame encryption), `HttpLinkCallsTest`, `CallBackTest`;
+  CI runs the worker's type check and tests (checks.yml, job `call-link`)
 
 ## Needs the owner's accounts
 
-1. **LiveKit Cloud:** create a project; note its `wss://` URL, API key and secret.
-2. **Cloudflare:** `cd call-link && npm install && npx wrangler login`, put the LiveKit URL in `wrangler.toml`,
-   `npx wrangler secret put LIVEKIT_API_KEY`, `npx wrangler secret put LIVEKIT_API_SECRET`, `npm run deploy`.
-3. **Domain:** route e.g. `call.howyoudoin.app` to the worker (Workers → Settings → Domains & Routes).
-4. **GitHub secret `CALL_LINK_URL`** (e.g. `https://call.howyoudoin.app`) so release builds include the feature;
-   locally, `callLink.url=` in `local.properties`. Without it the buttons don't appear.
+1. **Realtime SFU app:** created (its keys are in `call-link/.dev.vars` locally, never committed).
+2. **Deploy:** done 2026-11-10 (`npm run deploy`, secrets via `npx wrangler secret bulk .dev.vars`), at
+   `https://call.howyoudoin.app` (the workers.dev address is off). A call from the A16's Chrome to Chrome on the
+   Mac worked on the deployed worker (video and audio both ways, hang-up ends both).
+3. **TURN (recommended before release):** Realtime → TURN Server → Create, then `wrangler secret put TURN_KEY_ID`
+   and `TURN_KEY_TOKEN`. Without it, calls from networks that block direct WebRTC (some offices, some mobile
+   carriers) won't connect.
+4. **Domain:** done, `call.howyoudoin.app` (custom domain in `wrangler.toml`).
+5. **App address:** done, GitHub secret `CALL_LINK_URL` and `callLink.url` in `local.properties` are both
+   `https://call.howyoudoin.app`.
 
 ## Needs a real phone
 
-- [ ] A whole call on a real phone (the A53 has the Play build; a debug build can't be installed over it without
-      uninstalling). The emulator was too slow to decode 720p video; check 540p looks fine on a phone.
-- [ ] **Call back here** under a real incoming/missed call on WhatsApp, Messenger, Signal, Telegram, Instagram
-      (none of the test chats had one; `CallBackTest` covers which messages get the button).
-- [ ] The guest on a phone browser: Safari on an iPhone and Chrome on Android, on mobile data (LiveKit Cloud
-      relays through TURN when a direct connection fails; the local test server had no TURN).
+- [ ] A call started from the app's call screen (the WebView) with Realtime SFU. The phone test above used Chrome
+      on both sides, so as not to send an invite into a personal chat. The A16 has a debug build pointing at
+      `http://localhost:8787`.
+- [ ] The guest on Safari on an iPhone, and on mobile data (with TURN set up).
+- [ ] **Call back here** under a real incoming/missed call on WhatsApp, Messenger, Signal, Telegram, Instagram.
 - [ ] The link as received in each network's own app: is it clickable, does the preview look fine.
-- [ ] The emulator showed an ANR ("HowYouDoin isn't responding", MainActivity focus timeout) when pressing Home
-      during a call, with the emulator's load average around 7. Check it doesn't happen on a phone.
+- [ ] The emulator showed an ANR when pressing Home during a call (load average around 7). Check it doesn't happen
+      on a phone.
+
+## Small things noticed
+
+- Opening an ended link and pressing Join asks for the microphone before saying the call has ended. The page
+  could check the call first.
+
+## Later: group calls
+
+Calls are for two people on purpose (buttons only in one-to-one chats; `room.ts` has a host and one guest). The
+SFU handles groups; what it would take:
+
+- [ ] **Server** (`src/room.ts`, `CallRoom`): a list of people with a size limit (e.g. 8) instead of host and
+      guest; announce each person's publications to everyone; the call ends when the last person leaves, not
+      when anyone hangs up.
+- [ ] **Page** (`web/call.ts`): a video grid; receive each person's audio and newest video. The encryption needs
+      no change: everyone has the same key from the link.
+- [ ] **App:** call buttons in group chats, invite sent to the group (the link then reaches everyone in that chat,
+      and anyone they forward it to).
+- [ ] **Data:** each person downloads everyone else's video. Above 3–4 people, send two qualities (simulcast) so
+      the SFU can send small tiles at the lower one.
+- [ ] Test with three or more devices.
 
 ## Clean-up
 
@@ -50,9 +81,8 @@ the owner's accounts, a real phone, or a decision. How the feature works, and th
   and the call goes on in the background, back through the notification.
 - **The call notification is low-importance** (it shares the `calls_ongoing` channel with Matrix calls, so it
   sits under "Silent"). The green microphone indicator still shows.
-- **Privacy wording:** `docs/privacy-policy.md` and the Play descriptions (en, pl) were updated on this branch to
-  say the optional calls through a link use a call server. Re-check the Play Data safety answers before release
-  (see the note at the end of `docs/data-safety.md`).
+- **Privacy wording:** `docs/privacy-policy.md`, `docs/data-safety.md` and the Play descriptions (en, pl) say the
+  optional calls through a link use Cloudflare's servers. Re-check the Play Data safety answers before release.
 - **iOS:** stubs only (no buttons). The same page would work in a WKWebView later.
-- **Merge and release:** merge `feature/call-link` into `main` once the accounts are set up and a real-phone
-  call works; then a release (the store listing text changed too).
+- **Merge and release:** merge `feature/call-link` into `main` once deployed and a call from the app works; then
+  a release (the store listing text changed too).

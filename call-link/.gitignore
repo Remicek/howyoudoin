@@ -3,4 +3,6 @@ node_modules/
 .dev.vars
 # Built by npm run build
 public/call.js
-public/e2ee-worker.mjs
+public/e2ee-worker.js
+# Made by npm run types (wrangler types)
+worker-configuration.d.ts

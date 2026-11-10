@@ -4,7 +4,7 @@
 # - Secrets: gitleaks scans the whole git history for keys, tokens and passwords
 # - Go vulnerabilities: govulncheck reports known vulnerabilities the network clients actually call
 # - Gradle wrapper: the gradle-wrapper.jar is an official Gradle release
-# - Call link: the call-link/ worker's tests, its page builds, and npm audit of its dependencies
+# - Call link: the call-link/ worker's and page's type check and tests, the page builds, and npm audit
 # - Android lint (correctness, security and translation checks) and detekt (Kotlin static analysis, rules in
 #   config/detekt/detekt.yml, no baseline): any finding fails
 name: Checks
@@ -57,6 +57,8 @@ jobs:
           cache: npm
           cache-dependency-path: call-link/package-lock.json
       - run: npm ci
+      - run: npm run types
+      - run: npm run typecheck
       - run: npm test
       - run: npm run build
       - run: npm audit --omit=dev --audit-level=high
