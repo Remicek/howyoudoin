@@ -18,6 +18,9 @@ interface OnDeviceMessenger {
     /** Which network this client connects (Messenger, or WhatsApp through [OnDeviceWhatsApp]). */
     val network: ChatNetwork get() = ChatNetwork.MESSENGER
 
+    /** Which of the network's accounts on the phone this is (0 for the first, see [AccountRef]). */
+    val slot: Int get() = 0
+
     /** False where the native library isn't available. */
     val isSupported: Boolean
     val state: StateFlow<OnDeviceMessengerState>
@@ -394,3 +397,9 @@ data class FoundPerson(
     val handle: String? = null,
     val avatarUrl: String? = null
 )
+
+/**
+ * Which account this client connects. An extension, not a member: a client made by delegation ("by
+ * UnsupportedOnDeviceMessenger") would otherwise take the delegate's.
+ */
+val OnDeviceMessenger.account: AccountRef get() = AccountRef(network, slot)

@@ -223,4 +223,13 @@
     <string name="link_call_invite">Burada konuşalım, tarayıcında açılır: %1$s</string>
     <string name="link_call_invite_video">Görüntülü aramaya katıl, tarayıcında açılır: %1$s</string>
     <string name="link_call_failed">Arama başlatılamadı. Birazdan tekrar deneyin.</string>
+    <!-- Several accounts of one network on the phone -->
+    <string name="account_default">Hesap %1$d</string>
+    <string name="inbox_all_of_network">Tüm %1$s</string>
+    <string name="conversation_replying_as">%1$s olarak yanıtlıyorsunuz</string>
+    <string name="contacts_choose_account">Hangi %1$s hesabıyla yazıyorsunuz?</string>
+    <plurals name="inbox_network_accounts">
+        <item quantity="one">%1$s, %2$d hesap</item>
+        <item quantity="other">%1$s, %2$d hesap</item>
+    </plurals>
 </resources>

@@ -17,7 +17,9 @@ data class Chat(
     /** Connected from the phone itself (experimental on-device bridge), not through the server. */
     val isOnDevice: Boolean = false,
     /** An invitation (Matrix) not accepted yet: the chat shows Accept / Decline instead of the composer. */
-    val isInvite: Boolean = false
+    val isInvite: Boolean = false,
+    /** Which of the network's accounts on the phone the chat belongs to (0 for the first; see AccountRef). */
+    val accountSlot: Int = 0
 ) {
     /** Sort key for the inbox, newest activity first. */
     val lastActivity: Long get() = lastMessage?.timestamp ?: 0L

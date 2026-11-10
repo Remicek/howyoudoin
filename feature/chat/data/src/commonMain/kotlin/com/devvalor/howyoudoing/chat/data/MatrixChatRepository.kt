@@ -76,7 +76,8 @@ class MatrixChatRepository(
 
     override suspend fun searchPeople(
         network: ChatNetwork,
-        query: String
+        query: String,
+        accountSlot: Int
     ): Result<List<ChatContact>, DataError.Remote> {
         val found = if (network == ChatNetwork.MATRIX) {
             directChats.searchPeople(query)

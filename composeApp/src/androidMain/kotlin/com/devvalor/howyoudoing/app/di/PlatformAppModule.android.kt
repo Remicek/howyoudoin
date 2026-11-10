@@ -1,6 +1,7 @@
 package com.devvalor.howyoudoing.app.di
 
 import com.devvalor.howyoudoing.app.promotion.AndroidAppPromotion
+import com.devvalor.howyoudoing.core.domain.ondevice.account
 import com.devvalor.howyoudoing.core.domain.app.AppPromotion
 import com.devvalor.howyoudoing.app.connectivity.AndroidInternetConnection
 import com.devvalor.howyoudoing.core.domain.connectivity.InternetConnection
@@ -74,6 +75,10 @@ import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceMatrix
 import java.io.File
 import org.koin.dsl.bind
+import com.devvalor.howyoudoing.core.domain.ondevice.AccountRef
+import com.devvalor.howyoudoing.app.backup.SavedLoginsFormat
+import com.devvalor.howyoudoing.core.domain.ondevice.ExtraAccounts
+import com.devvalor.howyoudoing.chat.data.ondevice.ExtraInboxCaches
 import com.devvalor.howyoudoing.app.call.AndroidCallMediaEngine
 import com.devvalor.howyoudoing.app.call.CallActivity
 import com.devvalor.howyoudoing.app.call.LinkCallActivity
@@ -98,7 +103,7 @@ actual val platformAppModule: Module = module {
         AppInfo(versionName = version ?: "?", sourceCodeUrl = SOURCE_CODE_URL, privacyPolicyUrl = PRIVACY_POLICY_URL)
     }
     single<MessageNotificationPresenter> { AndroidNotificationPresenter(androidContext()) }
-    single(createdAtStart = true) { IncomingMessageNotifier(get(), get(), get(), get(), get(), get()) }
+    single(createdAtStart = true) { IncomingMessageNotifier(get(), get(), get(), get(), get(), get(), get()) }
     single<BackgroundDelivery> { AndroidBackgroundDelivery(androidContext()) }
     single(createdAtStart = true) { OnlineReconnector(androidContext(), get(), get()) }
     single<InternetConnection> { AndroidInternetConnection(androidContext()) }
@@ -112,9 +117,10 @@ actual val platformAppModule: Module = module {
                 get<OnDeviceTelegram>(),
                 get<OnDeviceSignal>(),
                 get<OnDeviceSlack>()
-            ) + get<OnDeviceNetworks>().clients.values,
+            ) + get<OnDeviceNetworks>().clients.values + get<ExtraAccounts>().clients,
             linkedAccounts = listOf(get<OnDeviceWhatsApp>(), get<OnDeviceTelegram>(), get<OnDeviceSignal>()) +
-                get<OnDeviceNetworks>().clients.values.filterIsInstance<OnDeviceLinkedAccount>(),
+                get<OnDeviceNetworks>().clients.values.filterIsInstance<OnDeviceLinkedAccount>() +
+                get<ExtraAccounts>().clients.filterIsInstance<OnDeviceLinkedAccount>(),
             scope = get()
         )
     }
@@ -178,6 +184,14 @@ actual val platformAppModule: Module = module {
     single {
         OnDeviceNetworks(OnDeviceNetworks.ALL.associateWith { get<OnDeviceMessenger>(named(onDeviceClientName(it))) })
     }
+    single { extraAccountClients(androidContext(), get(), get<AndroidTelegramApiKeys>().current(), get()) }
+    single {
+        ExtraInboxCaches(
+            get<ExtraAccounts>().clients.associate {
+                it.account to AndroidInboxCache(androidContext(), it.account.dataDir)
+            }
+        )
+    }
     single { AndroidCallMediaEngine(androidContext()) } bind CallMediaEngine::class
     single<MatrixCryptoFactory> { GoMatrixCryptoFactory(androidContext()) }
     single<MatrixMediaCache> { AndroidMatrixMediaCache(androidContext()) }
@@ -198,19 +212,32 @@ actual val platformAppModule: Module = module {
             matrixSession = get(named(MATRIX_ACCOUNT_SESSION)),
             sources = AndroidLoginBackup.BackupSources(
                 cookieLogins = mapOf(
-                    ChatNetwork.MESSENGER to (get<OnDeviceMessenger>() to KeystoreSecretStore(androidContext())),
-                    ChatNetwork.INSTAGRAM to
+                    AccountRef(ChatNetwork.MESSENGER) to
+                        (get<OnDeviceMessenger>() to KeystoreSecretStore(androidContext())),
+                    AccountRef(ChatNetwork.INSTAGRAM) to
                         (get<OnDeviceInstagram>() to KeystoreSecretStore(androidContext(), INSTAGRAM_DIR)),
-                    ChatNetwork.SLACK to (get<OnDeviceSlack>() to KeystoreSecretStore(androidContext(), SLACK_DIR))
-                ) + OnDeviceNetworks.WEB_LOGIN.associateWith { network ->
-                    get<OnDeviceMessenger>(named(onDeviceClientName(network))) to
-                        KeystoreSecretStore(androidContext(), network.dataDir)
-                },
-                telegram = get<OnDeviceTelegram>() as NativeOnDeviceTelegram,
-                telegramDir = File(androidContext().noBackupFilesDir, TELEGRAM_DIR),
+                    AccountRef(ChatNetwork.SLACK) to
+                        (get<OnDeviceSlack>() to KeystoreSecretStore(androidContext(), SLACK_DIR))
+                ) + OnDeviceNetworks.WEB_LOGIN.associate { network ->
+                    AccountRef(network) to (
+                        get<OnDeviceMessenger>(named(onDeviceClientName(network))) to
+                            KeystoreSecretStore(androidContext(), network.dataDir)
+                        )
+                } + get<ExtraAccounts>().clients
+                    .filter { it.network in SavedLoginsFormat.COOKIE_NETWORKS }
+                    .associate { it.account to (it to KeystoreSecretStore(androidContext(), it.account.dataDir)) },
+                telegram = (listOf(get<OnDeviceTelegram>()) + get<ExtraAccounts>().clients)
+                    .filter { it.network == ChatNetwork.TELEGRAM }
+                    .filterIsInstance<NativeOnDeviceTelegram>()
+                    .associate { it.slot to (it to File(androidContext().noBackupFilesDir, it.account.dataDir)) },
                 relinkOnly = listOf(get<OnDeviceWhatsApp>(), get<OnDeviceSignal>()) +
-                    OnDeviceNetworks.PAIRED.map { get<OnDeviceMessenger>(named(onDeviceClientName(it))) },
-                matrix = get<OnDeviceMatrix>()
+                    OnDeviceNetworks.PAIRED.map { get<OnDeviceMessenger>(named(onDeviceClientName(it))) } +
+                    get<ExtraAccounts>().clients.filter {
+                        it.network == ChatNetwork.WHATSAPP || it.network == ChatNetwork.SIGNAL ||
+                            it.network in OnDeviceNetworks.PAIRED
+                    },
+                matrix = get<OnDeviceMatrix>(),
+                labels = get()
             ),
             scope = get()
         )
@@ -225,14 +252,16 @@ actual val platformAppModule: Module = module {
     }
 }
 
-private const val WHATSAPP_DIR = "on_device_whatsapp"
-private const val INSTAGRAM_DIR = "on_device_instagram"
-private const val TELEGRAM_DIR = "on_device_telegram"
-private const val SIGNAL_DIR = "on_device_signal"
-private const val SLACK_DIR = "on_device_slack"
+/** The first Messenger account's folder (the app's first network, so named like the defaults). */
+internal const val MESSENGER_DIR = "on_device_messenger"
+internal const val WHATSAPP_DIR = "on_device_whatsapp"
+internal const val INSTAGRAM_DIR = "on_device_instagram"
+internal const val TELEGRAM_DIR = "on_device_telegram"
+internal const val SIGNAL_DIR = "on_device_signal"
+internal const val SLACK_DIR = "on_device_slack"
 
 /** Where a network added later keeps its data ("on_device_bluesky"). */
-private val ChatNetwork.dataDir: String get() = "on_device_" + name.lowercase()
+internal val ChatNetwork.dataDir: String get() = "on_device_" + name.lowercase()
 
 /** The network's name in hydbridge's NewChatClient. */
-private val ChatNetwork.goName: String get() = name.lowercase().replace("_", "")
+internal val ChatNetwork.goName: String get() = name.lowercase().replace("_", "")

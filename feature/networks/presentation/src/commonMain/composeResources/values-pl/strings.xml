@@ -231,4 +231,17 @@
     <string name="networks_fix_step_connect">2. Potem stuknij Połącz i zaloguj się ponownie.</string>
     <string name="networks_fix_now_connect">Odłączono. Teraz stuknij Połącz poniżej i zaloguj się ponownie.</string>
     <string name="networks_fix_done">%1$s znów działa.</string>
+    <!-- Several accounts of one network on the phone -->
+    <string name="networks_add_account">Dodaj kolejne konto · %1$d z %2$d</string>
+    <string name="networks_accounts_full">Połączono %1$d z %1$d kont: odłącz jedno, aby dodać inne.</string>
+    <string name="networks_account_rename">Nazwa i kolor</string>
+    <string name="networks_account_reconnect">Połącz ponownie</string>
+    <string name="networks_account_more">Opcje dla %1$s</string>
+    <string name="networks_account_default">Konto %1$d</string>
+    <string name="networks_name_account_title">Nazwij to konto %1$s</string>
+    <string name="networks_name_account_body">Nazwa i kolor odróżniają Twoje konta %1$s w skrzynce, w czatach i w powiadomieniach.</string>
+    <string name="networks_account_name_hint">Praca, Prywatne…</string>
+    <string name="networks_account_colour">Kolor</string>
+    <string name="networks_save">Zapisz</string>
+    <string name="networks_duplicate_account">To konto %1$s jest już połączone na tym telefonie, więc nowe logowanie zostało usunięte.</string>
 </resources>

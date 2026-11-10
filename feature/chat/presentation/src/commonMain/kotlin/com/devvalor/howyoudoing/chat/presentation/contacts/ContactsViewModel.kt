@@ -1,5 +1,8 @@
 package com.devvalor.howyoudoing.chat.presentation.contacts
 
+import com.devvalor.howyoudoing.chat.presentation.model.AccountTagUi
+import com.devvalor.howyoudoing.chat.presentation.model.accountTag
+import com.devvalor.howyoudoing.core.domain.ondevice.AccountTags
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.devvalor.howyoudoing.chat.domain.ChatContact
@@ -44,13 +47,21 @@ data class ContactsState(
     val isSearching: Boolean = false,
     val searchError: UiText? = null,
     val isLoading: Boolean = true,
-    val error: UiText? = null
+    val error: UiText? = null,
+    /** The chosen network's accounts on the phone, when it has more than one: which one writes. */
+    val accounts: List<AccountChoiceUi> = emptyList(),
+    /** The chosen account (new message), null until one is picked. */
+    val slot: Int? = null
 ) {
     val isPickingNetwork: Boolean get() = isNewMessage && network == null
+    val isPickingAccount: Boolean get() = isNewMessage && network != null && accounts.size > 1 && slot == null
 }
+
+data class AccountChoiceUi(val slot: Int, val tag: AccountTagUi)
 
 sealed interface ContactsAction {
     data class OnNetworkSelect(val network: ChatNetwork?) : ContactsAction
+    data class OnAccountSelect(val slot: Int) : ContactsAction
     data class OnQueryChange(val query: String) : ContactsAction
     data class OnContactClick(val contact: ChatContact) : ContactsAction
     data object OnBackClick : ContactsAction
@@ -68,6 +79,7 @@ sealed interface ContactsEvent {
 class ContactsViewModel(
     private val chatRepository: ChatRepository,
     connectionMonitor: ConnectionMonitor,
+    accountTags: AccountTags,
     isNewMessage: Boolean
 ) : ViewModel() {
 
@@ -79,6 +91,7 @@ class ContactsViewModel(
     /** The last search: what was searched for, and the people found or why it failed. */
     private data class SearchResult(
         val network: ChatNetwork? = null,
+        val slot: Int = 0,
         val query: String = "",
         val found: List<ChatContact> = emptyList(),
         val isSearching: Boolean = false,
@@ -89,22 +102,30 @@ class ContactsViewModel(
         ui,
         chatRepository.observeContacts(),
         search,
-        connectionMonitor.linkedNetworks
-    ) { s, all, searched, linked ->
+        connectionMonitor.linkedNetworks,
+        accountTags.observe()
+    ) { s, all, searched, linked, tags ->
         // A network just connected has no contacts yet, but it can still be written to
         val networks = (all.map { it.network } + linked).distinct().sortedBy { it.ordinal }
         // With one network there's nothing to choose
         val network = s.network ?: networks.singleOrNull()?.takeIf { s.isNewMessage }
+        val accounts = tags.keys.filter { it.network == network }.sortedBy { it.slot }
+            .mapNotNull { account -> accountTag(account, tags)?.let { AccountChoiceUi(account.slot, it) } }
+        // One account: nothing to choose either
+        val slot = s.slot ?: accounts.singleOrNull()?.slot
         val query = s.query.trim()
         val shown = all
             .filter { network == null || it.network == network }
+            .filter { !s.isNewMessage || accounts.isEmpty() || it.accountSlot == slot }
             .filter { query.isEmpty() || it.name.contains(query, ignoreCase = true) }
-        val chosen = s.copy(network = network)
-        val current = searched.takeIf { it.network == network && it.query == query && s.isNewMessage }
+        val chosen = s.copy(network = network, accounts = accounts, slot = slot)
+        val current = searched.takeIf {
+            it.network == network && it.slot == (slot ?: 0) && it.query == query && s.isNewMessage
+        }
         val shownIds = shown.map { it.id }.toSet()
         chosen.copy(
             networks = networks,
-            contacts = if (chosen.isPickingNetwork) emptyList() else shown,
+            contacts = if (chosen.isPickingNetwork || chosen.isPickingAccount) emptyList() else shown,
             found = current?.found.orEmpty().filter { it.id !in shownIds },
             isSearching = current?.isSearching == true,
             searchError = current?.error,
@@ -115,20 +136,24 @@ class ContactsViewModel(
     init {
         // Searching the network as the name is typed, once it's long enough and typing pauses
         viewModelScope.launch {
-            combine(ui, state) { s, current -> current.network.takeIf { s.isNewMessage } to s.query.trim() }
+            combine(ui, state) { s, current ->
+                val network = current.network.takeIf { s.isNewMessage && !current.isPickingAccount }
+                Triple(network, current.slot ?: 0, s.query.trim())
+            }
                 .distinctUntilChanged()
-                .collectLatest { (network, query) ->
+                .collectLatest { (network, slot, query) ->
                     if (network == null || query.length < MIN_SEARCH_LENGTH) {
                         search.value = SearchResult()
                         return@collectLatest
                     }
                     delay(SEARCH_DELAY_MILLIS)
-                    search.value = SearchResult(network, query, isSearching = true)
-                    search.value = when (val result = chatRepository.searchPeople(network, query)) {
-                        is Result.Success -> SearchResult(network, query, found = result.data)
+                    search.value = SearchResult(network, slot, query, isSearching = true)
+                    search.value = when (val result = chatRepository.searchPeople(network, query, slot)) {
+                        is Result.Success -> SearchResult(network, slot, query, found = result.data)
                         // A network that can't be searched from here just isn't
                         is Result.Failure -> SearchResult(
                             network,
+                            slot,
                             query,
                             error = UiText.Resource(Res.string.contacts_search_failed, arrayOf(network.displayName))
                                 .takeIf { result.error != DataError.Remote.BAD_REQUEST }
@@ -141,8 +166,9 @@ class ContactsViewModel(
     fun onAction(action: ContactsAction) {
         when (action) {
             is ContactsAction.OnNetworkSelect -> ui.update {
-                it.copy(network = action.network, query = "", error = null)
+                it.copy(network = action.network, slot = null, query = "", error = null)
             }
+            is ContactsAction.OnAccountSelect -> ui.update { it.copy(slot = action.slot, query = "", error = null) }
             is ContactsAction.OnQueryChange -> ui.update { it.copy(query = action.query) }
             is ContactsAction.OnContactClick -> startChat(action.contact)
             ContactsAction.OnBackClick -> back()
@@ -152,7 +178,10 @@ class ContactsViewModel(
     /** Back from a chosen network to the network picker, else away. */
     private fun back() {
         val s = ui.value
-        if (s.isNewMessage && s.network != null && s.networks.size != 1) {
+        val shown = state.value
+        if (s.isNewMessage && s.slot != null && shown.accounts.size > 1) {
+            ui.update { it.copy(slot = null, query = "", error = null) }
+        } else if (s.isNewMessage && s.network != null && s.networks.size != 1) {
             ui.update { it.copy(network = null, query = "", error = null) }
         } else {
             viewModelScope.launch { events.send(ContactsEvent.Close) }

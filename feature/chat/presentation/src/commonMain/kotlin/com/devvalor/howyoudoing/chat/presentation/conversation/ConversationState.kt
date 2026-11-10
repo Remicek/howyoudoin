@@ -1,5 +1,6 @@
 package com.devvalor.howyoudoing.chat.presentation.conversation
 
+import com.devvalor.howyoudoing.chat.presentation.model.AccountTagUi
 import com.devvalor.howyoudoing.core.presentation.util.UiText
 import com.devvalor.howyoudoing.chat.presentation.platform.PlayableVideo
 import com.devvalor.howyoudoing.chat.presentation.model.MessageUi
@@ -12,6 +13,8 @@ data class ConversationState(
     val isGroup: Boolean = false,
     val isEncrypted: Boolean = false,
     val isOnDevice: Boolean = false,
+    /** Which account the chat is on, where its network has more than one on the phone ("Replying as Work"). */
+    val account: AccountTagUi? = null,
     /** No notifications for this chat. */
     val isMuted: Boolean = false,
     /** A one-to-one Matrix chat: audio and video calls work here. */

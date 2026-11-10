@@ -145,6 +145,12 @@ interface OnDeviceDataDirectory {
 
     /** Removes what [writeThumbnail] wrote, once the bridge is done with it. */
     fun deleteThumbnail(mediaPath: String) = Unit
+
+    /** Whether the empty file [name] is in the directory; platforms without it answer yes. */
+    fun hasMarker(name: String): Boolean = true
+
+    /** Puts the empty file [name] in the directory ([clear] removes it). */
+    fun writeMarker(name: String) = Unit
 }
 
 /** Where the bridge looks for a video's preview picture: beside the video, see hydbridge's `takeVideoThumbnail`. */
@@ -170,7 +176,8 @@ open class NativeOnDeviceMessenger(
     private val secrets: OnDeviceSecretStore,
     private val dataDir: OnDeviceDataDirectory,
     private val scope: CoroutineScope,
-    private val captchaSolver: CaptchaSolver? = null
+    private val captchaSolver: CaptchaSolver? = null,
+    override val slot: Int = 0
 ) : OnDeviceMessenger {
 
     private val lock = Mutex()
@@ -558,8 +565,9 @@ class NativeOnDeviceInstagram(
     factory: NativeMessengerFactory,
     secrets: OnDeviceSecretStore,
     dataDir: OnDeviceDataDirectory,
-    scope: CoroutineScope
-) : NativeOnDeviceMessenger(factory, secrets, dataDir, scope), OnDeviceInstagram {
+    scope: CoroutineScope,
+    slot: Int = 0
+) : NativeOnDeviceMessenger(factory, secrets, dataDir, scope, slot = slot), OnDeviceInstagram {
     override val network: ChatNetwork get() = ChatNetwork.INSTAGRAM
 }
 
@@ -569,8 +577,9 @@ class NativeOnDeviceSlack(
     factory: NativeMessengerFactory,
     secrets: OnDeviceSecretStore,
     dataDir: OnDeviceDataDirectory,
-    scope: CoroutineScope
-) : NativeOnDeviceMessenger(factory, secrets, dataDir, scope), OnDeviceSlack {
+    scope: CoroutineScope,
+    slot: Int = 0
+) : NativeOnDeviceMessenger(factory, secrets, dataDir, scope, slot = slot), OnDeviceSlack {
     override val network: ChatNetwork get() = ChatNetwork.SLACK
 }
 
@@ -578,14 +587,16 @@ class NativeOnDeviceSlack(
  * A network logged in from its web page or with a password (Bluesky, LinkedIn, Discord, Google Voice), through
  * hydbridge's shared ChatClient; the "cookies" are whatever that network's login needs.
  */
+@Suppress("LongParameterList") // The shared client's dependencies plus which network and account
 class NativeOnDeviceWebAccount(
     override val network: ChatNetwork,
     factory: NativeMessengerFactory,
     secrets: OnDeviceSecretStore,
     dataDir: OnDeviceDataDirectory,
     scope: CoroutineScope,
-    captchaSolver: CaptchaSolver
-) : NativeOnDeviceMessenger(factory, secrets, dataDir, scope, captchaSolver)
+    captchaSolver: CaptchaSolver,
+    slot: Int = 0
+) : NativeOnDeviceMessenger(factory, secrets, dataDir, scope, captchaSolver, slot)
 
 /** What kind of failure a native error is, from what the network clients put in it. */
 internal fun remoteError(message: String?): DataError.Remote {

@@ -99,23 +99,29 @@ class OnDeviceChatRepository(
         ) { chats, networks -> chats.filterNot { it.network in networks } }
     }
 
-    /** The server's contacts plus every connected network's, by network; a network connected here wins. */
-    override fun observeContacts(): Flow<List<ChatContact>> =
-        sources.fold(server.observeContacts()) { contacts, source ->
-            combine(contacts, source.store.snapshot, source.client.state) { soFar, _, state ->
-                if (state == OnDeviceMessengerState.NotLinked) {
-                    soFar
-                } else {
-                    val network = source.client.network
-                    soFar.filterNot { it.network == network } + source.store.contacts(network)
-                }
+    /**
+     * The server's contacts plus those of every account connected here; a network with an account connected here
+     * shows only those accounts' contacts.
+     */
+    override fun observeContacts(): Flow<List<ChatContact>> {
+        val local = sources.map { source ->
+            combine(source.store.snapshot, source.client.state) { _, state ->
+                if (state == OnDeviceMessengerState.NotLinked) null else source.store.contacts(source.client.network)
+                    .let { source.client.network to it }
             }
-        }.map { contacts -> contacts.sortedBy { it.name.lowercase() } }
+        }
+        return combine(local) { it.filterNotNull() }
+            .combine(server.observeContacts()) { connected, fromServer ->
+                val here = connected.mapTo(mutableSetOf()) { it.first }
+                fromServer.filterNot { it.network in here } + connected.flatMap { it.second }
+            }
+            .map { contacts -> contacts.sortedBy { it.name.lowercase() } }
+    }
 
     override suspend fun startChat(contact: ChatContact): Result<String, DataError.Remote> {
         if (isMatrixAccountContact(contact)) return matrixAccount.startChat(contact)
         val existing = contact.chatId
-        val source = sources.firstOrNull { it.client.network == contact.network && it.client.isSupported }
+        val source = source(contact.network, contact.accountSlot)
         val key = source?.client?.directChatKey(contact.id)
         return when {
             existing != null -> Result.Success(existing)
@@ -130,6 +136,10 @@ class OnDeviceChatRepository(
         }
     }
 
+    /** The account [slot] of [network] connected here, if the phone can connect it. */
+    private fun source(network: ChatNetwork, slot: Int): OnDeviceSource? =
+        sources.firstOrNull { it.client.network == network && it.client.slot == slot && it.client.isSupported }
+
     /** Someone on Matrix, reached through the Matrix account connected as a network (it has rooms of its own). */
     private fun isMatrixAccountContact(contact: ChatContact): Boolean {
         val chatId = contact.chatId
@@ -139,13 +149,13 @@ class OnDeviceChatRepository(
 
     override suspend fun searchPeople(
         network: ChatNetwork,
-        query: String
+        query: String,
+        accountSlot: Int
     ): Result<List<ChatContact>, DataError.Remote> {
         if (network == ChatNetwork.MATRIX && matrixAccount.isConnected) {
             return matrixAccount.searchPeople(network, query)
         }
-        val source = sources.firstOrNull { it.client.network == network && it.client.isSupported }
-            ?: return server.searchPeople(network, query)
+        val source = source(network, accountSlot) ?: return server.searchPeople(network, query)
         return when (val found = source.client.searchPeople(query)) {
             is Result.Failure -> found
             is Result.Success -> {
@@ -159,7 +169,8 @@ class OnDeviceChatRepository(
                             network = network,
                             avatarUrl = person.avatarUrl,
                             chatId = known[person.id]?.chatId,
-                            handle = person.handle
+                            handle = person.handle,
+                            accountSlot = accountSlot
                         )
                     }
                 )

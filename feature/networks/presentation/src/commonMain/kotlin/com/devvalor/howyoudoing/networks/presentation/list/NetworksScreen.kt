@@ -95,7 +95,7 @@ import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun NetworksRoot(
-    onConnectClick: (ChatNetwork) -> Unit,
+    onConnectClick: (network: ChatNetwork, slot: Int) -> Unit,
     onTutorialClick: (ChatNetwork) -> Unit,
     onTermsClick: () -> Unit,
     onBack: () -> Unit,
@@ -113,8 +113,11 @@ fun NetworksRoot(
         }
     }
 
-    fun connect(network: ChatNetwork) =
-        if (state.shouldShowTutorial(network)) onTutorialClick(network) else onConnectClick(network)
+    // Another account of a network already connected skips the tutorial: the user has done it before
+    fun connect(network: ChatNetwork, slot: Int = 0) = when {
+        slot == 0 && state.shouldShowTutorial(network) -> onTutorialClick(network)
+        else -> onConnectClick(network, slot)
+    }
 
     // Asked once, before the first network is connected; kept while the user reads the terms
     var riskWarningFor by rememberSaveable { mutableStateOf<ChatNetwork?>(null) }
@@ -137,8 +140,11 @@ fun NetworksRoot(
         onAction = { action ->
             when (action) {
                 is NetworksAction.OnConnectClick ->
-                    if (state.shouldWarnAboutRisk(action.network)) riskWarningFor =
-                        action.network else connect(action.network)
+                    if (state.shouldWarnAboutRisk(action.network) && action.slot == 0) {
+                        riskWarningFor = action.network
+                    } else {
+                        connect(action.network, action.slot)
+                    }
 
                 NetworksAction.OnBackClick -> onBack()
                 else -> viewModel.onAction(action)
@@ -170,6 +176,14 @@ fun NetworksScreen(
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { padding ->
+        state.naming?.let { account ->
+            NameAccountDialog(
+                account = account,
+                current = state.labels[account],
+                onSave = { onAction(NetworksAction.OnLabelSave(account, it)) },
+                onDismiss = { onAction(NetworksAction.OnLabelDismiss) }
+            )
+        }
         LazyColumn(
             contentPadding = PaddingValues(HowYouDoinSpacing.md),
             verticalArrangement = Arrangement.spacedBy(HowYouDoinSpacing.sm),
@@ -195,7 +209,7 @@ fun NetworksScreen(
                 NetworkCard(
                     item = item,
                     onAction = onAction,
-                    onDevice = state.onDevice[item.network] ?: OnDeviceMessengerState.NotLinked,
+                    state = state,
                 )
             }
         }
@@ -259,9 +273,12 @@ private fun TroubleshootCard(network: ChatNetwork, onDevice: OnDeviceMessengerSt
 private fun NetworkCard(
     item: NetworkItemUi,
     onAction: (NetworksAction) -> Unit,
-    onDevice: OnDeviceMessengerState = OnDeviceMessengerState.NotLinked,
+    state: NetworksState,
 ) {
     val network = item.network
+    // Any of the network's accounts on this phone (the first one may have been disconnected before another)
+    val onDevice = state.linkedAccounts(network).firstOrNull()?.let { state.accounts[it] }
+        ?: state.onDevice[network] ?: OnDeviceMessengerState.NotLinked
     val isComingSoon = item.status == NetworkStatus.ComingSoon
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
@@ -306,58 +323,7 @@ private fun NetworkCard(
                         onDisconnect = { onAction(NetworksAction.OnDisconnectClick(network, login.id)) })
                 }
             }
-            if (onDevice != OnDeviceMessengerState.NotLinked) {
-                var confirmDisconnect by remember { mutableStateOf(false) }
-                if (confirmDisconnect) {
-                    AlertDialog(
-                        onDismissRequest = { confirmDisconnect = false },
-                        title = { Text(stringResource(Res.string.networks_disconnect_title, network.displayName)) },
-                        text = {
-                            Text(
-                                stringResource(Res.string.networks_disconnect_body, network.displayName)
-                            )
-                        },
-                        confirmButton = {
-                            TextButton(onClick = {
-                                confirmDisconnect = false
-                                onAction(NetworksAction.OnDisconnectOnDeviceClick(network))
-                            }) {
-                                Text(
-                                    stringResource(Res.string.networks_disconnect),
-                                    color = MaterialTheme.colorScheme.error
-                                )
-                            }
-                        },
-                        dismissButton = {
-                            TextButton(onClick = {
-                                confirmDisconnect = false
-                            }) { Text(stringResource(Res.string.networks_cancel)) }
-                        },
-                    )
-                }
-                Spacer(Modifier.height(HowYouDoinSpacing.sm))
-                LoginRow(
-                    login = NetworkLogin(
-                        id = "on-device",
-                        name = (onDevice as? OnDeviceMessengerState.Connected).let { connected ->
-                            val accountName = connected?.accountName ?: network.displayName
-                            val workspace = connected?.workspace
-                            if (workspace != null) {
-                                stringResource(Res.string.networks_on_device_workspace, accountName, workspace)
-                            } else {
-                                stringResource(Res.string.networks_on_device_name, accountName)
-                            }
-                        },
-                        state = when (onDevice) {
-                            is OnDeviceMessengerState.Connected -> "CONNECTED"
-                            OnDeviceMessengerState.Connecting -> "CONNECTING"
-                            is OnDeviceMessengerState.Failed -> "ERROR: ${onDevice.message}"
-                            OnDeviceMessengerState.NotLinked -> null
-                        }
-                    ),
-                    onDisconnect = { confirmDisconnect = true },
-                )
-            }
+            OnDeviceAccountRows(network, state, onAction)
         }
     }
 }

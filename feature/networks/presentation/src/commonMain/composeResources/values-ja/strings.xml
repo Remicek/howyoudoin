@@ -225,4 +225,17 @@
     <string name="networks_fix_step_connect">2. 次に「接続」をタップして、もう一度ログインします。</string>
     <string name="networks_fix_now_connect">接続を解除しました。下の「接続」をタップして、もう一度ログインしてください。</string>
     <string name="networks_fix_done">%1$s は再び使えるようになりました。</string>
+    <!-- Several accounts of one network on the phone -->
+    <string name="networks_add_account">別のアカウントを追加 · %1$d / %2$d</string>
+    <string name="networks_accounts_full">%1$d / %1$d 件のアカウントが接続済み：別のアカウントを追加するには 1 つの接続を解除してください。</string>
+    <string name="networks_account_rename">名前と色</string>
+    <string name="networks_account_reconnect">再接続</string>
+    <string name="networks_account_more">%1$s のオプション</string>
+    <string name="networks_account_default">アカウント %1$d</string>
+    <string name="networks_name_account_title">この %1$s アカウントに名前を付ける</string>
+    <string name="networks_name_account_body">名前と色で、受信トレイ・チャット・通知の中の %1$s アカウントを見分けられます。</string>
+    <string name="networks_account_name_hint">仕事、プライベート…</string>
+    <string name="networks_account_colour">色</string>
+    <string name="networks_save">保存</string>
+    <string name="networks_duplicate_account">その %1$s アカウントはこのスマートフォンで既に接続されているため、新しいログインは削除されました。</string>
 </resources>

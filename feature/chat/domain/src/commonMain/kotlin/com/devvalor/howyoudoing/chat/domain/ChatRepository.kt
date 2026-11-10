@@ -31,9 +31,14 @@ interface ChatRepository {
 
     /**
      * Searches a network's directory by name, handle or phone number; fails with
-     * [DataError.Remote.BAD_REQUEST] where the network can't be searched from the app.
+     * [DataError.Remote.BAD_REQUEST] where the network can't be searched from the app. [accountSlot]: which of the
+     * network's accounts on the phone searches (and writes to whoever is found).
      */
-    suspend fun searchPeople(network: ChatNetwork, query: String): Result<List<ChatContact>, DataError.Remote> =
+    suspend fun searchPeople(
+        network: ChatNetwork,
+        query: String,
+        accountSlot: Int = 0
+    ): Result<List<ChatContact>, DataError.Remote> =
         Result.Failure(DataError.Remote.BAD_REQUEST)
     fun observeChat(chatId: String): Flow<Chat?>
 

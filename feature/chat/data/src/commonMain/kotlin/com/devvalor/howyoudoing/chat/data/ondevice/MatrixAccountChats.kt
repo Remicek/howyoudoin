@@ -95,7 +95,8 @@ class MatrixAccountChats(private val matrix: MatrixChatRepository) : ChatReposit
 
     override suspend fun searchPeople(
         network: ChatNetwork,
-        query: String
+        query: String,
+        accountSlot: Int
     ): Result<List<ChatContact>, DataError.Remote> =
         when (val found = matrix.searchPeople(network, query)) {
             is Result.Failure -> found

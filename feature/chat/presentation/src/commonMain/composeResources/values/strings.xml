@@ -226,4 +226,13 @@
     <string name="link_call_invite">Let's talk here instead, it opens in your browser: %1$s</string>
     <string name="link_call_invite_video">Join me on a video call, it opens in your browser: %1$s</string>
     <string name="link_call_failed">Couldn't start the call. Try again in a moment.</string>
+    <!-- Several accounts of one network on the phone -->
+    <string name="account_default">Account %1$d</string>
+    <string name="inbox_all_of_network">All %1$s</string>
+    <string name="conversation_replying_as">Replying as %1$s</string>
+    <string name="contacts_choose_account">Which %1$s account writes?</string>
+    <plurals name="inbox_network_accounts">
+        <item quantity="one">%1$s, %2$d account</item>
+        <item quantity="other">%1$s, %2$d accounts</item>
+    </plurals>
 </resources>

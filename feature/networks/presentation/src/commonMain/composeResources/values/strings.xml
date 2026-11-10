@@ -227,4 +227,17 @@
     <string name="networks_fix_step_connect">2. Then tap Connect and log in again.</string>
     <string name="networks_fix_now_connect">Disconnected. Now tap Connect below and log in again.</string>
     <string name="networks_fix_done">%1$s works again.</string>
+    <!-- Several accounts of one network on the phone -->
+    <string name="networks_add_account">Add another account · %1$d of %2$d</string>
+    <string name="networks_accounts_full">%1$d of %1$d accounts connected: disconnect one to add another.</string>
+    <string name="networks_account_rename">Name and colour</string>
+    <string name="networks_account_reconnect">Reconnect</string>
+    <string name="networks_account_more">Options for %1$s</string>
+    <string name="networks_account_default">Account %1$d</string>
+    <string name="networks_name_account_title">Name this %1$s account</string>
+    <string name="networks_name_account_body">A name and colour tell your %1$s accounts apart in the inbox, in chats and in notifications.</string>
+    <string name="networks_account_name_hint">Work, Personal…</string>
+    <string name="networks_account_colour">Colour</string>
+    <string name="networks_save">Save</string>
+    <string name="networks_duplicate_account">That %1$s account is already connected on this phone, so the new login was removed.</string>
 </resources>

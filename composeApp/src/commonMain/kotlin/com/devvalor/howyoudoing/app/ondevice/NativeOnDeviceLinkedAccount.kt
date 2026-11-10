@@ -109,11 +109,15 @@ fun interface NativeLinkedClientFactory {
     fun create(dataDir: String, onEvent: (String) -> Unit): NativeLinkedClient
 }
 
+/** Put in an account's folder when it starts logging in (see [NativeOnDeviceLinkedAccount.connectIfLinked]). */
+internal const val IN_USE_MARKER = "account_in_use"
+
 /** A linked-device network running in-process through hydbridge, shared by Android and iOS. */
 abstract class NativeOnDeviceLinkedAccount(
     private val factory: NativeLinkedClientFactory?,
     private val dataDir: OnDeviceDataDirectory,
-    private val scope: CoroutineScope
+    private val scope: CoroutineScope,
+    override val slot: Int = 0
 ) : OnDeviceLinkedAccount {
 
     private val lock = Mutex()
@@ -151,6 +155,9 @@ abstract class NativeOnDeviceLinkedAccount(
 
     /** Connects a linked account; true if that failed. */
     private suspend fun connectLocked(): Boolean = withContext(Dispatchers.IO) {
+        // A second or third account that never started logging in has nothing to open: the native client would
+        // only create an empty store, at every launch
+        if (slot > 0 && !dataDir.hasMarker(IN_USE_MARKER)) return@withContext false
         val current = runCatching { createClient() }.getOrNull()
         if (current == null || !current.isLinked()) return@withContext false
         // Asked again while connected (e.g. by the background service): connecting again is a no-op
@@ -198,6 +205,7 @@ abstract class NativeOnDeviceLinkedAccount(
                     client?.cancelLinking()
                     _pairing.value = null
                     _events.resetReplayCache()
+                    dataDir.writeMarker(IN_USE_MARKER)
                     val created = createClient()
                     _state.value = OnDeviceMessengerState.Connecting
                     created.start()
@@ -475,9 +483,10 @@ abstract class NativeOnDeviceLinkedAccount(
 class NativeOnDeviceWhatsApp(
     factory: NativeLinkedClientFactory?,
     dataDir: OnDeviceDataDirectory,
-    scope: CoroutineScope
+    scope: CoroutineScope,
+    slot: Int = 0
 ) :
-    NativeOnDeviceLinkedAccount(factory, dataDir, scope), OnDeviceWhatsApp {
+    NativeOnDeviceLinkedAccount(factory, dataDir, scope, slot), OnDeviceWhatsApp {
     override val network: ChatNetwork get() = ChatNetwork.WHATSAPP
 
     // A one-to-one chat's JID is the contact's own
@@ -487,17 +496,23 @@ class NativeOnDeviceWhatsApp(
 class NativeOnDeviceTelegram(
     factory: NativeLinkedClientFactory?,
     dataDir: OnDeviceDataDirectory,
-    scope: CoroutineScope
+    scope: CoroutineScope,
+    slot: Int = 0
 ) :
-    NativeOnDeviceLinkedAccount(factory, dataDir, scope), OnDeviceTelegram {
+    NativeOnDeviceLinkedAccount(factory, dataDir, scope, slot), OnDeviceTelegram {
     override val network: ChatNetwork get() = ChatNetwork.TELEGRAM
 
     // hydbridge keys a user's chat "u<user ID>"
     override fun directChatKey(contactId: String): String = "u$contactId"
 }
 
-class NativeOnDeviceSignal(factory: NativeLinkedClientFactory?, dataDir: OnDeviceDataDirectory, scope: CoroutineScope) :
-    NativeOnDeviceLinkedAccount(factory, dataDir, scope), OnDeviceSignal {
+class NativeOnDeviceSignal(
+    factory: NativeLinkedClientFactory?,
+    dataDir: OnDeviceDataDirectory,
+    scope: CoroutineScope,
+    slot: Int = 0
+) :
+    NativeOnDeviceLinkedAccount(factory, dataDir, scope, slot), OnDeviceSignal {
     override val network: ChatNetwork get() = ChatNetwork.SIGNAL
 
     // A one-to-one chat is keyed by the contact's ACI
@@ -511,8 +526,9 @@ class NativeOnDeviceSignal(factory: NativeLinkedClientFactory?, dataDir: OnDevic
 class NativeOnDeviceGoogleMessages(
     factory: NativeLinkedClientFactory?,
     dataDir: OnDeviceDataDirectory,
-    scope: CoroutineScope
-) : NativeOnDeviceLinkedAccount(factory, dataDir, scope) {
+    scope: CoroutineScope,
+    slot: Int = 0
+) : NativeOnDeviceLinkedAccount(factory, dataDir, scope, slot) {
     override val network: ChatNetwork get() = ChatNetwork.GOOGLE_MESSAGES
 
     override suspend fun link(cookies: Map<String, String>): EmptyResult<DataError.Remote> {

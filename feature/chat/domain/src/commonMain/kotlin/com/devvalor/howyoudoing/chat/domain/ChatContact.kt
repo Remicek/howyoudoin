@@ -13,5 +13,7 @@ data class ChatContact(
     val network: ChatNetwork,
     val avatarUrl: String? = null,
     val chatId: String? = null,
-    val handle: String? = null
+    val handle: String? = null,
+    /** Which of the network's accounts on the phone knows this person (0 for the first). */
+    val accountSlot: Int = 0
 )

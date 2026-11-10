@@ -1,6 +1,7 @@
 package com.devvalor.howyoudoing.chat.data.di
 
 import com.devvalor.howyoudoing.chat.data.MatrixChatRepository
+import com.devvalor.howyoudoing.core.domain.ondevice.account
 import com.devvalor.howyoudoing.chat.data.LocalOnlyChatRepository
 import com.devvalor.howyoudoing.chat.data.SessionAwareChatRepository
 import com.devvalor.howyoudoing.chat.data.demo.DemoChatRepository
@@ -10,6 +11,11 @@ import com.devvalor.howyoudoing.chat.data.matrix.MatrixApi
 import com.devvalor.howyoudoing.chat.data.ondevice.OnDeviceChatRepository
 import com.devvalor.howyoudoing.chat.data.ondevice.OnDeviceMessengerStore
 import com.devvalor.howyoudoing.chat.data.ondevice.OnDeviceSource
+import com.devvalor.howyoudoing.chat.data.ondevice.StoreDuplicateAccounts
+import com.devvalor.howyoudoing.core.domain.ondevice.DuplicateAccounts
+import kotlin.time.Clock
+import com.devvalor.howyoudoing.chat.data.ondevice.ExtraInboxCaches
+import com.devvalor.howyoudoing.core.domain.ondevice.ExtraAccounts
 import com.devvalor.howyoudoing.chat.data.ondevice.MatrixAccountChats
 import com.devvalor.howyoudoing.chat.data.matrix.MatrixCallManager
 import com.devvalor.howyoudoing.chat.domain.CallManager
@@ -103,6 +109,17 @@ val chatDataModule = module {
             )
         }
     }
+    // The second and third accounts of the networks that can have them
+    single(createdAtStart = true) {
+        val caches = getOrNull<ExtraInboxCaches>()?.caches.orEmpty()
+        ExtraSources(
+            get<ExtraAccounts>().clients.mapNotNull { client ->
+                val cache = caches[client.account] ?: return@mapNotNull null
+                val prefix = OnDeviceMessengerStore.chatIdPrefix(client.network, client.slot)
+                OnDeviceSource(client, OnDeviceMessengerStore(client, cache, get(), prefix))
+            }
+        )
+    }
     // The Matrix account connected as a network: a second sync engine on its own session
     single(named(MATRIX_ACCOUNT_ENGINE)) {
         MatrixSyncEngine(
@@ -122,9 +139,8 @@ val chatDataModule = module {
         )
     }
     single {
-        OnDeviceChatRepository(
-            server = get(),
-            sources = listOf(
+        OnDeviceSources(
+            listOf(
                 OnDeviceSource(get<OnDeviceMessenger>(), get(named(MESSENGER_STORE))),
                 OnDeviceSource(get<OnDeviceWhatsApp>(), get(named(WHATSAPP_STORE))),
                 OnDeviceSource(get<OnDeviceInstagram>(), get(named(INSTAGRAM_STORE))),
@@ -133,7 +149,19 @@ val chatDataModule = module {
                 OnDeviceSource(get<OnDeviceSlack>(), get(named(SLACK_STORE)))
             ) + OnDeviceNetworks.ALL.map { network ->
                 OnDeviceSource(get(named(onDeviceClientName(network))), get(named(storeName(network))))
-            },
+            } + get<ExtraSources>().sources
+        )
+    }
+    // Built from the repository's sources, so it sees every account's store
+    single<DuplicateAccounts>(createdAtStart = true) {
+        StoreDuplicateAccounts(get<OnDeviceSources>().sources, get(), get()) {
+            Clock.System.now().toEpochMilliseconds()
+        }
+    }
+    single {
+        OnDeviceChatRepository(
+            server = get(),
+            sources = get<OnDeviceSources>().sources,
             httpClient = get(),
             matrixAccount = get()
         )
@@ -170,3 +198,9 @@ fun onDeviceClientName(network: ChatNetwork) = "onDevice:${network.name}"
 
 /** Koin name of the inbox cache of one of the [OnDeviceNetworks]. */
 fun onDeviceCacheName(network: ChatNetwork) = "onDeviceCache:${network.name}"
+
+/** The chat sources of the networks' second and third accounts. */
+private class ExtraSources(val sources: List<OnDeviceSource>)
+
+/** Every account's client and inbox store on the phone. */
+private class OnDeviceSources(val sources: List<OnDeviceSource>)

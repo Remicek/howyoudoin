@@ -225,4 +225,14 @@
     <string name="link_call_invite">Hablemos aquí mejor, se abre en tu navegador: %1$s</string>
     <string name="link_call_invite_video">Únete a una videollamada, se abre en tu navegador: %1$s</string>
     <string name="link_call_failed">No se pudo iniciar la llamada. Inténtalo de nuevo en un momento.</string>
+    <!-- Several accounts of one network on the phone -->
+    <string name="account_default">Cuenta %1$d</string>
+    <string name="inbox_all_of_network">Todo %1$s</string>
+    <string name="conversation_replying_as">Respondes como %1$s</string>
+    <string name="contacts_choose_account">¿Con qué cuenta de %1$s escribes?</string>
+    <plurals name="inbox_network_accounts">
+        <item quantity="one">%1$s, %2$d cuenta</item>
+        <item quantity="many">%1$s, %2$d cuentas</item>
+        <item quantity="other">%1$s, %2$d cuentas</item>
+    </plurals>
 </resources>
