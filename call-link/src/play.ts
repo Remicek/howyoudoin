@@ -28,7 +28,12 @@ export class Play {
   private readonly packageName: string;
   private readonly fetcher: typeof fetch;
 
-  constructor(serviceAccountJson: string, packageName: string, fetcher: typeof fetch = fetch) {
+  // Not `fetcher = fetch`: called as this.fetcher(…), Workers' fetch throws "Illegal invocation"
+  constructor(
+    serviceAccountJson: string,
+    packageName: string,
+    fetcher: typeof fetch = (input, init) => fetch(input, init),
+  ) {
     this.serviceAccountJson = serviceAccountJson;
     this.packageName = packageName;
     this.fetcher = fetcher;

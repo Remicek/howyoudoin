@@ -156,3 +156,19 @@ test("premiumOwner: forgets a subscription Google Play says is over", async () =
   const result = await premiumOwner(known, async () => ({ ...paid, active: false }), now);
   assert.deepEqual(result, { owner: null, remember: null });
 });
+
+test("the default fetch is called on its own, not as a method of Play (Workers refuse that)", async () => {
+  const original = globalThis.fetch;
+  let self: unknown = "unset";
+  globalThis.fetch = function (this: unknown) {
+    self = this;
+    return Promise.resolve(new Response("{}", { status: 404 }));
+  } as typeof fetch;
+  try {
+    const play = new Play(await serviceAccount(), "com.example");
+    await play.subscription("premium_monthly", "token").catch(() => undefined);
+    assert.notEqual(self, play);
+  } finally {
+    globalThis.fetch = original;
+  }
+});
