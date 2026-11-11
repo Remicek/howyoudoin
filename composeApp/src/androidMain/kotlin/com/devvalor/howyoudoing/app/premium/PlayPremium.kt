@@ -91,7 +91,11 @@ class PlayPremium(private val app: Application, private val scope: CoroutineScop
     }
 
     override suspend fun refresh() {
-        if (!connected()) return
+        if (!connected()) {
+            // No Google Play to ask: what's known is all there will be
+            state.update { it.copy(isKnown = true) }
+            return
+        }
         val details = listOf(
             PremiumProduct.SUBSCRIPTION to BillingClient.ProductType.SUBS,
             PremiumProduct.VIDEO_TOP_UP to BillingClient.ProductType.INAPP,
@@ -138,6 +142,8 @@ class PlayPremium(private val app: Application, private val scope: CoroutineScop
         state.update {
             it.copy(
                 isPremium = if (subscription != null || replaceSubscription) subscription != null else it.isPremium,
+                isKnown = it.isKnown || replaceSubscription,
+                checks = if (replaceSubscription) it.checks + 1 else it.checks,
                 subscriptionToken = subscription?.purchaseToken
                     ?: it.subscriptionToken.takeUnless { replaceSubscription },
                 unclaimedTopUps = (it.unclaimedTopUps + topUps).distinct(),

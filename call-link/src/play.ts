@@ -103,6 +103,43 @@ export class Play {
   }
 }
 
+/** What Google Play last confirmed about a subscription, kept by the worker. */
+export interface CheckedSubscription {
+  owner: string;
+  expiresAt: number;
+  checkedAt: number;
+}
+
+/** How long a subscription Google Play confirmed is trusted before asking again. */
+export const SUBSCRIPTION_CHECK_MS = 10 * 60 * 1000;
+
+/**
+ * Whose Premium a subscription token is now (null: not Premium), and what to remember about it (undefined: keep what
+ * is remembered, null: forget it). When Google Play can't be asked, only a subscription it confirmed before and that
+ * is still paid for keeps Premium: never anything else, or a made-up token sent while Play fails (or is made to fail)
+ * would get it.
+ */
+export async function premiumOwner(
+  known: CheckedSubscription | undefined,
+  ask: () => Promise<Subscription | null>,
+  now: number,
+): Promise<{ owner: string | null; remember?: CheckedSubscription | null }> {
+  const stillPaid = known !== undefined && known.expiresAt > now;
+  if (stillPaid && now - known.checkedAt < SUBSCRIPTION_CHECK_MS) return { owner: known.owner };
+  let subscription: Subscription | null;
+  try {
+    subscription = await ask();
+  } catch (e) {
+    console.error("Premium check", e);
+    return { owner: stillPaid ? known.owner : null };
+  }
+  if (!subscription?.active) return { owner: null, remember: known ? null : undefined };
+  return {
+    owner: subscription.owner,
+    remember: { owner: subscription.owner, expiresAt: subscription.expiresAt, checkedAt: now },
+  };
+}
+
 /** "GPA.1234-5678-9012-34567..3" is the 4th renewal of "GPA.1234-5678-9012-34567". */
 export const firstOrder = (orderId: string): string => orderId.replace(/\.\.\d+$/, "");
 

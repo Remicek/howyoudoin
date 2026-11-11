@@ -1,6 +1,17 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { addTopUp, allowance, charge, current, emptyUsage, LIMITS, nextMonthStart, TOP_UP_VIDEO_MS } from "../src/plans.ts";
+import {
+  addTopUp,
+  allowance,
+  charge,
+  current,
+  emptyUsage,
+  LIMITS,
+  nextMonthStart,
+  TOP_UP_VIDEO_MS,
+  uncoveredVideo,
+  useTopUp,
+} from "../src/plans.ts";
 
 const MIN = 60_000;
 const NOV = Date.UTC(2026, 10, 10);
@@ -36,4 +47,13 @@ test("Premium allows far more and better video", () => {
   assert.equal(left.videoLeftMs, 50 * 60 * MIN);
   assert.ok(LIMITS.premium.videoHeight > LIMITS.free.videoHeight);
   assert.ok(LIMITS.premium.maxCallMs > LIMITS.free.maxCallMs);
+});
+
+test("video past the month's and the account's bought time is uncovered (a subscriber's install pays it)", () => {
+  const usage = { ...emptyUsage(NOV), videoMs: 50 * 60 * MIN - 2 * MIN };
+  assert.equal(uncoveredVideo(usage, "premium", 5 * MIN), 3 * MIN);
+  assert.equal(uncoveredVideo(usage, "premium", MIN), 0);
+  const bought = useTopUp(addTopUp(emptyUsage(NOV)), 3 * MIN);
+  assert.equal(bought.topUpMs, TOP_UP_VIDEO_MS - 3 * MIN);
+  assert.equal(useTopUp(bought, 10 * 60 * MIN).topUpMs, 0);
 });

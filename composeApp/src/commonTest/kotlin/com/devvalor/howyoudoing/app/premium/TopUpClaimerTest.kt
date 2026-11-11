@@ -69,4 +69,20 @@ class TopUpClaimerTest {
         runCurrent()
         assertEquals(listOf("t1", "t2"), server.claimed)
     }
+
+    @Test
+    fun aRefreshFindingTheSameTopUpTriesItAgain() = runTest {
+        val premium = FakePremium()
+        val server = FakeServer(reachable = false)
+        val scope = CoroutineScope(backgroundScope.coroutineContext + UnconfinedTestDispatcher(testScheduler))
+        TopUpClaimer(premium, server, scope)
+        premium.status.update { it.copy(unclaimedTopUps = listOf("t1"), checks = 1) }
+        runCurrent()
+        // Opening Premium asks Google Play again: the same list, one more check
+        server.reachable = true
+        premium.status.update { it.copy(checks = 2) }
+        runCurrent()
+        assertEquals(listOf("t1"), server.claimed)
+        assertEquals(emptyList(), premium.status.value.unclaimedTopUps)
+    }
 }

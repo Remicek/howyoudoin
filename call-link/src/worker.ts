@@ -21,8 +21,11 @@ import {
   canSubscribe,
   disconnect,
   hangUp,
+  emptyMeter,
   enforce,
+  limitsView,
   meter,
+  refreshLimits,
   newRoom,
   takeCharge,
   type CallLimits,
@@ -41,13 +44,15 @@ import {
   allowance,
   charge,
   current,
+  uncoveredVideo,
+  useTopUp,
   PREMIUM_PRODUCT,
   TOP_UP_PRODUCT,
   type Allowance,
   type Plan,
   type Usage,
 } from "./plans.ts";
-import { Play } from "./play.ts";
+import { Play, premiumOwner, type CheckedSubscription } from "./play.ts";
 
 export interface Env {
   ASSETS: Fetcher;
@@ -134,15 +139,22 @@ async function rateLimited(request: Request, env: Env, kind: string): Promise<bo
 async function whoIs(app: AppRequest & { install: string }, env: Env): Promise<{ plan: Plan; owner: string }> {
   const free = { plan: "free" as const, owner: `install:${app.install}` };
   if (!app.subscription || !env.PLAY_SERVICE_ACCOUNT) return free;
-  try {
-    const subscription = await play(env).subscription(PREMIUM_PRODUCT, app.subscription);
-    return subscription?.active ? { plan: "premium", owner: subscription.owner } : free;
-  } catch (e) {
-    // Google Play not answering shouldn't stop someone paying from calling: give them Premium's quality this once,
-    // counted on their install
-    console.error("Premium check", e);
-    return { plan: "premium", owner: free.owner };
-  }
+  const now = Date.now();
+  const cache = account(env, `subtoken:${await sha256(app.subscription)}`);
+  const token = app.subscription;
+  const { owner, remember } = await premiumOwner(
+    await cache.checkedSubscription(),
+    () => play(env).subscription(PREMIUM_PRODUCT, token, now),
+    now,
+  );
+  if (remember === null) await cache.forgetSubscription();
+  else if (remember) await cache.rememberSubscription(remember);
+  return owner ? { plan: "premium", owner } : free;
+}
+
+async function sha256(text: string): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+  return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
 let playClient: Play | undefined;
@@ -150,13 +162,15 @@ const play = (env: Env) => (playClient ??= new Play(env.PLAY_SERVICE_ACCOUNT!, e
 
 const account = (env: Env, owner: string) => env.ACCOUNTS.get(env.ACCOUNTS.idFromName(owner));
 
-/** The minutes left; a free user's bought time is on their install, a subscriber's too (it waits for later). */
+/**
+ * The minutes left. Bought time is always on the install: a subscriber uses it once the subscription's video is gone,
+ * and keeps what's left of it if the subscription ends.
+ */
 async function minutesLeft(env: Env, plan: Plan, owner: string, install: string): Promise<Allowance> {
   const left = await account(env, owner).allowance(plan);
   if (owner === `install:${install}`) return left;
-  // A subscriber's own top-ups, from before Premium, stay on the install for when it ends
   const bought = await account(env, `install:${install}`).allowance("free");
-  return { ...left, topUpMs: bought.topUpMs };
+  return { ...left, videoLeftMs: left.videoLeftMs + bought.topUpMs, topUpMs: bought.topUpMs };
 }
 
 async function createCall(request: Request, env: Env, origin: string): Promise<Response> {
@@ -170,12 +184,19 @@ async function createCall(request: Request, env: Env, origin: string): Promise<R
     throw e;
   }
   const { plan, owner } = await whoIs(app, env);
-  const left = await account(env, owner).allowance(plan);
+  const left = await minutesLeft(env, plan, owner, app.install);
   const videoAllowed = left.videoLeftMs > 0;
   if (left.audioLeftMs <= 0 && !(app.video && videoAllowed)) {
     return Response.json({ error: "No call minutes left this month", code: "no_minutes", ...left }, { status: 402 });
   }
-  const limits: CallLimits = { plan, owner, videoLeftMs: left.videoLeftMs, audioLeftMs: left.audioLeftMs };
+  const install = `install:${app.install}`;
+  const limits: CallLimits = {
+    plan,
+    owner,
+    topUpOwner: owner === install ? undefined : install,
+    videoLeftMs: left.videoLeftMs,
+    audioLeftMs: left.audioLeftMs,
+  };
   const room = randomId();
   const hostToken = randomId();
   await env.CALLS.get(env.CALLS.idFromName(room)).create(hostToken, limits);
@@ -216,14 +237,18 @@ async function topUp(request: Request, env: Env): Promise<Response> {
   if (!app.token) return error(400, "No purchase token");
   if (!env.PLAY_SERVICE_ACCOUNT) return error(503, "Purchases can't be checked on this server");
   const owner = `install:${app.install}`;
-  const claim = account(env, `purchase:${app.token}`);
-  // Already counted (the app asks again when it didn't hear back): just the minutes
-  if (!(await claim.isClaimed())) {
+  const purchase = await sha256(app.token);
+  const claim = account(env, `purchase:${purchase}`);
+  // Each step can be repeated: the app asks again whenever it didn't hear back, wherever this stopped
+  let claimedBy = await claim.claimedBy();
+  if (claimedBy === undefined) {
     if (!(await play(env).consumePurchase(TOP_UP_PRODUCT, app.token))) {
       return error(402, "This purchase wasn't completed");
     }
-    if (await claim.claim()) await account(env, owner).addTopUp();
+    claimedBy = await claim.claim(owner);
   }
+  if (claimedBy !== owner) return error(409, "This purchase was already used on another phone");
+  await account(env, owner).addTopUp(purchase);
   const { plan, owner: user } = await whoIs(app, env);
   return Response.json(await minutesLeft(env, plan, user, app.install));
 }
@@ -234,7 +259,8 @@ function error(status: number, message: string): Response {
 
 /**
  * One person's call minutes this month and their bought time (see plans.ts), keyed "install:<id>" or
- * "sub:<first order>". Also used keyed "purchase:<token>" to count each top-up once.
+ * "sub:<first order>". Also used keyed "purchase:<hash>" to count each top-up once, and "subtoken:<hash>" to remember
+ * a subscription Google Play confirmed.
  */
 export class CallAccount extends DurableObject<Env> {
   private async load(): Promise<Usage> {
@@ -245,23 +271,53 @@ export class CallAccount extends DurableObject<Env> {
     return allowance(await this.load(), plan, Date.now());
   }
 
-  async charge(plan: Plan, videoMs: number, audioMs: number): Promise<void> {
-    await this.ctx.storage.put("usage", charge(await this.load(), plan, videoMs, audioMs));
+  /** Counts a call's time; returns what's left, and the video this account couldn't cover. */
+  async charge(plan: Plan, videoMs: number, audioMs: number): Promise<{ left: Allowance; uncoveredVideoMs: number }> {
+    const before = await this.load();
+    const after = charge(before, plan, videoMs, audioMs);
+    await this.ctx.storage.put("usage", after);
+    return { left: allowance(after, plan, Date.now()), uncoveredVideoMs: uncoveredVideo(before, plan, videoMs) };
   }
 
-  async addTopUp(): Promise<void> {
-    await this.ctx.storage.put("usage", addTopUp(await this.load()));
+  /** Takes video from bought time only; returns the bought time left. */
+  async useTopUp(videoMs: number): Promise<number> {
+    const after = useTopUp(await this.load(), videoMs);
+    await this.ctx.storage.put("usage", after);
+    return after.topUpMs;
   }
 
-  async isClaimed(): Promise<boolean> {
-    return Boolean(await this.ctx.storage.get<boolean>("claimed"));
+  /** Adds a bought top-up, once per purchase (keyed by its token's hash). */
+  async addTopUp(purchase: string): Promise<void> {
+    const key = `topup:${purchase}`;
+    if (await this.ctx.storage.get<boolean>(key)) return;
+    // Both in one write: never one without the other
+    await this.ctx.storage.put({ usage: addTopUp(await this.load()), [key]: true });
   }
 
-  /** True the first time only. */
-  async claim(): Promise<boolean> {
-    if (await this.isClaimed()) return false;
-    await this.ctx.storage.put("claimed", true);
-    return true;
+  /** Keyed "subtoken:<hash of a purchase token>": what Google Play last said about that subscription. */
+  async checkedSubscription(): Promise<CheckedSubscription | undefined> {
+    return this.ctx.storage.get<CheckedSubscription>("subscription");
+  }
+
+  async rememberSubscription(checked: CheckedSubscription): Promise<void> {
+    await this.ctx.storage.put("subscription", checked);
+  }
+
+  async forgetSubscription(): Promise<void> {
+    await this.ctx.storage.delete("subscription");
+  }
+
+  /** Keyed "purchase:<hash of its token>": the account a top-up went to. */
+  async claimedBy(): Promise<string | undefined> {
+    return this.ctx.storage.get<string>("claimedBy");
+  }
+
+  /** Gives the purchase to owner unless it already went to someone; returns whose it is. */
+  async claim(owner: string): Promise<string> {
+    const already = await this.claimedBy();
+    if (already !== undefined) return already;
+    await this.ctx.storage.put("claimedBy", owner);
+    return owner;
   }
 }
 
@@ -274,7 +330,11 @@ interface Attachment {
 /** Messages from the call page; each with an id that its answer repeats. */
 type Request_ =
   | { type: "hello"; token?: string; secret?: string }
-  | { type: "publish"; offer: SessionDescription; tracks: { mid: string; trackName: string }[] }
+  | {
+      type: "publish";
+      offer: SessionDescription;
+      tracks: { mid: string; trackName: string }[];
+    }
   | { type: "announce" }
   | { type: "subscribe"; session: string; tracks: string[]; fresh: boolean }
   | { type: "answer"; answer: SessionDescription }
@@ -336,8 +396,9 @@ export class CallRoom extends DurableObject<Env> {
     const room = await this.load();
     if (!room) return;
     meter(room, Date.now());
-    tick(room, Date.now());
-    await this.changed(room);
+    const ticked = tick(room, Date.now());
+    // Mostly the minute's charge: the pages only hear about it when something they show changed
+    await this.changed(room, undefined, !ticked);
   }
 
   private async handle(ws: WebSocket, message: Request_): Promise<object | undefined> {
@@ -364,7 +425,11 @@ export class CallRoom extends DurableObject<Env> {
         if (!publish(room, role, session, names)) throw new Refusal("already published");
         const response = await this.sfu.newTracks(session, {
           sessionDescription: message.offer,
-          tracks: message.tracks.map((t) => ({ location: "local", mid: t.mid, trackName: t.trackName })),
+          tracks: message.tracks.map((t) => ({
+            location: "local",
+            mid: t.mid,
+            trackName: t.trackName,
+          })),
         });
         await this.save(room);
         return { answer: response.sessionDescription };
@@ -377,12 +442,19 @@ export class CallRoom extends DurableObject<Env> {
         if (!canSubscribe(room, role, message.session, message.tracks)) throw new Refusal("not available");
         if (message.fresh || !me.subSession) me.subSession = await this.sfu.newSession();
         const response = await this.sfu.newTracks(me.subSession, {
-          tracks: message.tracks.map((name) => ({ location: "remote", sessionId: message.session, trackName: name })),
+          tracks: message.tracks.map((name) => ({
+            location: "remote",
+            sessionId: message.session,
+            trackName: name,
+          })),
         });
         await this.save(room);
         return {
           offer: response.sessionDescription,
-          tracks: (response.tracks ?? []).map((t) => ({ mid: t.mid, trackName: t.trackName })),
+          tracks: (response.tracks ?? []).map((t) => ({
+            mid: t.mid,
+            trackName: t.trackName,
+          })),
         };
       }
       case "answer":
@@ -440,13 +512,18 @@ export class CallRoom extends DurableObject<Env> {
    * Applies the limits, charges the host's account for the time so far, saves the call and tells both people what
    * changed; once it has ended, closes it and forgets it.
    */
-  private async changed(room: Room, except?: WebSocket): Promise<void> {
+  private async changed(room: Room, except?: WebSocket, quietIfSame = false): Promise<void> {
     const now = Date.now();
     meter(room, now);
+    const before = limitsView(room, now);
     // Video stopped by the limits: both pages hear it, even the one whose message this was
-    if (enforce(room, now)) except = undefined;
+    const enforced = enforce(room, now);
+    if (enforced) except = undefined;
     await this.charge(room);
-    for (const ws of this.ctx.getWebSockets()) {
+    const after = limitsView(room, now);
+    const same =
+      !enforced && room.phase !== "ended" && before.endsAt === after.endsAt && before.videoEndsAt === after.videoEndsAt;
+    for (const ws of quietIfSame && same ? [] : this.ctx.getWebSockets()) {
       const { role } = ws.deserializeAttachment() as Attachment;
       if (!role || ws === except) continue;
       if (room.phase === "ended") {
@@ -469,14 +546,33 @@ export class CallRoom extends DurableObject<Env> {
     if (!room.limits) return;
     const due = takeCharge(room);
     if (due.videoMs <= 0 && due.audioMs <= 0) return;
-    await this.env.ACCOUNTS.get(this.env.ACCOUNTS.idFromName(room.limits.owner))
-      .charge(room.limits.plan, due.videoMs, due.audioMs)
-      .catch((e) => {
-        // Counted again with the next charge
-        room.meter.chargedVideoMs -= due.videoMs;
-        room.meter.chargedAudioMs -= due.audioMs;
-        console.error("Charging the call", e);
-      });
+    const { plan, owner, topUpOwner } = room.limits;
+    let charged;
+    try {
+      charged = await account(this.env, owner).charge(plan, due.videoMs, due.audioMs);
+    } catch (e) {
+      // Counted again with the next charge
+      room.meter.chargedVideoMs -= due.videoMs;
+      room.meter.chargedAudioMs -= due.audioMs;
+      console.error("Charging the call", e);
+      return;
+    }
+    let videoLeftMs = charged.left.videoLeftMs;
+    if (topUpOwner) {
+      // A subscriber past the subscription's video: the rest comes from the install's bought time
+      try {
+        const bought = account(this.env, topUpOwner);
+        videoLeftMs +=
+          charged.uncoveredVideoMs > 0
+            ? await bought.useTopUp(charged.uncoveredVideoMs)
+            : (await bought.allowance("free")).topUpMs;
+      } catch (e) {
+        console.error("Charging the top-up", e);
+        return;
+      }
+    }
+    // What the account has left now, after any other call of the same person's too
+    refreshLimits(room, { videoLeftMs, audioLeftMs: charged.left.audioLeftMs });
   }
 
   private async save(room: Room): Promise<void> {
@@ -485,7 +581,11 @@ export class CallRoom extends DurableObject<Env> {
   }
 
   private async load(): Promise<Room | null> {
-    if (this.room === undefined) this.room = (await this.ctx.storage.get<Room>("room")) ?? null;
+    if (this.room === undefined) {
+      this.room = (await this.ctx.storage.get<Room>("room")) ?? null;
+      // A call saved before plans existed
+      if (this.room) this.room.meter ??= emptyMeter(this.room.limits);
+    }
     return this.room;
   }
 }

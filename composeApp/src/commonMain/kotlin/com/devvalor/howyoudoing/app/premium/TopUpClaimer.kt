@@ -11,11 +11,13 @@ import kotlinx.coroutines.flow.onEach
 
 /**
  * Hands each paid top-up to the call server, which checks it with Google Play, adds its hours and consumes it. One
- * it couldn't reach is tried again when Google Play lists it next (the next launch, or opening Premium).
+ * it couldn't reach is tried again whenever Premium's status is refreshed (the next launch, or opening Premium): the
+ * server counts each purchase once however often it's asked.
  */
 class TopUpClaimer(premium: Premium, allowance: CallAllowance, scope: CoroutineScope) {
     init {
-        premium.status.map { it.unclaimedTopUps }.distinctUntilChanged().onEach { tokens ->
+        // Each time Google Play lists the purchases (checks), even finding the same unclaimed top-ups, try them again
+        premium.status.map { it.unclaimedTopUps to it.checks }.distinctUntilChanged().onEach { (tokens, _) ->
             if (!allowance.isAvailable) return@onEach
             tokens.forEach { token ->
                 if (allowance.claimTopUp(token) is Result.Success) premium.topUpClaimed(token)

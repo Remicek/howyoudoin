@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { firstOrder, Play } from "../src/play.ts";
+import { firstOrder, Play, premiumOwner } from "../src/play.ts";
 
 async function serviceAccount(): Promise<string> {
   const pair = (await crypto.subtle.generateKey(
@@ -94,4 +94,65 @@ test("a paid top-up is consumed; an unpaid one isn't counted", async () => {
 test("renewals share the first order's ID", () => {
   assert.equal(firstOrder("GPA.3312-5678-9012-34567..12"), "GPA.3312-5678-9012-34567");
   assert.equal(firstOrder("GPA.3312-5678-9012-34567"), "GPA.3312-5678-9012-34567");
+});
+
+const now = 1_000_000_000;
+const paid = { active: true, expiresAt: now + 86_400_000, owner: "sub:GPA.1" };
+const failing = async () => {
+  throw new Error("Play: 503");
+};
+
+test("premiumOwner: asks Google Play and remembers a paid subscription", async () => {
+  const result = await premiumOwner(undefined, async () => paid, now);
+  assert.deepEqual(result, {
+    owner: "sub:GPA.1",
+    remember: { owner: "sub:GPA.1", expiresAt: paid.expiresAt, checkedAt: now },
+  });
+});
+
+test("premiumOwner: trusts a recent check without asking again", async () => {
+  const known = {
+    owner: "sub:GPA.1",
+    expiresAt: paid.expiresAt,
+    checkedAt: now - 60_000,
+  };
+  assert.deepEqual(await premiumOwner(known, failing, now), {
+    owner: "sub:GPA.1",
+  });
+});
+
+test("premiumOwner: gives a made-up token nothing while Google Play fails", async () => {
+  assert.deepEqual(await premiumOwner(undefined, failing, now), {
+    owner: null,
+  });
+});
+
+test("premiumOwner: keeps a confirmed, still paid subscription while Google Play fails", async () => {
+  const known = {
+    owner: "sub:GPA.1",
+    expiresAt: paid.expiresAt,
+    checkedAt: now - 3_600_000,
+  };
+  assert.deepEqual(await premiumOwner(known, failing, now), {
+    owner: "sub:GPA.1",
+  });
+});
+
+test("premiumOwner: drops an expired one while Google Play fails", async () => {
+  const known = {
+    owner: "sub:GPA.1",
+    expiresAt: now - 1,
+    checkedAt: now - 3_600_000,
+  };
+  assert.deepEqual(await premiumOwner(known, failing, now), { owner: null });
+});
+
+test("premiumOwner: forgets a subscription Google Play says is over", async () => {
+  const known = {
+    owner: "sub:GPA.1",
+    expiresAt: paid.expiresAt,
+    checkedAt: now - 3_600_000,
+  };
+  const result = await premiumOwner(known, async () => ({ ...paid, active: false }), now);
+  assert.deepEqual(result, { owner: null, remember: null });
 });

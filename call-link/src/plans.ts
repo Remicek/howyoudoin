@@ -95,4 +95,16 @@ export function charge(usage: Usage, plan: Plan, videoMs: number, audioMs: numbe
   };
 }
 
+/** Video in a charge that neither the month's allowance nor this account's bought time covers. */
+export function uncoveredVideo(usage: Usage, plan: Plan, videoMs: number): number {
+  const monthVideoLeft = Math.max(0, LIMITS[plan].videoMs - usage.videoMs);
+  return Math.max(0, videoMs - monthVideoLeft - usage.topUpMs);
+}
+
 export const addTopUp = (usage: Usage): Usage => ({ ...usage, topUpMs: usage.topUpMs + TOP_UP_VIDEO_MS });
+
+/** Takes video straight from bought time (a subscriber's, once the subscription's video is gone). */
+export const useTopUp = (usage: Usage, videoMs: number): Usage => ({
+  ...usage,
+  topUpMs: Math.max(0, usage.topUpMs - videoMs),
+});

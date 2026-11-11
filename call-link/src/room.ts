@@ -30,12 +30,17 @@ export interface Member {
   camera: boolean;
 }
 
-/** What the host's plan allows this call, fixed when it's created. */
+/** What the host's plan allows this call. */
 export interface CallLimits {
   plan: Plan;
   /** Whose minutes it uses (see Accounts in worker.ts). */
   owner: string;
-  /** The host's minutes left when the call was created. */
+  /** A subscriber's install, whose bought time is used once the subscription's video is gone. */
+  topUpOwner?: string;
+  /**
+   * The host's minutes for this call, counted from its start: what was left when it was created, then, each time it
+   * is charged, what this call has used plus what the account has left (so calls at the same time share them).
+   */
   videoLeftMs: number;
   audioLeftMs: number;
 }
@@ -121,6 +126,14 @@ export interface LimitsView {
 
 const emptyMember = (gen = 0): Member => ({ connected: false, gen, pending: [], tracks: [], camera: false });
 
+export const emptyMeter = (limits?: CallLimits): Meter => ({
+  videoMs: 0,
+  audioMs: 0,
+  chargedVideoMs: 0,
+  chargedAudioMs: 0,
+  videoAllowed: limits?.videoLeftMs !== 0,
+});
+
 export function newRoom(hostToken: string, now: number, limits?: CallLimits): Room {
   return {
     createdAt: now,
@@ -129,7 +142,7 @@ export function newRoom(hostToken: string, now: number, limits?: CallLimits): Ro
     host: emptyMember(),
     guest: emptyMember(),
     limits,
-    meter: { videoMs: 0, audioMs: 0, chargedVideoMs: 0, chargedAudioMs: 0, videoAllowed: limits?.videoLeftMs !== 0 },
+    meter: emptyMeter(limits),
   };
 }
 
@@ -184,6 +197,13 @@ export function enforce(room: Room, now: number): boolean {
     return true;
   }
   return changed;
+}
+
+/** What the host's account has left after a charge: the call may use what it has used so far plus this. */
+export function refreshLimits(room: Room, left: { videoLeftMs: number; audioLeftMs: number }): void {
+  if (!room.limits) return;
+  room.limits.videoLeftMs = room.meter.chargedVideoMs + left.videoLeftMs;
+  room.limits.audioLeftMs = room.meter.chargedAudioMs + left.audioLeftMs;
 }
 
 /** The time not yet charged to the host's account; marks it charged. */
@@ -260,10 +280,16 @@ export function hangUp(room: Room, role: Role): void {
   else room.guest = emptyMember(room.guest.gen);
 }
 
+/**
+ * The latest a call can still be going, whatever happens: a plan's longest call counts from when both are in it
+ * (enforce), which is at most JOIN_WINDOW_MS after it was created.
+ */
+const hardStop = (room: Room) => room.createdAt + (room.limits ? JOIN_WINDOW_MS : 0) + MAX_CALL_MS;
+
 /** Applies the time limits. Returns whether anything changed. */
 export function tick(room: Room, now: number): boolean {
   if (room.phase === "ended") return false;
-  if ((room.phase === "waiting" && now >= room.createdAt + JOIN_WINDOW_MS) || now >= room.createdAt + MAX_CALL_MS) {
+  if ((room.phase === "waiting" && now >= room.createdAt + JOIN_WINDOW_MS) || now >= hardStop(room)) {
     room.phase = "ended";
     return true;
   }
@@ -279,7 +305,7 @@ export function tick(room: Room, now: number): boolean {
 
 /** When tick (or the limits, or charging the account) has something to do next. */
 export function nextDeadline(room: Room, now: number): number {
-  const deadlines = [room.createdAt + MAX_CALL_MS];
+  const deadlines = [hardStop(room)];
   const m = room.meter;
   if (room.limits && m.activeAt !== undefined) {
     deadlines.push(m.activeAt + maxLength(room));

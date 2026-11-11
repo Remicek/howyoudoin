@@ -162,14 +162,17 @@ fun NetworksRoot(
         snackbarHostState = snackbarHostState,
         onAction = { action ->
             when (action) {
-                is NetworksAction.OnConnectClick ->
-                    if (action.slot > 0 && !premiumStatus.isPremium && !state.isLinked(action.network, action.slot)) {
+                is NetworksAction.OnConnectClick -> {
+                    // Until Google Play answers, a subscriber isn't refused for looking like they aren't one
+                    val needsPremium = premiumStatus.isKnown && !premiumStatus.isPremium
+                    if (action.slot > 0 && needsPremium && !state.isLinked(action.network, action.slot)) {
                         premiumNeeded = true
                     } else if (state.shouldWarnAboutRisk(action.network) && action.slot == 0) {
                         riskWarningFor = action.network
                     } else {
                         connect(action.network, action.slot)
                     }
+                }
 
                 NetworksAction.OnBackClick -> onBack()
                 else -> viewModel.onAction(action)

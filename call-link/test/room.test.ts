@@ -18,6 +18,7 @@ import {
   meter,
   enforce,
   takeCharge,
+  refreshLimits,
   limitsView,
 } from "../src/room.ts";
 
@@ -202,4 +203,32 @@ test("waiting for the guest uses nothing", () => {
   assert.equal(enforce(room, 5 * MIN), false);
   assert.equal(room.phase, "waiting");
   assert.equal(room.meter.audioMs, 0);
+});
+
+test("another call using the same minutes shortens this one at the next charge", () => {
+  const room = limitedCall(60 * MIN, 600 * MIN);
+  room.host.camera = true;
+  meter(room, 10 * MIN);
+  takeCharge(room);
+  // The account had 60 min; this call used 10 and another call 30: 20 are left
+  refreshLimits(room, { videoLeftMs: 20 * MIN, audioLeftMs: 600 * MIN });
+  assert.equal(room.limits?.videoLeftMs, 30 * MIN);
+  assert.equal(limitsView(room, 10 * MIN).videoEndsAt, 30 * MIN);
+  meter(room, 30 * MIN);
+  assert.equal(enforce(room, 30 * MIN), true);
+  assert.equal(room.meter.videoAllowed, false);
+});
+
+test("a Premium call gets its 4 hours even when the guest joined late", () => {
+  const room = newRoom("host-token", 0, { plan: "premium", owner: "sub:x", videoLeftMs: 0, audioLeftMs: 6000 * MIN });
+  admit(room, { token: "host-token" }, secret);
+  meter(room, 0);
+  admit(room, {}, secret);
+  meter(room, 10 * MIN);
+  assert.equal(tick(room, 4 * 60 * MIN + 5 * MIN), false);
+  assert.equal(room.phase, "active");
+  assert.equal(limitsView(room, 10 * MIN).endsAt, 4 * 60 * MIN + 10 * MIN);
+  meter(room, 4 * 60 * MIN + 10 * MIN);
+  enforce(room, 4 * 60 * MIN + 10 * MIN);
+  assert.equal(room.endReason, "length");
 });

@@ -37,6 +37,7 @@ const TEXTS = {
     camera: "Camera",
     leave: "Leave the call",
     videoUsedUp: "No video minutes left: the call goes on with audio.",
+    videoEndsIn: "Video stops in {n} min; the call goes on with audio.",
     endsIn: "The call ends in {n} min",
     endedLimit: "This call reached its time limit.",
   },
@@ -62,6 +63,7 @@ const TEXTS = {
     camera: "Kamera",
     leave: "Zakończ rozmowę",
     videoUsedUp: "Skończyły się minuty wideo: rozmowa trwa dalej z samym dźwiękiem.",
+    videoEndsIn: "Wideo wyłączy się za {n} min; rozmowa potrwa dalej z samym dźwiękiem.",
     endsIn: "Rozmowa skończy się za {n} min",
     endedLimit: "Ta rozmowa osiągnęła limit czasu.",
   },
@@ -85,6 +87,7 @@ const TEXTS = {
     camera: "Kamera",
     leave: "Anruf verlassen",
     videoUsedUp: "Keine Videominuten mehr: Der Anruf geht nur mit Ton weiter.",
+    videoEndsIn: "Das Video endet in {n} Min.; der Anruf geht mit Ton weiter.",
     endsIn: "Der Anruf endet in {n} Min.",
     endedLimit: "Dieser Anruf hat sein Zeitlimit erreicht.",
   },
@@ -108,6 +111,7 @@ const TEXTS = {
     camera: "Cámara",
     leave: "Salir de la llamada",
     videoUsedUp: "No quedan minutos de vídeo: la llamada sigue solo con audio.",
+    videoEndsIn: "El vídeo se detiene en {n} min; la llamada sigue con audio.",
     endsIn: "La llamada termina en {n} min",
     endedLimit: "Esta llamada alcanzó su límite de tiempo.",
   },
@@ -131,6 +135,7 @@ const TEXTS = {
     camera: "Caméra",
     leave: "Quitter l'appel",
     videoUsedUp: "Plus de minutes vidéo : l'appel continue en audio.",
+    videoEndsIn: "La vidéo s'arrête dans {n} min ; l'appel continue en audio.",
     endsIn: "L'appel se termine dans {n} min",
     endedLimit: "Cet appel a atteint sa limite de durée.",
   },
@@ -154,6 +159,7 @@ const TEXTS = {
     camera: "Câmera",
     leave: "Sair da chamada",
     videoUsedUp: "Acabaram os minutos de vídeo: a chamada continua só com áudio.",
+    videoEndsIn: "O vídeo para em {n} min; a chamada continua com áudio.",
     endsIn: "A chamada termina em {n} min",
     endedLimit: "Esta chamada atingiu o limite de tempo.",
   },
@@ -177,6 +183,7 @@ const TEXTS = {
     camera: "Камера",
     leave: "Завершить звонок",
     videoUsedUp: "Минуты видео закончились: звонок продолжается только со звуком.",
+    videoEndsIn: "Видео отключится через {n} мин; звонок продолжится со звуком.",
     endsIn: "Звонок завершится через {n} мин",
     endedLimit: "Звонок достиг ограничения по времени.",
   },
@@ -200,6 +207,7 @@ const TEXTS = {
     camera: "Kamera",
     leave: "Aramadan ayrıl",
     videoUsedUp: "Görüntülü dakika kalmadı: arama sesli devam ediyor.",
+    videoEndsIn: "Görüntü {n} dk içinde kapanacak; arama sesli devam edecek.",
     endsIn: "Arama {n} dk içinde bitecek",
     endedLimit: "Bu arama süre sınırına ulaştı.",
   },
@@ -223,6 +231,7 @@ const TEXTS = {
     camera: "カメラ",
     leave: "通話を終了",
     videoUsedUp: "ビデオの時間がなくなりました。音声のみで通話を続けます。",
+    videoEndsIn: "ビデオはあと {n} 分で停止します。通話は音声で続きます。",
     endsIn: "通話はあと {n} 分で終了します",
     endedLimit: "この通話は時間の上限に達しました。",
   },
@@ -246,6 +255,7 @@ const TEXTS = {
     camera: "कैमरा",
     leave: "कॉल छोड़ें",
     videoUsedUp: "वीडियो मिनट खत्म हो गए: कॉल ऑडियो के साथ जारी है।",
+    videoEndsIn: "वीडियो {n} मिनट में बंद होगा; कॉल ऑडियो के साथ जारी रहेगी।",
     endsIn: "कॉल {n} मिनट में खत्म होगी",
     endedLimit: "यह कॉल अपनी समय सीमा तक पहुँच गई।",
   },
@@ -269,6 +279,7 @@ const TEXTS = {
     camera: "Kamera",
     leave: "Tinggalkan panggilan",
     videoUsedUp: "Menit video habis: panggilan berlanjut dengan audio saja.",
+    videoEndsIn: "Video berhenti dalam {n} menit; panggilan berlanjut dengan audio.",
     endsIn: "Panggilan berakhir dalam {n} menit",
     endedLimit: "Panggilan ini mencapai batas waktunya.",
   },
@@ -292,6 +303,7 @@ const TEXTS = {
     camera: "الكاميرا",
     leave: "مغادرة المكالمة",
     videoUsedUp: "نفدت دقائق الفيديو: تستمر المكالمة بالصوت فقط.",
+    videoEndsIn: "سيتوقف الفيديو خلال {n} د؛ تستمر المكالمة بالصوت.",
     endsIn: "تنتهي المكالمة خلال {n} د",
     endedLimit: "بلغت هذه المكالمة حدها الزمني.",
   },
@@ -811,8 +823,10 @@ class Call {
     const now = Date.now() + this.clockOffset;
     const soon = (at?: number) => (at !== undefined && at - now <= WARN_MS ? Math.max(1, Math.ceil((at - now) / 60_000)) : 0);
     const end = soon(this.limits.endsAt);
+    const videoEnd = this.limits.videoAllowed ? soon(this.limits.videoEndsAt) : 0;
     let text = "";
     if (end) text = t("endsIn").replace("{n}", String(end));
+    else if (videoEnd) text = t("videoEndsIn").replace("{n}", String(videoEnd));
     else if (!this.limits.videoAllowed) text = t("videoUsedUp");
     this.notice.textContent = text;
     this.notice.hidden = !text;
