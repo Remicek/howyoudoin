@@ -151,6 +151,9 @@
     <string name="telegram_keys_invalid">my.telegram.orgのapi_id(数字)とapi_hash(英数字32文字)を入力してください。</string>
     <string name="settings_rate">HowYouDoinを評価</string>
     <string name="settings_rate_sub">Google Playで感想を教えてください</string>
+    <string name="rate_prompt_text">%1$d個のネットワークを接続しました。HowYouDoinが役に立っていれば、Google Playでの評価がほかの人の助けになります。</string>
+    <string name="rate_prompt_rate">評価する</string>
+    <string name="rate_prompt_dont_show">今後表示しない</string>
     <string name="settings_share">HowYouDoinを共有</string>
     <string name="settings_share_sub">友だちにアプリを送る</string>
     <string name="settings_share_message">WhatsApp、Messenger、Telegramなどのチャットを、HowYouDoinでひとつのプライベートな受信箱にまとめています。試してみて：%1$s</string>

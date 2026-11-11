@@ -153,6 +153,9 @@
     <string name="telegram_keys_invalid">my.telegram.org से api_id (एक संख्या) और api_hash (32 अक्षर और अंक) डालें।</string>
     <string name="settings_rate">HowYouDoin को रेटिंग दें</string>
     <string name="settings_rate_sub">Google Play पर बताएँ कि आपको कैसा लगा</string>
+    <string name="rate_prompt_text">आपने %1$d नेटवर्क जोड़े हैं। अगर HowYouDoin आपके काम आता है, तो Google Play पर रेटिंग से दूसरों को इसे ढूँढने में मदद मिलती है।</string>
+    <string name="rate_prompt_rate">रेटिंग दें</string>
+    <string name="rate_prompt_dont_show">फिर न दिखाएँ</string>
     <string name="settings_share">HowYouDoin शेयर करें</string>
     <string name="settings_share_sub">दोस्तों को ऐप भेजें</string>
     <string name="settings_share_message">HowYouDoin में WhatsApp, Messenger, Telegram और बाकी सारी चैट एक निजी इनबॉक्स में। आज़माएँ: %1$s</string>

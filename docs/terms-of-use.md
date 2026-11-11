@@ -1,6 +1,6 @@
 # HowYouDoin terms of use and disclaimer
 
-Last updated: 24 October 2026
+Last updated: 11 November 2026
 
 By installing or using HowYouDoin you agree to these terms. If you don't agree, don't use the app.
 
@@ -23,6 +23,20 @@ HowYouDoin may break those terms. A network could at any time, without warning:
 You are solely responsible for checking each network's terms and for deciding whether to accept this risk. Don't use
 HowYouDoin with an account you can't afford to lose. The developer can't restore a blocked account and can't promise that
 any network will keep working.
+
+## Calls through a link, Premium and purchases
+
+Calls through a link come with free minutes every month. HowYouDoin Premium is an optional monthly subscription sold
+through Google Play; it adds call minutes, sharper video, longer calls and more accounts of each network, as listed
+in the app. A video top-up is a one-time purchase of video time that never expires.
+
+- Google Play handles payments, renewals, the free trial, cancelling and refunds under its own terms. A subscription
+  renews every month until you cancel it in Google Play; after cancelling, Premium stays until the end of the period
+  you paid for.
+- What Premium and a top-up include is described in the app when you buy them. The limits exist so the call service
+  can't be run all day by one person; they may change for future periods, and we'll say so in the app first.
+- The call service is provided as well as we can but without a guarantee that it is always available. If it's down,
+  calls through a link can't be started; your chats aren't affected.
 
 ## Provided "as is", without warranty
 

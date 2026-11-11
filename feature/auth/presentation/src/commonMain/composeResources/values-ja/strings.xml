@@ -7,6 +7,6 @@
     <string name="privacy_on_phone_text">メッセージ、連絡先、ログイン情報はこのスマホにのみ保存されます。</string>
     <string name="privacy_direct_title">WhatsApp や Messenger などに直接接続</string>
     <string name="privacy_direct_text">アプリが通信するのは、接続したネットワークだけです。公式アプリと同じ仕組みです。</string>
-    <string name="privacy_no_servers_title">HowYouDoin のサーバーはありません</string>
-    <string name="privacy_no_servers_text">私たちはサーバーもアカウントも持ちません。メッセージやデータを見ることも、保存することも、売ることも一切ありません。</string>
+    <string name="privacy_no_servers_title">メッセージは私たちのサーバーを通りません</string>
+    <string name="privacy_no_servers_text">アカウントの作成は不要です。メッセージを見ることも、保存することも、売ることもありません。サーバーを使うのはリンクでの通話だけで、エンドツーエンドで暗号化されます。</string>
 </resources>

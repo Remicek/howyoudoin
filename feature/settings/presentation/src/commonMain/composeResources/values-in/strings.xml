@@ -151,6 +151,9 @@
     <string name="telegram_keys_invalid">Masukkan api_id (angka) dan api_hash (32 huruf dan angka) dari my.telegram.org.</string>
     <string name="settings_rate">Beri rating HowYouDoin</string>
     <string name="settings_rate_sub">Ceritakan pendapat Anda di Google Play</string>
+    <string name="rate_prompt_text">Anda sudah menghubungkan %1$d jaringan. Jika HowYouDoin membantu, rating di Google Play membantu orang lain menemukannya.</string>
+    <string name="rate_prompt_rate">Beri rating</string>
+    <string name="rate_prompt_dont_show">Jangan tampilkan lagi</string>
     <string name="settings_share">Bagikan HowYouDoin</string>
     <string name="settings_share_sub">Kirim aplikasi ini ke teman</string>
     <string name="settings_share_message">Saya menyimpan chat WhatsApp, Messenger, Telegram, dan lainnya di satu kotak masuk pribadi dengan HowYouDoin. Coba: %1$s</string>

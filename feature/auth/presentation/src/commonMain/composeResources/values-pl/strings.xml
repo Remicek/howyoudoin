@@ -7,6 +7,6 @@
     <string name="privacy_on_phone_text">Wiadomości, kontakty i dane logowania są przechowywane tylko na tym telefonie.</string>
     <string name="privacy_direct_title">Prosto do WhatsAppa, Messengera i innych</string>
     <string name="privacy_direct_text">Aplikacja łączy się tylko z sieciami, które podłączysz, tak samo jak ich własne aplikacje.</string>
-    <string name="privacy_no_servers_title">Żadnych serwerów HowYouDoin</string>
-    <string name="privacy_no_servers_text">Nie mamy serwerów ani kont. Nigdy nie widzimy, nie przechowujemy ani nie sprzedajemy Twoich wiadomości ani danych.</string>
+    <string name="privacy_no_servers_title">Wiadomości omijają nasze serwery</string>
+    <string name="privacy_no_servers_text">Bez zakładania kont. Nigdy nie widzimy, nie przechowujemy ani nie sprzedajemy Twoich wiadomości. Tylko rozmowy przez link korzystają z naszego serwera i są szyfrowane end-to-end.</string>
 </resources>

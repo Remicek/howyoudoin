@@ -153,6 +153,9 @@
     <string name="telegram_keys_invalid">my.telegram.org'daki api_id'yi (bir sayı) ve api_hash'i (32 harf ve rakam) gir.</string>
     <string name="settings_rate">HowYouDoin'i değerlendir</string>
     <string name="settings_rate_sub">Ne düşündüğünüzü Google Play'de bize ve başkalarına söyleyin</string>
+    <string name="rate_prompt_text">%1$d ağ bağladınız. HowYouDoin işinize yarıyorsa Google Play'deki bir puan başkalarının da onu bulmasına yardımcı olur.</string>
+    <string name="rate_prompt_rate">Değerlendir</string>
+    <string name="rate_prompt_dont_show">Bir daha gösterme</string>
     <string name="settings_share">HowYouDoin'i paylaş</string>
     <string name="settings_share_sub">Uygulamayı arkadaşlarınıza gönderin</string>
     <string name="settings_share_message">WhatsApp, Messenger, Telegram ve diğer sohbetlerimi HowYouDoin ile tek bir özel gelen kutusunda tutuyorum. Dene: %1$s</string>

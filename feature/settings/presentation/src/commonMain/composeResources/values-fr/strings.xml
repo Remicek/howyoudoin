@@ -155,6 +155,9 @@
     <string name="telegram_keys_invalid">Saisis l'api_id (un nombre) et l'api_hash (32 lettres et chiffres) de my.telegram.org.</string>
     <string name="settings_rate">Noter HowYouDoin</string>
     <string name="settings_rate_sub">Dites-nous, et dites aux autres, ce que vous en pensez sur Google Play</string>
+    <string name="rate_prompt_text">Vous avez connecté %1$d réseaux. Si HowYouDoin vous aide, une note sur Google Play aide d'autres personnes à la trouver.</string>
+    <string name="rate_prompt_rate">Noter</string>
+    <string name="rate_prompt_dont_show">Ne plus afficher</string>
     <string name="settings_share">Partager HowYouDoin</string>
     <string name="settings_share_sub">Envoyez l'appli à vos amis</string>
     <string name="settings_share_message">Je garde mes discussions WhatsApp, Messenger, Telegram et autres dans une seule boîte privée avec HowYouDoin. Essayez : %1$s</string>

@@ -161,6 +161,9 @@
     <string name="telegram_keys_invalid">أدخل api_id (رقم) وapi_hash (32 حرفًا ورقمًا) من my.telegram.org.</string>
     <string name="settings_rate">قيّم HowYouDoin</string>
     <string name="settings_rate_sub">أخبرنا وأخبر الآخرين برأيك على Google Play</string>
+    <string name="rate_prompt_text">لقد ربطت %1$d شبكات. إذا كان HowYouDoin مفيدًا لك، فإن تقييمك على Google Play يساعد الآخرين على العثور عليه.</string>
+    <string name="rate_prompt_rate">قيّم</string>
+    <string name="rate_prompt_dont_show">لا تعرض هذا مجددًا</string>
     <string name="settings_share">شارك HowYouDoin</string>
     <string name="settings_share_sub">أرسل التطبيق إلى أصدقائك</string>
     <string name="settings_share_message">أجمع محادثاتي من WhatsApp وMessenger وTelegram وغيرها في صندوق وارد خاص واحد مع HowYouDoin. جرّبه: %1$s</string>

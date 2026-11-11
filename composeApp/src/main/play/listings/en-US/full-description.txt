@@ -1,4 +1,4 @@
-Tired of jumping between WhatsApp, Messenger, Telegram and a handful of other chat apps? HowYouDoin is an all-in-one messenger that puts every conversation in one unified inbox, so you can read and reply to everyone from a single app.
+Tired of jumping between WhatsApp, Messenger, Telegram and a handful of other chat apps? HowYouDoin is an all-in-one messenger that puts every conversation in one unified inbox, so you can read and reply to everyone from a single app. And you can video call anyone you chat with, for free.
 
 It works with WhatsApp, Messenger, Instagram, Telegram, Signal, Discord, Slack, LinkedIn, Bluesky, X and Matrix. Connect the networks you use and your chats show up together, newest first.
 
@@ -8,8 +8,14 @@ ONE INBOX FOR ALL YOUR MESSAGES
 • Search your chats, and start a new chat with anyone on a connected network
 • Notifications for new messages without push servers: the app keeps its own connection
 
+FREE, ENCRYPTED VIDEO CALLS
+• Video or voice call anyone you chat with, on any network: HowYouDoin sends them a link and they join from their browser, with no app or account needed
+• End-to-end encrypted: the call goes through HowYouDoin's call server, which can't see or hear it
+• Free every month: 60 minutes of video and 10 hours of voice. The person you call never pays
+• Voice and video calls with Matrix contacts are built in
+
 PRIVATE BY DESIGN
-• Your accounts connect directly from this phone. There are no HowYouDoin servers in the middle of your messages, and nobody else sees them
+• Your messages never pass through HowYouDoin servers: your accounts connect directly from this phone, and nobody else sees your chats. Only calls through a link use our server, and they're end-to-end encrypted
 • No analytics, no tracking, no ads
 • Lock the app with your fingerprint or a PIN, and hide message text in notifications
 • Crash reports stay on your phone unless you choose to share them
@@ -17,7 +23,6 @@ PRIVATE BY DESIGN
 A FULL CHAT APP
 • Text, photos, videos, voice messages and files
 • Replies, reactions, edits, deletions, typing indicators and read receipts, wherever the network supports them
-• Voice and video calls with Matrix contacts
 • Offline? Your saved chats stay readable, and the app tells you when a message can't be sent yet
 
 EASY TO START
@@ -31,8 +36,11 @@ MAKE IT YOURS
 • Light and dark mode and four colour themes
 • Available in 12 languages
 
-FREE AND OPEN SOURCE
-No subscriptions, no in-app purchases. Licensed under the GNU AGPL v3; the source code is on GitHub.
+FREE, WITH OPTIONAL PREMIUM
+Everything above is free, without ads. HowYouDoin Premium adds 50 hours of video and 100 hours of voice calls a month, sharper video, calls up to 4 hours long, and up to 3 accounts of each network. Try it free for 7 days, then pay monthly; cancel anytime in Google Play. Want more video without a subscription? Buy 5 hours that never expire.
+
+OPEN SOURCE
+Licensed under the GNU AGPL v3; the source code is on GitHub.
 
 GOOD TO KNOW
 HowYouDoin is an unofficial app. It is not affiliated with or endorsed by Meta, Telegram, Signal, Slack, Discord, LinkedIn, Bluesky, X or the Matrix.org Foundation. Some of these services don't allow third-party apps and may limit an account that uses one. Use it only with your own accounts. All trademarks belong to their owners.

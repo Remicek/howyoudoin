@@ -10,6 +10,7 @@ import com.devvalor.howyoudoing.auth.presentation.navigation.authGraph
 import com.devvalor.howyoudoing.chat.presentation.navigation.ChatRoutes
 import com.devvalor.howyoudoing.chat.presentation.navigation.chatGraph
 import com.devvalor.howyoudoing.networks.presentation.history.EncryptedHistoryBannerRoot
+import com.devvalor.howyoudoing.settings.presentation.main.RatePromptRoot
 import com.devvalor.howyoudoing.networks.presentation.navigation.NetworksRoutes
 import com.devvalor.howyoudoing.networks.presentation.navigation.networksGraph
 import com.devvalor.howyoudoing.settings.presentation.navigation.SettingsRoutes
@@ -57,7 +58,10 @@ fun NavigationRoot(
             onPremiumClick = {
                 navController.navigate(SettingsRoutes.Premium) { launchSingleTop = true }
             },
-            inboxBanner = { encryptedNetworks -> EncryptedHistoryBannerRoot(encryptedNetworks) },
+            inboxBanner = { encryptedNetworks ->
+                EncryptedHistoryBannerRoot(encryptedNetworks)
+                RatePromptRoot()
+            },
         )
         networksGraph(
             navController = navController,

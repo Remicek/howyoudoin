@@ -1,5 +1,4 @@
-- Premium: more call minutes, sharper video, longer calls and up to 3 accounts per network
-- Settings → Notifications: turn message and call notifications on or off
-- "Don't show again" on inbox tips; Settings → Hidden tips brings them back
-- Video calls through a link warn before video or the call runs out
-- Fixes
+- Free video calls with anyone you chat with: they join from a link in their browser, end-to-end encrypted
+- Premium: 7 days free, then monthly; more call minutes, sharper video and up to 3 accounts per network
+- A one-time question about rating the app, with "Don't show again"
+- Clearer privacy text: your messages never pass through our servers

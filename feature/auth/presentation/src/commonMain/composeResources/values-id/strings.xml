@@ -7,6 +7,6 @@
     <string name="privacy_on_phone_text">Pesan, kontak, dan info masuk hanya disimpan di ponsel ini.</string>
     <string name="privacy_direct_title">Langsung ke WhatsApp, Messenger, dan lainnya</string>
     <string name="privacy_direct_text">Aplikasi ini hanya berkomunikasi dengan jaringan yang Anda hubungkan, sama seperti aplikasi resminya.</string>
-    <string name="privacy_no_servers_title">Tanpa server HowYouDoin</string>
-    <string name="privacy_no_servers_text">Kami tidak punya server maupun akun. Kami tidak pernah melihat, menyimpan, atau menjual pesan maupun data Anda.</string>
+    <string name="privacy_no_servers_title">Pesan Anda tidak lewat server kami</string>
+    <string name="privacy_no_servers_text">Tanpa membuat akun. Kami tidak pernah melihat, menyimpan, atau menjual pesan Anda. Hanya panggilan lewat tautan yang memakai server kami, dan terenkripsi end-to-end.</string>
 </resources>

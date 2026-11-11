@@ -157,6 +157,9 @@
     <string name="telegram_keys_invalid">Введите api_id (число) и api_hash (32 буквы и цифры) с my.telegram.org.</string>
     <string name="settings_rate">Оценить HowYouDoin</string>
     <string name="settings_rate_sub">Расскажите нам и другим в Google Play, что вы думаете</string>
+    <string name="rate_prompt_text">Вы подключили сетей: %1$d. Если HowYouDoin вам помогает, оценка в Google Play поможет другим его найти.</string>
+    <string name="rate_prompt_rate">Оценить</string>
+    <string name="rate_prompt_dont_show">Больше не показывать</string>
     <string name="settings_share">Поделиться HowYouDoin</string>
     <string name="settings_share_sub">Отправьте приложение друзьям</string>
     <string name="settings_share_message">Все мои чаты из WhatsApp, Messenger, Telegram и других — в одном приватном списке с HowYouDoin. Попробуйте: %1$s</string>

@@ -7,6 +7,6 @@
     <string name="privacy_on_phone_text">Сообщения, контакты и данные входа хранятся только на этом телефоне.</string>
     <string name="privacy_direct_title">Напрямую к WhatsApp, Messenger и другим</string>
     <string name="privacy_direct_text">Приложение связывается только с подключёнными вами сетями — так же, как их собственные приложения.</string>
-    <string name="privacy_no_servers_title">Никаких серверов HowYouDoin</string>
-    <string name="privacy_no_servers_text">У нас нет ни серверов, ни аккаунтов. Мы никогда не видим, не храним и не продаём ваши сообщения или данные.</string>
+    <string name="privacy_no_servers_title">Сообщения не идут через наши серверы</string>
+    <string name="privacy_no_servers_text">Никаких аккаунтов. Мы никогда не видим, не храним и не продаём ваши сообщения. Наш сервер используют только звонки по ссылке, и они защищены сквозным шифрованием.</string>
 </resources>

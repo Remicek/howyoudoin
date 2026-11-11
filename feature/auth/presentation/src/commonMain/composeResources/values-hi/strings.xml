@@ -7,6 +7,6 @@
     <string name="privacy_on_phone_text">मैसेज, संपर्क और लॉगिन सिर्फ़ इसी फ़ोन पर सेव रहते हैं।</string>
     <string name="privacy_direct_title">सीधे WhatsApp, Messenger और बाकी से</string>
     <string name="privacy_direct_text">ऐप सिर्फ़ उन्हीं नेटवर्क से बात करता है जिन्हें आप जोड़ते हैं, ठीक उनके अपने ऐप की तरह।</string>
-    <string name="privacy_no_servers_title">HowYouDoin का कोई सर्वर नहीं</string>
-    <string name="privacy_no_servers_text">हमारे पास न सर्वर हैं, न खाते। हम आपके मैसेज या डेटा को कभी नहीं देखते, न रखते हैं, न बेचते हैं।</string>
+    <string name="privacy_no_servers_title">आपके मैसेज हमारे सर्वर से नहीं गुज़रते</string>
+    <string name="privacy_no_servers_text">कोई खाता नहीं बनाना। हम आपके मैसेज कभी नहीं देखते, न रखते हैं, न बेचते हैं। सिर्फ़ लिंक से होने वाली कॉल हमारे सर्वर से जाती हैं, और वे एंड-टू-एंड एन्क्रिप्टेड हैं।</string>
 </resources>

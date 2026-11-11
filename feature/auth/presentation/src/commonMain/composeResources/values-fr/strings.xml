@@ -7,6 +7,6 @@
     <string name="privacy_on_phone_text">Messages, contacts et connexions sont conservés uniquement sur ce téléphone.</string>
     <string name="privacy_direct_title">Directement vers WhatsApp, Messenger et les autres</string>
     <string name="privacy_direct_text">L'appli communique uniquement avec les réseaux que vous connectez, comme leurs propres applis.</string>
-    <string name="privacy_no_servers_title">Aucun serveur HowYouDoin</string>
-    <string name="privacy_no_servers_text">Nous n'avons ni serveurs ni comptes. Nous ne voyons, ne conservons et ne vendons jamais vos messages ou vos données.</string>
+    <string name="privacy_no_servers_title">Vos messages évitent nos serveurs</string>
+    <string name="privacy_no_servers_text">Aucun compte à créer. Nous ne voyons, ne conservons et ne vendons jamais vos messages. Seuls les appels par lien passent par notre serveur, et ils sont chiffrés de bout en bout.</string>
 </resources>

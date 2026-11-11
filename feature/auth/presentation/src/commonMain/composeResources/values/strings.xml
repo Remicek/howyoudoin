@@ -7,6 +7,6 @@
     <string name="privacy_on_phone_text">Messages, contacts and logins are kept only on this phone.</string>
     <string name="privacy_direct_title">Straight to WhatsApp, Messenger and the rest</string>
     <string name="privacy_direct_text">The app talks only to the networks you connect, the same way their own apps do.</string>
-    <string name="privacy_no_servers_title">No HowYouDoin servers</string>
-    <string name="privacy_no_servers_text">We have no servers and no accounts. We never see, keep or sell your messages or data.</string>
+    <string name="privacy_no_servers_title">Your messages skip our servers</string>
+    <string name="privacy_no_servers_text">No accounts to create. We never see, keep or sell your messages. Only calls through a link use our server, and they're end-to-end encrypted.</string>
 </resources>

@@ -7,6 +7,6 @@
     <string name="privacy_on_phone_text">الرسائل وجهات الاتصال وبيانات الدخول محفوظة على هذا الهاتف فقط.</string>
     <string name="privacy_direct_title">مباشرةً إلى واتساب وماسنجر وغيرهما</string>
     <string name="privacy_direct_text">يتواصل التطبيق فقط مع الشبكات التي توصلها، تمامًا كتطبيقاتها الرسمية.</string>
-    <string name="privacy_no_servers_title">لا خوادم لـ HowYouDoin</string>
-    <string name="privacy_no_servers_text">ليس لدينا خوادم ولا حسابات. لا نرى رسائلك أو بياناتك ولا نحفظها ولا نبيعها أبدًا.</string>
+    <string name="privacy_no_servers_title">رسائلك لا تمر عبر خوادمنا</string>
+    <string name="privacy_no_servers_text">لا حاجة لإنشاء حساب. لا نرى رسائلك ولا نحفظها ولا نبيعها أبدًا. المكالمات عبر رابط فقط تستخدم خادمنا، وهي مشفّرة من طرف إلى طرف.</string>
 </resources>

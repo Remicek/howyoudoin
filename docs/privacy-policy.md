@@ -1,15 +1,19 @@
 # HowYouDoin privacy policy
 
-Last updated: 30 October 2026
+Last updated: 11 November 2026
 
 HowYouDoin is a free, open-source chat app that brings your WhatsApp, Messenger, Instagram, Telegram, Signal, Slack,
 Bluesky, LinkedIn, Discord, X and Matrix conversations into one inbox. This policy explains what happens to your data.
 
 ## What we collect
 
-**Nothing.** In its default mode HowYouDoin has no servers of its own (only the optional calls through a link,
-below, use one), no accounts with us, no analytics, no advertising and no tracking. The developers never receive your messages, contacts, login details or usage data. The
-app contains no analytics, advertising or crash-reporting libraries from other companies either.
+**None of your messages, contacts or logins.** Your messages never pass through HowYouDoin's servers, and there are
+no accounts with us, no analytics, no advertising and no tracking. The developers never receive your messages,
+contacts, login details or usage data. The app contains no analytics, advertising or crash-reporting libraries from
+other companies either.
+
+The only server of ours is the call service, used for the optional calls through a link. It keeps how many call
+minutes each installation has used, and what was bought with Premium; see "Call minutes and Premium" below.
 
 ## What stays on your phone
 
@@ -57,7 +61,28 @@ send its link in a chat; the other person joins it in their browser. Only when y
   never send to a server. Neither the call service nor Cloudflare can see or hear the call, and neither stores it.
 - The link is sent as an ordinary message in that chat, so the network carries it like any other message.
 - A call has room for two people. It closes 15 minutes after it's created if nobody joins, when either of you hangs
-  up, and after at most 4 hours. Once it closes, the call service keeps nothing about it.
+  up, and after at most 4 hours. Once it closes, the call service keeps nothing about the call itself, only the
+  minutes it used (below).
+
+## Call minutes and Premium
+
+Calls through a link come with free minutes every month, and HowYouDoin Premium (a Google Play subscription) or a
+video top-up adds more. To count them, the call service keeps:
+
+- a random ID the app makes when it's installed (not linked to your name, phone number, Google account or any
+  network account), sent with each call you start;
+- for that ID, or for your Premium subscription: the month, the video and audio minutes used in it, and any bought
+  video time left.
+
+When you buy Premium or a top-up, Google Play handles the payment; we never see your card or Google account. The app
+sends the purchase token Google Play gives it to the call service, which asks Google Play whether the purchase is
+paid. The service then keeps the subscription's Google Play order number and when it is paid until, and a one-way hash
+of each top-up's purchase token (so one purchase can't be used twice). Google Play's own privacy policy applies to the
+purchase.
+
+This is kept while it can still be used: the minutes of the current month, and bought time until it runs out.
+Uninstalling the app or clearing its data gives it a new random ID; what was kept for the old one is then no longer
+connected to your phone. Premium and bought time come back through Settings → Premium → Restore purchases.
 
 ## Server mode (optional)
 

@@ -153,6 +153,9 @@
     <string name="telegram_keys_invalid">Gib die api_id (eine Zahl) und den api_hash (32 Buchstaben und Ziffern) von my.telegram.org ein.</string>
     <string name="settings_rate">HowYouDoin bewerten</string>
     <string name="settings_rate_sub">Sag uns und anderen bei Google Play, was du denkst</string>
+    <string name="rate_prompt_text">Du hast %1$d Netzwerke verbunden. Wenn dir HowYouDoin hilft, hilft eine Bewertung bei Google Play anderen, die App zu finden.</string>
+    <string name="rate_prompt_rate">Bewerten</string>
+    <string name="rate_prompt_dont_show">Nicht mehr anzeigen</string>
     <string name="settings_share">HowYouDoin teilen</string>
     <string name="settings_share_sub">Schick die App an Freunde</string>
     <string name="settings_share_message">Ich habe meine Chats aus WhatsApp, Messenger, Telegram und mehr in einem privaten Posteingang – mit HowYouDoin. Probier es aus: %1$s</string>

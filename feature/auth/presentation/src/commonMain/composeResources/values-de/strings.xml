@@ -7,6 +7,6 @@
     <string name="privacy_on_phone_text">Nachrichten, Kontakte und Anmeldungen werden nur auf diesem Handy gespeichert.</string>
     <string name="privacy_direct_title">Direkt zu WhatsApp, Messenger und den anderen</string>
     <string name="privacy_direct_text">Die App spricht nur mit den Netzwerken, die du verbindest, genau wie deren eigene Apps.</string>
-    <string name="privacy_no_servers_title">Keine HowYouDoin-Server</string>
-    <string name="privacy_no_servers_text">Wir haben keine Server und keine Konten. Wir sehen, speichern oder verkaufen niemals deine Nachrichten oder Daten.</string>
+    <string name="privacy_no_servers_title">Nachrichten ohne unsere Server</string>
+    <string name="privacy_no_servers_text">Keine Konten nötig. Wir sehen, speichern oder verkaufen niemals deine Nachrichten. Nur Anrufe per Link nutzen unseren Server, und sie sind Ende-zu-Ende-verschlüsselt.</string>
 </resources>

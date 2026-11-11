@@ -15,8 +15,9 @@ What to enter in Play Console → App content → Data safety, and why. Keep it 
   exporter); `segmentio/asm` is a byte-handling library, not Segment analytics.
 - **Release manifest:** no services or receivers from other companies; AndroidX's own startup and profile
   installer components stay on the device.
-- **Hosts the app contacts:** the connected networks (and their login pages and media servers) and, in server mode,
-  the user's own Matrix homeserver. Nothing of the developer's.
+- **Hosts the app contacts:** the connected networks (and their login pages and media servers), in server mode
+  the user's own Matrix homeserver, Google Play (billing), and the developer's call service (call.howyoudoin.app, on
+  Cloudflare) when a call through a link is started or Settings → Premium is opened.
 
 Re-check before each release: `./gradlew :composeApp:dependencies --configuration releaseRuntimeClasspath` and the
 merged manifest in `composeApp/build/intermediates/merged_manifest/release/`.
@@ -34,7 +35,8 @@ shared (sending data to the service the user chose, at their request, is not "sh
 only allows plain HTTP to a local development server).
 
 **Do you provide a way for users to request that their data is deleted?** Yes: disconnecting a network deletes its
-data from the phone, and uninstalling the app deletes everything. The developer holds no data to delete.
+data from the phone, and uninstalling the app deletes everything there. The call service holds only call minutes
+per random install ID and purchase records (no name, email or account); clearing the app's data detaches them.
 
 | Data type | Collected | Shared | Processed ephemerally | Required or optional | Purpose |
 |---|---|---|---|---|---|
@@ -43,10 +45,12 @@ data from the phone, and uninstalling the app deletes everything. The developer 
 | Audio → Voice or sound recordings | Yes | No | No | Optional (voice messages, calls) | App functionality |
 | Files and docs | Yes | No | No | Optional (only those the user sends) | App functionality |
 | Personal info → User IDs | Yes | No | No | Required (the network login) | App functionality |
+| Device or other IDs | Yes | No | No | Optional (calls through a link, Premium) | App functionality |
+| Financial info → Purchase history | Yes | No | No | Optional (Premium, top-ups) | App functionality |
 
 Not collected: location, device contacts (the address book is never read; contact names come from the
 networks), app activity, web browsing, app info and performance (crash reports stay on the phone and are only
-shared by the user, by hand), device or other IDs, financial, health, calendar.
+shared by the user, by hand), health, calendar.
 
 **Crash reports:** not collected. A report is only shared when the user chooses to send it through Android's share
 sheet, to whoever they pick, which Google treats as user-initiated.
@@ -64,3 +68,10 @@ sheet, to whoever they pick, which Google treats as user-initiated.
   Cloudflare see IP addresses. Check Play's current rules for end-to-end encrypted data before answering "Audio" and "Photos and
   videos" (the table above already lists them as collected for calls), and name Cloudflare if asked
   about service providers.
+
+## Changed 2026-11-11 (Premium)
+
+Calls through a link count minutes per installation: the app sends a random install ID (app-generated, so "Device or
+other IDs") and, with Premium or a top-up, Google Play purchase tokens; the call service keeps minutes used, the
+subscription's order number and expiry, and hashes of top-up tokens ("Financial info → Purchase history"). Both
+are for app functionality only, never shared or used for ads.

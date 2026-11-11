@@ -1,4 +1,4 @@
-Masz dość przeskakiwania między WhatsAppem, Messengerem, Telegramem i kilkoma innymi komunikatorami? HowYouDoin to komunikator wszystko w jednym: wszystkie rozmowy w jednej wspólnej skrzynce, więc czytasz i odpowiadasz wszystkim z jednej aplikacji.
+Masz dość przeskakiwania między WhatsAppem, Messengerem, Telegramem i kilkoma innymi komunikatorami? HowYouDoin to komunikator wszystko w jednym: wszystkie rozmowy w jednej wspólnej skrzynce, więc czytasz i odpowiadasz wszystkim z jednej aplikacji. Do tego za darmo zadzwonisz z wideo do każdego, z kim piszesz.
 
 Działa z WhatsApp, Messenger, Instagram, Telegram, Signal, Discord, Slack, LinkedIn, Bluesky, X i Matrix. Połącz sieci, z których korzystasz, a Twoje czaty pojawią się razem, od najnowszych.
 
@@ -8,8 +8,14 @@ JEDNA SKRZYNKA NA WSZYSTKIE WIADOMOŚCI
 • Szukaj czatów i zaczynaj nowe rozmowy z każdym w połączonej sieci
 • Powiadomienia o nowych wiadomościach bez serwerów push: aplikacja utrzymuje własne połączenie
 
+DARMOWE, SZYFROWANE ROZMOWY WIDEO
+• Zadzwoń z wideo lub głosowo do każdego, z kim piszesz, w każdej sieci: HowYouDoin wyśle mu link, a on dołączy w przeglądarce, bez aplikacji i konta
+• Szyfrowanie end-to-end: rozmowa przechodzi przez serwer połączeń HowYouDoin, który nie może jej zobaczyć ani usłyszeć
+• Za darmo co miesiąc: 60 minut wideo i 10 godzin rozmów głosowych. Osoba, do której dzwonisz, nigdy nie płaci
+• Połączenia głosowe i wideo z kontaktami w Matrix są wbudowane
+
 PRYWATNOŚĆ PRZEDE WSZYSTKIM
-• Twoje konta łączą się bezpośrednio z tego telefonu. Twoje wiadomości nie przechodzą przez serwery HowYouDoin i nikt inny ich nie widzi
+• Twoje wiadomości nigdy nie przechodzą przez serwery HowYouDoin: konta łączą się bezpośrednio z tego telefonu i nikt inny nie widzi Twoich czatów. Tylko rozmowy przez link korzystają z naszego serwera i są szyfrowane end-to-end
 • Bez analityki, śledzenia i reklam
 • Zablokuj aplikację odciskiem palca lub PIN-em i ukryj treść wiadomości w powiadomieniach
 • Raporty o awariach zostają na telefonie, chyba że zdecydujesz się je udostępnić
@@ -17,7 +23,6 @@ PRYWATNOŚĆ PRZEDE WSZYSTKIM
 PEŁNOPRAWNY KOMUNIKATOR
 • Wiadomości, zdjęcia, filmy, wiadomości głosowe i pliki
 • Odpowiedzi, reakcje, edycja, usuwanie, wskaźnik pisania i potwierdzenia przeczytania, tam gdzie sieć je obsługuje
-• Połączenia głosowe i wideo z kontaktami w Matrix
 • Bez internetu? Zapisane czaty da się czytać, a aplikacja powie, gdy wiadomości nie da się jeszcze wysłać
 
 ŁATWY START
@@ -31,8 +36,11 @@ TWÓJ STYL
 • Tryb jasny i ciemny oraz cztery motywy kolorystyczne
 • Dostępna w 12 językach
 
-DARMOWA I OTWARTA
-Bez subskrypcji i zakupów w aplikacji. Licencja GNU AGPL v3, kod źródłowy na GitHubie.
+ZA DARMO, Z OPCJONALNYM PREMIUM
+Wszystko powyżej jest za darmo i bez reklam. HowYouDoin Premium daje 50 godzin wideo i 100 godzin rozmów głosowych miesięcznie, ostrzejszy obraz, rozmowy do 4 godzin i do 3 kont w każdej sieci. Wypróbuj za darmo przez 7 dni, potem płacisz co miesiąc; anulujesz w każdej chwili w Google Play. Chcesz więcej wideo bez subskrypcji? Kup 5 godzin, które nigdy nie wygasają.
+
+OTWARTE ŹRÓDŁO
+Licencja GNU AGPL v3, kod źródłowy na GitHubie.
 
 DOBRZE WIEDZIEĆ
 HowYouDoin to nieoficjalna aplikacja. Nie jest powiązana z Meta, Telegram, Signal, Slack, Discord, LinkedIn, Bluesky, X ani Matrix.org Foundation, ani przez nie popierana. Niektóre z tych usług nie zezwalają na aplikacje innych firm i mogą ograniczyć konto, które z nich korzysta. Używaj jej tylko z własnymi kontami. Wszystkie znaki towarowe należą do ich właścicieli.

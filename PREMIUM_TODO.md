@@ -19,11 +19,14 @@ each network; a 5-hour video top-up for $1.99. Details and setup: call-link/READ
 
 ## Needs the user
 
-- [ ] Play Console: create `premium_monthly` (monthly base plan, $2.99, 7-day trial offer) and `video_5h` ($1.99).
-- [ ] Service account with Play access; `npx wrangler secret put PLAY_SERVICE_ACCOUNT`.
-- [ ] Deploy the Worker (adds the `CallAccount` Durable Object). Builds from before this get "update the app" when
-      starting a call; the released v1.1.0 has no calls through a link, so only debug builds are affected.
-- [ ] Buy and cancel with a license tester from an internal-testing build.
+- [x] Play Console (2026-11-11): `premium_monthly` (base plan `monthly`, $2.99, 7-day grace) with offer
+      `free-trial-7d` (7 days free, only for people who never had this subscription), and `video_5h` ($1.99,
+      purchase option `buy`). All active.
+- [x] Service account with Play access; `npx wrangler secret put PLAY_SERVICE_ACCOUNT`.
+- [x] Deploy the Worker.
+- [x] License testers and internal testers: list "Rodzina i najomi" (remicek, remiwaw, arkwaw @gmail.com), 2026-11-11.
+      Internal test opt-in: https://play.google.com/apps/internaltest/4701300544930208456
+- [ ] Buy and cancel with a license tester from an internal-testing build (1.1.2, versionCode 8, is on internal).
 
 ## Tested on a phone (Galaxy A16 + Chrome on the emulator as the guest, 2026-11-10)
 
@@ -47,8 +50,10 @@ Against `npm run dev` with the free plan shortened for the test only (2 min vide
   service account `play-purchases@howyoudoin-513908` (Play Console: view financial data + manage orders/subscriptions
   on HowYouDoin only; separate from `play-publisher`).
 - Found live and fixed (089a532): every Premium check threw "Illegal invocation" (fetch called as a method).
-- Google Play answers 401 to `play-purchases` right after it was given access: wait for it to spread (hours, up to a
-  day), then check with `npx wrangler tail` while opening Premium. Until then everyone is free (fails closed).
+- The 401s from Google Play were because `play-purchases` had never been invited in Play Console (Users and
+  permissions); invited 2026-11-11 08:08; Play accepted it by 08:19. Check: POST `/api/topups` with a made-up
+  token answers 402 once Play answers (502 + "Play purchase check: 401" in `npx wrangler tail` before). Until then
+  everyone is free (fails closed).
 - A16 against the live server: Premium shows 1 h / 10 h; a 2-minute video call was charged ("58 min left").
 - [ ] The guest in a headless Chrome on the Mac stayed on "Connecting…" (it sent video, the phone showed it, but it
       never received the phone's). The same set-up worked against `wrangler dev`. Check with a real browser.

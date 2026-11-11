@@ -1,5 +1,4 @@
-- Premium: więcej minut rozmów, ostrzejsze wideo, dłuższe rozmowy i do 3 kont w każdej sieci
-- Ustawienia → Powiadomienia: włączanie i wyłączanie powiadomień o wiadomościach i połączeniach
-- „Nie pokazuj ponownie” przy wskazówkach; Ustawienia → Ukryte wskazówki przywraca je
-- Rozmowy wideo przez link ostrzegają, zanim skończy się wideo lub rozmowa
-- Poprawki
+- Darmowe rozmowy wideo z każdym, z kim piszesz: dołącza z linku w przeglądarce, szyfrowane end-to-end
+- Premium: 7 dni za darmo, potem co miesiąc; więcej minut, ostrzejsze wideo i do 3 kont w każdej sieci
+- Jednorazowe pytanie o ocenę aplikacji, z opcją „Nie pokazuj więcej”
+- Jaśniejszy opis prywatności: Twoje wiadomości nie przechodzą przez nasze serwery

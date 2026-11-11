@@ -157,6 +157,9 @@
     <string name="telegram_keys_invalid">Wpisz api_id (liczbę) i api_hash (32 litery i cyfry) z my.telegram.org.</string>
     <string name="settings_rate">Oceń HowYouDoin</string>
     <string name="settings_rate_sub">Powiedz nam i innym w Google Play, co myślisz</string>
+    <string name="rate_prompt_text">Masz już połączone %1$d sieci. Jeśli HowYouDoin Ci pomaga, ocena w Google Play pomoże innym ją znaleźć.</string>
+    <string name="rate_prompt_rate">Oceń</string>
+    <string name="rate_prompt_dont_show">Nie pokazuj więcej</string>
     <string name="settings_share">Poleć HowYouDoin</string>
     <string name="settings_share_sub">Wyślij aplikację znajomym</string>
     <string name="settings_share_message">Trzymam czaty z WhatsAppa, Messengera, Telegrama i innych w jednej prywatnej skrzynce dzięki HowYouDoin. Wypróbuj: %1$s</string>

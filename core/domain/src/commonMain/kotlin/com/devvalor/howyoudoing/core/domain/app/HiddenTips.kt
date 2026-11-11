@@ -9,6 +9,9 @@ enum class Tip(val key: String) {
 
     /** Restore Messenger's end-to-end encrypted history with the Messenger PIN. */
     ENCRYPTED_HISTORY("encrypted_history"),
+
+    /** Rate the app on Google Play, asked once a few networks are connected. */
+    RATE_APP("rate_app"),
 }
 
 /** Which [Tip]s were turned off; Settings → Hidden tips brings them all back. */

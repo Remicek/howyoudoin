@@ -7,6 +7,6 @@
     <string name="privacy_on_phone_text">Los mensajes, contactos e inicios de sesión se guardan solo en este teléfono.</string>
     <string name="privacy_direct_title">Directo a WhatsApp, Messenger y los demás</string>
     <string name="privacy_direct_text">La app solo se comunica con las redes que conectas, igual que sus propias apps.</string>
-    <string name="privacy_no_servers_title">Sin servidores de HowYouDoin</string>
-    <string name="privacy_no_servers_text">No tenemos servidores ni cuentas. Nunca vemos, guardamos ni vendemos tus mensajes ni tus datos.</string>
+    <string name="privacy_no_servers_title">Tus mensajes no pasan por nuestros servidores</string>
+    <string name="privacy_no_servers_text">Sin cuentas que crear. Nunca vemos, guardamos ni vendemos tus mensajes. Solo las llamadas por enlace usan nuestro servidor, y están cifradas de extremo a extremo.</string>
 </resources>

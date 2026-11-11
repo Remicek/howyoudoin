@@ -5,12 +5,14 @@ import com.devvalor.howyoudoing.core.domain.premium.InstallId
 import com.devvalor.howyoudoing.core.domain.config.BuildInfo
 import com.devvalor.howyoudoing.core.data.app.DataStoreAppTour
 import com.devvalor.howyoudoing.core.data.app.DataStoreHiddenTips
+import com.devvalor.howyoudoing.core.data.app.DataStoreRatePromptMemory
 import com.devvalor.howyoudoing.core.data.app.DataStoreNotificationSettings
 import com.devvalor.howyoudoing.core.data.app.DataStoreAccountLabels
 import com.devvalor.howyoudoing.core.domain.ondevice.AccountLabels
 import com.devvalor.howyoudoing.core.data.auth.DataStoreSessionStorage
 import com.devvalor.howyoudoing.core.domain.app.AppTour
 import com.devvalor.howyoudoing.core.domain.app.HiddenTips
+import com.devvalor.howyoudoing.core.domain.app.RatePromptMemory
 import com.devvalor.howyoudoing.core.domain.app.NotificationSettings
 import com.devvalor.howyoudoing.core.data.networking.HttpClientFactory
 import com.devvalor.howyoudoing.core.domain.auth.SessionStorage
@@ -33,6 +35,7 @@ val coreDataModule = module {
     single { DataStoreSessionStorage(get(), get()) } bind SessionStorage::class
     single { DataStoreAppTour(get()) } bind AppTour::class
     single { DataStoreHiddenTips(get()) } bind HiddenTips::class
+    single { DataStoreRatePromptMemory(get()) } bind RatePromptMemory::class
     single { DataStoreNotificationSettings(get()) } bind NotificationSettings::class
     single { DataStoreAccountLabels(get()) } bind AccountLabels::class
     single { DataStoreInstallId(get()) } bind InstallId::class

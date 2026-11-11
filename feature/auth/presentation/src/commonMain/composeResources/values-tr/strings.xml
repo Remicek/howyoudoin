@@ -7,6 +7,6 @@
     <string name="privacy_on_phone_text">Mesajlar, kişiler ve girişler yalnızca bu telefonda saklanır.</string>
     <string name="privacy_direct_title">Doğrudan WhatsApp, Messenger ve diğerlerine</string>
     <string name="privacy_direct_text">Uygulama yalnızca bağladığınız ağlarla, onların kendi uygulamaları gibi konuşur.</string>
-    <string name="privacy_no_servers_title">HowYouDoin sunucusu yok</string>
-    <string name="privacy_no_servers_text">Sunucumuz da hesabımız da yok. Mesajlarınızı veya verilerinizi asla görmez, saklamaz ya da satmayız.</string>
+    <string name="privacy_no_servers_title">Mesajlarınız sunucularımızdan geçmez</string>
+    <string name="privacy_no_servers_text">Hesap açmanız gerekmez. Mesajlarınızı asla görmez, saklamaz ya da satmayız. Sunucumuzu yalnızca bağlantıyla yapılan aramalar kullanır ve bunlar uçtan uca şifrelidir.</string>
 </resources>
