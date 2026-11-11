@@ -73,7 +73,7 @@ SFU handles groups; what it would take:
 
 ## Clean-up
 
-- [ ] Delete the test messages sent to the Slack chat "remicek" on 2026-11-10: six "Join me on a video call…
+- [x] (Left as they are, the user's choice, 2026-11-11) Test messages in the Slack chat "remicek" on 2026-11-10: six "Join me on a video call…
       http://localhost:8787/…" (they can't be opened) and one with a `call.howyoudoin.app` link (that call has
       ended).
 
