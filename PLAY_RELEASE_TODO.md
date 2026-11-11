@@ -55,16 +55,16 @@ in any session. Google Play marketing assets live outside this repo at
 
 ## Google Play — before publishing
 
-- [ ] **Privacy policy URL.** The app already has a privacy screen; its text needs to
-      be hosted at a public URL and pasted into the Play Console listing.
-- [ ] **Data safety form.** Declare: no analytics, processing on-device, crash reports
-      stay local, login backup = the user's own end-to-end-encrypted Google backup.
-- [ ] **Content rating questionnaire.** Complete in the Play Console.
-- [ ] **Promo video.** Play accepts a **YouTube URL, not a file**. Upload
-      `video/howyoudoin_promo.mp4` to YouTube and paste the link.
+- [x] **Privacy policy URL:** https://howyoudoin.app/privacy.html.
+- [x] **Data safety form:** see "Store listing upload (2026-11-11)" below and `docs/data-safety.md`.
+- [x] **Content rating questionnaire:** done (App content shows no declarations left, 2026-11-11).
+- [x] **Promo video:** https://www.youtube.com/watch?v=hZRZBLLFlgA (unlisted, uploaded 2026-11-11; replaces
+      H2h2FWsCjb8), set in `listings/*/video-url.txt` and published.
+- [ ] **15% service fee program:** Play Console asks to enroll (otherwise Play keeps 30% of Premium sales). The
+      account owner has to accept it.
 
 ### Already done (assets ready in GooglePlay/HowYouDoin)
-- 7 framed screenshots (1242×2208), redacted — no real contacts/messages/accounts.
+- 8 framed screenshots (1242×2208, 2026-11-11; also in `composeApp/src/main/play/listings/en-US/graphics/`), redacted — no real contacts/messages/accounts.
 - Feature graphic (1024×500), app icon (512), logos.
 - Promo MP4 + GIF.
 - EN + PL listings (title / short / full descriptions, within char limits).
