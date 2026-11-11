@@ -102,8 +102,9 @@ One-time setup (done 2026-11-06; project howyoudoin-513908, play-publisher@howyo
 
 ## Store listing upload (2026-11-11)
 
-- [ ] `./gradlew :composeApp:publishListing` fails with 403 "The caller does not have permission" when it commits:
-  the upload account `play-publisher@howyoudoin-513908.iam.gserviceaccount.com` can release builds but not change
-  the store listing. Give it "Manage store presence" in Play Console → Users and permissions, or paste the texts
-  from `composeApp/src/main/play/listings/` and upload the graphics by hand.
-- [ ] Data safety form: apply `docs/data-safety.md` → "Changed 2026-11-11 (Premium)".
+- [x] `play-publisher@howyoudoin-513908.iam.gserviceaccount.com` got "Manage store presence", so
+  `./gradlew :composeApp:publishListing` works; the en/pl texts, 8 phone screenshots and the feature graphic
+  (en-US only) are published.
+- [x] Data safety form switched to "collects data" with the 7 types in `docs/data-safety.md` (app functionality,
+  not shared; deletion info at https://howyoudoin.app/privacy.html); sent for review 2026-11-11.
+- [ ] 1.1.3 (versionCode 9) is on internal only; production waits for the user's go-ahead.
