@@ -185,7 +185,6 @@
     <string name="premium_active_body">HowYouDoin का साथ देने के लिए धन्यवाद।</string>
     <string name="premium_minutes_header">इस महीने लिंक से कॉल</string>
     <string name="premium_video_left">वीडियो: %1$s बाकी</string>
-    <string name="premium_video_bought">इसमें %1$s खरीदे हुए शामिल हैं</string>
     <string name="premium_audio_left">ऑडियो: %1$s बाकी</string>
     <plurals name="premium_resets_in">
         <item quantity="one">%1$d दिन में फिर से शुरू</item>
@@ -213,12 +212,8 @@
     <string name="premium_open_play">Google Play खोलें</string>
     <string name="premium_not_offered">Google Play अभी Premium नहीं दे रहा है। अपना कनेक्शन जांचें और फिर से कोशिश करें।</string>
     <string name="premium_try_again">फिर से कोशिश करें</string>
-    <string name="premium_top_up_header">बिना सदस्यता के ज़्यादा वीडियो</string>
-    <string name="premium_top_up_body">कभी खत्म नहीं होता। महीने के वीडियो मिनट खत्म होने पर इस्तेमाल होता है।</string>
-    <string name="premium_top_up_button">%1$d घंटे वीडियो: %2$s</string>
     <string name="premium_restore">खरीदारी वापस लाएँ</string>
     <string name="premium_thanks">धन्यवाद! Premium चालू है।</string>
     <string name="premium_pending">आपके भुगतान का इंतज़ार है। Google Play की पुष्टि के बाद जोड़ दिया जाएगा।</string>
     <string name="premium_failed">खरीदारी पूरी नहीं हुई।</string>
-    <string name="premium_top_up_added">%1$d घंटे वीडियो जोड़ दिया गया।</string>
 </resources>

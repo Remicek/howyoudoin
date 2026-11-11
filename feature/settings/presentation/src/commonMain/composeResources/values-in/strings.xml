@@ -183,7 +183,6 @@
     <string name="premium_active_body">Terima kasih telah mendukung HowYouDoin.</string>
     <string name="premium_minutes_header">Panggilan lewat tautan bulan ini</string>
     <string name="premium_video_left">Video: sisa %1$s</string>
-    <string name="premium_video_bought">Termasuk %1$s yang dibeli</string>
     <string name="premium_audio_left">Audio: sisa %1$s</string>
     <plurals name="premium_resets_in">
         <item quantity="other">Dimulai lagi dalam %1$d hari</item>
@@ -209,12 +208,8 @@
     <string name="premium_open_play">Buka Google Play</string>
     <string name="premium_not_offered">Google Play sedang tidak menawarkan Premium. Periksa koneksi Anda lalu coba lagi.</string>
     <string name="premium_try_again">Coba lagi</string>
-    <string name="premium_top_up_header">Lebih banyak video tanpa langganan</string>
-    <string name="premium_top_up_body">Tidak pernah kedaluwarsa. Dipakai setelah menit video bulan ini habis.</string>
-    <string name="premium_top_up_button">%1$d jam video: %2$s</string>
     <string name="premium_restore">Pulihkan pembelian</string>
     <string name="premium_thanks">Terima kasih! Premium aktif.</string>
     <string name="premium_pending">Menunggu pembayaran Anda. Akan ditambahkan setelah Google Play mengonfirmasinya.</string>
     <string name="premium_failed">Pembelian tidak berhasil.</string>
-    <string name="premium_top_up_added">%1$d jam video ditambahkan.</string>
 </resources>

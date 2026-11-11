@@ -6,7 +6,6 @@
 //   POST /api/calls             -> { room, joinUrl, hostUrl, … }   the app starts a call
 //   GET  /api/calls/<room>/ws   WebSocket to the call (CallRoom): who's in it, and setting up the media
 //   POST /api/usage             -> the minutes left this month (plans.ts)
-//   POST /api/topups            adds a bought top-up, checked with Google Play
 //
 // The app's requests carry its install ID and, with Premium, its Google Play subscription token. Only the person who
 // starts a call uses minutes (CallAccount); the person joining from the link never does.
@@ -39,19 +38,7 @@ import {
   MAX_CALL_MS,
 } from "./room.ts";
 import { iceServers, Sfu, type SessionDescription } from "./sfu.ts";
-import {
-  addTopUp,
-  allowance,
-  charge,
-  current,
-  uncoveredVideo,
-  useTopUp,
-  PREMIUM_PRODUCT,
-  TOP_UP_PRODUCT,
-  type Allowance,
-  type Plan,
-  type Usage,
-} from "./plans.ts";
+import { allowance, charge, current, PREMIUM_PRODUCT, type Allowance, type Plan, type Usage } from "./plans.ts";
 import { Play, premiumOwner, type CheckedSubscription } from "./play.ts";
 
 export interface Env {
@@ -59,8 +46,8 @@ export interface Env {
   CALLS: DurableObjectNamespace<CallRoom>;
   ACCOUNTS: DurableObjectNamespace<CallAccount>;
   /**
-   * A Google Cloud service account's JSON key, with access to the app in Play Console: to check Premium and
-   * top-ups. Without it everyone has the free plan.
+   * A Google Cloud service account's JSON key, with access to the app in Play Console: to check Premium. Without it
+   * everyone has the free plan.
    */
   PLAY_SERVICE_ACCOUNT?: string;
   /** The app's package on Google Play. */
@@ -84,7 +71,6 @@ export default {
         return await createCall(request, env, url.origin);
       }
       if (url.pathname === "/api/usage" && request.method === "POST") return await usage(request, env);
-      if (url.pathname === "/api/topups" && request.method === "POST") return await topUp(request, env);
       const ws = url.pathname.match(/^\/api\/calls\/([^/]+)\/ws$/);
       if (ws) {
         if (request.headers.get("Upgrade") !== "websocket") return error(426, "Expected a WebSocket");
@@ -108,8 +94,6 @@ interface AppRequest {
   subscription?: string;
   /** Starting a video call (else audio). */
   video?: boolean;
-  /** A top-up's purchase token. */
-  token?: string;
 }
 
 const INSTALL_ID = /^[A-Za-z0-9_-]{16,64}$/;
@@ -122,10 +106,9 @@ async function readApp(request: Request): Promise<AppRequest & { install: string
   if (!body || typeof body.install !== "string" || !INSTALL_ID.test(body.install)) {
     throw new BadRequest("This app is too old for calls through a link; update it");
   }
-  for (const token of [body.subscription, body.token]) {
-    if (token !== undefined && (typeof token !== "string" || !PURCHASE_TOKEN.test(token))) {
-      throw new BadRequest("Not a purchase token");
-    }
+  const token = body.subscription;
+  if (token !== undefined && (typeof token !== "string" || !PURCHASE_TOKEN.test(token))) {
+    throw new BadRequest("Not a purchase token");
   }
   return body as AppRequest & { install: string };
 }
@@ -162,16 +145,9 @@ const play = (env: Env) => (playClient ??= new Play(env.PLAY_SERVICE_ACCOUNT!, e
 
 const account = (env: Env, owner: string) => env.ACCOUNTS.get(env.ACCOUNTS.idFromName(owner));
 
-/**
- * The minutes left. Bought time is always on the install: a subscriber uses it once the subscription's video is gone,
- * and keeps what's left of it if the subscription ends.
- */
-async function minutesLeft(env: Env, plan: Plan, owner: string, install: string): Promise<Allowance> {
-  const left = await account(env, owner).allowance(plan);
-  if (owner === `install:${install}`) return left;
-  const bought = await account(env, `install:${install}`).allowance("free");
-  return { ...left, videoLeftMs: left.videoLeftMs + bought.topUpMs, topUpMs: bought.topUpMs };
-}
+/** The minutes left on the plan's account. */
+const minutesLeft = (env: Env, plan: Plan, owner: string): Promise<Allowance> =>
+  account(env, owner).allowance(plan);
 
 async function createCall(request: Request, env: Env, origin: string): Promise<Response> {
   if (!env.SFU_APP_ID || !env.SFU_APP_SECRET) return error(503, "Calls through a link aren't set up on this server");
@@ -184,19 +160,12 @@ async function createCall(request: Request, env: Env, origin: string): Promise<R
     throw e;
   }
   const { plan, owner } = await whoIs(app, env);
-  const left = await minutesLeft(env, plan, owner, app.install);
+  const left = await minutesLeft(env, plan, owner);
   const videoAllowed = left.videoLeftMs > 0;
   if (left.audioLeftMs <= 0 && !(app.video && videoAllowed)) {
     return Response.json({ error: "No call minutes left this month", code: "no_minutes", ...left }, { status: 402 });
   }
-  const install = `install:${app.install}`;
-  const limits: CallLimits = {
-    plan,
-    owner,
-    topUpOwner: owner === install ? undefined : install,
-    videoLeftMs: left.videoLeftMs,
-    audioLeftMs: left.audioLeftMs,
-  };
+  const limits: CallLimits = { plan, owner, videoLeftMs: left.videoLeftMs, audioLeftMs: left.audioLeftMs };
   const room = randomId();
   const hostToken = randomId();
   await env.CALLS.get(env.CALLS.idFromName(room)).create(hostToken, limits);
@@ -217,40 +186,11 @@ async function usage(request: Request, env: Env): Promise<Response> {
   try {
     const app = await readApp(request);
     const { plan, owner } = await whoIs(app, env);
-    return Response.json(await minutesLeft(env, plan, owner, app.install));
+    return Response.json(await minutesLeft(env, plan, owner));
   } catch (e) {
     if (e instanceof BadRequest) return error(400, e.message);
     throw e;
   }
-}
-
-/** Adds a bought top-up to the install, once per purchase. */
-async function topUp(request: Request, env: Env): Promise<Response> {
-  if (await rateLimited(request, env, "topup")) return error(429, "Too many requests; try again in a minute");
-  let app;
-  try {
-    app = await readApp(request);
-  } catch (e) {
-    if (e instanceof BadRequest) return error(400, e.message);
-    throw e;
-  }
-  if (!app.token) return error(400, "No purchase token");
-  if (!env.PLAY_SERVICE_ACCOUNT) return error(503, "Purchases can't be checked on this server");
-  const owner = `install:${app.install}`;
-  const purchase = await sha256(app.token);
-  const claim = account(env, `purchase:${purchase}`);
-  // Each step can be repeated: the app asks again whenever it didn't hear back, wherever this stopped
-  let claimedBy = await claim.claimedBy();
-  if (claimedBy === undefined) {
-    if (!(await play(env).consumePurchase(TOP_UP_PRODUCT, app.token))) {
-      return error(402, "This purchase wasn't completed");
-    }
-    claimedBy = await claim.claim(owner);
-  }
-  if (claimedBy !== owner) return error(409, "This purchase was already used on another phone");
-  await account(env, owner).addTopUp(purchase);
-  const { plan, owner: user } = await whoIs(app, env);
-  return Response.json(await minutesLeft(env, plan, user, app.install));
 }
 
 function error(status: number, message: string): Response {
@@ -258,9 +198,8 @@ function error(status: number, message: string): Response {
 }
 
 /**
- * One person's call minutes this month and their bought time (see plans.ts), keyed "install:<id>" or
- * "sub:<first order>". Also used keyed "purchase:<hash>" to count each top-up once, and "subtoken:<hash>" to remember
- * a subscription Google Play confirmed.
+ * One person's call minutes this month (see plans.ts), keyed "install:<id>" or "sub:<first order>". Also used keyed
+ * "subtoken:<hash>" to remember a subscription Google Play confirmed.
  */
 export class CallAccount extends DurableObject<Env> {
   private async load(): Promise<Usage> {
@@ -271,27 +210,11 @@ export class CallAccount extends DurableObject<Env> {
     return allowance(await this.load(), plan, Date.now());
   }
 
-  /** Counts a call's time; returns what's left, and the video this account couldn't cover. */
-  async charge(plan: Plan, videoMs: number, audioMs: number): Promise<{ left: Allowance; uncoveredVideoMs: number }> {
-    const before = await this.load();
-    const after = charge(before, plan, videoMs, audioMs);
+  /** Counts a call's time; returns what's left. */
+  async charge(plan: Plan, videoMs: number, audioMs: number): Promise<Allowance> {
+    const after = charge(await this.load(), videoMs, audioMs);
     await this.ctx.storage.put("usage", after);
-    return { left: allowance(after, plan, Date.now()), uncoveredVideoMs: uncoveredVideo(before, plan, videoMs) };
-  }
-
-  /** Takes video from bought time only; returns the bought time left. */
-  async useTopUp(videoMs: number): Promise<number> {
-    const after = useTopUp(await this.load(), videoMs);
-    await this.ctx.storage.put("usage", after);
-    return after.topUpMs;
-  }
-
-  /** Adds a bought top-up, once per purchase (keyed by its token's hash). */
-  async addTopUp(purchase: string): Promise<void> {
-    const key = `topup:${purchase}`;
-    if (await this.ctx.storage.get<boolean>(key)) return;
-    // Both in one write: never one without the other
-    await this.ctx.storage.put({ usage: addTopUp(await this.load()), [key]: true });
+    return allowance(after, plan, Date.now());
   }
 
   /** Keyed "subtoken:<hash of a purchase token>": what Google Play last said about that subscription. */
@@ -305,19 +228,6 @@ export class CallAccount extends DurableObject<Env> {
 
   async forgetSubscription(): Promise<void> {
     await this.ctx.storage.delete("subscription");
-  }
-
-  /** Keyed "purchase:<hash of its token>": the account a top-up went to. */
-  async claimedBy(): Promise<string | undefined> {
-    return this.ctx.storage.get<string>("claimedBy");
-  }
-
-  /** Gives the purchase to owner unless it already went to someone; returns whose it is. */
-  async claim(owner: string): Promise<string> {
-    const already = await this.claimedBy();
-    if (already !== undefined) return already;
-    await this.ctx.storage.put("claimedBy", owner);
-    return owner;
   }
 }
 
@@ -546,10 +456,10 @@ export class CallRoom extends DurableObject<Env> {
     if (!room.limits) return;
     const due = takeCharge(room);
     if (due.videoMs <= 0 && due.audioMs <= 0) return;
-    const { plan, owner, topUpOwner } = room.limits;
-    let charged;
+    const { plan, owner } = room.limits;
+    let left;
     try {
-      charged = await account(this.env, owner).charge(plan, due.videoMs, due.audioMs);
+      left = await account(this.env, owner).charge(plan, due.videoMs, due.audioMs);
     } catch (e) {
       // Counted again with the next charge
       room.meter.chargedVideoMs -= due.videoMs;
@@ -557,22 +467,8 @@ export class CallRoom extends DurableObject<Env> {
       console.error("Charging the call", e);
       return;
     }
-    let videoLeftMs = charged.left.videoLeftMs;
-    if (topUpOwner) {
-      // A subscriber past the subscription's video: the rest comes from the install's bought time
-      try {
-        const bought = account(this.env, topUpOwner);
-        videoLeftMs +=
-          charged.uncoveredVideoMs > 0
-            ? await bought.useTopUp(charged.uncoveredVideoMs)
-            : (await bought.allowance("free")).topUpMs;
-      } catch (e) {
-        console.error("Charging the top-up", e);
-        return;
-      }
-    }
     // What the account has left now, after any other call of the same person's too
-    refreshLimits(room, { videoLeftMs, audioLeftMs: charged.left.audioLeftMs });
+    refreshLimits(room, { videoLeftMs: left.videoLeftMs, audioLeftMs: left.audioLeftMs });
   }
 
   private async save(room: Room): Promise<void> {

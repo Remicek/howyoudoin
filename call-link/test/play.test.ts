@@ -79,18 +79,6 @@ test("expired, other products and unknown tokens aren't Premium", async () => {
   assert.equal(await play.subscription("premium_monthly", "nope", NOW), null);
 });
 
-test("a paid top-up is consumed; an unpaid one isn't counted", async () => {
-  const seen: string[] = [];
-  const play = new Play(
-    await serviceAccount(),
-    "com.example",
-    google({ "video_5h/tokens/paid": { purchaseState: 0 }, "video_5h/tokens/pending": { purchaseState: 2 }, ":consume": {} }, seen),
-  );
-  assert.equal(await play.consumePurchase("video_5h", "paid"), true);
-  assert.ok(seen.some((s) => s.startsWith("POST") && s.endsWith("video_5h/tokens/paid:consume")));
-  assert.equal(await play.consumePurchase("video_5h", "pending"), false);
-});
-
 test("renewals share the first order's ID", () => {
   assert.equal(firstOrder("GPA.3312-5678-9012-34567..12"), "GPA.3312-5678-9012-34567");
   assert.equal(firstOrder("GPA.3312-5678-9012-34567"), "GPA.3312-5678-9012-34567");

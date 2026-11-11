@@ -1,6 +1,5 @@
 package com.devvalor.howyoudoing.app.di
 
-import com.devvalor.howyoudoing.app.premium.TopUpClaimer
 import com.devvalor.howyoudoing.app.MainViewModel
 import com.devvalor.howyoudoing.app.backup.RestoreLoginsViewModel
 import com.devvalor.howyoudoing.app.backup.BackupOfferViewModel
@@ -27,5 +26,4 @@ val appModule = module {
     singleOf(::CaptchaSolver)
     single(createdAtStart = true) { ConnectionMonitor(clients = get<OnDeviceAccounts>().all, appScope = get()) }
     single { AccountTags(get(), get()) }
-    single(createdAtStart = true) { TopUpClaimer(get(), get(), get()) }
 }

@@ -33,13 +33,11 @@ class PremiumShot {
         assumeTrue(InstrumentationRegistry.getArguments().getString("demoShots") == "true")
         val state = PremiumState(
             subscription = PremiumOffer(price = "$2.99", trialDays = 7),
-            topUp = PremiumOffer(price = "$1.99"),
             hasCalls = true,
             minutes = CallMinutes(
                 isPremium = false,
                 videoLeftMs = 42 * MINUTE,
                 audioLeftMs = 9 * HOUR + 20 * MINUTE,
-                topUpMs = 0,
                 resetsAtMs = System.currentTimeMillis() + 20 * DAY,
             ),
             store = PremiumStore.READY,

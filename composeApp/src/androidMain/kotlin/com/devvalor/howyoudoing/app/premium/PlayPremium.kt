@@ -37,8 +37,8 @@ import java.lang.ref.WeakReference
 import kotlin.coroutines.resume
 
 /**
- * Premium and top-ups through Google Play Billing. Google Play only sells to builds installed from Play (or signed
- * like them, for testers): elsewhere the offers stay null and the screens say Premium isn't available.
+ * Premium through Google Play Billing. Google Play only sells to builds installed from Play (or signed like them, for
+ * testers): elsewhere the offer stays null and the screens say Premium isn't available.
  */
 class PlayPremium(private val app: Application, private val scope: CoroutineScope) : Premium, PurchasesUpdatedListener {
 
@@ -97,13 +97,10 @@ class PlayPremium(private val app: Application, private val scope: CoroutineScop
             state.update { it.copy(isKnown = true, store = PremiumStore.NO_GOOGLE_PLAY) }
             return
         }
-        val details = listOf(
-            PremiumProduct.SUBSCRIPTION to BillingClient.ProductType.SUBS,
-            PremiumProduct.VIDEO_TOP_UP to BillingClient.ProductType.INAPP,
-        ).mapNotNull { (product, type) ->
+        val details = PremiumProduct.entries.mapNotNull { product ->
             val query = QueryProductDetailsParams.Product.newBuilder()
                 .setProductId(product.id)
-                .setProductType(type)
+                .setProductType(BillingClient.ProductType.SUBS)
                 .build()
             val params = QueryProductDetailsParams.newBuilder().setProductList(listOf(query)).build()
             client.queryProductDetails(params).productDetailsList?.firstOrNull()
@@ -113,25 +110,19 @@ class PlayPremium(private val app: Application, private val scope: CoroutineScop
             val subscription = products[PremiumProduct.SUBSCRIPTION.id]?.subscriptionOffer()?.toOffer()
             it.copy(
                 subscription = subscription,
-                topUp = products[PremiumProduct.VIDEO_TOP_UP.id]?.oneTimePurchaseOfferDetails
-                    ?.let { offer -> PremiumOffer(offer.formattedPrice) },
                 store = if (subscription != null) PremiumStore.READY else PremiumStore.NOT_OFFERED,
             )
         }
         val subscriptions = client.queryPurchasesAsync(
             QueryPurchasesParams.newBuilder().setProductType(BillingClient.ProductType.SUBS).build()
         ).purchasesList
-        val oneTime = client.queryPurchasesAsync(
-            QueryPurchasesParams.newBuilder().setProductType(BillingClient.ProductType.INAPP).build()
-        ).purchasesList
-        apply(subscriptions + oneTime, replaceSubscription = true)
+        apply(subscriptions, replaceSubscription = true)
     }
 
     /** What these purchases mean; [replaceSubscription]: they're everything Play has, so no subscription is none. */
     private fun apply(purchases: List<Purchase>, replaceSubscription: Boolean) {
         val paid = purchases.filter { it.purchaseState == Purchase.PurchaseState.PURCHASED }
         val subscription = paid.firstOrNull { PremiumProduct.SUBSCRIPTION.id in it.products }
-        val topUps = paid.filter { PremiumProduct.VIDEO_TOP_UP.id in it.products }.map { it.purchaseToken }
         subscription?.takeIf { !it.isAcknowledged }?.let { purchase ->
             scope.launch {
                 // The call server acknowledges it too, in case this doesn't get through
@@ -146,10 +137,8 @@ class PlayPremium(private val app: Application, private val scope: CoroutineScop
             it.copy(
                 isPremium = if (subscription != null || replaceSubscription) subscription != null else it.isPremium,
                 isKnown = it.isKnown || replaceSubscription,
-                checks = if (replaceSubscription) it.checks + 1 else it.checks,
                 subscriptionToken = subscription?.purchaseToken
                     ?: it.subscriptionToken.takeUnless { replaceSubscription },
-                unclaimedTopUps = (it.unclaimedTopUps + topUps).distinct(),
             )
         }
     }
@@ -195,11 +184,6 @@ class PlayPremium(private val app: Application, private val scope: CoroutineScop
         }
         buying?.complete(outcome)
         buying = null
-    }
-
-    override suspend fun topUpClaimed(token: String) {
-        // The call server consumed it on Google Play, so it can be bought again
-        state.update { it.copy(unclaimedTopUps = it.unclaimedTopUps - token) }
     }
 
     private fun BillingResult.toOutcome() = when (responseCode) {

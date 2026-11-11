@@ -35,8 +35,6 @@ export interface CallLimits {
   plan: Plan;
   /** Whose minutes it uses (see Accounts in worker.ts). */
   owner: string;
-  /** A subscriber's install, whose bought time is used once the subscription's video is gone. */
-  topUpOwner?: string;
   /**
    * The host's minutes for this call, counted from its start: what was left when it was created, then, each time it
    * is charged, what this call has used plus what the account has left (so calls at the same time share them).

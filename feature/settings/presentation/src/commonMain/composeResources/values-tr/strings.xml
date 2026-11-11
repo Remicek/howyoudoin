@@ -185,7 +185,6 @@
     <string name="premium_active_body">HowYouDoin'i desteklediğiniz için teşekkürler.</string>
     <string name="premium_minutes_header">Bu ayki bağlantıyla aramalar</string>
     <string name="premium_video_left">Görüntü: %1$s kaldı</string>
-    <string name="premium_video_bought">%1$s satın alınan dahil</string>
     <string name="premium_audio_left">Ses: %1$s kaldı</string>
     <plurals name="premium_resets_in">
         <item quantity="one">%1$d gün sonra yenilenir</item>
@@ -213,12 +212,8 @@
     <string name="premium_open_play">Google Play'i aç</string>
     <string name="premium_not_offered">Google Play şu anda Premium sunmuyor. Bağlantınızı kontrol edip yeniden deneyin.</string>
     <string name="premium_try_again">Yeniden dene</string>
-    <string name="premium_top_up_header">Abonelik olmadan daha fazla görüntü</string>
-    <string name="premium_top_up_body">Süresi dolmaz. Ayın görüntülü dakikaları bitince kullanılır.</string>
-    <string name="premium_top_up_button">%1$d saat görüntülü arama: %2$s</string>
     <string name="premium_restore">Satın alımları geri yükle</string>
     <string name="premium_thanks">Teşekkürler! Premium etkin.</string>
     <string name="premium_pending">Ödemeniz bekleniyor. Google Play onayladığında eklenecek.</string>
     <string name="premium_failed">Satın alma tamamlanmadı.</string>
-    <string name="premium_top_up_added">%1$d saat görüntülü arama eklendi.</string>
 </resources>

@@ -73,12 +73,7 @@ import howyoudoin.feature.settings.presentation.generated.resources.premium_than
 import howyoudoin.feature.settings.presentation.generated.resources.premium_then_price
 import howyoudoin.feature.settings.presentation.generated.resources.premium_title_active
 import howyoudoin.feature.settings.presentation.generated.resources.premium_title_free
-import howyoudoin.feature.settings.presentation.generated.resources.premium_top_up_added
-import howyoudoin.feature.settings.presentation.generated.resources.premium_top_up_body
-import howyoudoin.feature.settings.presentation.generated.resources.premium_top_up_button
-import howyoudoin.feature.settings.presentation.generated.resources.premium_top_up_header
 import howyoudoin.feature.settings.presentation.generated.resources.premium_try_free
-import howyoudoin.feature.settings.presentation.generated.resources.premium_video_bought
 import howyoudoin.feature.settings.presentation.generated.resources.premium_video_left
 import howyoudoin.feature.settings.presentation.generated.resources.settings_premium
 import kotlinx.coroutines.delay
@@ -124,26 +119,6 @@ fun PremiumScreen(state: PremiumState, onAction: (PremiumAction) -> Unit) {
             item { SettingsSectionHeader(stringResource(Res.string.premium_minutes_header)) }
             item { Minutes(state) }
         }
-        val topUp = state.topUp
-        if (state.hasCalls && topUp != null) {
-            item { SettingsSectionHeader(stringResource(Res.string.premium_top_up_header)) }
-            item {
-                Column(Modifier.padding(horizontal = HowYouDoinSpacing.md)) {
-                    Text(
-                        stringResource(Res.string.premium_top_up_body),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    OutlinedButton(
-                        onClick = { onAction(PremiumAction.OnTopUpClick) },
-                        enabled = !state.isBuying,
-                        modifier = Modifier.padding(top = HowYouDoinSpacing.sm),
-                    ) {
-                        Text(stringResource(Res.string.premium_top_up_button, Plans.TOP_UP_VIDEO_HOURS, topUp.price))
-                    }
-                }
-            }
-        }
         item {
             TextButton(
                 onClick = { onAction(PremiumAction.OnRestoreClick) },
@@ -159,7 +134,6 @@ private fun MessageCard(message: PremiumMessage) {
         PremiumMessage.THANKS -> stringResource(Res.string.premium_thanks)
         PremiumMessage.PENDING -> stringResource(Res.string.premium_pending)
         PremiumMessage.FAILED -> stringResource(Res.string.premium_failed)
-        PremiumMessage.TOP_UP_ADDED -> stringResource(Res.string.premium_top_up_added, Plans.TOP_UP_VIDEO_HOURS)
     }
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
@@ -230,9 +204,6 @@ private fun MinutesLeft(minutes: CallMinutes) {
     Column {
         SettingsRow(
             title = stringResource(Res.string.premium_video_left, duration(minutes.videoLeftMs)),
-            subtitle = minutes.topUpMs.takeIf { it > 0 }?.let {
-                stringResource(Res.string.premium_video_bought, duration(it))
-            },
             icon = Icons.Rounded.Videocam,
         )
         SettingsRow(

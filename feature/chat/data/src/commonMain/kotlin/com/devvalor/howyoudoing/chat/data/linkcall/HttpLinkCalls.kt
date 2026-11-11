@@ -39,11 +39,10 @@ class HttpLinkCalls(
 
     private val base get() = serverUrl.trimEnd('/')
 
-    private suspend fun app(video: Boolean? = null, token: String? = null) = AppRequest(
+    private suspend fun app(video: Boolean? = null) = AppRequest(
         install = installId.get(),
         subscription = premium.status.value.subscriptionToken,
         video = video,
-        token = token,
     )
 
     override suspend fun start(video: Boolean): Result<LinkCall, DataError.Remote> {
@@ -57,12 +56,6 @@ class HttpLinkCalls(
         if (!isAvailable) return Result.Failure(DataError.Remote.SERVICE_UNAVAILABLE)
         val body = app()
         return safeCall<MinutesDto> { httpClient.post("$base/api/usage") { setBody(body) } }.map { it.toMinutes() }
-    }
-
-    override suspend fun claimTopUp(token: String): Result<CallMinutes, DataError.Remote> {
-        if (!isAvailable) return Result.Failure(DataError.Remote.SERVICE_UNAVAILABLE)
-        val body = app(token = token)
-        return safeCall<MinutesDto> { httpClient.post("$base/api/topups") { setBody(body) } }.map { it.toMinutes() }
     }
 
     private fun newKey(): String = Base64.UrlSafe
@@ -79,7 +72,6 @@ internal data class AppRequest(
     val install: String,
     val subscription: String? = null,
     val video: Boolean? = null,
-    val token: String? = null,
 )
 
 @Serializable
@@ -95,7 +87,6 @@ internal data class MinutesDto(
     val plan: String,
     val videoLeftMs: Long,
     val audioLeftMs: Long,
-    val topUpMs: Long = 0,
     val resetsAt: Long,
 )
 
@@ -103,7 +94,6 @@ internal fun MinutesDto.toMinutes() = CallMinutes(
     isPremium = plan == "premium",
     videoLeftMs = videoLeftMs,
     audioLeftMs = audioLeftMs,
-    topUpMs = topUpMs,
     resetsAtMs = resetsAt,
 )
 

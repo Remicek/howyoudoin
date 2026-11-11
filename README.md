@@ -41,7 +41,7 @@ Status: experimental, Android only for now. (An iOS build exists in the code but
 - Rate the app on Google Play or share it with friends from Settings; once 3 networks are connected the app asks
   once for a rating (Rate, Not now for 14 days, or Don't show again; Settings → Hidden tips brings it back)
 - Optional Premium (Google Play, monthly with a 7-day free trial): more call-link minutes, sharper video, longer
-  calls and up to 3 accounts per network; a one-time 5-hour video top-up for anyone
+  calls and up to 3 accounts per network
 - Optional: connect through your own Matrix homeserver with mautrix bridges instead (server mode)
 
 ## How it works

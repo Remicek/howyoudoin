@@ -22,13 +22,12 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-enum class PremiumMessage { THANKS, PENDING, FAILED, TOP_UP_ADDED }
+enum class PremiumMessage { THANKS, PENDING, FAILED }
 
 data class PremiumState(
     val isPremium: Boolean = false,
     /** Null where Google Play doesn't sell it (not installed from Play) or hasn't answered yet. */
     val subscription: PremiumOffer? = null,
-    val topUp: PremiumOffer? = null,
     /** Calls through a link exist in this build (else no minutes to show). */
     val hasCalls: Boolean = false,
     val minutes: CallMinutes? = null,
@@ -41,7 +40,6 @@ data class PremiumState(
 
 sealed interface PremiumAction {
     data object OnSubscribeClick : PremiumAction
-    data object OnTopUpClick : PremiumAction
     data object OnRestoreClick : PremiumAction
     data object OnManageClick : PremiumAction
     /** Get HowYouDoin from Google Play, where Premium can be bought. */
@@ -58,7 +56,6 @@ class PremiumViewModel(private val premium: Premium, private val allowance: Call
         ui.copy(
             isPremium = status.isPremium,
             subscription = status.subscription,
-            topUp = status.topUp,
             store = status.store,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000L), ui.value)
@@ -70,8 +67,8 @@ class PremiumViewModel(private val premium: Premium, private val allowance: Call
             premium.refresh()
             loadMinutes()
         }
-        // Premium starting or ending, or a top-up counted, changes the minutes
-        premium.status.map { it.isPremium to it.unclaimedTopUps.size }.distinctUntilChanged().drop(1)
+        // Premium starting or ending changes the minutes
+        premium.status.map { it.isPremium }.distinctUntilChanged().drop(1)
             .onEach { loadMinutes() }
             .launchIn(viewModelScope)
     }
@@ -79,7 +76,6 @@ class PremiumViewModel(private val premium: Premium, private val allowance: Call
     fun onAction(action: PremiumAction) {
         when (action) {
             PremiumAction.OnSubscribeClick -> buy(PremiumProduct.SUBSCRIPTION)
-            PremiumAction.OnTopUpClick -> buy(PremiumProduct.VIDEO_TOP_UP)
             PremiumAction.OnRestoreClick -> viewModelScope.launch {
                 premium.refresh()
                 loadMinutes()
@@ -94,8 +90,7 @@ class PremiumViewModel(private val premium: Premium, private val allowance: Call
         ui.update { it.copy(isBuying = true) }
         viewModelScope.launch {
             val message = when (premium.buy(product)) {
-                PurchaseOutcome.Bought ->
-                    if (product == PremiumProduct.SUBSCRIPTION) PremiumMessage.THANKS else PremiumMessage.TOP_UP_ADDED
+                PurchaseOutcome.Bought -> PremiumMessage.THANKS
                 PurchaseOutcome.Pending -> PremiumMessage.PENDING
                 PurchaseOutcome.AlreadyOwned, PurchaseOutcome.Cancelled -> null
                 PurchaseOutcome.Failed -> PremiumMessage.FAILED

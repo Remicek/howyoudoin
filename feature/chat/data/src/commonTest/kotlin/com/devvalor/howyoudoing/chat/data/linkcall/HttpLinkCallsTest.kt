@@ -94,7 +94,7 @@ class HttpLinkCallsTest {
     fun theMinutesLeftAreRead() = runTest {
         val engine = MockEngine {
             respond(
-                """{"plan":"free","videoLeftMs":2520000,"audioLeftMs":36000000,"topUpMs":0,""" +
+                """{"plan":"free","videoLeftMs":2520000,"audioLeftMs":36000000,""" +
                     """"resetsAt":1796083200000}""",
                 HttpStatusCode.OK,
                 json,
@@ -102,6 +102,6 @@ class HttpLinkCallsTest {
         }
         val calls = calls(engine)
         val minutes = (calls.minutes() as Result.Success).data
-        assertEquals(CallMinutes(false, 2_520_000, 36_000_000, 0, 1_796_083_200_000), minutes)
+        assertEquals(CallMinutes(false, 2_520_000, 36_000_000, 1_796_083_200_000), minutes)
     }
 }

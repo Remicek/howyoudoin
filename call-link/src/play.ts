@@ -1,5 +1,5 @@
-// Checks Google Play purchases with the Google Play Developer API, so a modified app can't claim Premium or a top-up
-// it didn't buy. Needs a Google Cloud service account that Play Console has given access to (README.md: "Premium").
+// Checks Google Play subscriptions with the Google Play Developer API, so a modified app can't claim Premium it didn't
+// buy. Needs a Google Cloud service account that Play Console has given access to (README.md: "Premium").
 
 const SCOPE = "https://www.googleapis.com/auth/androidpublisher";
 const API = "https://androidpublisher.googleapis.com/androidpublisher/v3/applications";
@@ -63,18 +63,6 @@ export class Play {
       ).catch(() => undefined);
     }
     return { active, expiresAt, owner: `sub:${firstOrder(body.latestOrderId)}` };
-  }
-
-  /** Whether this one-time purchase was paid for (and not refunded); consumes it so it can be bought again. */
-  async consumePurchase(productId: string, token: string): Promise<boolean> {
-    const path = `purchases/products/${encodeURIComponent(productId)}/tokens/${encodeURIComponent(token)}`;
-    const response = await this.call("GET", path);
-    if (response.status === 400 || response.status === 404 || response.status === 410) return false;
-    if (!response.ok) throw new Error(`Play purchase check: ${response.status}`);
-    const body = (await response.json()) as { purchaseState?: number };
-    if (body.purchaseState !== 0) return false;
-    await this.call("POST", `${path}:consume`).catch(() => undefined);
-    return true;
   }
 
   private async call(method: string, path: string): Promise<Response> {

@@ -33,7 +33,7 @@ sealed interface SettingsRoutes {
     @Serializable data object ConnectGuide : SettingsRoutes
     /** The user's own Telegram API keys. */
     @Serializable data object TelegramKeys : SettingsRoutes
-    /** The plans: call minutes left, Premium and top-ups. */
+    /** The plans: call minutes left and Premium. */
     @Serializable data object Premium : SettingsRoutes
     /** Message and call notifications on or off, and their sound. */
     @Serializable data object Notifications : SettingsRoutes

@@ -46,7 +46,7 @@ per random install ID and purchase records (no name, email or account); clearing
 | Files and docs | Yes | No | No | Optional (only those the user sends) | App functionality |
 | Personal info → User IDs | Yes | No | No | Required (the network login) | App functionality |
 | Device or other IDs | Yes | No | No | Optional (calls through a link, Premium) | App functionality |
-| Financial info → Purchase history | Yes | No | No | Optional (Premium, top-ups) | App functionality |
+| Financial info → Purchase history | Yes | No | No | Optional (Premium) | App functionality |
 
 Not collected: location, device contacts (the address book is never read; contact names come from the
 networks), app activity, web browsing, app info and performance (crash reports stay on the phone and are only
@@ -72,6 +72,6 @@ sheet, to whoever they pick, which Google treats as user-initiated.
 ## Changed 2026-11-11 (Premium)
 
 Calls through a link count minutes per installation: the app sends a random install ID (app-generated, so "Device or
-other IDs") and, with Premium or a top-up, Google Play purchase tokens; the call service keeps minutes used, the
-subscription's order number and expiry, and hashes of top-up tokens ("Financial info → Purchase history"). Both
-are for app functionality only, never shared or used for ads.
+other IDs") and, with Premium, its Google Play purchase token; the call service keeps minutes used and the
+subscription's order number and expiry ("Financial info → Purchase history"). Both are for app functionality only,
+never shared or used for ads. (The 5-hour video top-up was removed on 2026-11-11, before any sale.)

@@ -66,21 +66,19 @@ send its link in a chat; the other person joins it in their browser. Only when y
 
 ## Call minutes and Premium
 
-Calls through a link come with free minutes every month, and HowYouDoin Premium (a Google Play subscription) or a
-video top-up adds more. To count them, the call service keeps:
+Calls through a link come with free minutes every month, and HowYouDoin Premium (a Google Play subscription) adds
+more. To count them, the call service keeps:
 
 - a random ID the app makes when it's installed (not linked to your name, phone number, Google account or any
   network account), sent with each call you start;
-- for that ID, or for your Premium subscription: the month, the video and audio minutes used in it, and any bought
-  video time left.
+- for that ID, or for your Premium subscription: the month and the video and audio minutes used in it.
 
-When you buy Premium or a top-up, Google Play handles the payment; we never see your card or Google account. The app
-sends the purchase token Google Play gives it to the call service, which asks Google Play whether the purchase is
-paid. The service then keeps the subscription's Google Play order number and when it is paid until, and a one-way hash
-of each top-up's purchase token (so one purchase can't be used twice). Google Play's own privacy policy applies to the
-purchase.
+When you buy Premium, Google Play handles the payment; we never see your card or Google account. The app sends the
+purchase token Google Play gives it to the call service, which asks Google Play whether the subscription is paid. The
+service then keeps the subscription's Google Play order number and when it is paid until. Google Play's own privacy
+policy applies to the purchase.
 
-This is kept while it can still be used: the minutes of the current month, and bought time until it runs out.
+This is kept while it can still be used: the minutes of the current month.
 Uninstalling the app or clearing its data gives it a new random ID; what was kept for the old one is then no longer
 connected to your phone. Premium and bought time come back through Settings → Premium → Restore purchases.
 

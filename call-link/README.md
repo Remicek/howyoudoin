@@ -44,10 +44,9 @@ here, sends its link in the chat, and the other person joins from their browser 
 |---|---|
 | `POST /api/calls` | `{ room, joinUrl, hostUrl, plan, videoAllowed }`: the app starts a call (402 when no minutes are left) |
 | `POST /api/usage` | the minutes left this month |
-| `POST /api/topups` | adds a bought 5-hour video top-up, checked with Google Play |
 
-The app's requests carry `{ install, subscription?, video?, token? }`: a random install ID and, with Premium, its
-Google Play subscription token.
+The app's requests carry `{ install, subscription?, video? }`: a random install ID and, with Premium, its Google
+Play subscription token.
 | `GET /api/calls/<room>/ws` | WebSocket to the call (JSON messages, see `CallRoom` in `src/worker.ts`) |
 | `GET /call/<room>` | the call page |
 
@@ -103,7 +102,7 @@ when both are in the call: as video while either camera is on, otherwise as audi
 | Video quality | 360p | 540p |
 
 When the video minutes run out the call goes on as audio; when nothing is left it ends. Both pages are told 5 minutes
-before. A top-up (`video_5h`) adds 5 hours of video that never expire, used after the month's.
+before. Premium is the only thing on sale: no top-ups or other one-time purchases.
 
 Premium is checked with Google Play on every request; usage is counted per subscription (its first order ID), so a
 shared purchase token doesn't multiply the allowance. Without the service account below everyone is on the free plan.
@@ -113,7 +112,6 @@ shared purchase token doesn't multiply the allowance. Without the service accoun
 1. Play Console → Monetize → Products:
    - **Subscriptions**: `premium_monthly`, a monthly base plan at $2.99, with a 7-day free-trial offer for new
      customers.
-   - **One-time products**: `video_5h` at $1.99.
 2. Google Cloud: create a service account and a JSON key, and enable the Google Play Android Developer API.
 3. Play Console → Users and permissions → invite the service account's email with **View financial data** and
    **Manage orders and subscriptions**.

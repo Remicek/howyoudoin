@@ -187,7 +187,6 @@
     <string name="premium_active_body">Merci de soutenir HowYouDoin.</string>
     <string name="premium_minutes_header">Appels par lien ce mois-ci</string>
     <string name="premium_video_left">Vidéo : %1$s restantes</string>
-    <string name="premium_video_bought">Dont %1$s achetées</string>
     <string name="premium_audio_left">Audio : %1$s restantes</string>
     <plurals name="premium_resets_in">
         <item quantity="one">Repart dans %1$d jour</item>
@@ -217,12 +216,8 @@
     <string name="premium_open_play">Ouvrir Google Play</string>
     <string name="premium_not_offered">Google Play ne propose pas Premium pour le moment. Vérifiez votre connexion et réessayez.</string>
     <string name="premium_try_again">Réessayer</string>
-    <string name="premium_top_up_header">Plus de vidéo sans abonnement</string>
-    <string name="premium_top_up_body">N'expire jamais. Utilisé une fois les minutes vidéo du mois épuisées.</string>
-    <string name="premium_top_up_button">%1$d heures de vidéo : %2$s</string>
     <string name="premium_restore">Restaurer les achats</string>
     <string name="premium_thanks">Merci ! Premium est actif.</string>
     <string name="premium_pending">En attente de votre paiement. Il sera ajouté dès que Google Play le confirme.</string>
     <string name="premium_failed">L'achat n'a pas abouti.</string>
-    <string name="premium_top_up_added">%1$d heures de vidéo ajoutées.</string>
 </resources>

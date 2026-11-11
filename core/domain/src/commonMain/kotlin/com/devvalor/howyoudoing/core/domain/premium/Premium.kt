@@ -6,13 +6,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-/** What can be bought on Google Play. */
+/** What can be bought on Google Play: Premium, a month at a time. Nothing else, so the offer stays simple. */
 enum class PremiumProduct(val id: String) {
-    /** Premium, a month at a time. */
     SUBSCRIPTION("premium_monthly"),
-
-    /** 5 hours of call video that never expire. */
-    VIDEO_TOP_UP("video_5h"),
 }
 
 /** A product's price as Google Play shows it to this user ("$2.99", "2,99 zł"). */
@@ -49,11 +45,6 @@ data class PremiumStatus(
     val subscriptionToken: String? = null,
     /** Null until Google Play answers, or where it isn't available (no Play Store, iOS for now). */
     val subscription: PremiumOffer? = null,
-    val topUp: PremiumOffer? = null,
-    /** Top-ups paid for that the call server hasn't counted yet. */
-    val unclaimedTopUps: List<String> = emptyList(),
-    /** How many times Google Play has listed the purchases: each time is a chance to claim the top-ups again. */
-    val checks: Int = 0,
     val store: PremiumStore = PremiumStore.CHECKING,
 )
 
@@ -66,7 +57,7 @@ sealed interface PurchaseOutcome {
     data object Failed : PurchaseOutcome
 }
 
-/** Premium and top-ups through Google Play. */
+/** Premium through Google Play. */
 interface Premium {
     val status: StateFlow<PremiumStatus>
 
@@ -75,9 +66,6 @@ interface Premium {
 
     /** Asks Google Play again (after coming back to the app, or "Restore"). */
     suspend fun refresh()
-
-    /** The call server counted this top-up (it also consumes it on Google Play). */
-    suspend fun topUpClaimed(token: String)
 
     /** Google Play's page for managing the subscription. */
     val manageUrl: String
@@ -89,7 +77,6 @@ object NoPremium : Premium {
     override val status: StateFlow<PremiumStatus> = state.asStateFlow()
     override suspend fun buy(product: PremiumProduct) = PurchaseOutcome.Failed
     override suspend fun refresh() = Unit
-    override suspend fun topUpClaimed(token: String) = Unit
     override val manageUrl = "https://play.google.com/store/account/subscriptions"
 }
 
@@ -98,24 +85,19 @@ data class CallMinutes(
     val isPremium: Boolean,
     val videoLeftMs: Long,
     val audioLeftMs: Long,
-    /** Of videoLeftMs, bought time (never expires). */
-    val topUpMs: Long,
     /** When the month's minutes start again. */
     val resetsAtMs: Long,
 )
 
-/** The call server's side of the plans: minutes left, and adding a bought top-up. */
+/** The call server's side of the plans: the minutes left. */
 interface CallAllowance {
     val isAvailable: Boolean
     suspend fun minutes(): Result<CallMinutes, DataError.Remote>
-    suspend fun claimTopUp(token: String): Result<CallMinutes, DataError.Remote>
 }
 
 object NoCallAllowance : CallAllowance {
     override val isAvailable = false
     override suspend fun minutes(): Result<CallMinutes, DataError.Remote> =
-        Result.Failure(DataError.Remote.SERVICE_UNAVAILABLE)
-    override suspend fun claimTopUp(token: String): Result<CallMinutes, DataError.Remote> =
         Result.Failure(DataError.Remote.SERVICE_UNAVAILABLE)
 }
 
@@ -134,5 +116,4 @@ object Plans {
     const val PREMIUM_AUDIO_HOURS = 100
     const val PREMIUM_CALL_HOURS = 4
     const val PREMIUM_VIDEO_HEIGHT = 540
-    const val TOP_UP_VIDEO_HOURS = 5
 }

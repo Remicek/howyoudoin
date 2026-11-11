@@ -183,7 +183,6 @@
     <string name="premium_active_body">HowYouDoin を支援していただきありがとうございます。</string>
     <string name="premium_minutes_header">今月のリンク通話</string>
     <string name="premium_video_left">ビデオ: 残り %1$s</string>
-    <string name="premium_video_bought">うち購入分 %1$s</string>
     <string name="premium_audio_left">音声: 残り %1$s</string>
     <plurals name="premium_resets_in">
         <item quantity="other">%1$d 日後にリセット</item>
@@ -209,12 +208,8 @@
     <string name="premium_open_play">Google Play を開く</string>
     <string name="premium_not_offered">現在 Google Play で Premium を購入できません。接続を確認してもう一度お試しください。</string>
     <string name="premium_try_again">再試行</string>
-    <string name="premium_top_up_header">定期購入なしでビデオを追加</string>
-    <string name="premium_top_up_body">有効期限はありません。その月のビデオ時間がなくなると使われます。</string>
-    <string name="premium_top_up_button">ビデオ %1$d 時間: %2$s</string>
     <string name="premium_restore">購入を復元</string>
     <string name="premium_thanks">ありがとうございます! Premium が有効になりました。</string>
     <string name="premium_pending">お支払いを待っています。Google Play で確認されると追加されます。</string>
     <string name="premium_failed">購入を完了できませんでした。</string>
-    <string name="premium_top_up_added">ビデオ %1$d 時間を追加しました。</string>
 </resources>
