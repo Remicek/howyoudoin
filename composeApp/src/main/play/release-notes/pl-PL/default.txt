@@ -1,5 +1,5 @@
-- Filmy działają w każdej sieci, z miniaturą, długością i odpowiedziami
-- Podgląd filmów widać w aplikacjach Messengera i z innych aplikacji Matrix
-- Offline: czytaj czaty zapisane w telefonie; przy wysyłaniu aplikacja przypomni, że jesteś offline
-- Gdy ponowne łączenie nie pomaga, aplikacja pokazuje, jak zalogować się ponownie
-- Poprawki bezpieczeństwa
+- Premium: więcej minut rozmów, ostrzejsze wideo, dłuższe rozmowy i do 3 kont w każdej sieci
+- Ustawienia → Powiadomienia: włączanie i wyłączanie powiadomień o wiadomościach i połączeniach
+- „Nie pokazuj ponownie” przy wskazówkach; Ustawienia → Ukryte wskazówki przywraca je
+- Rozmowy wideo przez link ostrzegają, zanim skończy się wideo lub rozmowa
+- Poprawki
