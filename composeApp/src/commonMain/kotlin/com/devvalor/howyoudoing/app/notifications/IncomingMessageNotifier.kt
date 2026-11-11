@@ -1,5 +1,6 @@
 package com.devvalor.howyoudoing.app.notifications
 
+import com.devvalor.howyoudoing.core.domain.app.NotificationSettings
 import com.devvalor.howyoudoing.chat.presentation.model.accountTag
 import com.devvalor.howyoudoing.core.domain.ondevice.AccountLabel
 import com.devvalor.howyoudoing.core.domain.ondevice.AccountRef
@@ -27,8 +28,19 @@ import kotlin.time.ExperimentalTime
 
 /** Shows and clears message notifications (Android notifications; nothing yet on iOS). */
 interface MessageNotificationPresenter {
-    /** [silent] updates a notification without sounding or vibrating again (a ringing call that ended). */
-    fun show(chatId: String, title: String, text: String, timestampMs: Long, silent: Boolean = false)
+    /**
+     * [silent] updates a notification without sounding or vibrating again (a ringing call that ended); [isCall] shows
+     * it as a call, which has its own sound and can be turned off apart from messages.
+     */
+    @Suppress("LongParameterList") // One notification's parts
+    fun show(
+        chatId: String,
+        title: String,
+        text: String,
+        timestampMs: Long,
+        silent: Boolean = false,
+        isCall: Boolean = false,
+    )
     fun cancel(chatId: String)
 }
 
@@ -51,6 +63,7 @@ class IncomingMessageNotifier(
     notificationPreferences: NotificationPreferences,
     private val presenter: MessageNotificationPresenter,
     appLock: AppLockRepository,
+    notificationSettings: NotificationSettings,
     accountTags: AccountTags,
     scope: CoroutineScope
 ) {
@@ -72,19 +85,23 @@ class IncomingMessageNotifier(
         combine(
             chatRepository.observeChats(),
             notificationPreferences.observeMutedChats(),
-            appLock.observeSettings()
-        ) { chats, muted, lock ->
-            Triple(chats, muted, lock)
+            appLock.observeSettings(),
+            notificationSettings.observe(),
+        ) { chats, muted, lock, choices ->
+            Snapshot(chats, muted, lock, choices.messages, choices.calls)
         }
-            .onEach { (chats, muted, lock) ->
+            .onEach { snapshot ->
+                val (chats, muted, lock) = snapshot
                 val warmingUp = now() - startedAt < WARM_UP_MILLIS
                 for (chat in chats) {
                     val message = chat.lastMessage ?: continue
                     val previous = lastSeenMessage.put(chat.id, message.id)
                     val isNew = !warmingUp && previous != message.id && !message.isOutgoing &&
                         now() - message.timestamp <= MAX_AGE_MILLIS
-                    val isWanted = chat.id !in muted && !openChatTracker.isWatching(chat.id)
                     val callState = message.call?.state
+                    // Settings → Notifications: calls and messages are turned on and off apart
+                    val isKindOn = if (message.call != null) snapshot.callsOn else snapshot.messagesOn
+                    val isWanted = isKindOn && chat.id !in muted && !openChatTracker.isWatching(chat.id)
                     val shownState = notifiedCalls[message.id]
                     when {
                         isNew && isWanted -> {
@@ -121,21 +138,30 @@ class IncomingMessageNotifier(
     }
 
     private suspend fun notify(chat: Chat, message: Message, lock: AppLockSettings, silent: Boolean = false) {
+        val isCall = message.call != null
         if (lock.isEnabled && lock.hidesNotificationContent) {
             // With the app locked, a notification shouldn't reveal what the lock protects
             presenter.show(
-                chat.id, "HowYouDoin", getString(Res.string.notification_new_message), message.timestamp, silent
+                chat.id, "HowYouDoin", getString(Res.string.notification_new_message), message.timestamp, silent, isCall
             )
         } else {
             // "Anna · Work" when the network has several accounts here
             val account = chat.takeIf { it.isOnDevice }
                 ?.let { accountTag(AccountRef(it.network, it.accountSlot), tags) }
             val title = account?.let { "${chat.name} · ${it.name.asStringAsync()}" } ?: chat.name
-            presenter.show(chat.id, title, chat.toChatUi().preview.asStringAsync(), message.timestamp, silent)
+            presenter.show(chat.id, title, chat.toChatUi().preview.asStringAsync(), message.timestamp, silent, isCall)
         }
     }
 
     private fun now() = Clock.System.now().toEpochMilliseconds()
+
+    private data class Snapshot(
+        val chats: List<Chat>,
+        val muted: Set<String>,
+        val lock: AppLockSettings,
+        val messagesOn: Boolean,
+        val callsOn: Boolean,
+    )
 
     private companion object {
         /** The inbox loads in bursts after starting; those aren't new messages. */
@@ -148,6 +174,14 @@ class IncomingMessageNotifier(
 
 /** Used where notifications aren't wired up yet. */
 object NoOpNotificationPresenter : MessageNotificationPresenter {
-    override fun show(chatId: String, title: String, text: String, timestampMs: Long, silent: Boolean) = Unit
+    @Suppress("LongParameterList")
+    override fun show(
+        chatId: String,
+        title: String,
+        text: String,
+        timestampMs: Long,
+        silent: Boolean,
+        isCall: Boolean,
+    ) = Unit
     override fun cancel(chatId: String) = Unit
 }

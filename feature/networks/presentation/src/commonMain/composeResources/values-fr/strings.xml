@@ -165,6 +165,7 @@
     <string name="history_restore">Restaurer les anciens messages chiffrés</string>
     <string name="history_enter_pin">Saisir le code PIN Messenger</string>
     <string name="history_not_now">Plus tard</string>
+    <string name="history_dont_show">Ne plus afficher</string>
     <string name="history_pin_warning">Messenger n'autorise qu'un nombre limité d'essais incorrects. Si vous n'êtes pas sûr, annulez ; les nouveaux messages arrivent de toute façon.</string>
     <string name="history_locked">Plus aucun essai. Messenger a verrouillé la sauvegarde de votre historique.</string>
     <string name="history_session_expired">Votre session Messenger a expiré. Reconnectez Messenger dans Réseaux, puis réessayez.</string>

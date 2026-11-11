@@ -132,6 +132,7 @@
     <string name="keys_ok">ठीक है</string>
     <string name="keys_open_networks">नेटवर्क खोलें</string>
     <string name="keys_not_now">अभी नहीं</string>
+    <string name="keys_dont_show">फिर से न दिखाएं</string>
     <string name="keys_enter">रिकवरी कुंजी डालें</string>
     <string name="conversation_download_failed">फ़ाइल डाउनलोड नहीं हो सकी</string>
     <string name="problem_failed_title">%1$s कनेक्ट नहीं है</string>

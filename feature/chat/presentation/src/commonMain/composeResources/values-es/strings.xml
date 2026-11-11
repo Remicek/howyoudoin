@@ -132,6 +132,7 @@
     <string name="keys_ok">Aceptar</string>
     <string name="keys_open_networks">Abrir Redes</string>
     <string name="keys_not_now">Ahora no</string>
+    <string name="keys_dont_show">No volver a mostrar</string>
     <string name="keys_enter">Introducir clave de recuperación</string>
     <string name="conversation_download_failed">No se pudo descargar el archivo</string>
     <string name="problem_failed_title">%1$s no está conectado</string>

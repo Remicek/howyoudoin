@@ -37,6 +37,8 @@
     <string name="bio_use_pin">Использовать PIN-код</string>
     <string name="channel_messages">Сообщения</string>
     <string name="channel_messages_desc">Новые сообщения из ваших чатов</string>
+    <string name="channel_call_alerts">Звонки</string>
+    <string name="channel_call_alerts_desc">Входящие и пропущенные звонки в ваших чатах</string>
     <string name="channel_problems">Проблемы с подключением</string>
     <string name="channel_problems_desc">Когда подключённая сеть перестаёт работать</string>
     <string name="channel_connections">Подключения на устройстве</string>

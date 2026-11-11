@@ -61,7 +61,10 @@ actual val platformAppModule: Module = module {
         AppInfo(versionName = version ?: "?", sourceCodeUrl = SOURCE_CODE_URL, privacyPolicyUrl = PRIVACY_POLICY_URL)
     }
     single<MessageNotificationPresenter> { NoOpNotificationPresenter }
-    single(createdAtStart = true) { IncomingMessageNotifier(get(), get(), get(), get(), get(), get(), get()) }
+    single(createdAtStart = true) { IncomingMessageNotifier(get(), get(), get(), get(), get(), get(), get(), get()) }
+    single<com.devvalor.howyoudoing.core.domain.app.SystemNotificationSettings> {
+        com.devvalor.howyoudoing.core.domain.app.NoSystemNotificationSettings
+    }
     single<OnDeviceInboxCache>(named(ON_DEVICE_INSTAGRAM_CACHE)) { IosInboxCache(INSTAGRAM_DIR) }
     single<OnDeviceInstagram>(createdAtStart = true) {
         NativeOnDeviceInstagram(

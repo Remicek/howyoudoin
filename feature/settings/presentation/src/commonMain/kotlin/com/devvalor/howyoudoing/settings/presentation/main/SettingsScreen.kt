@@ -7,6 +7,7 @@ import androidx.compose.material.icons.rounded.WorkspacePremium
 import com.devvalor.howyoudoing.core.domain.premium.Premium
 import androidx.compose.material.icons.rounded.Key
 import androidx.compose.material.icons.rounded.Explore
+import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material.icons.rounded.StarRate
 import com.devvalor.howyoudoing.core.domain.app.AppPromotion
@@ -34,6 +35,8 @@ import howyoudoin.feature.settings.presentation.generated.resources.settings_abo
 import howyoudoin.feature.settings.presentation.generated.resources.settings_app_lock
 import howyoudoin.feature.settings.presentation.generated.resources.settings_app_lock_on
 import howyoudoin.feature.settings.presentation.generated.resources.settings_appearance
+import howyoudoin.feature.settings.presentation.generated.resources.settings_notifications
+import howyoudoin.feature.settings.presentation.generated.resources.settings_notifications_sub
 import howyoudoin.feature.settings.presentation.generated.resources.settings_appearance_sub
 import howyoudoin.feature.settings.presentation.generated.resources.settings_backup_logins
 import howyoudoin.feature.settings.presentation.generated.resources.settings_backup_logins_sub
@@ -156,6 +159,7 @@ fun SettingsRoot(
     onGuideClick: () -> Unit,
     onTelegramKeysClick: () -> Unit,
     onPremiumClick: () -> Unit,
+    onNotificationsClick: () -> Unit,
     onBack: () -> Unit,
     viewModel: SettingsViewModel = koinViewModel(),
     promotion: AppPromotion = koinInject(),
@@ -204,6 +208,15 @@ fun SettingsRoot(
                     viewModel.showTourAgain()
                     onBack()
                 },
+            )
+        }
+        item { HiddenTipsRow() }
+        item {
+            SettingsRow(
+                title = stringResource(Res.string.settings_notifications),
+                subtitle = stringResource(Res.string.settings_notifications_sub),
+                icon = Icons.Rounded.Notifications,
+                onClick = onNotificationsClick,
             )
         }
         item {

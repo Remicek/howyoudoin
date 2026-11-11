@@ -17,7 +17,8 @@ class AndroidNotificationPresenter(private val context: Context) : MessageNotifi
     private val manager = NotificationManagerCompat.from(context)
 
     init {
-        context.getSystemService(NotificationManager::class.java).createNotificationChannel(
+        val system = context.getSystemService(NotificationManager::class.java)
+        system.createNotificationChannel(
             NotificationChannel(
                 CHANNEL_ID,
                 context.getString(R.string.channel_messages),
@@ -26,9 +27,27 @@ class AndroidNotificationPresenter(private val context: Context) : MessageNotifi
                 description = context.getString(R.string.channel_messages_desc)
             }
         )
+        // Calls in the networks' chats: their own sound, and Settings → Notifications turns them off apart
+        system.createNotificationChannel(
+            NotificationChannel(
+                CALLS_CHANNEL_ID,
+                context.getString(R.string.channel_call_alerts),
+                NotificationManager.IMPORTANCE_HIGH
+            ).apply {
+                description = context.getString(R.string.channel_call_alerts_desc)
+            }
+        )
     }
 
-    override fun show(chatId: String, title: String, text: String, timestampMs: Long, silent: Boolean) {
+    @Suppress("LongParameterList")
+    override fun show(
+        chatId: String,
+        title: String,
+        text: String,
+        timestampMs: Long,
+        silent: Boolean,
+        isCall: Boolean,
+    ) {
         if (!manager.areNotificationsEnabled()) return
         val open = PendingIntent.getActivity(
             context,
@@ -38,7 +57,7 @@ class AndroidNotificationPresenter(private val context: Context) : MessageNotifi
                 .putExtra(EXTRA_CHAT_ID, chatId),
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
-        val notification = NotificationCompat.Builder(context, CHANNEL_ID)
+        val notification = NotificationCompat.Builder(context, if (isCall) CALLS_CHANNEL_ID else CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(title)
             .setContentText(text)
@@ -48,7 +67,7 @@ class AndroidNotificationPresenter(private val context: Context) : MessageNotifi
             .setContentIntent(open)
             .setAutoCancel(true)
             .setSilent(silent)
-            .setCategory(NotificationCompat.CATEGORY_MESSAGE)
+            .setCategory(if (isCall) NotificationCompat.CATEGORY_MISSED_CALL else NotificationCompat.CATEGORY_MESSAGE)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .build()
         try {
@@ -65,6 +84,7 @@ class AndroidNotificationPresenter(private val context: Context) : MessageNotifi
 
     companion object {
         const val CHANNEL_ID = "messages"
+        const val CALLS_CHANNEL_ID = "call_alerts"
         const val EXTRA_CHAT_ID = "chatId"
         private const val TAG = "Notifications"
     }

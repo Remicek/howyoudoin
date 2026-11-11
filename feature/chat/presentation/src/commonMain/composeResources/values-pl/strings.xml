@@ -132,6 +132,7 @@
     <string name="keys_ok">OK</string>
     <string name="keys_open_networks">Otwórz Sieci</string>
     <string name="keys_not_now">Nie teraz</string>
+    <string name="keys_dont_show">Nie pokazuj ponownie</string>
     <string name="keys_enter">Wpisz klucz odzyskiwania</string>
     <string name="conversation_download_failed">Nie udało się pobrać pliku</string>
     <string name="problem_failed_title">%1$s nie jest połączony</string>

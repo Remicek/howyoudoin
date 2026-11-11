@@ -139,6 +139,7 @@
     <string name="keys_ok">OK</string>
     <string name="keys_open_networks">Open Networks</string>
     <string name="keys_not_now">Not now</string>
+    <string name="keys_dont_show">Don't show again</string>
     <string name="keys_enter">Enter recovery key</string>
     <string name="conversation_download_failed">Couldn't download the file</string>
     <plurals name="keys_restored">

@@ -21,6 +21,7 @@ import com.devvalor.howyoudoing.core.domain.premium.Premium
 import com.devvalor.howyoudoing.core.domain.premium.PremiumOffer
 import com.devvalor.howyoudoing.core.domain.premium.PremiumProduct
 import com.devvalor.howyoudoing.core.domain.premium.PremiumStatus
+import com.devvalor.howyoudoing.core.domain.premium.PremiumStore
 import com.devvalor.howyoudoing.core.domain.premium.PurchaseOutcome
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -93,7 +94,7 @@ class PlayPremium(private val app: Application, private val scope: CoroutineScop
     override suspend fun refresh() {
         if (!connected()) {
             // No Google Play to ask: what's known is all there will be
-            state.update { it.copy(isKnown = true) }
+            state.update { it.copy(isKnown = true, store = PremiumStore.NO_GOOGLE_PLAY) }
             return
         }
         val details = listOf(
@@ -109,10 +110,12 @@ class PlayPremium(private val app: Application, private val scope: CoroutineScop
         }
         products = details.associateBy { it.productId }
         state.update {
+            val subscription = products[PremiumProduct.SUBSCRIPTION.id]?.subscriptionOffer()?.toOffer()
             it.copy(
-                subscription = products[PremiumProduct.SUBSCRIPTION.id]?.subscriptionOffer()?.toOffer(),
+                subscription = subscription,
                 topUp = products[PremiumProduct.VIDEO_TOP_UP.id]?.oneTimePurchaseOfferDetails
                     ?.let { offer -> PremiumOffer(offer.formattedPrice) },
+                store = if (subscription != null) PremiumStore.READY else PremiumStore.NOT_OFFERED,
             )
         }
         val subscriptions = client.queryPurchasesAsync(

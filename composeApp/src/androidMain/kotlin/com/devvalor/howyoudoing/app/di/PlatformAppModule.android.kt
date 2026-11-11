@@ -108,7 +108,10 @@ actual val platformAppModule: Module = module {
         AppInfo(versionName = version ?: "?", sourceCodeUrl = SOURCE_CODE_URL, privacyPolicyUrl = PRIVACY_POLICY_URL)
     }
     single<MessageNotificationPresenter> { AndroidNotificationPresenter(androidContext()) }
-    single(createdAtStart = true) { IncomingMessageNotifier(get(), get(), get(), get(), get(), get(), get()) }
+    single(createdAtStart = true) { IncomingMessageNotifier(get(), get(), get(), get(), get(), get(), get(), get()) }
+    single<com.devvalor.howyoudoing.core.domain.app.SystemNotificationSettings> {
+        com.devvalor.howyoudoing.app.notifications.AndroidSystemNotificationSettings(androidContext())
+    }
     single<BackgroundDelivery> { AndroidBackgroundDelivery(androidContext()) }
     single(createdAtStart = true) { OnlineReconnector(androidContext(), get(), get()) }
     single<InternetConnection> { AndroidInternetConnection(androidContext()) }
@@ -200,7 +203,7 @@ actual val platformAppModule: Module = module {
     single { AndroidCallMediaEngine(androidContext()) } bind CallMediaEngine::class
     single<MatrixCryptoFactory> { GoMatrixCryptoFactory(androidContext()) }
     single<MatrixMediaCache> { AndroidMatrixMediaCache(androidContext()) }
-    single(createdAtStart = true) { CallNotifier(androidContext(), get(), get()) }
+    single(createdAtStart = true) { CallNotifier(androidContext(), get(), get(), get()) }
     single(createdAtStart = true) { ConnectionProblemNotifier(androidContext(), get(), get()) }
     single<CallLauncher> { CallLauncher { chatId, video -> CallActivity.startCall(androidContext(), chatId, video) } }
     single<OnDeviceInboxCache> { AndroidInboxCache(androidContext()) }

@@ -1,5 +1,6 @@
 package com.devvalor.howyoudoing.app.call
 
+import com.devvalor.howyoudoing.core.domain.app.NotificationSettings
 import com.devvalor.howyoudoing.app.R
 import android.Manifest
 import android.app.Notification
@@ -38,14 +39,23 @@ import org.koin.core.component.inject
  * Follows the call: rings with a full-screen notification for incoming calls, opens the call screen for outgoing
  * ones, and keeps a foreground service (microphone, camera) while a call is going on.
  */
-class CallNotifier(context: Context, callManager: CallManager, scope: CoroutineScope) {
+class CallNotifier(
+    context: Context,
+    callManager: CallManager,
+    notificationSettings: NotificationSettings,
+    scope: CoroutineScope,
+) {
 
     private val context = context.applicationContext
     private val notifications = this.context.getSystemService(NotificationManager::class.java)
     private var ringtone: Ringtone? = null
 
+    /** Settings → Notifications → Calls: off, an incoming call doesn't ring. */
+    private var isRingingOn = true
+
     init {
         createChannels()
+        notificationSettings.observe().onEach { isRingingOn = it.calls }.launchIn(scope)
         callManager.call
             .map { it?.let { call -> call.callId to call.phase } }
             .distinctUntilChanged()
@@ -55,7 +65,7 @@ class CallNotifier(context: Context, callManager: CallManager, scope: CoroutineS
 
     private fun onChange(call: CallState?) {
         val ringing = call?.phase == CallPhase.RINGING
-        if (ringing) ring(call!!) else stopRinging()
+        if (ringing && isRingingOn) ring(call!!) else stopRinging()
         when (call?.phase) {
             CallPhase.CALLING -> {
                 openCallScreen()

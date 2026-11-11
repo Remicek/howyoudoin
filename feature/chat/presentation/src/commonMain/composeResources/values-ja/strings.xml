@@ -132,6 +132,7 @@
     <string name="keys_ok">OK</string>
     <string name="keys_open_networks">ネットワークを開く</string>
     <string name="keys_not_now">後で</string>
+    <string name="keys_dont_show">今後表示しない</string>
     <string name="keys_enter">リカバリーキーを入力</string>
     <string name="conversation_download_failed">ファイルをダウンロードできませんでした</string>
     <string name="problem_failed_title">%1$s が接続されていません</string>

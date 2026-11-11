@@ -37,6 +37,8 @@
     <string name="bio_use_pin">PIN इस्तेमाल करें</string>
     <string name="channel_messages">मैसेज</string>
     <string name="channel_messages_desc">आपकी चैट के नए मैसेज</string>
+    <string name="channel_call_alerts">कॉल</string>
+    <string name="channel_call_alerts_desc">आपकी चैट में आने वाली और छूटी कॉल</string>
     <string name="channel_problems">कनेक्शन की समस्याएँ</string>
     <string name="channel_problems_desc">जब कोई जुड़ा हुआ नेटवर्क काम करना बंद कर दे</string>
     <string name="channel_connections">डिवाइस पर कनेक्शन</string>

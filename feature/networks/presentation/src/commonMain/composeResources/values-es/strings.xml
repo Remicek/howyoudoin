@@ -165,6 +165,7 @@
     <string name="history_restore">Restaurar mensajes cifrados antiguos</string>
     <string name="history_enter_pin">Introducir PIN de Messenger</string>
     <string name="history_not_now">Ahora no</string>
+    <string name="history_dont_show">No volver a mostrar</string>
     <string name="history_pin_warning">Messenger solo permite un número limitado de intentos fallidos. Si no estás seguro, cancela; los mensajes nuevos llegan igualmente.</string>
     <string name="history_locked">No quedan intentos. Messenger ha bloqueado la copia de tu historial.</string>
     <string name="history_session_expired">Tu sesión de Messenger ha caducado. Vuelve a conectar Messenger en Redes e inténtalo de nuevo.</string>

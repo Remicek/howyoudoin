@@ -11,6 +11,7 @@ import com.devvalor.howyoudoing.settings.presentation.guide.ConnectGuideRoot
 import com.devvalor.howyoudoing.settings.presentation.licenses.LicensesRoot
 import com.devvalor.howyoudoing.settings.presentation.lock.AppLockSettingsRoot
 import com.devvalor.howyoudoing.settings.presentation.main.SettingsRoot
+import com.devvalor.howyoudoing.settings.presentation.notifications.NotificationsRoot
 import com.devvalor.howyoudoing.settings.presentation.premium.PremiumRoot
 import com.devvalor.howyoudoing.settings.presentation.telegram.TelegramKeysRoot
 import com.devvalor.howyoudoing.settings.presentation.terms.TermsRoot
@@ -34,6 +35,8 @@ sealed interface SettingsRoutes {
     @Serializable data object TelegramKeys : SettingsRoutes
     /** The plans: call minutes left, Premium and top-ups. */
     @Serializable data object Premium : SettingsRoutes
+    /** Message and call notifications on or off, and their sound. */
+    @Serializable data object Notifications : SettingsRoutes
 }
 
 fun NavGraphBuilder.settingsGraph(
@@ -54,6 +57,7 @@ fun NavGraphBuilder.settingsGraph(
                 onGuideClick = { open(SettingsRoutes.ConnectGuide) },
                 onTelegramKeysClick = { open(SettingsRoutes.TelegramKeys) },
                 onPremiumClick = { open(SettingsRoutes.Premium) },
+                onNotificationsClick = { open(SettingsRoutes.Notifications) },
                 onBack = { navController.navigateUp() },
             )
         }
@@ -77,5 +81,6 @@ fun NavGraphBuilder.settingsGraph(
         composable<SettingsRoutes.Terms> { TermsRoot(onBack = { navController.navigateUp() }) }
         composable<SettingsRoutes.TelegramKeys> { TelegramKeysRoot(onBack = { navController.navigateUp() }) }
         composable<SettingsRoutes.Premium> { PremiumRoot(onBack = { navController.navigateUp() }) }
+        composable<SettingsRoutes.Notifications> { NotificationsRoot(onBack = { navController.navigateUp() }) }
     }
 }

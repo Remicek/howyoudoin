@@ -37,6 +37,8 @@
     <string name="bio_use_pin">Use PIN</string>
     <string name="channel_messages">Messages</string>
     <string name="channel_messages_desc">New messages from your chats</string>
+    <string name="channel_call_alerts">Calls</string>
+    <string name="channel_call_alerts_desc">Incoming and missed calls in your chats</string>
     <string name="channel_problems">Connection problems</string>
     <string name="channel_problems_desc">When a connected network stops working</string>
     <string name="channel_connections">On-device connections</string>

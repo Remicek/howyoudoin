@@ -5,7 +5,9 @@ import com.devvalor.howyoudoing.settings.presentation.licenses.LicensesViewModel
 import com.devvalor.howyoudoing.settings.presentation.lock.AppLockOfferViewModel
 import com.devvalor.howyoudoing.settings.presentation.lock.AppLockSettingsViewModel
 import com.devvalor.howyoudoing.settings.presentation.lock.AppLockViewModel
+import com.devvalor.howyoudoing.settings.presentation.main.HiddenTipsViewModel
 import com.devvalor.howyoudoing.settings.presentation.main.SettingsViewModel
+import com.devvalor.howyoudoing.settings.presentation.notifications.NotificationsViewModel
 import com.devvalor.howyoudoing.settings.presentation.appearance.AppearanceViewModel
 import com.devvalor.howyoudoing.settings.presentation.premium.PremiumViewModel
 import com.devvalor.howyoudoing.settings.presentation.telegram.TelegramKeysViewModel
@@ -22,4 +24,6 @@ val settingsPresentationModule = module {
     viewModelOf(::AppearanceViewModel)
     viewModelOf(::TelegramKeysViewModel)
     viewModelOf(::PremiumViewModel)
+    viewModelOf(::HiddenTipsViewModel)
+    viewModelOf(::NotificationsViewModel)
 }

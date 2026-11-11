@@ -37,6 +37,8 @@
     <string name="bio_use_pin">Usar PIN</string>
     <string name="channel_messages">Mensagens</string>
     <string name="channel_messages_desc">Novas mensagens das suas conversas</string>
+    <string name="channel_call_alerts">Chamadas</string>
+    <string name="channel_call_alerts_desc">Chamadas recebidas e perdidas nas suas conversas</string>
     <string name="channel_problems">Problemas de conexão</string>
     <string name="channel_problems_desc">Quando uma rede conectada para de funcionar</string>
     <string name="channel_connections">Conexões no dispositivo</string>

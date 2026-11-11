@@ -10,6 +10,7 @@ import howyoudoin.feature.chat.presentation.generated.resources.keys_restored_no
 import howyoudoin.feature.chat.presentation.generated.resources.keys_ok
 import howyoudoin.feature.chat.presentation.generated.resources.keys_open_networks
 import howyoudoin.feature.chat.presentation.generated.resources.keys_not_now
+import howyoudoin.feature.chat.presentation.generated.resources.keys_dont_show
 import howyoudoin.feature.chat.presentation.generated.resources.keys_enter
 import howyoudoin.feature.chat.presentation.generated.resources.keys_web_1
 import howyoudoin.feature.chat.presentation.generated.resources.keys_web_2
@@ -40,6 +41,8 @@ import howyoudoin.feature.chat.presentation.generated.resources.matrixkeys_verif
 import howyoudoin.feature.chat.presentation.generated.resources.matrixkeys_you_got_it_when_you
 import howyoudoin.feature.chat.presentation.generated.resources.matrixkeys_your_matrix_login_came_back
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.IconButton
 import androidx.compose.foundation.verticalScroll
@@ -82,9 +85,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import com.devvalor.howyoudoing.chat.domain.MatrixEncryption
 import com.devvalor.howyoudoing.chat.domain.MatrixEncryptionStatus
+import com.devvalor.howyoudoing.core.domain.app.HiddenTips
+import com.devvalor.howyoudoing.core.domain.app.Tip
 import com.devvalor.howyoudoing.core.designsystem.theme.HowYouDoinSpacing
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
@@ -108,18 +114,22 @@ data class MatrixKeysState(
 }
 
 /** Offers verifying this device with the Matrix recovery key while it isn't verified. */
-class MatrixKeysViewModel(private val encryption: MatrixEncryption) : ViewModel() {
+class MatrixKeysViewModel(
+    private val encryption: MatrixEncryption,
+    private val hiddenTips: HiddenTips,
+) : ViewModel() {
 
     private val _state = MutableStateFlow(MatrixKeysState())
     val state = _state.asStateFlow()
     private var isDismissed = false
 
     init {
-        encryption.status
-            .onEach { status ->
+        combine(encryption.status, hiddenTips.observeHidden(Tip.MATRIX_KEYS)) { status, isHidden -> status to isHidden }
+            .onEach { (status, isHidden) ->
                 _state.update {
                     it.copy(
-                        isOffered = status == MatrixEncryptionStatus.UNVERIFIED && !isDismissed,
+                        // "Don't show again" only turns off the offer; a lost login still has to be fixed
+                        isOffered = status == MatrixEncryptionStatus.UNVERIFIED && !isDismissed && !isHidden,
                         needsSignIn = status == MatrixEncryptionStatus.NEEDS_SIGN_IN && !isDismissed
                     )
                 }
@@ -137,6 +147,12 @@ class MatrixKeysViewModel(private val encryption: MatrixEncryption) : ViewModel(
     fun notNow() {
         isDismissed = true
         _state.update { it.copy(isOffered = false, needsSignIn = false) }
+    }
+
+    /** Never offer it again (Settings → Hidden tips brings it back). */
+    fun dontShowAgain() {
+        notNow()
+        viewModelScope.launch { hiddenTips.hide(Tip.MATRIX_KEYS) }
     }
 
     fun onKeyChange(key: String) = _state.update { it.copy(recoveryKey = key, error = null) }
@@ -204,6 +220,7 @@ fun MatrixKeysBannerRoot(onNetworksClick: () -> Unit, viewModel: MatrixKeysViewM
             body = stringResource(Res.string.matrixkeys_messages_sent_before_howyoudoin_was),
             primary = stringResource(Res.string.keys_enter) to viewModel::open,
             secondary = stringResource(Res.string.keys_not_now) to viewModel::notNow,
+            tertiary = stringResource(Res.string.keys_dont_show) to viewModel::dontShowAgain,
         )
     }
     if (state.isGuideOpen) {
@@ -219,12 +236,14 @@ fun MatrixKeysBannerRoot(onNetworksClick: () -> Unit, viewModel: MatrixKeysViewM
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun KeysCard(
     title: String,
     body: String,
     primary: Pair<String, () -> Unit>,
     secondary: Pair<String, () -> Unit>? = null,
+    tertiary: Pair<String, () -> Unit>? = null,
 ) {
     Surface(
         color = MaterialTheme.colorScheme.secondaryContainer,
@@ -239,9 +258,13 @@ private fun KeysCard(
             }
             Spacer(Modifier.padding(top = HowYouDoinSpacing.xs))
             Text(body, style = MaterialTheme.typography.bodyMedium)
-            Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
-                secondary?.let { (label, onClick) -> TextButton(onClick = onClick) { Text(label) } }
-                TextButton(onClick = primary.second) { Text(primary.first, fontWeight = FontWeight.SemiBold) }
+            // "Don't show again" goes on its own line when all three don't fit; the other two stay together
+            FlowRow(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
+                tertiary?.let { (label, onClick) -> TextButton(onClick = onClick) { Text(label) } }
+                Row {
+                    secondary?.let { (label, onClick) -> TextButton(onClick = onClick) { Text(label) } }
+                    TextButton(onClick = primary.second) { Text(primary.first, fontWeight = FontWeight.SemiBold) }
+                }
             }
         }
     }

@@ -37,6 +37,8 @@
     <string name="bio_use_pin">PIN を使う</string>
     <string name="channel_messages">メッセージ</string>
     <string name="channel_messages_desc">チャットの新着メッセージ</string>
+    <string name="channel_call_alerts">通話</string>
+    <string name="channel_call_alerts_desc">チャットの着信と不在着信</string>
     <string name="channel_problems">接続の問題</string>
     <string name="channel_problems_desc">接続中のネットワークが動作しなくなったとき</string>
     <string name="channel_connections">デバイス上の接続</string>

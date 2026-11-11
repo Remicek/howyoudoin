@@ -8,6 +8,8 @@ import howyoudoin.feature.networks.presentation.generated.resources.history_sess
 import howyoudoin.feature.networks.presentation.generated.resources.history_failed
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.devvalor.howyoudoing.core.domain.app.HiddenTips
+import com.devvalor.howyoudoing.core.domain.app.Tip
 import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceHistoryError
 import com.devvalor.howyoudoing.core.domain.ondevice.OnDeviceMessenger
@@ -20,6 +22,8 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -29,7 +33,8 @@ import kotlinx.coroutines.launch
  */
 class EncryptedHistoryViewModel(
     private val bridgeRepository: BridgeRepository,
-    private val onDeviceMessenger: OnDeviceMessenger
+    private val onDeviceMessenger: OnDeviceMessenger,
+    private val hiddenTips: HiddenTips,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(EncryptedHistoryState())
@@ -37,6 +42,28 @@ class EncryptedHistoryViewModel(
 
     private var checkJob: Job? = null
     private var isDismissed = false
+
+    /** Turned off for good with "Don't show again"; Settings → Hidden tips turns it back on. */
+    private var isHidden = false
+    private var encryptedNetworks: Set<ChatNetwork> = emptySet()
+    private val isSuppressed get() = isDismissed || isHidden
+
+    init {
+        hiddenTips.observeHidden(Tip.ENCRYPTED_HISTORY)
+            .onEach { hidden ->
+                val wasHidden = isHidden
+                isHidden = hidden
+                if (hidden) {
+                    _state.update { it.copy(isOffered = false) }
+                } else if (wasHidden) {
+                    // Brought back: check again rather than wait for the encrypted chats to change
+                    checkJob?.cancel()
+                    checkJob = null
+                    onEncryptedNetworksChange(encryptedNetworks)
+                }
+            }
+            .launchIn(viewModelScope)
+    }
 
     fun onAction(action: EncryptedHistoryAction) {
         when (action) {
@@ -54,6 +81,12 @@ class EncryptedHistoryViewModel(
                 _state.update { it.copy(isOffered = false) }
             }
 
+            EncryptedHistoryAction.OnDontShowAgainClick -> {
+                isDismissed = true
+                _state.update { it.copy(isOffered = false) }
+                viewModelScope.launch { hiddenTips.hide(Tip.ENCRYPTED_HISTORY) }
+            }
+
             is EncryptedHistoryAction.OnPinChange -> _state.update {
                 it.copy(pin = action.pin.filter(Char::isDigit).take(EncryptedHistoryState.PIN_LENGTH), error = null)
             }
@@ -68,19 +101,20 @@ class EncryptedHistoryViewModel(
     }
 
     private fun onEncryptedNetworksChange(networks: Set<ChatNetwork>) {
+        encryptedNetworks = networks
         if (ChatNetwork.MESSENGER !in networks) {
             checkJob?.cancel()
             checkJob = null
             _state.update { it.copy(isOffered = false) }
             return
         }
-        if (checkJob != null || isDismissed) return
+        if (checkJob != null || isSuppressed) return
         checkJob = viewModelScope.launch {
             // The bridge needs a moment after (re)connecting before Messenger answers, so retry a few times
             repeat(CHECK_ATTEMPTS) { attempt ->
                 val server = bridgeRepository.getEncryptedHistoryStatus(ChatNetwork.MESSENGER)
                 if (server is Result.Success && server.data.canRestore) {
-                    _state.update { it.copy(isOffered = !isDismissed, isOnDevice = false) }
+                    _state.update { it.copy(isOffered = !isSuppressed, isOnDevice = false) }
                     return@launch
                 }
                 val onDevice = if (onDeviceMessenger.state.value is OnDeviceMessengerState.Connected) {
@@ -89,7 +123,9 @@ class EncryptedHistoryViewModel(
                     null
                 }
                 if (onDevice is Result.Success) {
-                    _state.update { it.copy(isOffered = onDevice.data.canRestore && !isDismissed, isOnDevice = true) }
+                    _state.update {
+                        it.copy(isOffered = onDevice.data.canRestore && !isSuppressed, isOnDevice = true)
+                    }
                     return@launch
                 }
                 val notLinked = onDeviceMessenger.state.value == OnDeviceMessengerState.NotLinked

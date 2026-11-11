@@ -37,6 +37,8 @@
     <string name="bio_use_pin">استخدام رمز PIN</string>
     <string name="channel_messages">الرسائل</string>
     <string name="channel_messages_desc">رسائل جديدة من محادثاتك</string>
+    <string name="channel_call_alerts">المكالمات</string>
+    <string name="channel_call_alerts_desc">المكالمات الواردة والفائتة في محادثاتك</string>
     <string name="channel_problems">مشكلات الاتصال</string>
     <string name="channel_problems_desc">عندما تتوقف شبكة متصلة عن العمل</string>
     <string name="channel_connections">الاتصالات على الجهاز</string>

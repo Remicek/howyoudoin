@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -16,6 +17,8 @@ import androidx.compose.material.icons.rounded.Mic
 import androidx.compose.material.icons.rounded.Videocam
 import androidx.compose.material.icons.rounded.WorkspacePremium
 import androidx.compose.material3.Button
+import com.devvalor.howyoudoing.core.domain.app.AppPromotion
+import com.devvalor.howyoudoing.core.domain.premium.PremiumStore
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -58,7 +61,10 @@ import howyoudoin.feature.settings.presentation.generated.resources.premium_incl
 import howyoudoin.feature.settings.presentation.generated.resources.premium_manage
 import howyoudoin.feature.settings.presentation.generated.resources.premium_minutes_failed
 import howyoudoin.feature.settings.presentation.generated.resources.premium_minutes_header
-import howyoudoin.feature.settings.presentation.generated.resources.premium_not_available
+import howyoudoin.feature.settings.presentation.generated.resources.premium_no_play
+import howyoudoin.feature.settings.presentation.generated.resources.premium_not_offered
+import howyoudoin.feature.settings.presentation.generated.resources.premium_open_play
+import howyoudoin.feature.settings.presentation.generated.resources.premium_try_again
 import howyoudoin.feature.settings.presentation.generated.resources.premium_pending
 import howyoudoin.feature.settings.presentation.generated.resources.premium_resets_in
 import howyoudoin.feature.settings.presentation.generated.resources.premium_restore
@@ -89,6 +95,7 @@ fun PremiumRoot(onBack: () -> Unit, viewModel: PremiumViewModel = koinViewModel(
         when (action) {
             PremiumAction.OnBackClick -> onBack()
             PremiumAction.OnManageClick -> uriHandler.openUri(viewModel.manageUrl)
+            PremiumAction.OnOpenPlayClick -> uriHandler.openUri(AppPromotion.PLAY_STORE_URL)
             else -> viewModel.onAction(action)
         }
     }
@@ -107,15 +114,16 @@ fun PremiumScreen(state: PremiumState, onAction: (PremiumAction) -> Unit) {
         onBack = { onAction(PremiumAction.OnBackClick) },
     ) {
         state.message?.let { message -> item { MessageCard(message) } }
-        item { PlanCard(state.isPremium) }
+        // The way to buy comes first, with what Premium gives right under it
+        item { PlanCard(state, onAction) }
+        if (!state.isPremium) {
+            item { SettingsSectionHeader(stringResource(Res.string.premium_includes)) }
+            item { Benefits() }
+        }
         if (state.hasCalls) {
             item { SettingsSectionHeader(stringResource(Res.string.premium_minutes_header)) }
             item { Minutes(state) }
         }
-        item { SettingsSectionHeader(stringResource(Res.string.premium_includes)) }
-        item { Benefits() }
-        item { Spacer(Modifier.padding(top = HowYouDoinSpacing.sm)) }
-        item { SubscriptionButtons(state, onAction) }
         val topUp = state.topUp
         if (state.hasCalls && topUp != null) {
             item { SettingsSectionHeader(stringResource(Res.string.premium_top_up_header)) }
@@ -162,7 +170,8 @@ private fun MessageCard(message: PremiumMessage) {
 }
 
 @Composable
-private fun PlanCard(isPremium: Boolean) {
+private fun PlanCard(state: PremiumState, onAction: (PremiumAction) -> Unit) {
+    val isPremium = state.isPremium
     Card(
         colors = CardDefaults.cardColors(
             containerColor = if (isPremium) {
@@ -194,6 +203,7 @@ private fun PlanCard(isPremium: Boolean) {
                 )
             }
         }
+        SubscriptionButtons(state, onAction)
     }
 }
 
@@ -271,31 +281,35 @@ private fun Benefit(text: String) {
 
 @Composable
 private fun SubscriptionButtons(state: PremiumState, onAction: (PremiumAction) -> Unit) {
-    Column(Modifier.padding(horizontal = HowYouDoinSpacing.md)) {
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .padding(start = HowYouDoinSpacing.md, end = HowYouDoinSpacing.md, bottom = HowYouDoinSpacing.md)
+    ) {
         val offer = state.subscription
         when {
             state.isPremium -> OutlinedButton(onClick = { onAction(PremiumAction.OnManageClick) }) {
                 Text(stringResource(Res.string.premium_manage))
             }
-            offer == null -> Text(
-                stringResource(Res.string.premium_not_available),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            else -> {
+            offer != null -> {
                 val trial = offer.trialDays
                 Button(
                     onClick = { onAction(PremiumAction.OnSubscribeClick) },
                     enabled = !state.isBuying,
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().height(52.dp),
                 ) {
-                    Text(
-                        if (trial != null) {
-                            pluralStringResource(Res.plurals.premium_try_free, trial, trial)
-                        } else {
-                            stringResource(Res.string.premium_subscribe, offer.price)
-                        }
-                    )
+                    if (state.isBuying) {
+                        CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
+                    } else {
+                        Text(
+                            if (trial != null) {
+                                pluralStringResource(Res.plurals.premium_try_free, trial, trial)
+                            } else {
+                                stringResource(Res.string.premium_subscribe, offer.price)
+                            },
+                            style = MaterialTheme.typography.titleMedium,
+                        )
+                    }
                 }
                 Text(
                     stringResource(Res.string.premium_then_price, offer.price),
@@ -303,6 +317,22 @@ private fun SubscriptionButtons(state: PremiumState, onAction: (PremiumAction) -
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = HowYouDoinSpacing.xs),
                 )
+            }
+            state.store == PremiumStore.CHECKING ->
+                CircularProgressIndicator(Modifier.size(24.dp), strokeWidth = 2.dp)
+            // Not buyable here: say why, and what to do instead
+            else -> {
+                val noPlay = state.store == PremiumStore.NO_GOOGLE_PLAY
+                Text(
+                    stringResource(if (noPlay) Res.string.premium_no_play else Res.string.premium_not_offered),
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                OutlinedButton(
+                    onClick = { onAction(if (noPlay) PremiumAction.OnOpenPlayClick else PremiumAction.OnRestoreClick) },
+                    modifier = Modifier.padding(top = HowYouDoinSpacing.sm),
+                ) {
+                    Text(stringResource(if (noPlay) Res.string.premium_open_play else Res.string.premium_try_again))
+                }
             }
         }
     }

@@ -37,6 +37,8 @@
     <string name="bio_use_pin">PIN kullan</string>
     <string name="channel_messages">Mesajlar</string>
     <string name="channel_messages_desc">Sohbetlerinizden yeni mesajlar</string>
+    <string name="channel_call_alerts">Aramalar</string>
+    <string name="channel_call_alerts_desc">Sohbetlerinizdeki gelen ve cevapsız aramalar</string>
     <string name="channel_problems">Bağlantı sorunları</string>
     <string name="channel_problems_desc">Bağlı bir ağ çalışmayı bıraktığında</string>
     <string name="channel_connections">Cihazdaki bağlantılar</string>

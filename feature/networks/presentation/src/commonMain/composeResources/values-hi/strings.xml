@@ -165,6 +165,7 @@
     <string name="history_restore">पुराने एन्क्रिप्टेड मैसेज वापस लाएँ</string>
     <string name="history_enter_pin">Messenger PIN डालें</string>
     <string name="history_not_now">अभी नहीं</string>
+    <string name="history_dont_show">फिर से न दिखाएं</string>
     <string name="history_pin_warning">Messenger गलत कोशिशों की एक सीमित संख्या ही देता है। अगर आपको भरोसा नहीं है, तो रद्द करें; नए मैसेज वैसे भी आते रहेंगे।</string>
     <string name="history_locked">कोई कोशिश बाकी नहीं। Messenger ने आपका इतिहास बैकअप लॉक कर दिया है।</string>
     <string name="history_session_expired">आपके Messenger सेशन की अवधि खत्म हो गई। नेटवर्क में Messenger फिर से जोड़ें, फिर दोबारा कोशिश करें।</string>

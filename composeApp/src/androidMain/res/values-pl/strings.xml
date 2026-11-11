@@ -37,6 +37,8 @@
     <string name="bio_use_pin">Użyj PIN-u</string>
     <string name="channel_messages">Wiadomości</string>
     <string name="channel_messages_desc">Nowe wiadomości z Twoich czatów</string>
+    <string name="channel_call_alerts">Połączenia</string>
+    <string name="channel_call_alerts_desc">Przychodzące i nieodebrane połączenia w Twoich czatach</string>
     <string name="channel_problems">Problemy z połączeniem</string>
     <string name="channel_problems_desc">Gdy podłączona sieć przestaje działać</string>
     <string name="channel_connections">Połączenia na urządzeniu</string>

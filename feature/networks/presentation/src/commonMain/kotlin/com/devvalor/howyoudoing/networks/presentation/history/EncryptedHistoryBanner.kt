@@ -7,6 +7,7 @@ import howyoudoin.feature.networks.presentation.generated.resources.history_rest
 import howyoudoin.feature.networks.presentation.generated.resources.history_restore
 import howyoudoin.feature.networks.presentation.generated.resources.history_enter_pin
 import howyoudoin.feature.networks.presentation.generated.resources.history_not_now
+import howyoudoin.feature.networks.presentation.generated.resources.history_dont_show
 import howyoudoin.feature.networks.presentation.generated.resources.history_pin_warning
 import howyoudoin.feature.networks.presentation.generated.resources.Res
 import org.jetbrains.compose.resources.stringResource
@@ -19,6 +20,8 @@ import howyoudoin.feature.networks.presentation.generated.resources.encryptedhis
 import howyoudoin.feature.networks.presentation.generated.resources.networks_cancel
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -95,17 +98,22 @@ fun EncryptedHistoryBanner(
             secondary = stringResource(Res.string.history_not_now) to {
                 onAction(EncryptedHistoryAction.OnNotNowClick)
             },
+            tertiary = stringResource(Res.string.history_dont_show) to {
+                onAction(EncryptedHistoryAction.OnDontShowAgainClick)
+            },
         )
     }
     if (state.isDialogOpen) PinDialog(state, onAction)
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun BannerCard(
     title: String,
     body: String,
     primary: Pair<String, () -> Unit>,
     secondary: Pair<String, () -> Unit>? = null,
+    tertiary: Pair<String, () -> Unit>? = null,
 ) {
     Surface(
         color = MaterialTheme.colorScheme.secondaryContainer,
@@ -120,9 +128,13 @@ private fun BannerCard(
             }
             Spacer(Modifier.padding(top = HowYouDoinSpacing.xs))
             Text(body, style = MaterialTheme.typography.bodyMedium)
-            Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
-                secondary?.let { (label, onClick) -> TextButton(onClick = onClick) { Text(label) } }
-                TextButton(onClick = primary.second) { Text(primary.first, fontWeight = FontWeight.SemiBold) }
+            // "Don't show again" goes on its own line when all three don't fit; the other two stay together
+            FlowRow(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
+                tertiary?.let { (label, onClick) -> TextButton(onClick = onClick) { Text(label) } }
+                Row {
+                    secondary?.let { (label, onClick) -> TextButton(onClick = onClick) { Text(label) } }
+                    TextButton(onClick = primary.second) { Text(primary.first, fontWeight = FontWeight.SemiBold) }
+                }
             }
         }
     }

@@ -7,6 +7,7 @@ import com.devvalor.howyoudoing.core.domain.premium.CallMinutes
 import com.devvalor.howyoudoing.core.domain.premium.Premium
 import com.devvalor.howyoudoing.core.domain.premium.PremiumOffer
 import com.devvalor.howyoudoing.core.domain.premium.PremiumProduct
+import com.devvalor.howyoudoing.core.domain.premium.PremiumStore
 import com.devvalor.howyoudoing.core.domain.premium.PurchaseOutcome
 import com.devvalor.howyoudoing.core.domain.util.Result
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -33,6 +34,8 @@ data class PremiumState(
     val minutes: CallMinutes? = null,
     val minutesFailed: Boolean = false,
     val isBuying: Boolean = false,
+    /** Whether Premium can be bought here, and if not, why. */
+    val store: PremiumStore = PremiumStore.CHECKING,
     val message: PremiumMessage? = null,
 )
 
@@ -41,6 +44,8 @@ sealed interface PremiumAction {
     data object OnTopUpClick : PremiumAction
     data object OnRestoreClick : PremiumAction
     data object OnManageClick : PremiumAction
+    /** Get HowYouDoin from Google Play, where Premium can be bought. */
+    data object OnOpenPlayClick : PremiumAction
     data object OnMessageShown : PremiumAction
     data object OnBackClick : PremiumAction
 }
@@ -50,7 +55,12 @@ class PremiumViewModel(private val premium: Premium, private val allowance: Call
     private val ui = MutableStateFlow(PremiumState(hasCalls = allowance.isAvailable))
 
     val state = combine(ui, premium.status) { ui, status ->
-        ui.copy(isPremium = status.isPremium, subscription = status.subscription, topUp = status.topUp)
+        ui.copy(
+            isPremium = status.isPremium,
+            subscription = status.subscription,
+            topUp = status.topUp,
+            store = status.store,
+        )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000L), ui.value)
 
     val manageUrl: String get() = premium.manageUrl
@@ -75,7 +85,7 @@ class PremiumViewModel(private val premium: Premium, private val allowance: Call
                 loadMinutes()
             }
             PremiumAction.OnMessageShown -> ui.update { it.copy(message = null) }
-            PremiumAction.OnManageClick, PremiumAction.OnBackClick -> Unit
+            PremiumAction.OnManageClick, PremiumAction.OnOpenPlayClick, PremiumAction.OnBackClick -> Unit
         }
     }
 

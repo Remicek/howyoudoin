@@ -37,6 +37,8 @@
     <string name="bio_use_pin">Gunakan PIN</string>
     <string name="channel_messages">Pesan</string>
     <string name="channel_messages_desc">Pesan baru dari chat Anda</string>
+    <string name="channel_call_alerts">Panggilan</string>
+    <string name="channel_call_alerts_desc">Panggilan masuk dan tak terjawab di chat Anda</string>
     <string name="channel_problems">Masalah koneksi</string>
     <string name="channel_problems_desc">Saat jaringan yang terhubung berhenti berfungsi</string>
     <string name="channel_connections">Koneksi di perangkat</string>

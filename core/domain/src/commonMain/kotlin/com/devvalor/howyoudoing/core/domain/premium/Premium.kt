@@ -22,6 +22,21 @@ data class PremiumOffer(
     val trialDays: Int? = null,
 )
 
+/** Whether Premium can be bought here, and if not, why. */
+enum class PremiumStore {
+    /** Asking Google Play. */
+    CHECKING,
+
+    /** Google Play offered the products. */
+    READY,
+
+    /** No Google Play to buy through (no Play Store on this phone, iOS for now). */
+    NO_GOOGLE_PLAY,
+
+    /** Google Play answered but offered nothing (not on sale yet, or this install isn't from Play). */
+    NOT_OFFERED,
+}
+
 data class PremiumStatus(
     /** Paid up now (Google Play says so; the call server checks it again). */
     val isPremium: Boolean = false,
@@ -39,6 +54,7 @@ data class PremiumStatus(
     val unclaimedTopUps: List<String> = emptyList(),
     /** How many times Google Play has listed the purchases: each time is a chance to claim the top-ups again. */
     val checks: Int = 0,
+    val store: PremiumStore = PremiumStore.CHECKING,
 )
 
 sealed interface PurchaseOutcome {
@@ -69,7 +85,7 @@ interface Premium {
 
 /** Builds without Google Play: always the free plan. */
 object NoPremium : Premium {
-    private val state = MutableStateFlow(PremiumStatus(isKnown = true))
+    private val state = MutableStateFlow(PremiumStatus(isKnown = true, store = PremiumStore.NO_GOOGLE_PLAY))
     override val status: StateFlow<PremiumStatus> = state.asStateFlow()
     override suspend fun buy(product: PremiumProduct) = PurchaseOutcome.Failed
     override suspend fun refresh() = Unit

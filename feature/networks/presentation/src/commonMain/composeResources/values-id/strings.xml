@@ -165,6 +165,7 @@
     <string name="history_restore">Pulihkan pesan terenkripsi lama</string>
     <string name="history_enter_pin">Masukkan PIN Messenger</string>
     <string name="history_not_now">Nanti saja</string>
+    <string name="history_dont_show">Jangan tampilkan lagi</string>
     <string name="history_pin_warning">Messenger hanya mengizinkan sejumlah percobaan salah. Jika tidak yakin, batalkan; pesan baru tetap akan masuk.</string>
     <string name="history_locked">Tidak ada percobaan tersisa. Messenger telah mengunci cadangan riwayat Anda.</string>
     <string name="history_session_expired">Sesi Messenger Anda kedaluwarsa. Hubungkan ulang Messenger di Jaringan, lalu coba lagi.</string>

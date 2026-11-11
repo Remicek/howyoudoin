@@ -132,6 +132,7 @@
     <string name="keys_ok">حسنًا</string>
     <string name="keys_open_networks">فتح الشبكات</string>
     <string name="keys_not_now">ليس الآن</string>
+    <string name="keys_dont_show">عدم الإظهار مرة أخرى</string>
     <string name="keys_enter">إدخال مفتاح الاسترداد</string>
     <string name="conversation_download_failed">تعذّر تنزيل الملف</string>
     <string name="problem_failed_title">%1$s غير متصل</string>
