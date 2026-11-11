@@ -40,6 +40,10 @@ const TEXTS = {
     videoEndsIn: "Video stops in {n} min; the call goes on with audio.",
     endsIn: "The call ends in {n} min",
     endedLimit: "This call reached its time limit.",
+    inviteTitleGroup: "You're invited to a group call",
+    inviteEncryptedGroup: "It's end-to-end encrypted: only the people in the call can see and hear it.",
+    waitingGroup: "Waiting for others to open the link…",
+    fullTitle: "This call is full",
   },
   pl: {
     inviteTitle: "Zaproszenie do rozmowy",
@@ -66,6 +70,10 @@ const TEXTS = {
     videoEndsIn: "Wideo wyłączy się za {n} min; rozmowa potrwa dalej z samym dźwiękiem.",
     endsIn: "Rozmowa skończy się za {n} min",
     endedLimit: "Ta rozmowa osiągnęła limit czasu.",
+    inviteTitleGroup: "Zaproszenie do rozmowy grupowej",
+    inviteEncryptedGroup: "Jest szyfrowana end-to-end: widzą i słyszą ją tylko osoby w rozmowie.",
+    waitingGroup: "Czekamy, aż inni otworzą link…",
+    fullTitle: "Ta rozmowa jest pełna",
   },
   de: {
     inviteTitle: "Du bist zu einem Anruf eingeladen",
@@ -90,6 +98,10 @@ const TEXTS = {
     videoEndsIn: "Das Video endet in {n} Min.; der Anruf geht mit Ton weiter.",
     endsIn: "Der Anruf endet in {n} Min.",
     endedLimit: "Dieser Anruf hat sein Zeitlimit erreicht.",
+    inviteTitleGroup: "Du bist zu einem Gruppenanruf eingeladen",
+    inviteEncryptedGroup: "Er ist Ende-zu-Ende-verschlüsselt: Nur die Personen im Anruf können ihn sehen und hören.",
+    waitingGroup: "Warten, bis andere den Link öffnen…",
+    fullTitle: "Dieser Anruf ist voll",
   },
   es: {
     inviteTitle: "Te han invitado a una llamada",
@@ -114,6 +126,10 @@ const TEXTS = {
     videoEndsIn: "El vídeo se detiene en {n} min; la llamada sigue con audio.",
     endsIn: "La llamada termina en {n} min",
     endedLimit: "Esta llamada alcanzó su límite de tiempo.",
+    inviteTitleGroup: "Te han invitado a una llamada de grupo",
+    inviteEncryptedGroup: "Está cifrada de extremo a extremo: solo quienes están en la llamada pueden verla y oírla.",
+    waitingGroup: "Esperando a que otros abran el enlace…",
+    fullTitle: "Esta llamada está completa",
   },
   fr: {
     inviteTitle: "Vous êtes invité à un appel",
@@ -138,6 +154,10 @@ const TEXTS = {
     videoEndsIn: "La vidéo s'arrête dans {n} min ; l'appel continue en audio.",
     endsIn: "L'appel se termine dans {n} min",
     endedLimit: "Cet appel a atteint sa limite de durée.",
+    inviteTitleGroup: "Vous êtes invité à un appel de groupe",
+    inviteEncryptedGroup: "Il est chiffré de bout en bout : seules les personnes dans l'appel peuvent le voir et l'entendre.",
+    waitingGroup: "En attente que d'autres ouvrent le lien…",
+    fullTitle: "Cet appel est complet",
   },
   pt: {
     inviteTitle: "Você foi convidado para uma chamada",
@@ -162,6 +182,10 @@ const TEXTS = {
     videoEndsIn: "O vídeo para em {n} min; a chamada continua com áudio.",
     endsIn: "A chamada termina em {n} min",
     endedLimit: "Esta chamada atingiu o limite de tempo.",
+    inviteTitleGroup: "Você foi convidado para uma chamada em grupo",
+    inviteEncryptedGroup: "Ela tem criptografia de ponta a ponta: só quem está na chamada pode vê-la e ouvi-la.",
+    waitingGroup: "Aguardando outras pessoas abrirem o link…",
+    fullTitle: "Esta chamada está cheia",
   },
   ru: {
     inviteTitle: "Вас приглашают на звонок",
@@ -186,6 +210,10 @@ const TEXTS = {
     videoEndsIn: "Видео отключится через {n} мин; звонок продолжится со звуком.",
     endsIn: "Звонок завершится через {n} мин",
     endedLimit: "Звонок достиг ограничения по времени.",
+    inviteTitleGroup: "Вас приглашают на групповой звонок",
+    inviteEncryptedGroup: "Звонок защищён сквозным шифрованием: видеть и слышать его могут только его участники.",
+    waitingGroup: "Ждём, пока другие откроют ссылку…",
+    fullTitle: "В этом звонке нет мест",
   },
   tr: {
     inviteTitle: "Bir aramaya davet edildiniz",
@@ -210,6 +238,10 @@ const TEXTS = {
     videoEndsIn: "Görüntü {n} dk içinde kapanacak; arama sesli devam edecek.",
     endsIn: "Arama {n} dk içinde bitecek",
     endedLimit: "Bu arama süre sınırına ulaştı.",
+    inviteTitleGroup: "Bir grup aramasına davet edildiniz",
+    inviteEncryptedGroup: "Arama uçtan uca şifrelidir: yalnızca aramadakiler görebilir ve duyabilir.",
+    waitingGroup: "Diğerlerinin bağlantıyı açması bekleniyor…",
+    fullTitle: "Bu arama dolu",
   },
   ja: {
     inviteTitle: "通話に招待されています",
@@ -234,6 +266,10 @@ const TEXTS = {
     videoEndsIn: "ビデオはあと {n} 分で停止します。通話は音声で続きます。",
     endsIn: "通話はあと {n} 分で終了します",
     endedLimit: "この通話は時間の上限に達しました。",
+    inviteTitleGroup: "グループ通話に招待されています",
+    inviteEncryptedGroup: "エンドツーエンドで暗号化されており、見聞きできるのは通話の参加者だけです。",
+    waitingGroup: "ほかの人がリンクを開くのを待っています…",
+    fullTitle: "この通話は満員です",
   },
   hi: {
     inviteTitle: "आपको एक कॉल पर बुलाया गया है",
@@ -258,6 +294,10 @@ const TEXTS = {
     videoEndsIn: "वीडियो {n} मिनट में बंद होगा; कॉल ऑडियो के साथ जारी रहेगी।",
     endsIn: "कॉल {n} मिनट में खत्म होगी",
     endedLimit: "यह कॉल अपनी समय सीमा तक पहुँच गई।",
+    inviteTitleGroup: "आपको एक ग्रुप कॉल पर बुलाया गया है",
+    inviteEncryptedGroup: "यह एंड-टू-एंड एन्क्रिप्टेड है: इसे सिर्फ़ कॉल में शामिल लोग देख और सुन सकते हैं।",
+    waitingGroup: "दूसरों के लिंक खोलने का इंतज़ार…",
+    fullTitle: "यह कॉल भर गई है",
   },
   id: {
     inviteTitle: "Anda diundang ke panggilan",
@@ -282,6 +322,10 @@ const TEXTS = {
     videoEndsIn: "Video berhenti dalam {n} menit; panggilan berlanjut dengan audio.",
     endsIn: "Panggilan berakhir dalam {n} menit",
     endedLimit: "Panggilan ini mencapai batas waktunya.",
+    inviteTitleGroup: "Anda diundang ke panggilan grup",
+    inviteEncryptedGroup: "Panggilan terenkripsi end-to-end: hanya orang dalam panggilan yang bisa melihat dan mendengarnya.",
+    waitingGroup: "Menunggu yang lain membuka tautan…",
+    fullTitle: "Panggilan ini sudah penuh",
   },
   ar: {
     inviteTitle: "أنت مدعو إلى مكالمة",
@@ -306,6 +350,10 @@ const TEXTS = {
     videoEndsIn: "سيتوقف الفيديو خلال {n} د؛ تستمر المكالمة بالصوت.",
     endsIn: "تنتهي المكالمة خلال {n} د",
     endedLimit: "بلغت هذه المكالمة حدها الزمني.",
+    inviteTitleGroup: "أنت مدعو إلى مكالمة جماعية",
+    inviteEncryptedGroup: "المكالمة مشفرة من طرف إلى طرف: لا يمكن رؤيتها أو سماعها إلا للمشاركين فيها.",
+    waitingGroup: "في انتظار أن يفتح الآخرون الرابط…",
+    fullTitle: "هذه المكالمة ممتلئة",
   },
 };
 
@@ -331,6 +379,8 @@ const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as 
 const fragment = new URLSearchParams(location.hash.slice(1));
 const room = location.pathname.match(/^\/call\/([A-Za-z0-9_-]{22})\/?$/)?.[1];
 const isHost = new URLSearchParams(location.search).has("host");
+/** A group call (started in a group chat): the server says so too, but the invitation is shown before joining. */
+const isGroupLink = new URLSearchParams(location.search).get("g") === "1";
 
 function show(section: "invite" | "call" | "message") {
   for (const id of ["invite", "call", "message"]) $(id).hidden = id !== section;
@@ -368,18 +418,25 @@ interface Limits {
 }
 
 interface Peer {
+  id: string;
   present: boolean;
   session?: string;
   tracks: string[];
   camera: boolean;
-  limits?: Limits;
+}
+
+/** Everyone else in the call and its limits (see CallView in src/room.ts). */
+interface CallInfo {
+  group: boolean;
+  peers: Peer[];
+  limits: Limits;
 }
 
 interface Welcome {
-  role: "host" | "guest";
+  member: string;
   secret?: string;
   iceServers: RTCIceServer[];
-  peer: Peer;
+  call: CallInfo;
 }
 
 /** How long to keep trying after the connection drops; the call itself waits 20 s for someone to come back. */
@@ -423,6 +480,10 @@ async function start() {
     return new Call(room, key, { token }).start(fragment.get("v") === "1");
   }
 
+  if (isGroupLink) {
+    $("invite-title").textContent = t("inviteTitleGroup");
+    $("invite-encrypted").textContent = t("inviteEncryptedGroup");
+  }
   show("invite");
   const buttons = [$<HTMLButtonElement>("join-video"), $<HTMLButtonElement>("join-audio")];
   buttons.forEach((button, i) =>
@@ -441,7 +502,7 @@ class Signal {
 
   constructor(
     private readonly url: string,
-    private readonly onNews: (news: { type: string; peer?: Peer }) => void,
+    private readonly onNews: (news: { type: string; call?: CallInfo; reason?: string }) => void,
     private readonly onClose: () => void,
   ) {}
 
@@ -490,6 +551,41 @@ class Signal {
   }
 }
 
+/** One other person in the call: what they publish, the connection that receives it, and their tile. */
+class Remote {
+  info: Peer;
+  receiving?: RTCPeerConnection;
+  receivingFrom?: string;
+  readonly received = new Map<string, string>(); // trackName -> mid
+  readonly receivedTracks = new Map<string, MediaStreamTrack>(); // mid -> track
+  readonly tile = document.createElement("div");
+  readonly video = document.createElement("video");
+  readonly audio = document.createElement("audio");
+
+  constructor(info: Peer) {
+    this.info = info;
+    this.tile.className = "tile";
+    this.video.autoplay = true;
+    this.video.playsInline = true;
+    this.video.muted = true;
+    this.audio.autoplay = true;
+    this.tile.append(this.video, this.audio);
+  }
+
+  close() {
+    this.receiving?.close();
+    this.receiving = undefined;
+    this.receivingFrom = undefined;
+    this.received.clear();
+    this.receivedTracks.clear();
+  }
+
+  track(name: string | undefined) {
+    const mid = name ? this.received.get(name) : undefined;
+    return mid ? this.receivedTracks.get(mid) : undefined;
+  }
+}
+
 class Call {
   private signal?: Signal;
   private ice: RTCIceServer[] = [];
@@ -506,36 +602,30 @@ class Call {
   private sending?: RTCPeerConnection;
   private videoSender?: RTCRtpSender;
 
-  private receiving?: RTCPeerConnection;
-  private receivingFrom?: string;
-  private readonly received = new Map<string, string>(); // trackName -> mid
-  private readonly receivedTracks = new Map<string, MediaStreamTrack>(); // mid -> track
-  private peer: Peer = { present: false, tracks: [], camera: false };
+  private readonly remotes = new Map<string, Remote>();
+  private group = isGroupLink;
   private limits: Limits = DEFAULT_LIMITS;
   /** The server's clock minus this one's. */
   private clockOffset = 0;
   private noticeTimer?: ReturnType<typeof setInterval>;
   private readonly notice = $("notice");
+  private peerEverSeen = false;
 
   private readonly worker = new Worker("/e2ee-worker.js", { type: "module" });
   private readonly status = $("status");
-  private readonly remoteVideo = $<HTMLVideoElement>("remote");
+  private readonly grid = $("remotes");
   private readonly localVideo = $<HTMLVideoElement>("local");
-  private readonly remoteAudio = document.createElement("audio");
 
   constructor(
     private readonly room: string,
     private readonly key: Uint8Array<ArrayBuffer>,
     private readonly credentials: { token?: string },
   ) {
-    this.remoteAudio.autoplay = true;
-    $("audio").appendChild(this.remoteAudio);
     // Android's WebView pauses media while the app is in the background and doesn't start it again on return
     document.addEventListener("visibilitychange", () => {
       if (document.visibilityState !== "visible") return;
-      for (const media of [this.remoteVideo, this.localVideo, this.remoteAudio]) {
-        if (media.srcObject && media.paused) media.play().catch(() => undefined);
-      }
+      const media = [this.localVideo, ...[...this.remotes.values()].flatMap((r) => [r.video, r.audio])];
+      for (const m of media) if (m.srcObject && m.paused) m.play().catch(() => undefined);
     });
   }
 
@@ -579,14 +669,14 @@ class Call {
     this.secret = welcome.secret ?? this.secret;
     this.ice = welcome.iceServers;
     // Before sending: without video minutes the camera goes off first
-    if (welcome.peer.limits) this.applyLimits(welcome.peer.limits);
+    this.applyLimits(welcome.call.limits);
     await this.run(() => this.startSending());
-    this.onPeer(welcome.peer);
+    this.onCall(welcome.call);
   }
 
-  private onNews(news: { type: string; peer?: Peer; reason?: string }) {
-    if (news.type === "ended") this.end((news as { reason?: string }).reason);
-    else if (news.type === "peer" && news.peer) this.onPeer(news.peer);
+  private onNews(news: { type: string; call?: CallInfo; reason?: string }) {
+    if (news.type === "ended") this.end(news.reason);
+    else if (news.type === "call" && news.call) this.onCall(news.call);
   }
 
   /** The connection to the call dropped, or a media connection failed: try again for a while. */
@@ -666,7 +756,7 @@ class Call {
     return added;
   }
 
-  /** Offers the new tracks to the SFU, and once they're flowing, to the other person. */
+  /** Offers the new tracks to the SFU, and once they're flowing, to the others. */
   private async publish(tracks: { transceiver: RTCRtpTransceiver; trackName: string }[]) {
     const pc = this.sending!;
     await pc.setLocalDescription(await pc.createOffer());
@@ -681,68 +771,102 @@ class Call {
     await this.signal!.request({ type: "announce" });
   }
 
-  /** Receives what the other person sends: their audio and their newest video. */
-  private onPeer(peer: Peer) {
-    this.peer = peer;
-    if (peer.limits) this.applyLimits(peer.limits);
-    this.run(async () => {
-      const latest = this.peer;
-      if (!latest.session) {
-        this.closeReceiving();
-      } else {
-        const wanted = latest.tracks.filter((n) => n === "audio" || n === newestVideo(latest.tracks));
-        const fresh = latest.session !== this.receivingFrom;
-        const missing = fresh ? wanted : wanted.filter((n) => !this.received.has(n));
-        if (missing.length) await this.subscribe(latest.session, missing, fresh);
+  /** Who's in the call now: receives each person's audio and newest video, and drops those who left. */
+  private onCall(call: CallInfo) {
+    this.group = call.group;
+    this.applyLimits(call.limits);
+    const ids = new Set(call.peers.map((p) => p.id));
+    for (const [id, remote] of this.remotes) {
+      if (ids.has(id)) continue;
+      remote.close();
+      remote.tile.remove();
+      this.remotes.delete(id);
+    }
+    for (const info of call.peers) {
+      let remote = this.remotes.get(info.id);
+      if (!remote) {
+        remote = new Remote(info);
+        this.remotes.set(info.id, remote);
       }
-      this.showRemote();
+      remote.info = info;
+    }
+    this.run(async () => {
+      for (const remote of this.remotes.values()) {
+        const latest = remote.info;
+        if (!latest.present || !latest.session) {
+          remote.close();
+          continue;
+        }
+        const wanted = latest.tracks.filter((n) => n === "audio" || n === newestVideo(latest.tracks));
+        const fresh = latest.session !== remote.receivingFrom;
+        const missing = fresh ? wanted : wanted.filter((n) => !remote.received.has(n));
+        if (missing.length) {
+          await this.subscribe(remote, latest.session, missing, fresh).catch((e) =>
+            console.warn("Couldn't receive", latest.id, e),
+          );
+        }
+      }
+      this.showRemotes();
     }).catch((e) => console.warn("Couldn't receive", e));
+    this.showRemotes();
   }
 
-  private async subscribe(session: string, names: string[], fresh: boolean) {
+  private async subscribe(remote: Remote, session: string, names: string[], fresh: boolean) {
     if (fresh) {
-      this.closeReceiving();
+      remote.close();
       const pc = this.newConnection();
       pc.addEventListener("track", (event) => {
         this.protect(event.receiver, "decrypt");
-        this.receivedTracks.set(event.transceiver.mid!, event.track);
-        this.showRemote();
+        remote.receivedTracks.set(event.transceiver.mid!, event.track);
+        this.showRemotes();
       });
-      this.receiving = pc;
-      this.receivingFrom = session;
+      remote.receiving = pc;
+      remote.receivingFrom = session;
     }
-    const pc = this.receiving!;
+    const pc = remote.receiving!;
     const { offer, tracks } = await this.signal!.request<{
       offer: RTCSessionDescriptionInit;
       tracks: { mid: string; trackName: string }[];
-    }>({ type: "subscribe", session, tracks: names, fresh });
-    for (const track of tracks) this.received.set(track.trackName, track.mid);
+    }>({ type: "subscribe", peer: remote.info.id, session, tracks: names, fresh });
+    for (const track of tracks) remote.received.set(track.trackName, track.mid);
     await pc.setRemoteDescription(offer);
     await pc.setLocalDescription(await pc.createAnswer());
     await gathered(pc);
-    await this.signal!.request({ type: "answer", answer: pc.localDescription });
+    await this.signal!.request({ type: "answer", peer: remote.info.id, answer: pc.localDescription });
   }
 
-  private showRemote() {
-    const peer = this.peer;
-    const track = (name: string | undefined) => {
-      const mid = name ? this.received.get(name) : undefined;
-      return mid ? this.receivedTracks.get(mid) : undefined;
-    };
-    const audio = track("audio");
-    if (audio && (this.remoteAudio.srcObject as MediaStream | null)?.getTracks()[0] !== audio) {
-      this.remoteAudio.srcObject = new MediaStream([audio]);
+  /** A tile for everyone in the call now, with their video while their camera is on. */
+  private showRemotes() {
+    const present = [...this.remotes.values()].filter((r) => r.info.present);
+    let anyVideo = false;
+    let anyAudio = false;
+    for (const remote of this.remotes.values()) {
+      const audio = remote.track("audio");
+      if (audio && (remote.audio.srcObject as MediaStream | null)?.getTracks()[0] !== audio) {
+        remote.audio.srcObject = new MediaStream([audio]);
+      }
+      const video = remote.info.camera ? remote.track(newestVideo(remote.info.tracks)) : undefined;
+      if (video && (remote.video.srcObject as MediaStream | null)?.getTracks()[0] !== video) {
+        remote.video.srcObject = new MediaStream([video]);
+      }
+      remote.tile.classList.toggle("active", Boolean(video));
+      if (remote.info.present && !remote.tile.isConnected) this.grid.append(remote.tile);
+      if (!remote.info.present && remote.tile.isConnected) remote.tile.remove();
+      if (remote.info.present && video) anyVideo = true;
+      if (remote.info.present && audio) anyAudio = true;
     }
-    const video = peer.camera ? track(newestVideo(peer.tracks)) : undefined;
-    if (video && (this.remoteVideo.srcObject as MediaStream | null)?.getTracks()[0] !== video) {
-      this.remoteVideo.srcObject = new MediaStream([video]);
+    this.grid.dataset.count = String(present.length);
+    if (present.length) this.peerEverSeen = true;
+    if (!present.length) {
+      this.status.textContent = this.group ? t("waitingGroup") : this.peerEverSeen ? t("connecting") : t("waiting");
+    } else if (this.group) {
+      // In a group the tiles say who's there; only a call nobody's video shows says it's audio
+      this.status.textContent = anyVideo ? "" : anyAudio ? t("audioOnly") : t("connecting");
+    } else {
+      this.status.textContent = anyVideo ? "" : anyAudio ? t("audioOnly") : t("connecting");
     }
-    this.remoteVideo.classList.toggle("active", Boolean(video));
-    if (!peer.present) this.status.textContent = this.peerEverSeen ? t("connecting") : t("waiting");
-    else this.status.textContent = video ? "" : audio ? t("audioOnly") : t("connecting");
-    if (peer.present) this.peerEverSeen = true;
+    this.status.classList.toggle("over", anyVideo);
   }
-  private peerEverSeen = false;
 
   private async openCamera() {
     this.camera = (await navigator.mediaDevices.getUserMedia({ video: video(this.limits.videoHeight) })).getVideoTracks()[0];
@@ -832,7 +956,7 @@ class Call {
     this.notice.hidden = !text;
   }
 
-  /** Tells the call it's over for both, then ends here. */
+  /** Leaves: a one-to-one call ends for both; a group call goes on for the others. */
   private hangUp() {
     if (this.ended) return;
     this.signal?.send({ type: "bye" });
@@ -860,7 +984,7 @@ class Call {
     this.closeConnections();
     this.mic?.stop();
     this.closeCamera();
-    message(reason === "busy" ? t("goneTitle") : t("errorTitle"));
+    message(reason === "busy" ? (this.group ? t("fullTitle") : t("goneTitle")) : t("errorTitle"));
     window.HydCall?.ended();
   }
 
@@ -868,15 +992,7 @@ class Call {
     this.sending?.close();
     this.sending = undefined;
     this.videoSender = undefined;
-    this.closeReceiving();
-  }
-
-  private closeReceiving() {
-    this.receiving?.close();
-    this.receiving = undefined;
-    this.receivingFrom = undefined;
-    this.received.clear();
-    this.receivedTracks.clear();
+    for (const remote of this.remotes.values()) remote.close();
   }
 
   private run<T>(task: () => Promise<T>): Promise<T> {

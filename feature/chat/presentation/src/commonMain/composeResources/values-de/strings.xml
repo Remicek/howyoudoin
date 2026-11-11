@@ -216,6 +216,7 @@
     <string name="link_call_how_new">HowYouDoin kann %1$s-Anrufe weder annehmen noch starten: Das kann nur die %1$s-App. Stattdessen startet es einen eigenen Anruf, und du schickst einen Link dazu, wie einen Meeting-Link.</string>
     <string name="link_call_how_link">Ein Link dazu wird in diesem Chat an %1$s gesendet.</string>
     <string name="link_call_how_browser">Die andere Person tritt bei, indem sie den Link im Browser öffnet: ohne App oder Konto. Du wartest im Anrufbildschirm, bis sie beitritt.</string>
+    <string name="link_call_how_group">Bis zu %1$d Personen können teilnehmen. Mit mehr Personen sind deine Anrufminuten schneller verbraucht: zu dritt doppelt so schnell.</string>
     <string name="link_call_how_ringing">Der %1$s-Anruf wird nicht angenommen: Er klingelt weiter, bis aufgelegt wird.</string>
     <string name="link_call_how_encrypted">Der Anruf ist Ende-zu-Ende-verschlüsselt. Er läuft über den Anrufserver von HowYouDoin, der ihn weder sehen noch hören kann.</string>
     <string name="link_call_dont_show">Nicht mehr anzeigen</string>

@@ -218,6 +218,7 @@
     <string name="link_call_how_new">HowYouDoin no puede contestar ni iniciar llamadas de %1$s: solo puede hacerlo la app de %1$s. En su lugar, inicia una llamada propia y tú envías un enlace para unirse, como un enlace de reunión.</string>
     <string name="link_call_how_link">Se envía un enlace a %1$s en este chat.</string>
     <string name="link_call_how_browser">Se une abriendo el enlace en su navegador: sin app ni cuenta. Esperas en la pantalla de llamada hasta que se una.</string>
+    <string name="link_call_how_group">Pueden unirse hasta %1$d personas. Con más personas tus minutos se gastan más rápido: con tres en la llamada, el doble de rápido.</string>
     <string name="link_call_how_ringing">Su llamada de %1$s no se contesta: sigue sonando hasta que cuelgue.</string>
     <string name="link_call_how_encrypted">La llamada está cifrada de extremo a extremo. Pasa por el servidor de llamadas de HowYouDoin, que no puede verla ni oírla.</string>
     <string name="link_call_dont_show">No volver a mostrar</string>

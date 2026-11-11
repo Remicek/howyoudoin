@@ -19,8 +19,8 @@ here, sends its link in the chat, and the other person joins from their browser 
 2. The app adds a random encryption key to both links' fragments, sends the invite in the chat and opens its link.
 3. Each page opens a WebSocket to its call (`/api/calls/<room>/ws`): the host with the token, the invited person
    with nothing (they get a secret of their own, to come back after a dropped connection).
-4. Each page sends its microphone (and camera) to the SFU over one WebRTC connection and receives the other
-   person's over another. `CallRoom` makes the SFU requests, so the SFU's secret stays on the server, and tells
+4. Each page sends its microphone (and camera) to the SFU over one WebRTC connection and receives each other
+   person's over one connection per person. `CallRoom` makes the SFU requests, so the SFU's secret stays on the server, and tells
    each page what the other publishes.
 5. Every audio and video frame is encrypted in the page (`web/e2ee-worker.ts`, `web/frame-crypto.ts`: AES-GCM
    with the link's key), so the SFU forwards frames it can't read. Video is VP8 and at most 540p.
@@ -30,8 +30,9 @@ here, sends its link in the chat, and the other person joins from their browser 
 - The call is **end-to-end encrypted**: the app makes a random key and puts it only in the links' `#fragment`.
   Browsers never send a fragment to a server, so neither this worker nor Cloudflare's SFU can see or hear the
   call.
-- A call has room for **two people**. It ends 15 minutes after it's created if nobody joins, when either person
-  hangs up, when someone stays disconnected for 20 seconds, and after 4 hours at most. A link to an ended call
+- A call has room for **two people**, or **six** when started in a group chat. It ends 15 minutes after it's
+  created if nobody joins, when either person hangs up (in a group call: when the last person leaves, or after 15
+  minutes with one person alone), when someone stays disconnected for 20 seconds, and after 4 hours at most. A link to an ended call
   says the call has ended.
 - The worker keeps a call's state (who's in it, the SFU session IDs) only while it lasts. Call creation is limited
   to 6 a minute per IP address.
@@ -46,7 +47,7 @@ here, sends its link in the chat, and the other person joins from their browser 
 | `POST /api/usage` | the minutes left this month |
 | `POST /api/topups` | adds a bought 5-hour video top-up, checked with Google Play |
 
-The app's requests carry `{ install, subscription?, video?, token? }`: a random install ID and, with Premium, its
+The app's requests carry `{ install, subscription?, video?, token?, group? }`: a random install ID and, with Premium, its
 Google Play subscription token.
 | `GET /api/calls/<room>/ws` | WebSocket to the call (JSON messages, see `CallRoom` in `src/worker.ts`) |
 | `GET /call/<room>` | the call page |

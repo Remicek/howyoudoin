@@ -219,6 +219,7 @@
     <string name="link_call_how_new">HowYouDoin can't answer %1$s calls or start them: only the %1$s app can. Instead, it starts a call of its own and you send a link to it, like a meeting link.</string>
     <string name="link_call_how_link">A link to it is sent to %1$s in this chat.</string>
     <string name="link_call_how_browser">They join by opening the link in their browser: no app or account needed. You wait on the call screen until they do.</string>
+    <string name="link_call_how_group">Up to %1$d people can join. Your call minutes go faster with more people: with three in the call, twice as fast.</string>
     <string name="link_call_how_ringing">Their %1$s call isn't answered: it keeps ringing until they hang up.</string>
     <string name="link_call_how_encrypted">The call is end-to-end encrypted. It goes through HowYouDoin's call server, which can't see or hear it.</string>
     <string name="link_call_dont_show">Don't show this again</string>

@@ -220,6 +220,7 @@
     <string name="link_call_how_new">HowYouDoin nie może odbierać ani rozpoczynać połączeń w %1$s: może to tylko aplikacja %1$s. Zamiast tego rozpoczyna własną rozmowę, a Ty wysyłasz do niej link, jak link do spotkania.</string>
     <string name="link_call_how_link">Link do niej zostanie wysłany do: %1$s w tym czacie.</string>
     <string name="link_call_how_browser">Rozmówca dołącza, otwierając link w przeglądarce: bez aplikacji i konta. Czekasz na ekranie rozmowy, aż dołączy.</string>
+    <string name="link_call_how_group">Może dołączyć do %1$d osób. Przy większej liczbie osób minuty schodzą szybciej: przy trzech osobach dwa razy szybciej.</string>
     <string name="link_call_how_ringing">Połączenie z %1$s nie zostanie odebrane: będzie dzwonić, dopóki rozmówca się nie rozłączy.</string>
     <string name="link_call_how_encrypted">Rozmowa jest szyfrowana end-to-end. Przechodzi przez serwer rozmów HowYouDoin, który jej nie widzi ani nie słyszy.</string>
     <string name="link_call_dont_show">Nie pokazuj więcej</string>

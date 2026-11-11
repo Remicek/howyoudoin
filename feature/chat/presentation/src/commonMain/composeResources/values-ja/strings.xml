@@ -214,6 +214,7 @@
     <string name="link_call_how_new">HowYouDoin は %1$s の通話に応答することも発信することもできません（できるのは %1$s アプリだけです）。代わりに独自の通話を開始し、会議リンクのようにそのリンクを送ります。</string>
     <string name="link_call_how_link">通話へのリンクがこのチャットで %1$s に送信されます。</string>
     <string name="link_call_how_browser">相手はブラウザでリンクを開くだけで参加できます（アプリやアカウントは不要）。参加するまで通話画面で待ちます。</string>
+    <string name="link_call_how_group">最大 %1$d 人まで参加できます。人数が多いほど通話時間の減りが早くなります（3 人なら 2 倍の速さ）。</string>
     <string name="link_call_how_ringing">相手の %1$s 通話には応答されず、相手が切るまで鳴り続けます。</string>
     <string name="link_call_how_encrypted">通話はエンドツーエンドで暗号化されます。HowYouDoin の通話サーバーを経由しますが、サーバーは内容を見聞きできません。</string>
     <string name="link_call_dont_show">今後表示しない</string>

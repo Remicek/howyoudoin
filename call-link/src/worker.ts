@@ -3,7 +3,7 @@
 // person joins from their browser. Audio and video go through Cloudflare Realtime SFU, end-to-end encrypted by the
 // call page with a key that stays in the link's #fragment (browsers never send it to a server).
 //
-//   POST /api/calls             -> { room, joinUrl, hostUrl, … }   the app starts a call
+//   POST /api/calls             -> { room, joinUrl, hostUrl, … }   the app starts a call (group: true in a group chat)
 //   GET  /api/calls/<room>/ws   WebSocket to the call (CallRoom): who's in it, and setting up the media
 //   POST /api/usage             -> the minutes left this month (plans.ts)
 //   POST /api/topups            adds a bought top-up, checked with Google Play
@@ -29,10 +29,11 @@ import {
   newRoom,
   takeCharge,
   type CallLimits,
+  callView,
+  GROUP_SIZE,
+  type MemberId,
   nextDeadline,
-  peerView,
   publish,
-  type Role,
   type Room,
   tick,
   isTrackName,
@@ -108,6 +109,8 @@ interface AppRequest {
   subscription?: string;
   /** Starting a video call (else audio). */
   video?: boolean;
+  /** Starting a group call (in a group chat): up to GROUP_SIZE people. */
+  group?: boolean;
   /** A top-up's purchase token. */
   token?: string;
 }
@@ -199,14 +202,16 @@ async function createCall(request: Request, env: Env, origin: string): Promise<R
   };
   const room = randomId();
   const hostToken = randomId();
-  await env.CALLS.get(env.CALLS.idFromName(room)).create(hostToken, limits);
-  const joinUrl = `${origin}/call/${room}`;
+  const group = app.group === true;
+  await env.CALLS.get(env.CALLS.idFromName(room)).create(hostToken, limits, group ? GROUP_SIZE : 2);
+  const callUrl = `${origin}/call/${room}`;
   return Response.json({
     room,
-    joinUrl,
+    // g=1 lets the invitation say it's a group call before joining
+    joinUrl: group ? `${callUrl}?g=1` : callUrl,
     // The token travels in the fragment, so it isn't logged anywhere. The app adds the encryption key (k) to both
     // links itself, so this worker never sees it
-    hostUrl: `${joinUrl}?host=1#t=${hostToken}`,
+    hostUrl: `${callUrl}?host=1${group ? "&g=1" : ""}#t=${hostToken}`,
     plan,
     videoAllowed,
   });
@@ -323,7 +328,7 @@ export class CallAccount extends DurableObject<Env> {
 
 /** What a connection is, kept on its WebSocket so it survives the Durable Object sleeping between messages. */
 interface Attachment {
-  role?: Role;
+  member?: MemberId;
   gen?: number;
 }
 
@@ -336,15 +341,15 @@ type Request_ =
       tracks: { mid: string; trackName: string }[];
     }
   | { type: "announce" }
-  | { type: "subscribe"; session: string; tracks: string[]; fresh: boolean }
-  | { type: "answer"; answer: SessionDescription }
+  | { type: "subscribe"; peer: MemberId; session: string; tracks: string[]; fresh: boolean }
+  | { type: "answer"; peer: MemberId; answer: SessionDescription }
   | { type: "camera"; on: boolean }
   | { type: "bye" };
 
 class Refusal extends Error {}
 
 /**
- * One call. It holds the call's state (room.ts) and its two WebSocket connections, and makes the SFU requests for the
+ * One call. It holds the call's state (room.ts) and everyone's WebSocket connections, and makes the SFU requests for the
  * pages, which never see the SFU's secret. It keeps nothing once the call ends.
  */
 export class CallRoom extends DurableObject<Env> {
@@ -355,8 +360,8 @@ export class CallRoom extends DurableObject<Env> {
    */
   private room?: Room | null;
 
-  async create(hostToken: string, limits?: CallLimits): Promise<void> {
-    this.room = newRoom(hostToken, Date.now(), limits);
+  async create(hostToken: string, limits?: CallLimits, size = 2): Promise<void> {
+    this.room = newRoom(hostToken, Date.now(), limits, size);
     await this.save(this.room);
   }
 
@@ -412,9 +417,9 @@ export class CallRoom extends DurableObject<Env> {
     meter(room, Date.now());
     if (message.type === "hello") return this.hello(ws, room, message);
 
-    const { role, gen } = ws.deserializeAttachment() as Attachment;
-    if (!role || room[role].gen !== gen) throw new Refusal("not in the call");
-    const me = room[role];
+    const { member: id, gen } = ws.deserializeAttachment() as Attachment;
+    const me = id === undefined ? undefined : room.members[id];
+    if (id === undefined || !me || me.gen !== gen || !me.connected) throw new Refusal("not in the call");
 
     switch (message.type) {
       case "publish": {
@@ -422,7 +427,7 @@ export class CallRoom extends DurableObject<Env> {
         if (!names.every(isTrackName)) throw new Refusal("unknown track");
         if (!room.meter.videoAllowed && names.some((n) => n !== "audio")) throw new Refusal("no video minutes");
         const session = me.pubSession ?? (await this.sfu.newSession());
-        if (!publish(room, role, session, names)) throw new Refusal("already published");
+        if (!publish(room, id, session, names)) throw new Refusal("already published");
         const response = await this.sfu.newTracks(session, {
           sessionDescription: message.offer,
           tracks: message.tracks.map((t) => ({
@@ -435,13 +440,14 @@ export class CallRoom extends DurableObject<Env> {
         return { answer: response.sessionDescription };
       }
       case "announce":
-        announce(room, role);
+        announce(room, id);
         await this.changed(room);
         return {};
       case "subscribe": {
-        if (!canSubscribe(room, role, message.session, message.tracks)) throw new Refusal("not available");
-        if (message.fresh || !me.subSession) me.subSession = await this.sfu.newSession();
-        const response = await this.sfu.newTracks(me.subSession, {
+        const peer = String(message.peer);
+        if (!canSubscribe(room, id, peer, message.session, message.tracks)) throw new Refusal("not available");
+        if (message.fresh || !me.subSessions[peer]) me.subSessions[peer] = await this.sfu.newSession();
+        const response = await this.sfu.newTracks(me.subSessions[peer], {
           tracks: message.tracks.map((name) => ({
             location: "remote",
             sessionId: message.session,
@@ -457,17 +463,19 @@ export class CallRoom extends DurableObject<Env> {
           })),
         };
       }
-      case "answer":
-        if (!me.subSession) throw new Refusal("nothing to answer");
-        await this.sfu.renegotiate(me.subSession, message.answer);
+      case "answer": {
+        const session = me.subSessions[String(message.peer)];
+        if (!session) throw new Refusal("nothing to answer");
+        await this.sfu.renegotiate(session, message.answer);
         return {};
+      }
       case "camera":
         if (message.on && !room.meter.videoAllowed) throw new Refusal("no video minutes");
         me.camera = Boolean(message.on);
         await this.changed(room);
         return {};
       case "bye":
-        hangUp(room, role);
+        hangUp(room, id, Date.now());
         await this.changed(room);
         return undefined;
       default:
@@ -476,47 +484,47 @@ export class CallRoom extends DurableObject<Env> {
   }
 
   private async hello(ws: WebSocket, room: Room, message: { token?: string; secret?: string }): Promise<object> {
-    if ((ws.deserializeAttachment() as Attachment).role) throw new Refusal("already in the call");
-    const admission = admit(room, { token: message.token, secret: message.secret }, () => randomId());
+    if ((ws.deserializeAttachment() as Attachment).member) throw new Refusal("already in the call");
+    const admission = admit(room, { token: message.token, secret: message.secret }, () => randomId(), Date.now());
     if ("error" in admission) throw new Refusal(admission.error);
-    const { role, gen } = admission;
+    const { member, gen } = admission;
     // A connection being replaced may not know it yet
     for (const old of this.ctx.getWebSockets()) {
       const attachment = old.deserializeAttachment() as Attachment;
-      if (old !== ws && attachment.role === role) old.close(4000, "replaced");
+      if (old !== ws && attachment.member === member) old.close(4000, "replaced");
     }
-    ws.serializeAttachment({ role, gen } satisfies Attachment);
+    ws.serializeAttachment({ member, gen } satisfies Attachment);
     const ttl = Math.ceil((room.createdAt + MAX_CALL_MS - Date.now()) / 1000);
     const servers = await iceServers(this.env.TURN_KEY_ID, this.env.TURN_KEY_TOKEN, ttl);
     // The others hear about it; this page learns it all from the welcome
     await this.changed(room, ws);
     return {
       type: "welcome",
-      role,
+      member,
       secret: admission.secret,
       iceServers: servers,
-      peer: peerView(room, role, Date.now()),
+      call: callView(room, member, Date.now()),
     };
   }
 
   private async dropped(ws: WebSocket): Promise<void> {
-    const { role, gen } = ws.deserializeAttachment() as Attachment;
-    if (!role || gen === undefined) return;
+    const { member, gen } = ws.deserializeAttachment() as Attachment;
+    if (member === undefined || gen === undefined) return;
     const room = await this.load();
     if (!room) return;
     meter(room, Date.now());
-    if (disconnect(room, role, gen, Date.now())) await this.changed(room);
+    if (disconnect(room, member, gen, Date.now())) await this.changed(room);
   }
 
   /**
-   * Applies the limits, charges the host's account for the time so far, saves the call and tells both people what
+   * Applies the limits, charges the host's account for the time so far, saves the call and tells everyone what
    * changed; once it has ended, closes it and forgets it.
    */
   private async changed(room: Room, except?: WebSocket, quietIfSame = false): Promise<void> {
     const now = Date.now();
     meter(room, now);
     const before = limitsView(room, now);
-    // Video stopped by the limits: both pages hear it, even the one whose message this was
+    // Video stopped by the limits: every page hears it, even the one whose message this was
     const enforced = enforce(room, now);
     if (enforced) except = undefined;
     await this.charge(room);
@@ -524,13 +532,13 @@ export class CallRoom extends DurableObject<Env> {
     const same =
       !enforced && room.phase !== "ended" && before.endsAt === after.endsAt && before.videoEndsAt === after.videoEndsAt;
     for (const ws of quietIfSame && same ? [] : this.ctx.getWebSockets()) {
-      const { role } = ws.deserializeAttachment() as Attachment;
-      if (!role || ws === except) continue;
+      const { member } = ws.deserializeAttachment() as Attachment;
+      if (member === undefined || ws === except) continue;
       if (room.phase === "ended") {
         send(ws, { type: "ended", reason: room.endReason });
         ws.close(1000, "ended");
       } else {
-        send(ws, { type: "peer", peer: peerView(room, role, now) });
+        send(ws, { type: "call", call: callView(room, member, now) });
       }
     }
     if (room.phase === "ended") {
@@ -585,6 +593,8 @@ export class CallRoom extends DurableObject<Env> {
       this.room = (await this.ctx.storage.get<Room>("room")) ?? null;
       // A call saved before plans existed
       if (this.room) this.room.meter ??= emptyMeter(this.room.limits);
+      // A call saved before group calls (host and guest): it simply ends
+      if (this.room && !this.room.members) this.room = null;
     }
     return this.room;
   }

@@ -120,10 +120,14 @@ class ConversationViewModel(
             ConversationAction.OnSendClick -> send()
             is ConversationAction.OnCallClick -> when {
                 state.value.canCall -> callLauncher.call(chatId, action.video)
-                state.value.canCallByLink -> askToCallByLink(LinkCallPrompt(action.video, isCallBack = false))
+                state.value.canCallByLink -> askToCallByLink(
+                    LinkCallPrompt(action.video, isCallBack = false, isGroup = state.value.isGroup)
+                )
             }
 
-            is ConversationAction.OnCallBackClick -> askToCallByLink(LinkCallPrompt(action.video, isCallBack = true))
+            is ConversationAction.OnCallBackClick -> askToCallByLink(
+                LinkCallPrompt(action.video, isCallBack = true, isGroup = state.value.isGroup)
+            )
             is ConversationAction.OnLinkCallConfirm -> confirmLinkCall(action.dontShowAgain)
             ConversationAction.OnLinkCallDismiss -> _state.update { it.copy(linkCallPrompt = null) }
             ConversationAction.OnCallMinutesDismiss, ConversationAction.OnSeePremiumClick ->
@@ -340,7 +344,7 @@ class ConversationViewModel(
     private fun askToCallByLink(prompt: LinkCallPrompt) {
         if (!state.value.canCallByLink || state.value.isStartingLinkCall) return
         if (isLinkCallExplanationHidden) {
-            startLinkCall(prompt.video)
+            startLinkCall(prompt.video, prompt.isGroup)
         } else {
             _state.update { it.copy(linkCallPrompt = prompt) }
         }
@@ -350,15 +354,18 @@ class ConversationViewModel(
         val prompt = state.value.linkCallPrompt ?: return
         _state.update { it.copy(linkCallPrompt = null) }
         if (dontShowAgain) viewModelScope.launch { linkCallPreferences.setExplanationHidden(true) }
-        startLinkCall(prompt.video)
+        startLinkCall(prompt.video, prompt.isGroup)
     }
 
-    /** Creates the call, sends its link in this chat, and opens it here; the other person joins from the link. */
-    private fun startLinkCall(video: Boolean) {
+    /**
+     * Creates the call, sends its link in this chat, and opens it here; the other person (or, in a group, anyone in
+     * it) joins from the link.
+     */
+    private fun startLinkCall(video: Boolean, group: Boolean) {
         if (remindIfOffline()) return
         _state.update { it.copy(isStartingLinkCall = true) }
         viewModelScope.launch {
-            linkCalls.start(video)
+            linkCalls.start(video, group)
                 .onSuccess { call ->
                     val withVideo = video && !call.isAudioInstead
                     val invite = getString(

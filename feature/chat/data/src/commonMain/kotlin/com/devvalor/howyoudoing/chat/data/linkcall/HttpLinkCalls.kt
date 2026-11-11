@@ -39,16 +39,17 @@ class HttpLinkCalls(
 
     private val base get() = serverUrl.trimEnd('/')
 
-    private suspend fun app(video: Boolean? = null, token: String? = null) = AppRequest(
+    private suspend fun app(video: Boolean? = null, token: String? = null, group: Boolean? = null) = AppRequest(
         install = installId.get(),
         subscription = premium.status.value.subscriptionToken,
         video = video,
         token = token,
+        group = group,
     )
 
-    override suspend fun start(video: Boolean): Result<LinkCall, DataError.Remote> {
+    override suspend fun start(video: Boolean, group: Boolean): Result<LinkCall, DataError.Remote> {
         if (!isAvailable) return Result.Failure(DataError.Remote.SERVICE_UNAVAILABLE)
-        val body = app(video = video)
+        val body = app(video = video, group = group.takeIf { it })
         return safeCall<CreatedCall> { httpClient.post("$base/api/calls") { setBody(body) } }
             .map { created -> created.toLinkCall(newKey(), video) }
     }
@@ -80,6 +81,8 @@ internal data class AppRequest(
     val subscription: String? = null,
     val video: Boolean? = null,
     val token: String? = null,
+    /** A group call: several people can join from the link. */
+    val group: Boolean? = null,
 )
 
 @Serializable

@@ -11,9 +11,9 @@
 </head>
 <body>
   <main id="invite" hidden>
-    <h1 data-text="inviteTitle"></h1>
+    <h1 id="invite-title" data-text="inviteTitle"></h1>
     <p data-text="inviteSeparate"></p>
-    <p data-text="inviteEncrypted"></p>
+    <p id="invite-encrypted" data-text="inviteEncrypted"></p>
     <p class="small" data-text="invitePermissions"></p>
     <div class="buttons">
       <button id="join-video" class="primary" data-text="joinVideo"></button>
@@ -22,11 +22,10 @@
   </main>
 
   <main id="call" hidden>
-    <video id="remote" autoplay playsinline></video>
+    <div id="remotes" data-count="0"></div>
     <p id="status"></p>
     <p id="notice" role="status" hidden></p>
     <video id="local" autoplay playsinline muted></video>
-    <div id="audio"></div>
     <nav class="controls">
       <button id="mic" class="round" aria-pressed="true"></button>
       <button id="camera" class="round" aria-pressed="false"></button>

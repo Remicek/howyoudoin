@@ -1,13 +1,20 @@
 // A call's rules, kept apart from the Durable Object that stores them so they can be tested on their own.
 //
-// A call has two places: the HowYouDoin user who started it (the host, who has the call's secret token) and one
-// invited person (the guest, who has only the link and gets a secret of their own when they join, to come back after a
-// dropped connection). Once both have been in the call, either one hanging up, or staying away longer than
+// A call has the HowYouDoin user who started it (the host, who has the call's secret token) and the people invited by
+// link (guests, who get a secret of their own when they join, to come back after a dropped connection).
+//
+// A one-to-one call has one guest. Once both have been in it, either one hanging up, or staying away longer than
 // RECONNECT_MS, ends it for good.
+//
+// A group call (started in a group chat) takes up to GROUP_SIZE people. Hanging up only leaves it; it ends once
+// nobody is left, or when someone has been alone in it for ALONE_MS. While n people are in it, the host's minutes go
+// n - 1 times as fast: everyone receives everyone else, so the call costs that much more to carry.
 
 import { LIMITS, type Plan } from "./plans.ts";
 
-export type Role = "host" | "guest";
+/** "host", or a guest's ID ("g1", "g2"…). */
+export type MemberId = string;
+export const HOST: MemberId = "host";
 
 export interface Member {
   /** Has an open connection to the call now. */
@@ -20,11 +27,11 @@ export interface Member {
   leftAt?: number;
   /** Realtime SFU session that sends their media. */
   pubSession?: string;
-  /** Realtime SFU session that receives the other person's media. */
-  subSession?: string;
-  /** Published but not yet connected, so not yet offered to the other person. */
+  /** Realtime SFU sessions that receive the others' media, one per person. */
+  subSessions: Record<MemberId, string>;
+  /** Published but not yet connected, so not yet offered to the others. */
   pending: string[];
-  /** What the other person can receive (see isTrackName). */
+  /** What the others can receive (see isTrackName). */
   tracks: string[];
   /** Their camera is on (when it's off they send a black picture, so the SFU keeps the track). */
   camera: boolean;
@@ -45,11 +52,11 @@ export interface CallLimits {
   audioLeftMs: number;
 }
 
-/** The call's time so far, counted while both are in it. */
+/** The call's time so far, counted while at least two people are in it (in "minutes used", see rate). */
 export interface Meter {
   /** Up to when it has been counted. */
   at?: number;
-  /** When both were first in the call. */
+  /** When two people were first in the call. */
   activeAt?: number;
   videoMs: number;
   audioMs: number;
@@ -63,12 +70,18 @@ export interface Meter {
 export interface Room {
   createdAt: number;
   hostToken: string;
-  /** waiting: the two haven't both been in it yet; active: they have; ended: over, the link no longer works. */
+  /** waiting: nobody has been in it with someone else yet; active: they have; ended: over, the link no longer works. */
   phase: "waiting" | "active" | "ended";
   /** Why it ended, when it was a limit: "minutes" (none left) or "length" (the longest call). */
   endReason?: "minutes" | "length";
-  host: Member;
-  guest: Member;
+  /** Most people in the call: 2 for a one-to-one call. */
+  size: number;
+  /** Everyone who has joined, by ID; a guest who left keeps their place (and secret) to come back. */
+  members: Record<MemberId, Member>;
+  /** The number the next guest's ID gets. */
+  nextGuest: number;
+  /** A group call: since when one person (or nobody) has been in it, once it was active. */
+  aloneSince?: number;
   /** Missing for calls created before plans. */
   limits?: CallLimits;
   meter: Meter;
@@ -80,6 +93,10 @@ export const JOIN_WINDOW_MS = 15 * 60 * 1000;
 export const MAX_CALL_MS = 4 * 60 * 60 * 1000;
 /** How often a running call charges the host's account, so a crash loses little. */
 export const CHARGE_EVERY_MS = 60 * 1000;
+/** The most people in a group call. Without simulcast everyone receives everyone's full video, so keep it small. */
+export const GROUP_SIZE = 6;
+/** How long a group call stays open with one person in it (the others may come back, or still join). */
+export const ALONE_MS = 15 * 60 * 1000;
 /** How long someone whose connection dropped has to come back (a phone changing networks, a tunnel). */
 export const RECONNECT_MS = 20 * 1000;
 /** Most publications one connection may make (each time the camera is turned on is one). */
@@ -98,15 +115,22 @@ export interface Credentials {
   secret?: string;
 }
 
-export type Admission = { role: Role; gen: number; secret?: string } | { error: "ended" | "busy" | "forbidden" };
+export type Admission = { member: MemberId; gen: number; secret?: string } | { error: "ended" | "busy" | "forbidden" };
 
 export interface PeerView {
+  id: MemberId;
   /** Connected now. */
   present: boolean;
   /** Their publishing session, while they publish anything. */
   session?: string;
   tracks: string[];
   camera: boolean;
+}
+
+/** What one person needs to know about the call: everyone else, and the limits. */
+export interface CallView {
+  group: boolean;
+  peers: PeerView[];
   limits: LimitsView;
 }
 
@@ -124,7 +148,14 @@ export interface LimitsView {
   now: number;
 }
 
-const emptyMember = (gen = 0): Member => ({ connected: false, gen, pending: [], tracks: [], camera: false });
+const emptyMember = (gen = 0): Member => ({
+  connected: false,
+  gen,
+  subSessions: {},
+  pending: [],
+  tracks: [],
+  camera: false,
+});
 
 export const emptyMeter = (limits?: CallLimits): Meter => ({
   videoMs: 0,
@@ -134,20 +165,26 @@ export const emptyMeter = (limits?: CallLimits): Meter => ({
   videoAllowed: limits?.videoLeftMs !== 0,
 });
 
-export function newRoom(hostToken: string, now: number, limits?: CallLimits): Room {
+export function newRoom(hostToken: string, now: number, limits?: CallLimits, size = 2): Room {
   return {
     createdAt: now,
     hostToken,
     phase: "waiting",
-    host: emptyMember(),
-    guest: emptyMember(),
+    size,
+    members: { [HOST]: emptyMember() },
+    nextGuest: 1,
     limits,
     meter: emptyMeter(limits),
   };
 }
 
-const bothIn = (room: Room) => room.phase === "active" && room.host.connected && room.guest.connected;
-const videoOn = (room: Room) => room.host.camera || room.guest.camera;
+export const isGroup = (room: Room): boolean => room.size > 2;
+const everyone = (room: Room) => Object.values(room.members);
+const inCall = (room: Room) => everyone(room).filter((m) => m.connected).length;
+const together = (room: Room) => room.phase === "active" && inCall(room) >= 2;
+const videoOn = (room: Room) => everyone(room).some((m) => m.camera);
+/** How fast the host's minutes go: once for two people, n - 1 times for n. */
+export const rate = (room: Room): number => Math.max(1, inCall(room) - 1);
 
 /**
  * Counts the time since the last count, as the call was until now. Call it before anything changes (someone joining,
@@ -155,8 +192,8 @@ const videoOn = (room: Room) => room.host.camera || room.guest.camera;
  */
 export function meter(room: Room, now: number): void {
   const m = room.meter;
-  if (m.at !== undefined && bothIn(room)) {
-    const elapsed = Math.max(0, now - m.at);
+  if (m.at !== undefined && together(room)) {
+    const elapsed = Math.max(0, now - m.at) * rate(room);
     if (videoOn(room)) m.videoMs += elapsed;
     else m.audioMs += elapsed;
   }
@@ -182,8 +219,7 @@ export function enforce(room: Room, now: number): boolean {
     changed = true;
   }
   if (!m.videoAllowed && videoOn(room)) {
-    room.host.camera = false;
-    room.guest.camera = false;
+    for (const member of everyone(room)) member.camera = false;
     changed = true;
   }
   if (m.activeAt !== undefined && now >= m.activeAt + maxLength(room)) {
@@ -228,56 +264,92 @@ export function limitsView(room: Room, now: number): LimitsView {
   const { videoLeftMs, audioLeftMs } = room.limits;
   const longest = m.activeAt + maxLength(room);
   const counted = m.at ?? now;
+  // Minutes left, as time at the call's current pace
+  const r = rate(room);
+  const videoLeft = Math.max(0, videoLeftMs - m.videoMs) / r;
+  const audioLeft = Math.max(0, audioLeftMs - m.audioMs) / r;
   if (videoOn(room) && m.videoAllowed) {
-    view.videoEndsAt = counted + Math.max(0, videoLeftMs - m.videoMs);
-    view.endsAt = Math.min(longest, view.videoEndsAt + Math.max(0, audioLeftMs - m.audioMs));
+    view.videoEndsAt = counted + videoLeft;
+    view.endsAt = Math.min(longest, view.videoEndsAt + audioLeft);
   } else {
-    view.endsAt = Math.min(longest, counted + Math.max(0, audioLeftMs - m.audioMs));
+    view.endsAt = Math.min(longest, counted + audioLeft);
   }
   return view;
 }
 
-export const other = (role: Role): Role => (role === "host" ? "guest" : "host");
+/**
+ * Whether someone counts towards the call's size: in it, or dropped and still able to come back. In a one-to-one call
+ * the guest keeps the place once they're in (only the host can then end it); in a group call whoever hung up frees it.
+ */
+const holdsPlace = (member: Member) => member.connected || member.leftAt !== undefined;
+const taken = (room: Room) =>
+  isGroup(room)
+    ? Object.values(room.members).filter(holdsPlace).length + (room.members[HOST] && !holdsPlace(room.members[HOST]) ? 1 : 0)
+    : Object.keys(room.members).length;
+
+/** Keeps aloneSince up to date; call it after anyone joins or leaves. */
+function presenceChanged(room: Room, now: number): void {
+  if (room.phase === "waiting" && inCall(room) >= 2) room.phase = "active";
+  if (!isGroup(room) || room.phase !== "active") return;
+  if (inCall(room) >= 2) room.aloneSince = undefined;
+  else room.aloneSince ??= now;
+}
 
 /**
- * Lets someone in: the host with the call's token, the guest coming back with their secret, or a first guest. Someone
- * coming back replaces their old connection, which may not have noticed it's gone yet.
+ * Lets someone in: the host with the call's token, a guest coming back with their secret, or a new guest while there's
+ * room. Someone coming back replaces their old connection, which may not have noticed it's gone yet.
  */
-export function admit(room: Room, credentials: Credentials, newSecret: () => string): Admission {
+export function admit(room: Room, credentials: Credentials, newSecret: () => string, now = 0): Admission {
   if (room.phase === "ended") return { error: "ended" };
-  let role: Role;
+  let id: MemberId;
   if (credentials.token !== undefined) {
     if (!sameSecret(credentials.token, room.hostToken)) return { error: "forbidden" };
-    role = "host";
+    id = HOST;
   } else if (credentials.secret !== undefined) {
-    if (!room.guest.secret || !sameSecret(credentials.secret, room.guest.secret)) return { error: "forbidden" };
-    role = "guest";
+    const found = Object.entries(room.members).find(
+      ([key, m]) => key !== HOST && m.secret !== undefined && sameSecret(credentials.secret!, m.secret),
+    );
+    if (!found) return { error: "forbidden" };
+    id = found[0];
+    if (!holdsPlace(room.members[id]) && taken(room) >= room.size) return { error: "busy" };
   } else {
-    if (room.guest.secret) return { error: "busy" };
-    role = "guest";
+    if (taken(room) >= room.size) return { error: "busy" };
+    id = `g${room.nextGuest++}`;
   }
-  const before = room[role];
-  room[role] = {
+  const before = room.members[id] ?? emptyMember();
+  room.members[id] = {
     ...emptyMember(before.gen + 1),
     connected: true,
-    secret: role === "guest" ? (before.secret ?? newSecret()) : undefined,
+    secret: id === HOST ? undefined : (before.secret ?? newSecret()),
   };
-  if (room.host.connected && room.guest.connected) room.phase = "active";
-  return { role, gen: room[role].gen, secret: room[role].secret };
+  presenceChanged(room, now);
+  return { member: id, gen: room.members[id].gen, secret: room.members[id].secret };
 }
 
 /** A connection closed. Returns false for a connection that was already replaced. */
-export function disconnect(room: Room, role: Role, gen: number, now: number): boolean {
-  const member = room[role];
-  if (member.gen !== gen || !member.connected) return false;
-  room[role] = { ...emptyMember(gen), secret: member.secret, leftAt: now };
+export function disconnect(room: Room, id: MemberId, gen: number, now: number): boolean {
+  const member = room.members[id];
+  if (!member || member.gen !== gen || !member.connected) return false;
+  room.members[id] = { ...emptyMember(gen), secret: member.secret, leftAt: now };
+  presenceChanged(room, now);
   return true;
 }
 
-/** Someone hung up: the call ends, unless it's the guest leaving before the host ever saw them. */
-export function hangUp(room: Room, role: Role): void {
-  if (room.phase === "active" || role === "host") room.phase = "ended";
-  else room.guest = emptyMember(room.guest.gen);
+/**
+ * Someone hung up. A one-to-one call ends, unless it's the guest leaving before the host ever saw them (their place
+ * is freed). In a group call they just leave; it ends once nobody is left.
+ */
+export function hangUp(room: Room, id: MemberId, now = 0): void {
+  const member = room.members[id];
+  if (!member) return;
+  if (!isGroup(room)) {
+    if (room.phase === "active" || id === HOST) room.phase = "ended";
+    else delete room.members[id];
+    return;
+  }
+  room.members[id] = { ...emptyMember(member.gen), secret: member.secret };
+  if (inCall(room) === 0) room.phase = "ended";
+  else presenceChanged(room, now);
 }
 
 /**
@@ -294,11 +366,15 @@ export function tick(room: Room, now: number): boolean {
     return true;
   }
   let changed = false;
-  for (const role of ["host", "guest"] as const) {
-    const leftAt = room[role].leftAt;
-    if (leftAt === undefined || now < leftAt + RECONNECT_MS) continue;
-    hangUp(room, role);
+  for (const [id, member] of Object.entries(room.members)) {
+    if (member.leftAt === undefined || now < member.leftAt + RECONNECT_MS) continue;
+    hangUp(room, id, now);
     changed = true;
+    if ((room.phase as Room["phase"]) === "ended") return true;
+  }
+  if (room.aloneSince !== undefined && now >= room.aloneSince + ALONE_MS) {
+    room.phase = "ended";
+    return true;
   }
   return changed;
 }
@@ -309,7 +385,7 @@ export function nextDeadline(room: Room, now: number): number {
   const m = room.meter;
   if (room.limits && m.activeAt !== undefined) {
     deadlines.push(m.activeAt + maxLength(room));
-    if (bothIn(room)) {
+    if (together(room)) {
       deadlines.push(now + CHARGE_EVERY_MS);
       const view = limitsView(room, now);
       if (view.videoEndsAt !== undefined) deadlines.push(view.videoEndsAt);
@@ -317,15 +393,17 @@ export function nextDeadline(room: Room, now: number): number {
     }
   }
   if (room.phase === "waiting") deadlines.push(room.createdAt + JOIN_WINDOW_MS);
-  for (const member of [room.host, room.guest]) {
+  if (room.aloneSince !== undefined) deadlines.push(room.aloneSince + ALONE_MS);
+  for (const member of everyone(room)) {
     if (member.leftAt !== undefined) deadlines.push(member.leftAt + RECONNECT_MS);
   }
   return Math.min(...deadlines);
 }
 
-/** Records what someone has started publishing; it's offered to the other person once it's connected (announce). */
-export function publish(room: Room, role: Role, session: string, names: string[]): boolean {
-  const member = room[role];
+/** Records what someone has started publishing; it's offered to the others once it's connected (announce). */
+export function publish(room: Room, id: MemberId, session: string, names: string[]): boolean {
+  const member = room.members[id];
+  if (!member) return false;
   const valid =
     names.length > 0 &&
     names.every((n) => isTrackName(n) && !member.tracks.includes(n) && !member.pending.includes(n)) &&
@@ -338,16 +416,19 @@ export function publish(room: Room, role: Role, session: string, names: string[]
   return true;
 }
 
-export function announce(room: Room, role: Role): void {
-  const member = room[role];
+export function announce(room: Room, id: MemberId): void {
+  const member = room.members[id];
+  if (!member) return;
   member.tracks = [...new Set([...member.tracks, ...member.pending])];
   member.pending = [];
 }
 
-/** Whether this person may receive these of the other person's publications. */
-export function canSubscribe(room: Room, role: Role, session: string, names: string[]): boolean {
-  const publisher = room[other(role)];
+/** Whether this person may receive these of another person's publications. */
+export function canSubscribe(room: Room, id: MemberId, peer: MemberId, session: string, names: string[]): boolean {
+  const publisher = room.members[peer];
   return (
+    peer !== id &&
+    publisher !== undefined &&
     publisher.connected &&
     publisher.pubSession === session &&
     names.length > 0 &&
@@ -355,16 +436,22 @@ export function canSubscribe(room: Room, role: Role, session: string, names: str
   );
 }
 
-/** What this person needs to know about the other one, and about the call's limits. */
-export function peerView(room: Room, role: Role, now: number): PeerView {
-  const peer = room[other(role)];
-  return {
-    present: peer.connected,
-    session: peer.tracks.length ? peer.pubSession : undefined,
-    tracks: peer.tracks,
-    camera: peer.camera,
-    limits: limitsView(room, now),
-  };
+/** What this person needs to know about everyone else (the host first), and about the call's limits. */
+export function callView(room: Room, id: MemberId, now: number): CallView {
+  const peers = Object.entries(room.members)
+    .filter(([key]) => key !== id)
+    .map(([key, peer]) => ({
+      id: key,
+      present: peer.connected,
+      session: peer.tracks.length ? peer.pubSession : undefined,
+      tracks: peer.tracks,
+      camera: peer.camera,
+    }));
+  // A one-to-one call shows its other person even before they join
+  if (!isGroup(room) && peers.length === 0) {
+    peers.push({ id: id === HOST ? "g1" : HOST, present: false, session: undefined, tracks: [], camera: false });
+  }
+  return { group: isGroup(room), peers, limits: limitsView(room, now) };
 }
 
 function sameSecret(a: string, b: string): boolean {

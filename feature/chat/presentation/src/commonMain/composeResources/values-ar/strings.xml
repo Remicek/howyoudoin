@@ -224,6 +224,7 @@
     <string name="link_call_how_new">لا يستطيع HowYouDoin الرد على مكالمات %1$s أو بدءها: وحده تطبيق %1$s يستطيع ذلك. بدلًا من ذلك يبدأ مكالمة خاصة به وترسل أنت رابطًا إليها، مثل رابط اجتماع.</string>
     <string name="link_call_how_link">يُرسل رابط المكالمة إلى %1$s في هذه المحادثة.</string>
     <string name="link_call_how_browser">ينضم الطرف الآخر بفتح الرابط في المتصفح: دون تطبيق أو حساب. تنتظر في شاشة المكالمة حتى ينضم.</string>
+    <string name="link_call_how_group">يمكن أن ينضم حتى %1$d أشخاص. تُستهلك دقائق مكالماتك أسرع مع زيادة عدد الأشخاص: مع ثلاثة في المكالمة، أسرع بمرتين.</string>
     <string name="link_call_how_ringing">لن يتم الرد على مكالمة %1$s: ستظل ترن حتى يُنهيها.</string>
     <string name="link_call_how_encrypted">المكالمة مشفرة من طرف إلى طرف. تمر عبر خادم مكالمات HowYouDoin الذي لا يمكنه رؤيتها أو سماعها.</string>
     <string name="link_call_dont_show">عدم الإظهار مرة أخرى</string>

@@ -12,6 +12,7 @@ import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Call
+import androidx.compose.material.icons.rounded.Groups
 import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material.icons.rounded.NotificationsActive
 import androidx.compose.material.icons.rounded.Public
@@ -40,6 +41,7 @@ import howyoudoin.feature.chat.presentation.generated.resources.link_call_cancel
 import howyoudoin.feature.chat.presentation.generated.resources.link_call_dont_show
 import howyoudoin.feature.chat.presentation.generated.resources.link_call_how_browser
 import howyoudoin.feature.chat.presentation.generated.resources.link_call_how_encrypted
+import howyoudoin.feature.chat.presentation.generated.resources.link_call_how_group
 import howyoudoin.feature.chat.presentation.generated.resources.link_call_how_link
 import howyoudoin.feature.chat.presentation.generated.resources.link_call_how_new
 import howyoudoin.feature.chat.presentation.generated.resources.link_call_how_ringing
@@ -55,6 +57,9 @@ import org.jetbrains.compose.resources.stringResource
  * @param networkName e.g. "WhatsApp"
  * @param chatName who the link goes to
  */
+/** The most people in a group call (GROUP_SIZE in call-link/src/room.ts). */
+private const val GROUP_CALL_SIZE = 6
+
 @Composable
 fun LinkCallDialog(
     prompt: LinkCallPrompt,
@@ -78,6 +83,9 @@ fun LinkCallDialog(
                 Point(Icons.Rounded.Call, stringResource(Res.string.link_call_how_new, networkName))
                 Point(Icons.Rounded.Send, stringResource(Res.string.link_call_how_link, chatName))
                 Point(Icons.Rounded.Public, stringResource(Res.string.link_call_how_browser))
+                if (prompt.isGroup) {
+                    Point(Icons.Rounded.Groups, stringResource(Res.string.link_call_how_group, GROUP_CALL_SIZE))
+                }
                 if (prompt.isCallBack) {
                     Point(
                         Icons.Rounded.NotificationsActive,

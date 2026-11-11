@@ -56,6 +56,24 @@ class HttpLinkCallsTest {
     }
 
     @Test
+    fun aGroupCallIsAskedForAndItsLinksKeepTheirQuery() = runTest {
+        var body: String? = null
+        val engine = MockEngine { request ->
+            body = (request.body as TextContent).text
+            val join = "https://call.example/call/r?g=1"
+            val host = "https://call.example/call/r?host=1&g=1#t=tok"
+            respond("""{"room":"r","joinUrl":"$join","hostUrl":"$host"}""", HttpStatusCode.OK, json)
+        }
+
+        val call = (calls(engine).start(video = false, group = true) as Result.Success).data
+
+        assertEquals("""{"install":"0123456789abcdef0123456789abcdef","video":false,"group":true}""", body)
+        val key = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+        assertEquals("https://call.example/call/r?g=1#k=$key", call.inviteUrl)
+        assertEquals("https://call.example/call/r?host=1&g=1#t=tok&k=$key&v=0", call.hostUrl)
+    }
+
+    @Test
     fun withoutAServerItIsntOffered() = runTest {
         val calls = calls(MockEngine { error("no request") }, url = "")
         assertFalse(calls.isAvailable)

@@ -218,6 +218,7 @@
     <string name="link_call_how_new">O HowYouDoin não pode atender nem iniciar chamadas do %1$s: só o app do %1$s pode. Em vez disso, ele inicia uma chamada própria e você envia um link para ela, como um link de reunião.</string>
     <string name="link_call_how_link">Um link para ela é enviado para %1$s nesta conversa.</string>
     <string name="link_call_how_browser">A pessoa entra abrindo o link no navegador: sem app nem conta. Você aguarda na tela da chamada até ela entrar.</string>
+    <string name="link_call_how_group">Até %1$d pessoas podem entrar. Com mais pessoas, seus minutos acabam mais rápido: com três na chamada, duas vezes mais rápido.</string>
     <string name="link_call_how_ringing">A chamada do %1$s não é atendida: continua tocando até a pessoa desligar.</string>
     <string name="link_call_how_encrypted">A chamada tem criptografia de ponta a ponta. Ela passa pelo servidor de chamadas do HowYouDoin, que não pode vê-la nem ouvi-la.</string>
     <string name="link_call_dont_show">Não mostrar novamente</string>

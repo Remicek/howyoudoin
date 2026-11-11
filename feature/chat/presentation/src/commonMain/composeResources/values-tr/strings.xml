@@ -216,6 +216,7 @@
     <string name="link_call_how_new">HowYouDoin %1$s aramalarını yanıtlayamaz veya başlatamaz: bunu yalnızca %1$s uygulaması yapabilir. Bunun yerine kendi aramasını başlatır, siz de bir toplantı bağlantısı gibi ona bir bağlantı gönderirsiniz.</string>
     <string name="link_call_how_link">Aramanın bağlantısı bu sohbette %1$s kişisine gönderilir.</string>
     <string name="link_call_how_browser">Karşı taraf bağlantıyı tarayıcısında açarak katılır: uygulama veya hesap gerekmez. Katılana kadar arama ekranında beklersiniz.</string>
+    <string name="link_call_how_group">En fazla %1$d kişi katılabilir. Daha fazla kişiyle dakikalarınız daha hızlı biter: aramada üç kişi varken iki kat hızlı.</string>
     <string name="link_call_how_ringing">%1$s araması yanıtlanmaz: karşı taraf kapatana kadar çalmaya devam eder.</string>
     <string name="link_call_how_encrypted">Arama uçtan uca şifrelidir. HowYouDoin'in arama sunucusundan geçer; sunucu aramayı göremez ve duyamaz.</string>
     <string name="link_call_dont_show">Bir daha gösterme</string>

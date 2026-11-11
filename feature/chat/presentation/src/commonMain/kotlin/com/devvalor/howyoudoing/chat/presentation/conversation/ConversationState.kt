@@ -68,4 +68,6 @@ data class LinkCallPrompt(
     val video: Boolean,
     /** Started from a call they made on the network ("Call back through a link"): theirs keeps ringing. */
     val isCallBack: Boolean,
+    /** In a group chat: a group call that several people can join. */
+    val isGroup: Boolean = false,
 )

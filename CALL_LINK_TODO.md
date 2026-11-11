@@ -55,21 +55,27 @@ the guest, a local worker with a real SFU app, Wi-Fi):
 - Opening an ended link and pressing Join asks for the microphone before saying the call has ended. The page
   could check the call first.
 
-## Later: group calls
+## Group calls (branch `feature/group-calls`, not merged or deployed)
 
-Calls are for two people on purpose (buttons only in one-to-one chats; `room.ts` has a host and one guest). The
-SFU handles groups; what it would take:
+A call started in a group chat takes up to 6 people (`GROUP_SIZE` in `src/room.ts`); one-to-one calls work as
+before.
 
-- [ ] **Server** (`src/room.ts`, `CallRoom`): a list of people with a size limit (e.g. 8) instead of host and
-      guest; announce each person's publications to everyone; the call ends when the last person leaves, not
-      when anyone hangs up.
-- [ ] **Page** (`web/call.ts`): a video grid; receive each person's audio and newest video. The encryption needs
-      no change: everyone has the same key from the link.
-- [ ] **App:** call buttons in group chats, invite sent to the group (the link then reaches everyone in that chat,
-      and anyone they forward it to).
-- [ ] **Data:** each person downloads everyone else's video. Above 3–4 people, send two qualities (simulcast) so
-      the SFU can send small tiles at the lower one.
-- [ ] Test with three or more devices.
+- [x] **Server:** people keyed by ID (`host`, `g1`, `g2`…), each with their own secret; one SFU receiving session
+      per person each listens to. Hanging up only leaves a group call; it ends when nobody's left, or after 15
+      minutes alone (`ALONE_MS`). Minutes are used `people − 1` times as fast (three people: twice as fast), and
+      the call's end moves closer accordingly. `test/room.test.ts` has the group rules.
+- [x] **Page:** a tile per person (1 full screen, 2 stacked, up to 6 in a grid; 3 columns in landscape), each
+      person's audio and newest video; "group call" texts in all 13 languages; "This call is full" for a 7th.
+- [x] **App:** call buttons in group chats too; the request says `group: true`; the dialog says how many can join
+      and that minutes go faster (13 languages).
+- [x] Tested locally (`wrangler dev` + 3 headless Chromes, the real SFU): everyone sees and hears the other two;
+      leaving leaves; a one-to-one call still turns a third person away.
+- [ ] **Deploy the Worker before an app with this is released:** the live Worker ignores `group` and would make
+      a two-person call from a group chat.
+- [ ] Test on phones with 3+ people (the emulator's dialog has "Don't show again" ticked, so a tap in a group
+      would send a real link to it).
+- [ ] **Later: simulcast.** Everyone downloads everyone's video; above 3–4 people send two qualities so the SFU
+      can send small tiles at the lower one.
 
 ## Clean-up
 
