@@ -26,7 +26,7 @@ each network; a 5-hour video top-up for $1.99. Details and setup: call-link/READ
 - [x] Deploy the Worker.
 - [x] License testers and internal testers: list "Rodzina i najomi" (remicek, remiwaw, arkwaw @gmail.com), 2026-11-11.
       Internal test opt-in: https://play.google.com/apps/internaltest/4701300544930208456
-- [ ] Buy and cancel with a license tester from an internal-testing build (1.1.2, versionCode 8, is on internal).
+- [ ] Buy and cancel with a license tester from an internal-testing build (1.1.3, versionCode 9, is on internal since 2026-11-11).
 
 ## Tested on a phone (Galaxy A16 + Chrome on the emulator as the guest, 2026-11-10)
 

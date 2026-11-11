@@ -99,3 +99,11 @@ One-time setup (done 2026-11-06; project howyoudoin-513908, play-publisher@howyo
 - [x] Play Console → Users and permissions → Invite new users: the service account's e-mail, app HowYouDoin,
       permission "Release to testing tracks" (add "Release to production…" later if wanted).
 - [x] `local.properties`: `play.serviceAccountJson=/Users/remik/StudioProjects/keys/howyoudoin-play-publisher.json`
+
+## Store listing upload (2026-11-11)
+
+- [ ] `./gradlew :composeApp:publishListing` fails with 403 "The caller does not have permission" when it commits:
+  the upload account `play-publisher@howyoudoin-513908.iam.gserviceaccount.com` can release builds but not change
+  the store listing. Give it "Manage store presence" in Play Console → Users and permissions, or paste the texts
+  from `composeApp/src/main/play/listings/` and upload the graphics by hand.
+- [ ] Data safety form: apply `docs/data-safety.md` → "Changed 2026-11-11 (Premium)".

@@ -38,7 +38,10 @@ Status: experimental, Android only for now. (An iOS build exists in the code but
 - Try everything in demo mode without connecting an account
 - A short tour of the inbox for new users (skippable, and shown again from Settings)
 - Calls through a link on the networks whose calls the app can't make or answer: a separate, end-to-end encrypted call the other person joins from their browser, with "Call back through a link" under their calls ([call-link/](call-link/README.md))
-- Rate the app on Google Play or share it with friends from Settings
+- Rate the app on Google Play or share it with friends from Settings; once 3 networks are connected the app asks
+  once for a rating (Rate, Not now for 14 days, or Don't show again; Settings → Hidden tips brings it back)
+- Optional Premium (Google Play, monthly with a 7-day free trial): more call-link minutes, sharper video, longer
+  calls and up to 3 accounts per network; a one-time 5-hour video top-up for anyone
 - Optional: connect through your own Matrix homeserver with mautrix bridges instead (server mode)
 
 ## How it works
@@ -148,7 +151,8 @@ phone's settings. The translated terms of use say that the English version appli
 ## Privacy
 
 See [docs/privacy-policy.md](docs/privacy-policy.md). In short: no analytics, no servers of ours in the default
-mode, nothing leaves the phone except to the networks you connect.
+mode, and your messages never pass through us: they go only to the networks you connect. Only calls through a link
+use our server, and they are end-to-end encrypted; it counts call minutes per install ID and checks Play purchases.
 
 ## Terms of use and disclaimer
 
