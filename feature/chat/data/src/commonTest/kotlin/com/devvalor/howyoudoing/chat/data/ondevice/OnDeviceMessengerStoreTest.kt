@@ -306,6 +306,33 @@ class OnDeviceMessengerStoreTest {
         )
 
     @Test
+    fun a_one_to_one_chat_stays_encrypted_when_its_old_facebook_row_comes_after() = runTest {
+        val store = store()
+        self()
+        emit(
+            """{"type":"thread","key":"2","name":"Anna","isGroup":false,"isEncrypted":true,""" +
+                """"lastActivityMs":1000,"lastReadMs":1000}"""
+        )
+        thread("2", lastActivity = 2_000, lastRead = 2_000)
+
+        assertEquals(true, store.thread("2")?.isEncrypted)
+        assertTrue(store.chats().single().isEncrypted)
+    }
+
+    @Test
+    fun a_one_to_one_facebook_thread_linked_to_an_encrypted_chat_is_encrypted() = runTest {
+        val store = store()
+        self()
+        thread("2", lastActivity = 1_000, lastRead = 1_000)
+        assertEquals(false, store.thread("2")?.isEncrypted)
+
+        emit("""{"type":"link","fbThreadKey":"2","threadKey":"2","isGroup":false,"lastActivityMs":1000}""")
+
+        assertEquals(true, store.thread("2")?.isEncrypted)
+        assertEquals(listOf("fbdevice:2"), store.chats().map { it.id })
+    }
+
+    @Test
     fun a_new_message_after_the_chat_was_read_makes_it_unread() = runTest {
         val store = store()
         self()

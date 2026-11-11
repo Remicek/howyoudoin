@@ -359,7 +359,9 @@ class OnDeviceMessengerStore(
                 key = key,
                 name = event.str("name"),
                 isGroup = event.bool("isGroup"),
-                isEncrypted = event.bool("isEncrypted"),
+                // A Messenger 1:1 chat has an old Facebook row and an encrypted one under the same key, in either
+                // order; once encrypted it stays so, or messages would go the old way, which Messenger drops
+                isEncrypted = event.bool("isEncrypted") || threads[key]?.isEncrypted == true,
                 lastActivityMs = event.long("lastActivityMs"),
                 lastReadMs = event.long("lastReadMs"),
                 snippet = event.str("snippet"),
@@ -618,6 +620,11 @@ class OnDeviceMessengerStore(
      * (a chat that started after connecting).
      */
     private fun allThreads(s: Snapshot): Map<String, Thread> {
+        // A 1:1 Facebook thread linked to an encrypted chat has the same key (the other person's ID): it's that chat
+        val linked = s.links.values.map { it.threadKey }.toSet()
+        val threads = s.threads.mapValues { (key, thread) ->
+            if (!thread.isEncrypted && key in linked) thread.copy(isEncrypted = true) else thread
+        }
         val fromLinks = s.links.values.filter { it.threadKey !in s.threads }.associate { link ->
             link.threadKey to Thread(
                 link.threadKey,
@@ -639,7 +646,7 @@ class OnDeviceMessengerStore(
                 key to Thread(key, "", key.endsWith("@g.us"), true, newest.timestampMs, 0L, "", "")
             }
             .toMap()
-        return s.threads + fromLinks + fromMessages
+        return threads + fromLinks + fromMessages
     }
 
     fun historyCursor(threadKey: String): Long? = _snapshot.value.historyCursors[threadKey]
