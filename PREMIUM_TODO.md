@@ -41,6 +41,19 @@ Against `npm run dev` with the free plan shortened for the test only (2 min vide
   it). Both fixes are not yet seen on a phone.
 - `npm run dev` now passes `--local-upstream localhost:8787`, otherwise invite links pointed at the live server.
 
+## Live (2026-11-11)
+
+- Worker deployed to call.howyoudoin.app (migration v2, `CallAccount`); secret `PLAY_SERVICE_ACCOUNT` = Google Cloud
+  service account `play-purchases@howyoudoin-513908` (Play Console: view financial data + manage orders/subscriptions
+  on HowYouDoin only; separate from `play-publisher`).
+- Found live and fixed (089a532): every Premium check threw "Illegal invocation" (fetch called as a method).
+- Google Play answers 401 to `play-purchases` right after it was given access: wait for it to spread (hours, up to a
+  day), then check with `npx wrangler tail` while opening Premium. Until then everyone is free (fails closed).
+- A16 against the live server: Premium shows 1 h / 10 h; a 2-minute video call was charged ("58 min left").
+- [ ] The guest in a headless Chrome on the Mac stayed on "Connecting…" (it sent video, the phone showed it, but it
+      never received the phone's). The same set-up worked against `wrangler dev`. Check with a real browser.
+- Release 1.1.1 (versionCode 7) is on GitHub; not yet on Play.
+
 ## Not checked yet
 
 - [ ] Buying, the trial, the top-up and Restore: need the Play products and a build installed from Play.
