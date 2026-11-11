@@ -429,16 +429,38 @@ class OnDeviceMessengerStoreTest {
         store.failPending("local-3")
         advanceTimeBy(10_000)
 
-        // A new start of the app: only the failed ones come back
+        // A new start of the app: the failed ones come back, and the one still sending comes back as failed
         val restarted = store(cache)
         val bodies = restarted.messages("2").map { it.body to it.canRetry }
-        assertEquals(listOf("Hi" to false, "Are you there?" to true, "photo.jpg" to false), bodies)
+        assertEquals(
+            listOf("Hi" to false, "Are you there?" to true, "Still sending" to true, "photo.jpg" to false),
+            bodies
+        )
+        assertNotNull(restarted.failedMessage("pending-local-2"))
 
         val failed = assertNotNull(restarted.failedMessage("pending-local-1"))
         assertEquals("Are you there?", failed.text)
         restarted.removePending("pending-local-1")
         assertNull(restarted.failedMessage("pending-local-1"))
-        assertEquals(listOf("Hi", "photo.jpg"), restarted.messages("2").map { it.body })
+        assertEquals(listOf("Hi", "Still sending", "photo.jpg"), restarted.messages("2").map { it.body })
+    }
+
+    @Test
+    fun a_message_still_sending_at_a_restart_goes_once_the_network_s_copy_arrives() = runTest {
+        val cache = MemoryCache()
+        val store = store(cache)
+        self()
+        store.addPending("2", "local-1", "On its way")
+        store.rekeyPending("local-1", "otid-1")
+        advanceTimeBy(10_000)
+
+        val restarted = store(cache)
+        assertEquals(listOf("On its way"), restarted.messages("2").map { it.body })
+        emit(
+            """{"type":"message","threadKey":"2","id":"m9","otid":"otid-1","senderId":"1","text":"On its way",""" +
+                """"kind":"text","timestampMs":5000,"isEncrypted":true}"""
+        )
+        assertEquals(listOf("m9"), restarted.messages("2").map { it.id })
     }
 
     private fun TestScope.whatsAppStore() = OnDeviceMessengerStore(

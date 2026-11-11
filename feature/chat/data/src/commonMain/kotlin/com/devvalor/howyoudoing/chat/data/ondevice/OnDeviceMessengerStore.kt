@@ -214,9 +214,10 @@ class OnDeviceMessengerStore(
             .drop(1)
             .debounce(CACHE_WRITE_DELAY_MILLIS)
             .onEach { snapshot ->
-                // Typing and messages still being sent only make sense while the app runs; failed ones are kept so
-                // they can be sent again (or deleted) later
-                val failed = snapshot.pending.filterValues { it.status == MessageStatus.FAILED }
+                // Typing only makes sense while the app runs. Messages not sent yet are kept as failed: after a
+                // restart nothing is sending them, so they can be sent again (or deleted). One that did reach the
+                // network is replaced by the network's copy, which carries the same otid
+                val failed = snapshot.pending.mapValues { (_, echo) -> echo.copy(status = MessageStatus.FAILED) }
                 runCatching {
                     cache.write(
                         cacheJson.encodeToString(
