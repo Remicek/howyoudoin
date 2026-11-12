@@ -107,4 +107,5 @@ One-time setup (done 2026-11-06; project howyoudoin-513908, play-publisher@howyo
   (en-US only) are published.
 - [x] Data safety form switched to "collects data" with the 7 types in `docs/data-safety.md` (app functionality,
   not shared; deletion info at https://howyoudoin.app/privacy.html); sent for review 2026-11-11.
-- [ ] 1.1.4 (versionCode 11; 10 had println logging in release) is on internal (uploaded 2026-11-12, replaces 1.1.3, which can't start calls since the call server's 2026-11-12 deploy); production waits for the user's go-ahead after the A53 test.
+- [x] 1.1.4 (versionCode 11; 10 had println logging in release) on internal 2026-11-12, replacing 1.1.3 (which can't start calls since the call server's 2026-11-12 deploy). Release build tested on the A16: calls on LTE, WhatsApp and Messenger both ways.
+- [ ] 1.1.4 (versionCode 11) sent for production review 2026-11-12: the app's first production release, full rollout, managed publishing off (goes live once approved). It replaced the old never-sent 1.0.1 production draft. The upload service account can't commit to production (403), so production releases go through Play Console.
