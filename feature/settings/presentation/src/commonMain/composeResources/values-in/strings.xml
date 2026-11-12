@@ -16,6 +16,8 @@
     <string name="settings_crash_none">Disimpan di ponsel ini; Anda yang memilih apa yang dibagikan</string>
     <string name="settings_ask_before_letting_in">Izinkan orang masuk ke panggilan sendiri</string>
     <string name="settings_ask_before_letting_in_sub">Orang yang membuka tautan panggilan Anda menunggu sampai Anda mengizinkannya masuk. Mati: siapa pun yang membukanya lebih dulu masuk ke panggilan.</string>
+    <string name="settings_stay_connected">Tetap terhubung di latar belakang</string>
+    <string name="settings_stay_connected_sub">Menjaga chat tetap terhubung saat HowYouDoin ditutup, sehingga pesan dan panggilan baru langsung masuk dan memberi notifikasi. Ini memakai sedikit baterai. Nonaktif: pesan hanya masuk saat aplikasi dibuka, dan kamu tidak akan diberi tahu tentang pesan baru.</string>
     <string name="settings_backup_logins">Cadangkan info masuk</string>
     <string name="settings_backup_logins_sub">Di cadangan Google ponsel Anda, dienkripsi end-to-end dengan kunci layar. Di ponsel baru atau setelah instal ulang, Messenger, Instagram, Slack, Telegram, dan Matrix tersambung lagi tanpa masuk. WhatsApp dan Signal selalu harus ditautkan ulang.</string>
     <string name="settings_google_backup">Cadangan Google</string>

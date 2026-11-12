@@ -1,5 +1,6 @@
+- Screens switch instantly, also when going back
+- New in Settings: turn off staying connected in the background to save battery
 - Shorter call links, and calls connect more reliably on a weak mobile signal
 - New in Settings → Privacy: let people into your calls yourself (off by default)
 - Messenger: a chat that moved to end-to-end encryption stays encrypted
 - Messages still sending when the app closes come back as "not sent" instead of vanishing
-- Premium is simply the monthly plan

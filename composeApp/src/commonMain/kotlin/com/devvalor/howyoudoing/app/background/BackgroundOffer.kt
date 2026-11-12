@@ -31,12 +31,14 @@ class BackgroundOfferViewModel(
     monitor: ConnectionMonitor,
 ) : ViewModel() {
 
+    // Not when staying connected is off in Settings: nothing is meant to run in the background then
     val isVisible = combine(
         delivery.isAllowed,
         delivery.isDeclined,
+        delivery.keepsConnected,
         monitor.linkedNetworks,
-    ) { allowed, declined, linked ->
-        !allowed && !declined && linked.isNotEmpty()
+    ) { allowed, declined, keep, linked ->
+        !allowed && !declined && keep && linked.isNotEmpty()
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
 
     fun refresh() = delivery.refresh()

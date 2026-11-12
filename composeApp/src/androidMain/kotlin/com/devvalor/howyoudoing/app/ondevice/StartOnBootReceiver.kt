@@ -12,7 +12,10 @@ import org.koin.core.component.get
  */
 class StartOnBootReceiver : BroadcastReceiver(), KoinComponent {
     override fun onReceive(context: Context, intent: Intent) {
-        if (intent.action == Intent.ACTION_BOOT_COMPLETED || intent.action == Intent.ACTION_MY_PACKAGE_REPLACED) {
+        val isStart = intent.action == Intent.ACTION_BOOT_COMPLETED ||
+            intent.action == Intent.ACTION_MY_PACKAGE_REPLACED
+        // Not when staying connected is off in Settings: the chats connect when the app is opened
+        if (isStart && AndroidBackgroundDelivery.keepsConnected(context)) {
             // Android lets the service start only while this broadcast is being handled
             get<OnDeviceConnectionKeeper>().startNow()
         }

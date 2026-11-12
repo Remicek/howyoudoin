@@ -132,6 +132,7 @@ actual val platformAppModule: Module = module {
             linkedAccounts = listOf(get<OnDeviceWhatsApp>(), get<OnDeviceTelegram>(), get<OnDeviceSignal>()) +
                 get<OnDeviceNetworks>().clients.values.filterIsInstance<OnDeviceLinkedAccount>() +
                 get<ExtraAccounts>().clients.filterIsInstance<OnDeviceLinkedAccount>(),
+            keepConnected = get<BackgroundDelivery>().keepsConnected,
             scope = get()
         )
     }

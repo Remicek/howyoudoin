@@ -8,6 +8,7 @@ import com.devvalor.howyoudoing.core.domain.premium.Premium
 import androidx.compose.material.icons.rounded.Key
 import androidx.compose.material.icons.rounded.Explore
 import androidx.compose.material.icons.rounded.Notifications
+import androidx.compose.material.icons.rounded.BatteryChargingFull
 import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material.icons.rounded.StarRate
 import com.devvalor.howyoudoing.core.domain.app.AppPromotion
@@ -45,6 +46,9 @@ import howyoudoin.feature.settings.presentation.generated.resources.settings_ask
 import howyoudoin.feature.settings.presentation.generated.resources.settings_ask_before_letting_in_sub
 import androidx.compose.material.icons.rounded.HowToReg
 import com.devvalor.howyoudoing.core.domain.app.CallSettings
+import com.devvalor.howyoudoing.core.domain.ondevice.BackgroundDelivery
+import howyoudoin.feature.settings.presentation.generated.resources.settings_stay_connected
+import howyoudoin.feature.settings.presentation.generated.resources.settings_stay_connected_sub
 import howyoudoin.feature.settings.presentation.generated.resources.settings_crash_present
 import howyoudoin.feature.settings.presentation.generated.resources.settings_crash_reports
 import howyoudoin.feature.settings.presentation.generated.resources.settings_days_ago
@@ -108,6 +112,10 @@ data class SettingsState(
     val usesOwnTelegramKeys: Boolean = false,
     /** The person who opens a call's link waits until they're let in. */
     val asksBeforeLettingIn: Boolean = false,
+    /** The phone has the choice to stay connected in the background (Android). */
+    val canKeepConnected: Boolean = false,
+    /** The app stays connected while it's closed (on by default). */
+    val keepsConnected: Boolean = true,
 )
 
 @Suppress("LongParameterList")
@@ -119,6 +127,7 @@ class SettingsViewModel(
     private val telegramKeys: TelegramApiKeys,
     private val appTour: AppTour,
     private val callSettings: CallSettings,
+    private val backgroundDelivery: BackgroundDelivery,
 ) : ViewModel() {
     val state = combine(
         appLock.observeSettings(),
@@ -138,9 +147,13 @@ class SettingsViewModel(
         )
     }.combine(callSettings.observeAskBeforeLettingIn()) { state, ask ->
         state.copy(asksBeforeLettingIn = ask)
+    }.combine(backgroundDelivery.keepsConnected) { state, keep ->
+        state.copy(canKeepConnected = backgroundDelivery.canKeepConnected, keepsConnected = keep)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000L), SettingsState())
 
     fun openBackupSettings() = loginBackup.openSystemBackupSettings()
+
+    fun setKeepsConnected(on: Boolean) = backgroundDelivery.setKeepsConnected(on)
 
     fun setAskBeforeLettingIn(ask: Boolean) {
         viewModelScope.launch { callSettings.setAskBeforeLettingIn(ask) }
@@ -232,6 +245,17 @@ fun SettingsRoot(
                 icon = Icons.Rounded.Notifications,
                 onClick = onNotificationsClick,
             )
+        }
+        if (state.canKeepConnected) {
+            item {
+                SettingsSwitchRow(
+                    title = stringResource(Res.string.settings_stay_connected),
+                    subtitle = stringResource(Res.string.settings_stay_connected_sub),
+                    icon = Icons.Rounded.BatteryChargingFull,
+                    checked = state.keepsConnected,
+                    onCheckedChange = viewModel::setKeepsConnected,
+                )
+            }
         }
         item {
             SettingsRow(

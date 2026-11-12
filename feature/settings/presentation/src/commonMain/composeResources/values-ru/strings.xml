@@ -16,6 +16,8 @@
     <string name="settings_crash_none">Хранятся на телефоне; вы решаете, чем поделиться</string>
     <string name="settings_ask_before_letting_in">Впускать в звонки самому</string>
     <string name="settings_ask_before_letting_in_sub">Тот, кто откроет ссылку на звонок, ждёт, пока вы его впустите. Выключено: в звонок попадает тот, кто первым откроет ссылку.</string>
+    <string name="settings_stay_connected">Оставаться на связи в фоне</string>
+    <string name="settings_stay_connected_sub">Поддерживает подключение чатов, когда HowYouDoin закрыт, чтобы новые сообщения и звонки приходили сразу и вы получали уведомления. Это расходует немного заряда. Выключено: сообщения приходят только при открытом приложении, и уведомлений о новых не будет.</string>
     <string name="settings_backup_logins">Резервная копия входов</string>
     <string name="settings_backup_logins_sub">В резервной копии Google на вашем телефоне со сквозным шифрованием по блокировке экрана. На новом телефоне или после переустановки Messenger, Instagram, Slack, Telegram и Matrix подключаются без входа. WhatsApp и Signal всегда нужно привязать заново.</string>
     <string name="settings_google_backup">Резервная копия Google</string>

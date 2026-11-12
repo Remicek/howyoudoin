@@ -23,6 +23,7 @@ import kotlinx.coroutines.CoroutineScope
 import org.koin.core.context.GlobalContext
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.Job
@@ -142,12 +143,17 @@ class OnDeviceConnectionService : Service() {
     }
 }
 
-/** Runs [OnDeviceConnectionService] while any on-device network is linked, connecting or pairing. */
+/**
+ * Runs [OnDeviceConnectionService] while any on-device network is linked, connecting or pairing. With staying
+ * connected turned off in Settings ([keepConnected]) only while one is pairing: linking WhatsApp, Telegram or Signal
+ * means switching to their app, and the pairing would be cut without it.
+ */
 @OptIn(ExperimentalCoroutinesApi::class)
 class OnDeviceConnectionKeeper(
     context: Context,
     clients: List<OnDeviceMessenger>,
     linkedAccounts: List<OnDeviceLinkedAccount>,
+    private val keepConnected: StateFlow<Boolean>,
     scope: CoroutineScope
 ) {
     // Declared before init: its collector may run straight away
@@ -157,20 +163,19 @@ class OnDeviceConnectionKeeper(
     val active = MutableStateFlow<List<String>>(emptyList())
 
     init {
-        combine(clients.map { client -> client.state.combineName(client) } + linkedAccounts.map {
-            it.pairing.combineName(
-                it
-            )
-        }) { active ->
-            active.filterNotNull()
+        val connected = combine(clients.map { client -> client.state.combineName(client) }) { it.filterNotNull() }
+        val pairing = combine(linkedAccounts.map { it.pairing.combineName(it) }) { it.filterNotNull() }
+        combine(connected, pairing, keepConnected) { connected, pairing, keep ->
+            // What the service runs for (and its notification lists): everything, or only what's pairing
+            (if (keep) connected + pairing else pairing) to (connected + pairing)
         }
             .distinctUntilChanged()
             // Each change cancels a pending stop: accounts report their state a moment after start-up, so the
             // service only stops once nothing has been active for a while
-            .mapLatest { active ->
-                this.active.value = active
-                if (active.isNotEmpty()) {
-                    OnDeviceConnectionService.start(appContext, text(active))
+            .mapLatest { (runFor, all) ->
+                this.active.value = all
+                if (runFor.isNotEmpty()) {
+                    OnDeviceConnectionService.start(appContext, text(runFor))
                 } else {
                     delay(STOP_DELAY_MILLIS)
                     OnDeviceConnectionService.stop(appContext)
@@ -185,12 +190,14 @@ class OnDeviceConnectionKeeper(
      * again after a while.
      */
     fun startNow() {
-        OnDeviceConnectionService.start(appContext, text(active.value))
+        if (keepConnected.value) OnDeviceConnectionService.start(appContext, text(active.value))
     }
 
     /** Starts the service if something is linked and it isn't running (e.g. after Android stopped the app). */
     fun ensureRunning() {
-        if (active.value.isNotEmpty()) OnDeviceConnectionService.start(appContext, text(active.value))
+        if (keepConnected.value && active.value.isNotEmpty()) {
+            OnDeviceConnectionService.start(appContext, text(active.value))
+        }
     }
 
     fun text(active: List<String>) =

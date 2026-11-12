@@ -1,6 +1,7 @@
 package com.devvalor.howyoudoing.app
 
 import com.devvalor.howyoudoing.core.domain.util.AppLog
+import com.devvalor.howyoudoing.app.ondevice.AndroidBackgroundDelivery
 import com.devvalor.howyoudoing.app.ondevice.ConnectionWatchdogWorker
 import android.app.Application
 import com.devvalor.howyoudoing.app.di.initKoin
@@ -21,7 +22,12 @@ class HowYouDoinApplication : Application() {
             androidContext(this@HowYouDoinApplication)
             androidLogger()
         }
-        // Brings the connections back if Android stopped the app and didn't restart it
-        ConnectionWatchdogWorker.schedule(this)
+        // Brings the connections back if Android stopped the app and didn't restart it; not when the user turned
+        // staying connected off in Settings
+        if (AndroidBackgroundDelivery.keepsConnected(this)) {
+            ConnectionWatchdogWorker.schedule(this)
+        } else {
+            ConnectionWatchdogWorker.cancel(this)
+        }
     }
 }

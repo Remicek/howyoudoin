@@ -16,6 +16,8 @@
     <string name="settings_crash_none">このスマホに保存。共有するかはあなたが決めます</string>
     <string name="settings_ask_before_letting_in">通話への参加を自分で許可する</string>
     <string name="settings_ask_before_letting_in_sub">通話リンクを開いた人は、あなたが許可するまで待ちます。オフ：最初にリンクを開いた人が通話に参加します。</string>
+    <string name="settings_stay_connected">バックグラウンドで接続を維持</string>
+    <string name="settings_stay_connected_sub">HowYouDoin を閉じていてもチャットの接続を保ち、新しいメッセージや通話がすぐに届いて通知されます。電池を少し使います。オフ：メッセージはアプリを開いている間だけ届き、新着の通知はありません。</string>
     <string name="settings_backup_logins">ログイン情報をバックアップ</string>
     <string name="settings_backup_logins_sub">スマホの Google バックアップに、画面ロックでエンドツーエンド暗号化して保存します。新しいスマホや再インストール後も、Messenger、Instagram、Slack、Telegram、Matrix はログインなしで再接続します。WhatsApp と Signal は毎回リンクし直す必要があります。</string>
     <string name="settings_google_backup">Google バックアップ</string>

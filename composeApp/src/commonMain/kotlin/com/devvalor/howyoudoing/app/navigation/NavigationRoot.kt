@@ -21,7 +21,8 @@ fun NavigationRoot(
     navController: NavHostController,
     startDestination: Any,
 ) {
-    // Screens switch at once, without the library's fades or the back gesture's shrinking page
+    // Screens switch at once, without the library's fades or the back gesture's shrinking page. Going back has its
+    // own pair (predictivePop*), used for the back button too, whose default shrinks the page: off as well.
     NavHost(
         navController = navController,
         startDestination = startDestination,
@@ -29,6 +30,8 @@ fun NavigationRoot(
         exitTransition = { ExitTransition.None },
         popEnterTransition = { EnterTransition.None },
         popExitTransition = { ExitTransition.None },
+        predictivePopEnterTransition = { EnterTransition.None },
+        predictivePopExitTransition = { ExitTransition.None },
         sizeTransform = null,
     ) {
         authGraph(

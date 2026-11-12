@@ -16,6 +16,8 @@
     <string name="settings_crash_none">Conservés sur ce téléphone ; vous choisissez ce que vous partagez</string>
     <string name="settings_ask_before_letting_in">Admettre vous-même dans les appels</string>
     <string name="settings_ask_before_letting_in_sub">La personne qui ouvre le lien de votre appel attend que vous la fassiez entrer. Désactivé : la première personne qui l\'ouvre rejoint l\'appel.</string>
+    <string name="settings_stay_connected">Rester connecté en arrière-plan</string>
+    <string name="settings_stay_connected_sub">Garde vos discussions connectées quand HowYouDoin est fermé, pour que les nouveaux messages et appels arrivent et vous soient notifiés tout de suite. Cela consomme un peu de batterie. Désactivé : les messages n'arrivent que lorsque l'appli est ouverte, et vous ne serez pas notifié des nouveaux.</string>
     <string name="settings_backup_logins">Sauvegarder les connexions</string>
     <string name="settings_backup_logins_sub">Dans la sauvegarde Google de votre téléphone, chiffrée de bout en bout avec votre verrouillage d'écran. Sur un nouveau téléphone ou après réinstallation, Messenger, Instagram, Slack, Telegram et Matrix se reconnectent sans identification. WhatsApp et Signal doivent toujours être associés à nouveau.</string>
     <string name="settings_google_backup">Sauvegarde Google</string>

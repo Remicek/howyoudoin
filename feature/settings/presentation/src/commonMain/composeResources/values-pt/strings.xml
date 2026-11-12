@@ -16,6 +16,8 @@
     <string name="settings_crash_none">Ficam neste celular; você escolhe o que compartilhar</string>
     <string name="settings_ask_before_letting_in">Deixar as pessoas entrarem nas chamadas você mesmo</string>
     <string name="settings_ask_before_letting_in_sub">Quem abrir o link da sua chamada espera até você deixar entrar. Desativado: quem abrir primeiro entra na chamada.</string>
+    <string name="settings_stay_connected">Manter conectado em segundo plano</string>
+    <string name="settings_stay_connected_sub">Mantém suas conversas conectadas enquanto o HowYouDoin está fechado, para que novas mensagens e chamadas cheguem e notifiquem você na hora. Isso gasta um pouco de bateria. Desativado: as mensagens só chegam com o app aberto, e você não será notificado das novas.</string>
     <string name="settings_backup_logins">Backup dos logins</string>
     <string name="settings_backup_logins_sub">No backup do Google do seu celular, com criptografia de ponta a ponta pelo bloqueio de tela. Em um celular novo ou após reinstalar, Messenger, Instagram, Slack, Telegram e Matrix reconectam sem login. WhatsApp e Signal sempre precisam ser vinculados de novo.</string>
     <string name="settings_google_backup">Backup do Google</string>

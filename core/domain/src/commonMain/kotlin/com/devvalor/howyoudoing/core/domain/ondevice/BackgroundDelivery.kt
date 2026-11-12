@@ -23,6 +23,18 @@ interface BackgroundDelivery {
     fun requestAllowed()
 
     fun decline()
+
+    /** Whether this phone has the [keepsConnected] choice at all (Android). */
+    val canKeepConnected: Boolean
+
+    /**
+     * The user's choice in Settings, on by default: the app stays connected while it's closed, so messages and calls
+     * arrive and notify at once. Off saves the battery that takes: nothing runs in the background (no connection
+     * service, no periodic check, no start after a reboot) except while an account is being linked.
+     */
+    val keepsConnected: StateFlow<Boolean>
+
+    fun setKeepsConnected(on: Boolean)
 }
 
 /** Where apps aren't paused like that (iOS here, where the app doesn't run in the background anyway). */
@@ -32,4 +44,7 @@ object NoBackgroundDelivery : BackgroundDelivery {
     override fun refresh() = Unit
     override fun requestAllowed() = Unit
     override fun decline() = Unit
+    override val canKeepConnected = false
+    override val keepsConnected: StateFlow<Boolean> = MutableStateFlow(true).asStateFlow()
+    override fun setKeepsConnected(on: Boolean) = Unit
 }

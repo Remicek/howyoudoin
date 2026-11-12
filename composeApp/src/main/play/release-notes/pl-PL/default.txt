@@ -1,5 +1,6 @@
+- Ekrany zmieniają się natychmiast, także przy cofaniu
+- Nowość w Ustawieniach: połączenie w tle można wyłączyć, by oszczędzać baterię
 - Krótsze linki do rozmów, a rozmowy łączą się pewniej przy słabym zasięgu
 - Nowość w Ustawienia → Prywatność: samodzielne wpuszczanie do rozmów (domyślnie wyłączone)
 - Messenger: czat przeniesiony na szyfrowanie end-to-end zostaje zaszyfrowany
 - Wiadomości wysyłane w chwili zamknięcia aplikacji wracają jako „niewysłane”, zamiast znikać
-- Premium to po prostu plan miesięczny

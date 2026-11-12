@@ -32,7 +32,7 @@ class AndroidBackgroundDelivery(context: Context) : BackgroundDelivery {
 
     private val context = context.applicationContext
     private val power = this.context.getSystemService(PowerManager::class.java)
-    private val prefs = this.context.getSharedPreferences("background_delivery", Context.MODE_PRIVATE)
+    private val prefs = this.context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
 
     private val _isAllowed = MutableStateFlow(read())
     override val isAllowed: StateFlow<Boolean> = _isAllowed.asStateFlow()
@@ -64,8 +64,26 @@ class AndroidBackgroundDelivery(context: Context) : BackgroundDelivery {
         _isDeclined.value = true
     }
 
-    private companion object {
-        const val KEY_DECLINED = "declined"
+    override val canKeepConnected = true
+
+    private val _keepsConnected = MutableStateFlow(keepsConnected(this.context))
+    override val keepsConnected: StateFlow<Boolean> = _keepsConnected.asStateFlow()
+
+    override fun setKeepsConnected(on: Boolean) {
+        prefs.edit().putBoolean(KEY_KEEP_CONNECTED, on).apply()
+        _keepsConnected.value = on
+        // The connection service follows this (OnDeviceConnectionKeeper); the periodic check goes with it
+        if (on) ConnectionWatchdogWorker.schedule(context) else ConnectionWatchdogWorker.cancel(context)
+    }
+
+    companion object {
+        private const val PREFS = "background_delivery"
+        private const val KEY_DECLINED = "declined"
+        private const val KEY_KEEP_CONNECTED = "keep_connected"
+
+        /** The Settings choice, for code that runs before Koin (the app's start, a boot broadcast). */
+        fun keepsConnected(context: Context): Boolean =
+            context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean(KEY_KEEP_CONNECTED, true)
     }
 }
 
@@ -76,6 +94,8 @@ class AndroidBackgroundDelivery(context: Context) : BackgroundDelivery {
  */
 class ConnectionWatchdogWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
     override suspend fun doWork(): Result {
+        // Turned off in Settings (the work is cancelled then; this covers one already on its way)
+        if (!AndroidBackgroundDelivery.keepsConnected(applicationContext)) return Result.success()
         val koin = GlobalContext.getOrNull() ?: return Result.success()
         koin.get<OnDeviceConnectionKeeper>().ensureRunning()
         koin.get<ConnectionMonitor>().reconnectDropped()
@@ -91,6 +111,10 @@ class ConnectionWatchdogWorker(context: Context, params: WorkerParameters) : Cor
                 .setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build())
                 .build()
             WorkManager.getInstance(context).enqueueUniquePeriodicWork(NAME, ExistingPeriodicWorkPolicy.KEEP, request)
+        }
+
+        fun cancel(context: Context) {
+            WorkManager.getInstance(context).cancelUniqueWork(NAME)
         }
     }
 }
