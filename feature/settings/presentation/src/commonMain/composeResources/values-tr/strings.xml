@@ -14,6 +14,8 @@
     <string name="settings_crash_reports">Çökme raporları</string>
     <string name="settings_crash_present">Son çökmeye ait bir rapor bu telefonda</string>
     <string name="settings_crash_none">Bu telefonda kalır; neyi paylaşacağınıza siz karar verirsiniz</string>
+    <string name="settings_ask_before_letting_in">Aramalara kişileri kendiniz alın</string>
+    <string name="settings_ask_before_letting_in_sub">Arama bağlantınızı açan kişi, siz içeri alana kadar bekler. Kapalı: bağlantıyı ilk açan aramaya katılır.</string>
     <string name="settings_backup_logins">Girişleri yedekle</string>
     <string name="settings_backup_logins_sub">Telefonunuzun Google yedeğinde, ekran kilidinizle uçtan uca şifrelenmiş olarak. Yeni bir telefonda veya yeniden yüklemeden sonra Messenger, Instagram, Slack, Telegram ve Matrix giriş yapmadan yeniden bağlanır. WhatsApp ve Signal her zaman yeniden bağlanmalıdır.</string>
     <string name="settings_google_backup">Google yedeği</string>

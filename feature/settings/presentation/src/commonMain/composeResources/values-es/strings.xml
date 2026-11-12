@@ -14,6 +14,8 @@
     <string name="settings_crash_reports">Informes de fallos</string>
     <string name="settings_crash_present">Hay un informe del último fallo en este teléfono</string>
     <string name="settings_crash_none">Se guardan en este teléfono; tú decides qué compartir</string>
+    <string name="settings_ask_before_letting_in">Dejar entrar tú mismo a las llamadas</string>
+    <string name="settings_ask_before_letting_in_sub">Quien abra el enlace de tu llamada espera hasta que le dejes entrar. Desactivado: quien lo abra primero entra en la llamada.</string>
     <string name="settings_backup_logins">Copia de los inicios de sesión</string>
     <string name="settings_backup_logins_sub">En la copia de seguridad de Google de tu teléfono, cifrada de extremo a extremo con el bloqueo de pantalla. En un teléfono nuevo o tras reinstalar, Messenger, Instagram, Slack, Telegram y Matrix se reconectan sin iniciar sesión. WhatsApp y Signal siempre hay que vincularlos de nuevo.</string>
     <string name="settings_google_backup">Copia de seguridad de Google</string>

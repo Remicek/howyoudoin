@@ -41,6 +41,10 @@ import howyoudoin.feature.settings.presentation.generated.resources.settings_app
 import howyoudoin.feature.settings.presentation.generated.resources.settings_backup_logins
 import howyoudoin.feature.settings.presentation.generated.resources.settings_backup_logins_sub
 import howyoudoin.feature.settings.presentation.generated.resources.settings_crash_none
+import howyoudoin.feature.settings.presentation.generated.resources.settings_ask_before_letting_in
+import howyoudoin.feature.settings.presentation.generated.resources.settings_ask_before_letting_in_sub
+import androidx.compose.material.icons.rounded.HowToReg
+import com.devvalor.howyoudoing.core.domain.app.CallSettings
 import howyoudoin.feature.settings.presentation.generated.resources.settings_crash_present
 import howyoudoin.feature.settings.presentation.generated.resources.settings_crash_reports
 import howyoudoin.feature.settings.presentation.generated.resources.settings_days_ago
@@ -102,15 +106,19 @@ data class SettingsState(
     val lastBackupMillis: Long? = null,
     val canUseOwnTelegramKeys: Boolean = false,
     val usesOwnTelegramKeys: Boolean = false,
+    /** The person who opens a call's link waits until they're let in. */
+    val asksBeforeLettingIn: Boolean = false,
 )
 
+@Suppress("LongParameterList")
 class SettingsViewModel(
     appLock: AppLockRepository,
     crashReports: CrashReports,
     private val loginBackup: LoginBackup,
     private val authService: AuthService,
     private val telegramKeys: TelegramApiKeys,
-    private val appTour: AppTour
+    private val appTour: AppTour,
+    private val callSettings: CallSettings,
 ) : ViewModel() {
     val state = combine(
         appLock.observeSettings(),
@@ -128,9 +136,15 @@ class SettingsViewModel(
             canUseOwnTelegramKeys = telegramKeys.isSupported,
             usesOwnTelegramKeys = ownTelegramKeys != null
         )
+    }.combine(callSettings.observeAskBeforeLettingIn()) { state, ask ->
+        state.copy(asksBeforeLettingIn = ask)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000L), SettingsState())
 
     fun openBackupSettings() = loginBackup.openSystemBackupSettings()
+
+    fun setAskBeforeLettingIn(ask: Boolean) {
+        viewModelScope.launch { callSettings.setAskBeforeLettingIn(ask) }
+    }
 
     fun setLoginBackup(on: Boolean) {
         viewModelScope.launch { loginBackup.setEnabled(on) }
@@ -262,6 +276,15 @@ fun SettingsRoot(
                 ),
                 icon = Icons.Rounded.BugReport,
                 onClick = onCrashReportsClick,
+            )
+        }
+        item {
+            SettingsSwitchRow(
+                title = stringResource(Res.string.settings_ask_before_letting_in),
+                subtitle = stringResource(Res.string.settings_ask_before_letting_in_sub),
+                icon = Icons.Rounded.HowToReg,
+                checked = state.asksBeforeLettingIn,
+                onCheckedChange = viewModel::setAskBeforeLettingIn,
             )
         }
         if (state.canBackUpLogins) {

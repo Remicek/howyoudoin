@@ -20,14 +20,23 @@ import {
   takeCharge,
   refreshLimits,
   limitsView,
+  letIn,
+  turnAway,
 } from "../src/room.ts";
 
 const secret = () => "guest-secret";
 /** What a call made before plans shows: no limits, 540p. */
 const noLimits = { limits: { videoAllowed: true, videoHeight: 540, videoBitrate: 700_000, now: 0 } };
 
+/** The guest opens the link and the host lets them in. */
+function join(room: Room): void {
+  admit(room, {}, secret);
+  letIn(room);
+}
+
+/** A call whose host lets the guest in themselves. */
 function call(): Room {
-  const room = newRoom("host-token", 0);
+  const room = newRoom("host-token", 0, undefined, true);
   admit(room, { token: "host-token" }, secret);
   return room;
 }
@@ -42,6 +51,8 @@ test("the host joins with the call's token; a wrong token is refused", () => {
 test("one guest gets in and gets a secret; a second person with the link doesn't", () => {
   const room = call();
   assert.deepEqual(admit(room, {}, secret), { role: "guest", gen: 1, secret: "guest-secret" });
+  assert.equal(room.phase, "waiting");
+  assert.equal(letIn(room), true);
   assert.equal(room.phase, "active");
   assert.deepEqual(admit(room, {}, secret), { error: "busy" });
   assert.deepEqual(admit(room, { secret: "wrong-secret" }, secret), { error: "forbidden" });
@@ -49,7 +60,7 @@ test("one guest gets in and gets a secret; a second person with the link doesn't
 
 test("a dropped guest comes back with their secret, and their old connection no longer counts", () => {
   const room = call();
-  admit(room, {}, secret);
+  join(room);
   assert.equal(disconnect(room, "guest", 1, 1000), true);
   assert.equal(peerView(room, "host", 0).present, false);
   assert.equal(nextDeadline(room, 0), 1000 + RECONNECT_MS);
@@ -63,7 +74,7 @@ test("a dropped guest comes back with their secret, and their old connection no 
 
 test("someone away longer than the reconnect window ends the call", () => {
   const room = call();
-  admit(room, {}, secret);
+  join(room);
   disconnect(room, "host", 1, 1000);
   assert.equal(tick(room, 1000 + RECONNECT_MS - 1), false);
   assert.equal(tick(room, 1000 + RECONNECT_MS), true);
@@ -83,7 +94,7 @@ test("a guest leaving before the host saw them frees the place; the host leaving
 
 test("after both were in the call, either one hanging up ends it", () => {
   const room = call();
-  admit(room, {}, secret);
+  join(room);
   hangUp(room, "guest");
   assert.equal(room.phase, "ended");
 });
@@ -95,7 +106,7 @@ test("a call nobody joins ends after the join window; any call ends after the lo
   assert.equal(unjoined.phase, "ended");
 
   const long = call();
-  admit(long, {}, secret);
+  join(long);
   assert.equal(tick(long, JOIN_WINDOW_MS), false);
   assert.equal(nextDeadline(long, 0), MAX_CALL_MS);
   assert.equal(tick(long, MAX_CALL_MS), true);
@@ -103,9 +114,9 @@ test("a call nobody joins ends after the join window; any call ends after the lo
 
 test("published tracks are offered to the other person only once announced", () => {
   const room = call();
-  admit(room, {}, secret);
+  join(room);
   assert.equal(publish(room, "host", "s1", ["audio", "video1"]), true);
-  assert.deepEqual(peerView(room, "guest", 0), { ...noLimits, present: true, session: undefined, tracks: [], camera: false });
+  assert.deepEqual(peerView(room, "guest", 0), { ...noLimits, present: true, knocking: false, letIn: true, session: undefined, tracks: [], camera: false });
   assert.equal(canSubscribe(room, "guest", "s1", ["audio"]), false);
   announce(room, "host");
   assert.deepEqual(peerView(room, "guest", 0).tracks, ["audio", "video1"]);
@@ -134,7 +145,7 @@ test("joining again starts over: new sessions, nothing published", () => {
   room.host.camera = true;
   disconnect(room, "host", 1, 10);
   admit(room, { token: "host-token" }, secret);
-  assert.deepEqual(peerView(room, "guest", 0), { ...noLimits, present: true, session: undefined, tracks: [], camera: false });
+  assert.deepEqual(peerView(room, "guest", 0), { ...noLimits, present: true, knocking: false, letIn: false, session: undefined, tracks: [], camera: false });
   assert.equal(publish(room, "host", "s9", ["audio"]), true);
 });
 
@@ -146,7 +157,7 @@ function limitedCall(videoLeftMs: number, audioLeftMs: number, plan: "free" | "p
   const room = newRoom("host-token", 0, { plan, owner: "install:x", videoLeftMs, audioLeftMs });
   admit(room, { token: "host-token" }, secret);
   meter(room, 0);
-  admit(room, {}, secret);
+  join(room);
   meter(room, 0);
   return room;
 }
@@ -223,7 +234,7 @@ test("a Premium call gets its 4 hours even when the guest joined late", () => {
   const room = newRoom("host-token", 0, { plan: "premium", owner: "sub:x", videoLeftMs: 0, audioLeftMs: 6000 * MIN });
   admit(room, { token: "host-token" }, secret);
   meter(room, 0);
-  admit(room, {}, secret);
+  join(room);
   meter(room, 10 * MIN);
   assert.equal(tick(room, 4 * 60 * MIN + 5 * MIN), false);
   assert.equal(room.phase, "active");
@@ -231,4 +242,75 @@ test("a Premium call gets its 4 hours even when the guest joined late", () => {
   meter(room, 4 * 60 * MIN + 10 * MIN);
   enforce(room, 4 * 60 * MIN + 10 * MIN);
   assert.equal(room.endReason, "length");
+});
+
+test("the guest waits until the host lets them in; nothing is counted meanwhile", () => {
+  const room = call();
+  admit(room, {}, secret);
+  assert.equal(room.phase, "waiting");
+  const host = peerView(room, "host", 0);
+  assert.equal(host.present, false);
+  assert.equal(host.knocking, true);
+  const guest = peerView(room, "guest", 0);
+  assert.equal(guest.present, true);
+  assert.equal(guest.letIn, false);
+  assert.equal(guest.knocking, false);
+  meter(room, 1000);
+  meter(room, 5000);
+  assert.equal(room.meter.audioMs, 0);
+  assert.equal(letIn(room), true);
+  assert.equal(letIn(room), false);
+  assert.equal(room.phase, "active");
+  assert.equal(peerView(room, "host", 0).present, true);
+  assert.equal(peerView(room, "host", 0).knocking, false);
+  assert.equal(peerView(room, "guest", 0).letIn, true);
+});
+
+test("nobody waiting: nothing to let in or turn away", () => {
+  const room = call();
+  assert.equal(letIn(room), false);
+  assert.equal(turnAway(room), false);
+  assert.equal(room.letIn, false);
+});
+
+test("a guest turned away can't come back with their secret; someone else with the link can knock", () => {
+  const room = call();
+  admit(room, {}, secret);
+  assert.equal(turnAway(room), true);
+  assert.equal(room.phase, "waiting");
+  assert.equal(peerView(room, "host", 0).knocking, false);
+  assert.deepEqual(admit(room, { secret: "guest-secret" }, secret), { error: "forbidden" });
+  // Their old connection closing changes nothing
+  assert.equal(disconnect(room, "guest", 1, 1000), false);
+  assert.deepEqual(admit(room, {}, () => "second"), { role: "guest", gen: 3, secret: "second" });
+  assert.equal(letIn(room), true);
+  assert.equal(room.phase, "active");
+  // Once let in, there's no turning away (hanging up ends the call instead)
+  assert.equal(turnAway(room), false);
+});
+
+test("a guest who drops while waiting comes back still waiting, or frees the place after the reconnect window", () => {
+  const room = call();
+  admit(room, {}, secret);
+  disconnect(room, "guest", 1, 1000);
+  assert.equal(peerView(room, "host", 0).knocking, false);
+  admit(room, { secret: "guest-secret" }, secret);
+  assert.equal(peerView(room, "host", 0).knocking, true);
+  disconnect(room, "guest", 2, 2000);
+  assert.equal(tick(room, 2000 + RECONNECT_MS), true);
+  assert.equal(room.phase, "waiting");
+  assert.equal(room.guest.secret, undefined);
+});
+
+test("by default, and in a call saved before the setting, whoever opens the link first is in", () => {
+  const room = newRoom("host-token", 0);
+  admit(room, { token: "host-token" }, secret);
+  admit(room, {}, secret);
+  assert.equal(room.phase, "active");
+  assert.equal(peerView(room, "host", 0).knocking, false);
+  assert.equal(turnAway(room), false);
+  const old = call();
+  delete old.letIn;
+  admit(old, {}, secret);
+  assert.equal(old.phase, "active");
 });

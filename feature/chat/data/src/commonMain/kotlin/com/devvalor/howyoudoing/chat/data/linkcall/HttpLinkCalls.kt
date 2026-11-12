@@ -28,7 +28,9 @@ import kotlin.io.encoding.Base64
  * @param serverUrl e.g. https://call.howyoudoin.app; blank when this build has none
  * @param randomBytes cryptographically secure
  * @param sha256 the platform's SHA-256
+ * @param askBeforeLettingIn the user's setting: the person who opens the link waits until they're let in
  */
+@Suppress("LongParameterList")
 class HttpLinkCalls(
     private val httpClient: HttpClient,
     private val serverUrl: String,
@@ -36,23 +38,25 @@ class HttpLinkCalls(
     private val premium: Premium,
     private val randomBytes: (Int) -> ByteArray,
     private val sha256: (ByteArray) -> ByteArray,
+    private val askBeforeLettingIn: suspend () -> Boolean = { false },
 ) : LinkCalls, CallAllowance {
 
     override val isAvailable: Boolean get() = serverUrl.isNotBlank()
 
     private val base get() = serverUrl.trimEnd('/')
 
-    private suspend fun app(video: Boolean? = null, room: String? = null) = AppRequest(
+    private suspend fun app(video: Boolean? = null, room: String? = null, askFirst: Boolean = false) = AppRequest(
         install = installId.get(),
         subscription = premium.status.value.subscriptionToken,
         video = video,
         room = room,
+        askFirst = askFirst.takeIf { it },
     )
 
     override suspend fun start(video: Boolean): Result<LinkCall, DataError.Remote> {
         if (!isAvailable) return Result.Failure(DataError.Remote.SERVICE_UNAVAILABLE)
         val key = randomBytes(CallLinkNaming.KEY_BYTES)
-        val body = app(video = video, room = CallLinkNaming.roomOf(key, sha256))
+        val body = app(video = video, room = CallLinkNaming.roomOf(key, sha256), askFirst = askBeforeLettingIn())
         return safeCall<CreatedCall> { httpClient.post("$base/api/calls") { setBody(body) } }
             .map { created -> created.toLinkCall(CallLinkNaming.encode(key), video) }
     }
@@ -82,6 +86,8 @@ internal data class AppRequest(
     val video: Boolean? = null,
     /** The call's name, when starting one. */
     val room: String? = null,
+    /** The guest waits until the host lets them in (sent only when on). */
+    val askFirst: Boolean? = null,
 )
 
 @Serializable

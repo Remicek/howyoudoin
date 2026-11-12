@@ -9,7 +9,7 @@ import kotlin.test.assertEquals
 class CallLinkNamingTest {
     @Test
     fun theCallIsNamedLikeThePageNamesIt() {
-        val key = ByteArray(16) { 1 }
+        val key = ByteArray(CallLinkNaming.KEY_BYTES) { 1 }
         assertEquals("AQEBAQEBAQEBAQEBAQEBAQ", CallLinkNaming.encode(key))
         val room = CallLinkNaming.roomOf(key) { MessageDigest.getInstance("SHA-256").digest(it) }
         assertEquals("zIzUHO-QfE0hYGkSLEuJk2", room)

@@ -44,6 +44,12 @@ const TEXTS = {
     videoEndsIn: "Video stops in {n} min; the call goes on with audio.",
     endsIn: "The call ends in {n} min",
     endedLimit: "This call reached its time limit.",
+    knockTitle: "Someone opened your link",
+    knockText: "Let them in only if it's the person you invited.",
+    letIn: "Let them in",
+    turnAway: "Don't let in",
+    waitingLetIn: "Waiting for them to let you in…",
+    turnedAwayTitle: "You weren't let in",
   },
   pl: {
     inviteTitle: "Zaproszenie do rozmowy",
@@ -70,6 +76,12 @@ const TEXTS = {
     videoEndsIn: "Wideo wyłączy się za {n} min; rozmowa potrwa dalej z samym dźwiękiem.",
     endsIn: "Rozmowa skończy się za {n} min",
     endedLimit: "Ta rozmowa osiągnęła limit czasu.",
+    knockTitle: "Ktoś otworzył Twój link",
+    knockText: "Wpuść tylko, jeśli to osoba, którą zaprosiłeś.",
+    letIn: "Wpuść",
+    turnAway: "Nie wpuszczaj",
+    waitingLetIn: "Czekamy, aż Cię wpuści…",
+    turnedAwayTitle: "Nie wpuszczono Cię do rozmowy",
   },
   de: {
     inviteTitle: "Du bist zu einem Anruf eingeladen",
@@ -94,6 +106,12 @@ const TEXTS = {
     videoEndsIn: "Das Video endet in {n} Min.; der Anruf geht mit Ton weiter.",
     endsIn: "Der Anruf endet in {n} Min.",
     endedLimit: "Dieser Anruf hat sein Zeitlimit erreicht.",
+    knockTitle: "Jemand hat deinen Link geöffnet",
+    knockText: "Lass die Person nur rein, wenn du sie eingeladen hast.",
+    letIn: "Reinlassen",
+    turnAway: "Nicht reinlassen",
+    waitingLetIn: "Warten, bis du reingelassen wirst…",
+    turnedAwayTitle: "Du wurdest nicht reingelassen",
   },
   es: {
     inviteTitle: "Te han invitado a una llamada",
@@ -118,6 +136,12 @@ const TEXTS = {
     videoEndsIn: "El vídeo se detiene en {n} min; la llamada sigue con audio.",
     endsIn: "La llamada termina en {n} min",
     endedLimit: "Esta llamada alcanzó su límite de tiempo.",
+    knockTitle: "Alguien ha abierto tu enlace",
+    knockText: "Déjale entrar solo si es la persona a la que invitaste.",
+    letIn: "Dejar entrar",
+    turnAway: "No dejar entrar",
+    waitingLetIn: "Esperando a que te deje entrar…",
+    turnedAwayTitle: "No te han dejado entrar",
   },
   fr: {
     inviteTitle: "Vous êtes invité à un appel",
@@ -142,6 +166,12 @@ const TEXTS = {
     videoEndsIn: "La vidéo s'arrête dans {n} min ; l'appel continue en audio.",
     endsIn: "L'appel se termine dans {n} min",
     endedLimit: "Cet appel a atteint sa limite de durée.",
+    knockTitle: "Quelqu'un a ouvert votre lien",
+    knockText: "Ne la faites entrer que si c'est la personne que vous avez invitée.",
+    letIn: "Faire entrer",
+    turnAway: "Ne pas faire entrer",
+    waitingLetIn: "En attente de son autorisation…",
+    turnedAwayTitle: "Vous n'avez pas été admis",
   },
   pt: {
     inviteTitle: "Você foi convidado para uma chamada",
@@ -166,6 +196,12 @@ const TEXTS = {
     videoEndsIn: "O vídeo para em {n} min; a chamada continua com áudio.",
     endsIn: "A chamada termina em {n} min",
     endedLimit: "Esta chamada atingiu o limite de tempo.",
+    knockTitle: "Alguém abriu seu link",
+    knockText: "Só deixe entrar se for a pessoa que você convidou.",
+    letIn: "Deixar entrar",
+    turnAway: "Não deixar entrar",
+    waitingLetIn: "Aguardando a pessoa deixar você entrar…",
+    turnedAwayTitle: "Você não foi admitido",
   },
   ru: {
     inviteTitle: "Вас приглашают на звонок",
@@ -190,6 +226,12 @@ const TEXTS = {
     videoEndsIn: "Видео отключится через {n} мин; звонок продолжится со звуком.",
     endsIn: "Звонок завершится через {n} мин",
     endedLimit: "Звонок достиг ограничения по времени.",
+    knockTitle: "Кто-то открыл вашу ссылку",
+    knockText: "Впускайте, только если это тот, кого вы пригласили.",
+    letIn: "Впустить",
+    turnAway: "Не впускать",
+    waitingLetIn: "Ждём, пока вас впустят…",
+    turnedAwayTitle: "Вас не впустили",
   },
   tr: {
     inviteTitle: "Bir aramaya davet edildiniz",
@@ -214,6 +256,12 @@ const TEXTS = {
     videoEndsIn: "Görüntü {n} dk içinde kapanacak; arama sesli devam edecek.",
     endsIn: "Arama {n} dk içinde bitecek",
     endedLimit: "Bu arama süre sınırına ulaştı.",
+    knockTitle: "Biri bağlantınızı açtı",
+    knockText: "Yalnızca davet ettiğiniz kişiyse içeri alın.",
+    letIn: "İçeri al",
+    turnAway: "İçeri alma",
+    waitingLetIn: "İçeri alınmanız bekleniyor…",
+    turnedAwayTitle: "İçeri alınmadınız",
   },
   ja: {
     inviteTitle: "通話に招待されています",
@@ -238,6 +286,12 @@ const TEXTS = {
     videoEndsIn: "ビデオはあと {n} 分で停止します。通話は音声で続きます。",
     endsIn: "通話はあと {n} 分で終了します",
     endedLimit: "この通話は時間の上限に達しました。",
+    knockTitle: "誰かがリンクを開きました",
+    knockText: "招待した相手の場合だけ参加させてください。",
+    letIn: "参加させる",
+    turnAway: "参加させない",
+    waitingLetIn: "相手が参加を許可するのを待っています…",
+    turnedAwayTitle: "参加を許可されませんでした",
   },
   hi: {
     inviteTitle: "आपको एक कॉल पर बुलाया गया है",
@@ -262,6 +316,12 @@ const TEXTS = {
     videoEndsIn: "वीडियो {n} मिनट में बंद होगा; कॉल ऑडियो के साथ जारी रहेगी।",
     endsIn: "कॉल {n} मिनट में खत्म होगी",
     endedLimit: "यह कॉल अपनी समय सीमा तक पहुँच गई।",
+    knockTitle: "किसी ने आपका लिंक खोला है",
+    knockText: "उन्हें तभी अंदर आने दें जब यह वही व्यक्ति हो जिसे आपने बुलाया है।",
+    letIn: "अंदर आने दें",
+    turnAway: "अंदर न आने दें",
+    waitingLetIn: "उनके आपको अंदर आने देने का इंतज़ार…",
+    turnedAwayTitle: "आपको अंदर आने नहीं दिया गया",
   },
   id: {
     inviteTitle: "Anda diundang ke panggilan",
@@ -286,6 +346,12 @@ const TEXTS = {
     videoEndsIn: "Video berhenti dalam {n} menit; panggilan berlanjut dengan audio.",
     endsIn: "Panggilan berakhir dalam {n} menit",
     endedLimit: "Panggilan ini mencapai batas waktunya.",
+    knockTitle: "Seseorang membuka tautan Anda",
+    knockText: "Izinkan masuk hanya jika itu orang yang Anda undang.",
+    letIn: "Izinkan masuk",
+    turnAway: "Jangan izinkan",
+    waitingLetIn: "Menunggu mereka mengizinkan Anda masuk…",
+    turnedAwayTitle: "Anda tidak diizinkan masuk",
   },
   ar: {
     inviteTitle: "أنت مدعو إلى مكالمة",
@@ -310,6 +376,12 @@ const TEXTS = {
     videoEndsIn: "سيتوقف الفيديو خلال {n} د؛ تستمر المكالمة بالصوت.",
     endsIn: "تنتهي المكالمة خلال {n} د",
     endedLimit: "بلغت هذه المكالمة حدها الزمني.",
+    knockTitle: "فتح أحدهم رابطك",
+    knockText: "اسمح له بالدخول فقط إن كان الشخص الذي دعوته.",
+    letIn: "السماح بالدخول",
+    turnAway: "عدم السماح",
+    waitingLetIn: "في انتظار أن يسمح لك بالدخول…",
+    turnedAwayTitle: "لم يُسمح لك بالدخول",
   },
 };
 
@@ -372,6 +444,10 @@ interface Limits {
 
 interface Peer {
   present: boolean;
+  /** The host's view: someone opened the link and waits to be let in (when the host asked to let people in). */
+  knocking?: boolean;
+  /** The guest may send and receive (missing from an older server: yes). */
+  letIn?: boolean;
   session?: string;
   tracks: string[];
   camera: boolean;
@@ -398,6 +474,32 @@ const video = (height: number) => ({
 const DEFAULT_LIMITS: Limits = { videoAllowed: true, videoHeight: 360, videoBitrate: 350_000, now: Date.now() };
 /** Warn this long before the call or its video ends. */
 const WARN_MS = 5 * 60 * 1000;
+
+/** A see-through poster: without one, Android's WebView shows a grey play button until the first frame. */
+const NO_POSTER = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+
+/** A short two-note chime and a buzz: someone is waiting to be let in. */
+function chime() {
+  navigator.vibrate?.([120, 80, 120]);
+  try {
+    const audio = new AudioContext();
+    [660, 880].forEach((frequency, i) => {
+      const at = audio.currentTime + i * 0.18;
+      const osc = audio.createOscillator();
+      const gain = audio.createGain();
+      osc.frequency.value = frequency;
+      gain.gain.setValueAtTime(0.0001, at);
+      gain.gain.exponentialRampToValueAtTime(0.2, at + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, at + 0.3);
+      osc.connect(gain).connect(audio.destination);
+      osc.start(at);
+      osc.stop(at + 0.32);
+    });
+    setTimeout(() => audio.close(), 1000);
+  } catch {
+    // No sound, then: the prompt is still on screen
+  }
+}
 
 const encryptionSupported = () =>
   "RTCRtpScriptTransform" in window || "createEncodedStreams" in RTCRtpSender.prototype;
@@ -491,6 +593,10 @@ class Call {
   private secret?: string;
   private ended = false;
   private reconnecting = false;
+  /** This page may send and receive: the host always; the guest once let in. */
+  private letIn = true;
+  private sendingStarted = false;
+  private knocking = false;
   /** Every change to the connections runs in turn: the SFU wants one negotiation at a time per session. */
   private queue: Promise<unknown> = Promise.resolve();
 
@@ -525,6 +631,11 @@ class Call {
   ) {
     this.remoteAudio.autoplay = true;
     $("audio").appendChild(this.remoteAudio);
+    for (const video of [this.remoteVideo, this.localVideo]) video.poster = NO_POSTER;
+    // Shown only once a frame has arrived
+    for (const event of ["resize", "loadeddata"]) this.remoteVideo.addEventListener(event, () => this.showRemote());
+    $("let-in").addEventListener("click", () => this.answerKnock("letIn"));
+    $("turn-away").addEventListener("click", () => this.answerKnock("turnAway"));
     // Android's WebView pauses media while the app is in the background and doesn't start it again on return
     document.addEventListener("visibilitychange", () => {
       if (document.visibilityState !== "visible") return;
@@ -576,12 +687,22 @@ class Call {
     this.ice = welcome.iceServers;
     // Before sending: without video minutes the camera goes off first
     if (welcome.peer.limits) this.applyLimits(welcome.peer.limits);
-    await this.run(() => this.startSending());
+    this.letIn = this.role === "host" || welcome.peer.letIn !== false;
+    this.sendingStarted = false;
+    if (this.letIn) await this.run(() => this.startSending());
     this.onPeer(welcome.peer);
+  }
+
+  /** The host's answer to someone waiting to be let in. */
+  private answerKnock(answer: "letIn" | "turnAway") {
+    this.knocking = false;
+    $("knock").hidden = true;
+    this.signal?.request({ type: answer }).catch((e) => console.warn(answer, e));
   }
 
   private onNews(news: { type: string; peer?: Peer; reason?: string }) {
     if (news.type === "ended") this.end((news as { reason?: string }).reason);
+    else if (news.type === "turnedAway") this.end(undefined, t("turnedAwayTitle"));
     else if (news.type === "peer" && news.peer) this.onPeer(news.peer);
   }
 
@@ -637,6 +758,7 @@ class Call {
   }
 
   private async startSending() {
+    this.sendingStarted = true;
     this.sending = this.newConnection();
     this.videoSender = undefined;
     const tracks = [this.addSender(this.mic!, "audio")];
@@ -683,9 +805,19 @@ class Call {
   private onPeer(peer: Peer) {
     this.peer = peer;
     if (peer.limits) this.applyLimits(peer.limits);
+    const knocking = this.role === "host" && Boolean(peer.knocking);
+    if (knocking && !this.knocking) chime();
+    this.knocking = knocking;
+    $("knock").hidden = !knocking;
+    if (!this.letIn && peer.letIn !== false) this.letIn = true;
     this.run(async () => {
       const latest = this.peer;
-      if (!latest.session) {
+      if (!this.letIn) {
+        // Waiting to be let in: nothing is sent or received yet
+      } else if (!this.sendingStarted) {
+        await this.startSending();
+      }
+      if (!this.letIn || !latest.session) {
         this.closeReceiving();
       } else {
         const wanted = latest.tracks.filter((n) => n === "audio" || n === newestVideo(latest.tracks));
@@ -735,9 +867,12 @@ class Call {
     if (video && (this.remoteVideo.srcObject as MediaStream | null)?.getTracks()[0] !== video) {
       this.remoteVideo.srcObject = new MediaStream([video]);
     }
-    this.remoteVideo.classList.toggle("active", Boolean(video));
-    if (!peer.present) this.status.textContent = this.peerEverSeen ? t("connecting") : t("waiting");
-    else this.status.textContent = video ? "" : audio ? t("audioOnly") : t("connecting");
+    // Not until its first frame is here (videoWidth), so there's no empty box in between
+    const showing = Boolean(video) && this.remoteVideo.videoWidth > 0;
+    this.remoteVideo.classList.toggle("active", showing);
+    if (!this.letIn) this.status.textContent = t("waitingLetIn");
+    else if (!peer.present) this.status.textContent = this.peerEverSeen ? t("connecting") : t("waiting");
+    else this.status.textContent = showing ? "" : video ? t("connecting") : audio ? t("audioOnly") : t("connecting");
     if (peer.present) this.peerEverSeen = true;
   }
   private peerEverSeen = false;
@@ -837,15 +972,16 @@ class Call {
     this.end();
   }
 
-  private end(reason?: string) {
+  private end(reason?: string, title = t("endedTitle")) {
     if (this.ended) return;
     this.ended = true;
     clearInterval(this.noticeTimer);
+    $("knock").hidden = true;
     this.signal?.close();
     this.closeConnections();
     this.mic?.stop();
     this.closeCamera();
-    message(t("endedTitle"), reason ? t("endedLimit") : t("endedText"));
+    message(title, reason ? t("endedLimit") : t("endedText"));
     window.HydCall?.ended();
   }
 

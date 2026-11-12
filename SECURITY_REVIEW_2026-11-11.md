@@ -145,7 +145,7 @@ beyond HowYouDoin's own glue.
 | # | Fix |
 |---|---|
 | 1 | `publish` validates before any SFU session is opened; each person may open at most 12 SFU sessions in a call (`MAX_SESSIONS`, `takeSession`); each connection may send 60 WebSocket messages a minute (closed with 4008 past that). |
-| 2 | The explanation before the first call (13 languages) and the privacy policy now say the link is as private as the chat it's sent in, and that a network without end-to-end encryption could read it. The guest-admission step is still open. |
+| 2 | The explanation before the first call (13 languages) and the privacy policy now say the link is as private as the chat it's sent in, and that a network without end-to-end encryption could read it. An optional admission step followed: with Settings → Privacy → *Let people into calls yourself* on, the guest waits until the host lets them in (`askFirst`, `letIn`/`turnAway` in `room.ts`). |
 | 3 | A key per direction (HKDF of the link key with the sender's role) and an IV made of a random stream prefix plus a frame counter; a receiver drops a frame whose counter doesn't move forward (`frame-crypto.ts`, with tests). |
 | 4 | `public/_headers`: CSP, `frame-ancestors 'none'`, Permissions-Policy, Referrer-Policy, nosniff. |
 | 5 | The 6-a-minute limit is now per install and address; a second limiter caps an address at 120 a minute (`IP_LIMIT`). |

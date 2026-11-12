@@ -37,6 +37,9 @@ import {
   takeSession,
   tick,
   isTrackName,
+  isLetIn,
+  letIn,
+  turnAway,
   MAX_CALL_MS,
 } from "./room.ts";
 import { iceServers, Sfu, type SessionDescription } from "./sfu.ts";
@@ -101,6 +104,8 @@ interface AppRequest {
   video?: boolean;
   /** The call's name, derived from its key (web/link.ts), when starting a call. */
   room?: string;
+  /** The host wants to let the guest in themselves (a setting in the app; off by default). */
+  askFirst?: boolean;
 }
 
 const INSTALL_ID = /^[A-Za-z0-9_-]{16,64}$/;
@@ -120,6 +125,7 @@ async function readApp(request: Request): Promise<AppRequest & { install: string
   if (body.room !== undefined && (typeof body.room !== "string" || !ROOM_NAME.test(body.room))) {
     throw new BadRequest("Not a call name");
   }
+  if (body.askFirst !== undefined && typeof body.askFirst !== "boolean") throw new BadRequest("Not a setting");
   return body as AppRequest & { install: string };
 }
 
@@ -186,7 +192,7 @@ async function createCall(request: Request, env: Env, origin: string): Promise<R
   const hostToken = randomId();
   // The app names the call after its key (a hash of it, so the name says nothing about the key): a name in use is
   // someone else's call, never taken over
-  if (!(await env.CALLS.get(env.CALLS.idFromName(app.room)).create(hostToken, limits))) {
+  if (!(await env.CALLS.get(env.CALLS.idFromName(app.room)).create(hostToken, limits, app.askFirst === true))) {
     return error(409, "This call already exists");
   }
   const joinUrl = `${origin}/`;
@@ -276,6 +282,8 @@ type Request_ =
   | { type: "subscribe"; session: string; tracks: string[]; fresh: boolean }
   | { type: "answer"; answer: SessionDescription }
   | { type: "camera"; on: boolean }
+  | { type: "letIn" }
+  | { type: "turnAway" }
   | { type: "bye" };
 
 class Refusal extends Error {}
@@ -293,9 +301,9 @@ export class CallRoom extends DurableObject<Env> {
   private room?: Room | null;
 
   /** Makes the call; false when this name is already a call (ended ones are forgotten, so a name frees up). */
-  async create(hostToken: string, limits?: CallLimits): Promise<boolean> {
+  async create(hostToken: string, limits?: CallLimits, askFirst = false): Promise<boolean> {
     if (await this.load()) return false;
-    this.room = newRoom(hostToken, Date.now(), limits);
+    this.room = newRoom(hostToken, Date.now(), limits, askFirst);
     await this.save(this.room);
     return true;
   }
@@ -369,6 +377,8 @@ export class CallRoom extends DurableObject<Env> {
     const { role, gen } = ws.deserializeAttachment() as Attachment;
     if (!role || room[role].gen !== gen) throw new Refusal("not in the call");
     const me = room[role];
+    // A guest waiting to be let in can only leave: no media either way, so no SFU sessions to pay for
+    if (role === "guest" && !isLetIn(room) && message.type !== "bye") throw new Refusal("waiting");
 
     switch (message.type) {
       case "publish": {
@@ -422,6 +432,21 @@ export class CallRoom extends DurableObject<Env> {
         me.camera = Boolean(message.on);
         await this.changed(room);
         return {};
+      case "letIn":
+        if (role !== "host") throw new Refusal("not the host");
+        if (letIn(room)) await this.changed(room);
+        return {};
+      case "turnAway": {
+        if (role !== "host") throw new Refusal("not the host");
+        if (!turnAway(room)) return {};
+        for (const ws of this.ctx.getWebSockets()) {
+          if ((ws.deserializeAttachment() as Attachment).role !== "guest") continue;
+          send(ws, { type: "turnedAway" });
+          ws.close(4003, "turned away");
+        }
+        await this.changed(room);
+        return {};
+      }
       case "bye":
         hangUp(room, role);
         await this.changed(room);

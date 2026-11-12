@@ -25,13 +25,16 @@ class HttpLinkCallsTest {
     private val json = headersOf(HttpHeaders.ContentType, "application/json")
 
     /** Stands in for SHA-256 (the real derivation is checked against the page in CallLinkNamingTest). */
-    private val fakeSha256: (ByteArray) -> ByteArray = { key -> ByteArray(32) { i -> (key[i % key.size] + i).toByte() } }
+    private val fakeSha256: (ByteArray) -> ByteArray = { key ->
+        ByteArray(32) { i -> (key[i % key.size] + i).toByte() }
+    }
 
     private fun calls(
         engine: MockEngine,
         url: String = "https://call.example",
+        askFirst: Boolean = false,
         bytes: (Int) -> ByteArray = { ByteArray(it) },
-    ) = HttpLinkCalls(HttpClientFactory.create(engine), url, install, NoPremium, bytes, fakeSha256)
+    ) = HttpLinkCalls(HttpClientFactory.create(engine), url, install, NoPremium, bytes, fakeSha256) { askFirst }
 
     private val created = """
         {"joinUrl":"https://call.example/","hostUrl":"https://call.example/?host=1#t=tok&u=wss"}
@@ -108,5 +111,18 @@ class HttpLinkCallsTest {
         val calls = calls(engine)
         val minutes = (calls.minutes() as Result.Success).data
         assertEquals(CallMinutes(false, 2_520_000, 36_000_000, 1_796_083_200_000), minutes)
+    }
+
+    @Test
+    fun withTheSettingOnTheServerIsToldToLetTheGuestWait() = runTest {
+        var body: String? = null
+        val engine = MockEngine { request ->
+            body = (request.body as TextContent).text
+            respond(created, HttpStatusCode.OK, json)
+        }
+
+        calls(engine, askFirst = true).start(video = false)
+
+        assertTrue(body!!.contains(""""askFirst":true"""), body)
     }
 }

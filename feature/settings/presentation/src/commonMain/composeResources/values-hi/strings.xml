@@ -14,6 +14,8 @@
     <string name="settings_crash_reports">क्रैश रिपोर्ट</string>
     <string name="settings_crash_present">पिछले क्रैश की रिपोर्ट इस फ़ोन पर है</string>
     <string name="settings_crash_none">इस फ़ोन पर रहती हैं; क्या शेयर करना है, आप तय करते हैं</string>
+    <string name="settings_ask_before_letting_in">कॉल में लोगों को ख़ुद अंदर आने दें</string>
+    <string name="settings_ask_before_letting_in_sub">आपकी कॉल का लिंक खोलने वाला तब तक इंतज़ार करता है जब तक आप उसे अंदर न आने दें। बंद: जो पहले लिंक खोले, वह कॉल में आ जाता है।</string>
     <string name="settings_backup_logins">लॉगिन का बैकअप लें</string>
     <string name="settings_backup_logins_sub">आपके फ़ोन के Google बैकअप में, आपके स्क्रीन लॉक से एंड-टू-एंड एन्क्रिप्टेड। नए फ़ोन पर या दोबारा इंस्टॉल करने के बाद Messenger, Instagram, Slack, Telegram और Matrix बिना लॉगिन के फिर जुड़ जाते हैं। WhatsApp और Signal को हर बार फिर से लिंक करना होता है।</string>
     <string name="settings_google_backup">Google बैकअप</string>

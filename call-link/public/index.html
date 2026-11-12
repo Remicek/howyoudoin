@@ -25,6 +25,14 @@
     <video id="remote" autoplay playsinline></video>
     <p id="status"></p>
     <p id="notice" role="status" hidden></p>
+    <section id="knock" role="alertdialog" aria-labelledby="knock-title" hidden>
+      <h2 id="knock-title" data-text="knockTitle"></h2>
+      <p data-text="knockText"></p>
+      <div class="buttons">
+        <button id="let-in" class="primary" data-text="letIn"></button>
+        <button id="turn-away" data-text="turnAway"></button>
+      </div>
+    </section>
     <video id="local" autoplay playsinline muted></video>
     <div id="audio"></div>
     <nav class="controls">

@@ -140,3 +140,23 @@ button.round {
 button.round[aria-pressed="false"] { background: var(--text); color: var(--bg); }
 button.round.danger { background: var(--danger); }
 button.round svg { width: 1.6rem; height: 1.6rem; fill: currentColor; }
+
+/* The host's "someone opened your link" prompt, over everything but the controls */
+#knock {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(22rem, calc(100% - 2rem));
+  padding: 1.5rem;
+  border-radius: 1.25rem;
+  background: var(--surface);
+  box-shadow: 0 0.5rem 2rem rgb(0 0 0 / 0.5);
+  z-index: 2;
+}
+#knock[hidden] { display: none; }
+#knock h2 { font-size: 1.25rem; margin: 0 0 0.5rem; }
+#knock p { margin: 0; }
+#knock .buttons { margin-top: 1.25rem; }
+#knock button:not(.primary) { background: var(--bg); }
+body:has(#knock:not([hidden])) #status { visibility: hidden; }

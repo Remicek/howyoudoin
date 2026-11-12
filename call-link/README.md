@@ -36,6 +36,11 @@ here, sends its link in the chat, and the other person joins from their browser 
   call. The call's name is a hash of the key: knowing the name (as the server does) says nothing about the key.
 - The invite is as private as the chat it's sent in: anyone who can read that chat can open the link, and on a
   network without end-to-end encryption that includes the network. The app says so before the first call.
+- **Letting people in** (Settings → Privacy → *Let people into calls yourself*, off by default): the app sends
+  `askFirst: true` when it creates the call. Whoever then opens the link waits ("Waiting for them to let you in…")
+  and can't send or receive anything, so no SFU session is opened for them. The host's page chimes and asks
+  *Let them in* / *Don't let in*. Someone turned away loses their place, their secret stops working, and the next
+  person with the link can knock. With the setting off, whoever opens the link first is in, as before.
 - A call has room for **two people**. It ends 15 minutes after it's created if nobody joins, when either person
   hangs up, when someone stays disconnected for 20 seconds, and after 4 hours at most. A link to an ended call
   says the call has ended.

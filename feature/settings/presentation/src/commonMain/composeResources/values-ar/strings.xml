@@ -14,6 +14,8 @@
     <string name="settings_crash_reports">تقارير الأعطال</string>
     <string name="settings_crash_present">يوجد تقرير عن آخر عطل على هذا الهاتف</string>
     <string name="settings_crash_none">تبقى على هذا الهاتف؛ أنت تختار ما تشاركه</string>
+    <string name="settings_ask_before_letting_in">اسمح بنفسك بالدخول إلى المكالمات</string>
+    <string name="settings_ask_before_letting_in_sub">من يفتح رابط مكالمتك ينتظر حتى تسمح له بالدخول. عند الإيقاف: أول من يفتح الرابط يدخل المكالمة.</string>
     <string name="settings_backup_logins">نسخ بيانات الدخول احتياطيًا</string>
     <string name="settings_backup_logins_sub">في نسخة Google الاحتياطية على هاتفك، مشفّرة تشفيرًا تامًا بقفل الشاشة. على هاتف جديد أو بعد إعادة التثبيت، يعود ماسنجر وإنستغرام وSlack وتيليجرام وMatrix للاتصال دون تسجيل دخول. أما واتساب وسيجنال فيجب ربطهما من جديد دائمًا.</string>
     <string name="settings_google_backup">نسخة Google الاحتياطية</string>

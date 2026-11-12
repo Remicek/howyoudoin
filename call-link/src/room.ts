@@ -2,7 +2,8 @@
 //
 // A call has two places: the HowYouDoin user who started it (the host, who has the call's secret token) and one
 // invited person (the guest, who has only the link and gets a secret of their own when they join, to come back after a
-// dropped connection). Once both have been in the call, either one hanging up, or staying away longer than
+// dropped connection). If the host chose to (askFirst, a setting in the app), the guest waits until the host lets
+// them in, so whoever opens a link that leaked through the chat can be turned away. Once both have been in the call, either one hanging up, or staying away longer than
 // RECONNECT_MS, ends it for good.
 
 import { LIMITS, type Plan } from "./plans.ts";
@@ -69,6 +70,8 @@ export interface Room {
   endReason?: "minutes" | "length";
   host: Member;
   guest: Member;
+  /** The guest may be in the call: from the start, unless the host asked to let them in. Missing (older calls): yes. */
+  letIn?: boolean;
   /** Missing for calls created before plans. */
   limits?: CallLimits;
   meter: Meter;
@@ -103,8 +106,12 @@ export interface Credentials {
 export type Admission = { role: Role; gen: number; secret?: string } | { error: "ended" | "busy" | "forbidden" };
 
 export interface PeerView {
-  /** Connected now. */
+  /** Connected now (a guest only once let in). */
   present: boolean;
+  /** The host's view: someone opened the link and waits to be let in. */
+  knocking: boolean;
+  /** The guest is let in (the guest's page waits for it before sending anything). */
+  letIn: boolean;
   /** Their publishing session, while they publish anything. */
   session?: string;
   tracks: string[];
@@ -136,18 +143,24 @@ export const emptyMeter = (limits?: CallLimits): Meter => ({
   videoAllowed: limits?.videoLeftMs !== 0,
 });
 
-export function newRoom(hostToken: string, now: number, limits?: CallLimits): Room {
+/** @param askFirst the host lets the guest in themselves; otherwise whoever opens the link first is in. */
+export function newRoom(hostToken: string, now: number, limits?: CallLimits, askFirst = false): Room {
   return {
     createdAt: now,
     hostToken,
     phase: "waiting",
     host: emptyMember(),
     guest: emptyMember(),
+    letIn: !askFirst,
     limits,
     meter: emptyMeter(limits),
   };
 }
 
+export const isLetIn = (room: Room): boolean => room.letIn !== false;
+const startIfBothIn = (room: Room) => {
+  if (room.host.connected && room.guest.connected && isLetIn(room)) room.phase = "active";
+};
 const bothIn = (room: Room) => room.phase === "active" && room.host.connected && room.guest.connected;
 const videoOn = (room: Room) => room.host.camera || room.guest.camera;
 
@@ -265,8 +278,26 @@ export function admit(room: Room, credentials: Credentials, newSecret: () => str
     secret: role === "guest" ? (before.secret ?? newSecret()) : undefined,
     sessions: before.sessions,
   };
-  if (room.host.connected && room.guest.connected) room.phase = "active";
+  startIfBothIn(room);
   return { role, gen: room[role].gen, secret: room[role].secret };
+}
+
+/** The host lets in the guest who is waiting. False when nobody is. */
+export function letIn(room: Room): boolean {
+  if (room.phase === "ended" || isLetIn(room) || !room.guest.connected) return false;
+  room.letIn = true;
+  startIfBothIn(room);
+  return true;
+}
+
+/**
+ * The host turns away the guest who is waiting: their secret no longer works and the place is free for someone else
+ * with the link. False when nobody is waiting.
+ */
+export function turnAway(room: Room): boolean {
+  if (room.phase === "ended" || isLetIn(room) || !room.guest.secret) return false;
+  room.guest = emptyMember(room.guest.gen + 1);
+  return true;
 }
 
 /** A connection closed. Returns false for a connection that was already replaced. */
@@ -375,8 +406,11 @@ export function canSubscribe(room: Room, role: Role, session: string, names: str
 /** What this person needs to know about the other one, and about the call's limits. */
 export function peerView(room: Room, role: Role, now: number): PeerView {
   const peer = room[other(role)];
+  const waiting = !isLetIn(room) && room.guest.connected;
   return {
-    present: peer.connected,
+    present: peer.connected && (role === "guest" || isLetIn(room)),
+    knocking: role === "host" && waiting,
+    letIn: isLetIn(room),
     session: peer.tracks.length ? peer.pubSession : undefined,
     tracks: peer.tracks,
     camera: peer.camera,

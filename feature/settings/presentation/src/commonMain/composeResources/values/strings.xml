@@ -14,6 +14,8 @@
     <string name="settings_crash_reports">Crash reports</string>
     <string name="settings_crash_present">A report from the last crash is on this phone</string>
     <string name="settings_crash_none">Kept on this phone; you choose what to share</string>
+    <string name="settings_ask_before_letting_in">Let people into calls yourself</string>
+    <string name="settings_ask_before_letting_in_sub">Someone who opens your call link waits until you let them in. Off: whoever opens it first is in the call.</string>
     <string name="settings_backup_logins">Back up logins</string>
     <string name="settings_backup_logins_sub">In your phone's Google backup, end-to-end encrypted with your screen lock. On a new phone or after reinstalling, Messenger, Instagram, Slack, Telegram and Matrix reconnect without logging in. WhatsApp and Signal always need linking again.</string>
     <string name="settings_google_backup">Google backup</string>

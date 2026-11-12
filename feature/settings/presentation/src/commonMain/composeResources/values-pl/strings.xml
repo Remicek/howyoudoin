@@ -14,6 +14,8 @@
     <string name="settings_crash_reports">Raporty o awariach</string>
     <string name="settings_crash_present">Na telefonie jest raport z ostatniej awarii</string>
     <string name="settings_crash_none">Zostają na telefonie; Ty decydujesz, czym się podzielić</string>
+    <string name="settings_ask_before_letting_in">Wpuszczaj do rozmów samodzielnie</string>
+    <string name="settings_ask_before_letting_in_sub">Osoba, która otworzy link do rozmowy, czeka, aż ją wpuścisz. Wyłączone: do rozmowy wchodzi ten, kto pierwszy otworzy link.</string>
     <string name="settings_backup_logins">Kopia zapasowa logowań</string>
     <string name="settings_backup_logins_sub">W kopii zapasowej Google na Twoim telefonie, zaszyfrowanej end-to-end blokadą ekranu. Na nowym telefonie lub po ponownej instalacji Messenger, Instagram, Slack, Telegram i Matrix łączą się bez logowania. WhatsApp i Signal zawsze trzeba połączyć ponownie.</string>
     <string name="settings_google_backup">Kopia zapasowa Google</string>

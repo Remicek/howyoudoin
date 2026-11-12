@@ -7,6 +7,7 @@ import com.devvalor.howyoudoing.chat.data.SessionAwareChatRepository
 import com.devvalor.howyoudoing.chat.data.demo.DemoChatRepository
 import com.devvalor.howyoudoing.chat.data.linkcall.DataStoreLinkCallPreferences
 import com.devvalor.howyoudoing.chat.domain.LinkCallPreferences
+import com.devvalor.howyoudoing.core.domain.app.CallSettings
 import com.devvalor.howyoudoing.chat.data.matrix.MatrixApi
 import com.devvalor.howyoudoing.chat.data.ondevice.OnDeviceChatRepository
 import com.devvalor.howyoudoing.chat.data.ondevice.OnDeviceMessengerStore
@@ -38,6 +39,7 @@ import com.devvalor.howyoudoing.chat.domain.OpenChatTracker
 import com.devvalor.howyoudoing.chat.data.DataStoreNotificationPreferences
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.bind
+import org.koin.dsl.binds
 import org.koin.dsl.module
 
 val chatDataModule = module {
@@ -50,7 +52,7 @@ val chatDataModule = module {
     singleOf(::SessionAwareChatRepository)
     singleOf(::OpenChatTracker)
     singleOf(::DataStoreNotificationPreferences) bind NotificationPreferences::class
-    singleOf(::DataStoreLinkCallPreferences) bind LinkCallPreferences::class
+    singleOf(::DataStoreLinkCallPreferences) binds arrayOf(LinkCallPreferences::class, CallSettings::class)
     // Created eagerly so they collect the on-device inboxes from the start
     single(named(MESSENGER_STORE), createdAtStart = true) {
         OnDeviceMessengerStore(

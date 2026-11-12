@@ -14,6 +14,8 @@
     <string name="settings_crash_reports">Absturzberichte</string>
     <string name="settings_crash_present">Ein Bericht vom letzten Absturz liegt auf diesem Handy</string>
     <string name="settings_crash_none">Bleiben auf diesem Handy; du entscheidest, was du teilst</string>
+    <string name="settings_ask_before_letting_in">Leute selbst in Anrufe lassen</string>
+    <string name="settings_ask_before_letting_in_sub">Wer deinen Anruflink öffnet, wartet, bis du ihn reinlässt. Aus: Wer ihn zuerst öffnet, ist im Anruf.</string>
     <string name="settings_backup_logins">Anmeldungen sichern</string>
     <string name="settings_backup_logins_sub">In der Google-Sicherung deines Handys, Ende-zu-Ende-verschlüsselt mit deiner Displaysperre. Auf einem neuen Handy oder nach einer Neuinstallation verbinden sich Messenger, Instagram, Slack, Telegram und Matrix ohne Anmeldung. WhatsApp und Signal müssen immer neu verknüpft werden.</string>
     <string name="settings_google_backup">Google-Sicherung</string>
