@@ -1,5 +1,6 @@
 package com.devvalor.howyoudoing.core.data.networking
 
+import com.devvalor.howyoudoing.core.domain.util.AppLog
 import com.devvalor.howyoudoing.core.domain.util.DataError
 import com.devvalor.howyoudoing.core.domain.util.Result
 import io.ktor.client.HttpClient
@@ -77,7 +78,7 @@ internal fun Exception.toRemoteError(): DataError.Remote = when (this) {
     is UnresolvedAddressException -> DataError.Remote.NO_INTERNET
     is SerializationException -> DataError.Remote.SERIALIZATION
     else -> {
-        println("HowYouDoin HTTP error: $message")
+        AppLog.d { "HowYouDoin HTTP error: $message" }
         DataError.Remote.UNKNOWN
     }
 }
@@ -90,10 +91,10 @@ suspend inline fun <reified T> responseToResult(
     return try {
         Result.Success(response.body<T>())
     } catch (e: NoTransformationFoundException) {
-        println("HowYouDoin HTTP response not readable: ${e.message}")
+        AppLog.d { "HowYouDoin HTTP response not readable: ${e.message}" }
         Result.Failure(DataError.Remote.SERIALIZATION)
     } catch (e: SerializationException) {
-        println("HowYouDoin HTTP response not readable: ${e.message}")
+        AppLog.d { "HowYouDoin HTTP response not readable: ${e.message}" }
         Result.Failure(DataError.Remote.SERIALIZATION)
     }
 }

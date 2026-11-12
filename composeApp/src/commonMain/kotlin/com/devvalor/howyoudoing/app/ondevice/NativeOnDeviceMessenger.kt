@@ -3,6 +3,7 @@
 
 package com.devvalor.howyoudoing.app.ondevice
 
+import com.devvalor.howyoudoing.core.domain.util.AppLog
 import com.devvalor.howyoudoing.core.domain.media.Attachment
 import com.devvalor.howyoudoing.core.domain.media.MessageRef
 import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
@@ -549,7 +550,7 @@ open class NativeOnDeviceMessenger(
         _events.tryEmit(json)
     }
 
-    private fun log(message: String) = println("OnDeviceMessenger: $message")
+    private fun log(message: String) = AppLog.d { "OnDeviceMessenger: $message" }
 
     private companion object {
         const val EVENT_REPLAY = 5_000

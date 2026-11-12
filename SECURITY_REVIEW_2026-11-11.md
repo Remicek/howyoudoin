@@ -151,6 +151,6 @@ beyond HowYouDoin's own glue.
 | 5 | The 6-a-minute limit is now per install and address; a second limiter caps an address at 120 a minute (`IP_LIMIT`). |
 | 6 | `permissions: contents: read` in `android.yml`, `demo-gif.yml`, `bridge.yml`; `android-emulator-runner` pinned to its commit. |
 | 7 | `LinkCallActivity` hands only `http`/`https` URLs to Android. |
-| 8 | ProGuard strips `println`/`print` from release builds. |
+| 8 | Every log line goes through `AppLog`, which the app turns off in release builds (a ProGuard rule couldn't do it: Kotlin inlines `println` into `System.out` calls). Checked on the A53: a release build writes nothing to logcat. |
 | 9 | `withVideoMeta` reads at most the first 4 MB of a video. |
 | 10 | `AccountActionWebView` got the `onPageStarted` safety net; third-party cookies stay on (Facebook's consent flow needs its own frames). |

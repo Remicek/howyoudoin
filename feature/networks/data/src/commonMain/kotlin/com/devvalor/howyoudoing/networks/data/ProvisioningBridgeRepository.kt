@@ -1,5 +1,6 @@
 package com.devvalor.howyoudoing.networks.data
 
+import com.devvalor.howyoudoing.core.domain.util.AppLog
 import com.devvalor.howyoudoing.core.data.networking.safeCall
 import com.devvalor.howyoudoing.core.domain.auth.AuthInfo
 import com.devvalor.howyoudoing.core.domain.auth.SessionStorage
@@ -144,7 +145,7 @@ class ProvisioningBridgeRepository(
     } catch (e: CancellationException) {
         throw e
     } catch (e: Exception) {
-        println("Provisioning: history restore failed: ${e.message}")
+        AppLog.d { "Provisioning: history restore failed: ${e.message}" }
         null
     }
 

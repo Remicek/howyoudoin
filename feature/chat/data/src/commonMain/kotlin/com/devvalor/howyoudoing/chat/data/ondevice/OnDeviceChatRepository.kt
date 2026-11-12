@@ -1,5 +1,6 @@
 package com.devvalor.howyoudoing.chat.data.ondevice
 
+import com.devvalor.howyoudoing.core.domain.util.AppLog
 import com.devvalor.howyoudoing.chat.domain.ChatContact
 import com.devvalor.howyoudoing.chat.data.SessionAwareChatRepository
 import com.devvalor.howyoudoing.core.domain.media.MessageRef
@@ -457,7 +458,7 @@ class OnDeviceChatRepository(
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
-            println("OnDeviceChats: media download failed: ${e.message}")
+            AppLog.d { "OnDeviceChats: media download failed: ${e.message}" }
             null
         }
     }

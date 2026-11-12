@@ -1,5 +1,6 @@
 package com.devvalor.howyoudoing.chat.data.matrix
 
+import com.devvalor.howyoudoing.core.domain.util.AppLog
 import com.devvalor.howyoudoing.chat.data.ondevice.MatrixAccountChats
 import com.devvalor.howyoudoing.chat.domain.CallEndReason
 import com.devvalor.howyoudoing.chat.domain.CallManager
@@ -153,7 +154,7 @@ class MatrixCallManager(
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
-            println("MatrixCall: starting failed: ${e.message}")
+            AppLog.d { "MatrixCall: starting failed: ${e.message}" }
             end(call, CallEndReason.FAILED)
             Result.Failure(DataError.Remote.UNKNOWN)
         }
@@ -185,7 +186,7 @@ class MatrixCallManager(
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
-            println("MatrixCall: answering failed: ${e.message}")
+            AppLog.d { "MatrixCall: answering failed: ${e.message}" }
             sendHangup(call, "ice_failed")
             end(call, CallEndReason.FAILED)
         }
@@ -323,7 +324,7 @@ class MatrixCallManager(
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
-            println("MatrixCall: connecting the answer failed: ${e.message}")
+            AppLog.d { "MatrixCall: connecting the answer failed: ${e.message}" }
             sendHangup(call, "ice_failed")
             end(call, CallEndReason.FAILED)
         }

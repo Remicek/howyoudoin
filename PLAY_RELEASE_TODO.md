@@ -107,4 +107,4 @@ One-time setup (done 2026-11-06; project howyoudoin-513908, play-publisher@howyo
   (en-US only) are published.
 - [x] Data safety form switched to "collects data" with the 7 types in `docs/data-safety.md` (app functionality,
   not shared; deletion info at https://howyoudoin.app/privacy.html); sent for review 2026-11-11.
-- [ ] 1.1.4 (versionCode 10) is on internal (uploaded 2026-11-12, replaces 1.1.3, which can't start calls since the call server's 2026-11-12 deploy); production waits for the user's go-ahead after the A53 test.
+- [ ] 1.1.4 (versionCode 11; 10 had println logging in release) is on internal (uploaded 2026-11-12, replaces 1.1.3, which can't start calls since the call server's 2026-11-12 deploy); production waits for the user's go-ahead after the A53 test.

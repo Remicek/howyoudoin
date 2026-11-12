@@ -16,9 +16,3 @@
 # Optional logging and JVM-only classes some libraries mention but Android doesn't have
 -dontwarn org.slf4j.**
 -dontwarn java.lang.management.**
-
-# Release builds print nothing to logcat: every println (HTTP errors, the on-device clients' state lines) goes
--assumenosideeffects class kotlin.io.ConsoleKt {
-    public static void println(...);
-    public static void print(...);
-}

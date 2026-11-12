@@ -1,5 +1,6 @@
 package com.devvalor.howyoudoing.chat.data.matrix
 
+import com.devvalor.howyoudoing.core.domain.util.AppLog
 import com.devvalor.howyoudoing.chat.data.matrix.dto.InvitedRoomDto
 import com.devvalor.howyoudoing.chat.data.matrix.dto.SendEventResponseDto
 import com.devvalor.howyoudoing.chat.domain.Attachment
@@ -339,7 +340,7 @@ class MatrixSyncEngine(
         val opened = try {
             session?.let { cryptoFactory?.open(it) }
         } catch (e: MatrixKeysLostException) {
-            println("MatrixCrypto: keys lost, sign-in needed (${e.message})")
+            AppLog.d { "MatrixCrypto: keys lost, sign-in needed (${e.message})" }
             _encryption.value = MatrixEncryptionStatus.NEEDS_SIGN_IN
             null
         } ?: return
@@ -357,7 +358,7 @@ class MatrixSyncEngine(
         val crypto = crypto ?: return null
         return withContext(Dispatchers.IO) {
             runCatching { block(crypto) }
-                .onFailure { println("MatrixCrypto: ${it.message} (${subject::class.simpleName})") }
+                .onFailure { AppLog.d { "MatrixCrypto: ${it.message} (${subject::class.simpleName})" } }
                 .getOrNull()
         }
     }
@@ -436,7 +437,7 @@ class MatrixSyncEngine(
     private suspend fun encrypt(crypto: MatrixCrypto, roomId: String, type: String, content: JsonObject) =
         withContext(Dispatchers.IO) {
             runCatching { json.parseToJsonElement(crypto.encrypt(roomId, type, content.toString())).jsonObject }
-                .onFailure { println("MatrixCrypto: encrypt failed: ${it.message}") }
+                .onFailure { AppLog.d { "MatrixCrypto: encrypt failed: ${it.message}" } }
                 .getOrNull()
         }
 

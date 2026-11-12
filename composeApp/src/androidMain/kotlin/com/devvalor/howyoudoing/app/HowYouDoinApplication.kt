@@ -1,5 +1,6 @@
 package com.devvalor.howyoudoing.app
 
+import com.devvalor.howyoudoing.core.domain.util.AppLog
 import com.devvalor.howyoudoing.app.ondevice.ConnectionWatchdogWorker
 import android.app.Application
 import com.devvalor.howyoudoing.app.di.initKoin
@@ -11,6 +12,8 @@ class HowYouDoinApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        // Nothing for logcat in release builds (see AppLog)
+        AppLog.enabled = BuildConfig.DEBUG
         CrashLog.install(this)
         // Before Koin: its eager singletons create the network clients, which read their login files
         StorageKey.install(this)

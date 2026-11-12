@@ -3,6 +3,7 @@
 
 package com.devvalor.howyoudoing.app.ondevice
 
+import com.devvalor.howyoudoing.core.domain.util.AppLog
 import com.devvalor.howyoudoing.core.domain.media.Attachment
 import com.devvalor.howyoudoing.core.domain.media.MessageRef
 import com.devvalor.howyoudoing.core.domain.network.ChatNetwork
@@ -471,7 +472,7 @@ abstract class NativeOnDeviceLinkedAccount(
         }
     }
 
-    private fun log(message: String) = println("OnDevice${network.name}: $message")
+    private fun log(message: String) = AppLog.d { "OnDevice${network.name}: $message" }
 
     private companion object {
         const val EVENT_REPLAY = 5_000

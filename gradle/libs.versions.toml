@@ -53,7 +53,7 @@ projectMinSdkVersion = "26"
 projectTargetSdkVersion = "36"
 projectCompileSdkVersion = "37"
 projectCompileSdkMinorVersion = "1"
-projectVersionCode = "10"
+projectVersionCode = "11"
 
 [libraries]
 android-billing-ktx = { module = "com.android.billingclient:billing-ktx", version.ref = "billing" }
