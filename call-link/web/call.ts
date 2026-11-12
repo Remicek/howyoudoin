@@ -463,6 +463,10 @@ interface Welcome {
 
 /** How long to keep trying after the connection drops; the call itself waits 20 s for someone to come back. */
 const RECONNECT_FOR_MS = 25_000;
+/** How long to keep trying to join at first: a phone on a weak mobile signal can need several tries. */
+const JOIN_FOR_MS = 45_000;
+/** How long one media connection may take to come up (a weak mobile signal needs well over 15 s). */
+const CONNECT_TIMEOUT_MS = 25_000;
 /** The camera at the plan's height (the server says which: 360p free, 540p Premium). */
 const video = (height: number) => ({
   width: { ideal: Math.round((height * 16) / 9) },
@@ -661,10 +665,29 @@ class Call {
     if (video) await this.openCamera().catch((e) => console.warn("Continuing without the camera", e));
     this.setUpControls();
     addEventListener("pagehide", () => this.hangUp());
-    try {
-      await this.connect();
-    } catch (e) {
-      this.fail(e);
+    await this.join();
+  }
+
+  /** The first connect, tried again for a while: one slow or failed media connection shouldn't end the call. */
+  private async join() {
+    const until = Date.now() + JOIN_FOR_MS;
+    for (;;) {
+      try {
+        await this.connect();
+        return;
+      } catch (e) {
+        if (this.ended) return;
+        const reason = (e as Error).message;
+        if (reason === "ended" || reason === "forbidden" || reason === "busy" || Date.now() >= until) {
+          return this.fail(e);
+        }
+        console.warn("Joining again", e);
+        this.signal?.close();
+        this.signal = undefined;
+        this.closeConnections();
+        this.status.textContent = t("connecting");
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+      }
     }
   }
 
@@ -815,7 +838,13 @@ class Call {
       if (!this.letIn) {
         // Waiting to be let in: nothing is sent or received yet
       } else if (!this.sendingStarted) {
-        await this.startSending();
+        try {
+          await this.startSending();
+        } catch (e) {
+          // Just let in, and the media connection failed: connect again, as after a drop
+          if (this.signal) this.onDropped(this.signal);
+          throw e;
+        }
       }
       if (!this.letIn || !latest.session) {
         this.closeReceiving();
@@ -1038,7 +1067,7 @@ function gathered(pc: RTCPeerConnection): Promise<void> {
   });
 }
 
-function connected(pc: RTCPeerConnection, timeoutMs = 15_000): Promise<void> {
+function connected(pc: RTCPeerConnection, timeoutMs = CONNECT_TIMEOUT_MS): Promise<void> {
   if (pc.connectionState === "connected") return Promise.resolve();
   return new Promise((resolve, reject) => {
     const timer = setTimeout(() => reject(new Error("Couldn't connect the call")), timeoutMs);
