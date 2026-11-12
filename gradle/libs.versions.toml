@@ -48,12 +48,12 @@ compose-jetbrains = "1.9.0"
 jetbrains-savedstate = "1.4.0"
 
 projectApplicationId = "com.devvalor.howyoudoing"
-projectVersionName = "1.1.3"
+projectVersionName = "1.1.4"
 projectMinSdkVersion = "26"
 projectTargetSdkVersion = "36"
 projectCompileSdkVersion = "37"
 projectCompileSdkMinorVersion = "1"
-projectVersionCode = "9"
+projectVersionCode = "10"
 
 [libraries]
 android-billing-ktx = { module = "com.android.billingclient:billing-ktx", version.ref = "billing" }

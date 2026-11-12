@@ -1,4 +1,5 @@
-- Free video calls with anyone you chat with: they join from a link in their browser, end-to-end encrypted
-- Premium: 7 days free, then monthly; more call minutes, sharper video and up to 3 accounts per network
-- A one-time question about rating the app, with "Don't show again"
-- Clearer privacy text: your messages never pass through our servers
+- Shorter call links, and calls connect more reliably on a weak mobile signal
+- New in Settings → Privacy: let people into your calls yourself (off by default)
+- Messenger: a chat that moved to end-to-end encryption stays encrypted
+- Messages still sending when the app closes come back as "not sent" instead of vanishing
+- Premium is simply the monthly plan

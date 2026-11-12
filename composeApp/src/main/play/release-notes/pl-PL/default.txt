@@ -1,4 +1,5 @@
-- Darmowe rozmowy wideo z każdym, z kim piszesz: dołącza z linku w przeglądarce, szyfrowane end-to-end
-- Premium: 7 dni za darmo, potem co miesiąc; więcej minut, ostrzejsze wideo i do 3 kont w każdej sieci
-- Jednorazowe pytanie o ocenę aplikacji, z opcją „Nie pokazuj więcej”
-- Jaśniejszy opis prywatności: Twoje wiadomości nie przechodzą przez nasze serwery
+- Krótsze linki do rozmów, a rozmowy łączą się pewniej przy słabym zasięgu
+- Nowość w Ustawienia → Prywatność: samodzielne wpuszczanie do rozmów (domyślnie wyłączone)
+- Messenger: czat przeniesiony na szyfrowanie end-to-end zostaje zaszyfrowany
+- Wiadomości wysyłane w chwili zamknięcia aplikacji wracają jako „niewysłane”, zamiast znikać
+- Premium to po prostu plan miesięczny
