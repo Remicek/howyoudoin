@@ -1,0 +1,47 @@
+Capek bolak-balik antara WhatsApp, Messenger, Telegram, dan beberapa aplikasi chat lain? HowYouDoin adalah messenger serba ada yang menaruh setiap percakapan dalam satu kotak masuk, jadi kamu bisa membaca dan membalas semua orang dari satu aplikasi. Kamu juga bisa video call gratis dengan siapa pun yang kamu ajak chat.
+
+Bekerja dengan WhatsApp, Messenger, Instagram, Telegram, Signal, Discord, Slack, LinkedIn, Bluesky, X, dan Matrix. Hubungkan jaringan yang kamu pakai dan chatmu muncul bersama, yang terbaru di atas.
+
+SATU KOTAK MASUK UNTUK SEMUA PESAN
+• Setiap chat dari setiap jaringan dalam satu daftar
+• Filter per jaringan dengan sekali ketuk, atau tampilkan yang belum dibaca saja
+• Cari chat, dan mulai chat baru dengan siapa pun di jaringan yang terhubung
+• Notifikasi tanpa server push: aplikasi menjaga koneksinya sendiri (bisa dimatikan di Setelan untuk menghemat baterai)
+
+VIDEO CALL GRATIS DAN TERENKRIPSI
+• Telepon video atau suara siapa pun yang kamu ajak chat, di jaringan mana pun: HowYouDoin mengirim tautan dan mereka bergabung dari browser, tanpa aplikasi atau akun
+• Terenkripsi end-to-end: panggilan melewati server panggilan HowYouDoin, yang tidak bisa melihat atau mendengarnya
+• Gratis setiap bulan: 60 menit video dan 10 jam suara. Orang yang kamu telepon tidak pernah membayar
+• Kalau mau, izinkan orang masuk sendiri: yang membuka tautanmu menunggu sampai kamu setuju
+• Panggilan suara dan video dengan kontak Matrix sudah tersedia
+
+PRIVAT SEJAK AWAL
+• Pesanmu tidak pernah melewati server HowYouDoin: akunmu terhubung langsung dari ponsel ini dan tidak ada orang lain yang melihat chatmu. Hanya panggilan lewat tautan yang memakai server kami, dan semuanya terenkripsi end-to-end
+• Tanpa analitik, tanpa pelacakan, tanpa iklan
+• Kunci aplikasi dengan sidik jari atau PIN, dan sembunyikan isi pesan di notifikasi
+• Laporan crash tetap di ponselmu kecuali kamu memilih untuk membagikannya
+
+APLIKASI CHAT LENGKAP
+• Teks, foto, video, pesan suara, dan file
+• Balasan, reaksi, edit, hapus, indikator mengetik, dan tanda dibaca, di jaringan yang mendukungnya
+• Offline? Chat yang tersimpan tetap bisa dibaca, dan aplikasi memberi tahu saat pesan belum bisa dikirim
+
+MUDAH DIMULAI
+• WhatsApp, Telegram, dan Signal tertaut seperti aplikasi desktopnya, dengan kode QR atau kode penautan
+• Messenger, Instagram, Slack, LinkedIn, Discord, dan X masuk lewat situs mereka sendiri di dalam aplikasi
+• Tur singkat memperkenalkan kotak masuk
+• Coba semuanya dulu di mode demo, tanpa menghubungkan akun
+• Kalau sebuah jaringan berhenti bekerja, aplikasi memberi tahu dan menunjukkan cara memperbaikinya
+
+GAYAMU SENDIRI
+• Mode terang dan gelap serta empat tema warna
+• Tersedia dalam 12 bahasa
+
+GRATIS, DENGAN PREMIUM OPSIONAL
+Semua di atas gratis dan tanpa iklan. HowYouDoin Premium menambah 50 jam video dan 100 jam panggilan suara per bulan, gambar lebih tajam, panggilan hingga 4 jam, dan hingga 3 akun per jaringan. Coba gratis 7 hari, lalu bayar bulanan; batalkan kapan saja di Google Play.
+
+OPEN SOURCE
+Berlisensi GNU AGPL v3; kode sumbernya ada di GitHub.
+
+PERLU DIKETAHUI
+HowYouDoin adalah aplikasi tidak resmi. Aplikasi ini tidak berafiliasi dengan atau didukung oleh Meta, Telegram, Signal, Slack, Discord, LinkedIn, Bluesky, X, atau Matrix.org Foundation. Beberapa layanan ini tidak mengizinkan aplikasi pihak ketiga dan dapat membatasi akun yang memakainya. Gunakan hanya dengan akunmu sendiri. Semua merek dagang milik pemiliknya masing-masing.

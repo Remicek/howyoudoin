@@ -1,0 +1,47 @@
+Marre de passer de WhatsApp à Messenger, Telegram et une poignée d'autres messageries ? HowYouDoin est une messagerie tout-en-un qui réunit chaque conversation dans une seule boîte de réception, pour lire et répondre à tout le monde depuis une seule appli. Et vous pouvez appeler en vidéo, gratuitement, toute personne avec qui vous discutez.
+
+Compatible avec WhatsApp, Messenger, Instagram, Telegram, Signal, Discord, Slack, LinkedIn, Bluesky, X et Matrix. Connectez les réseaux que vous utilisez et vos discussions apparaissent ensemble, les plus récentes en premier.
+
+UNE BOÎTE POUR TOUS VOS MESSAGES
+• Chaque discussion de chaque réseau dans une seule liste
+• Filtrez par réseau d'un geste, ou n'affichez que les non lues
+• Cherchez dans vos discussions et lancez-en une nouvelle avec n'importe qui sur un réseau connecté
+• Notifications sans serveur push : l'appli garde sa propre connexion (désactivable dans les Paramètres pour économiser la batterie)
+
+APPELS VIDÉO GRATUITS ET CHIFFRÉS
+• Appelez en vidéo ou en audio toute personne avec qui vous discutez, sur n'importe quel réseau : HowYouDoin lui envoie un lien et elle rejoint depuis son navigateur, sans appli ni compte
+• Chiffrement de bout en bout : l'appel passe par le serveur d'appels de HowYouDoin, qui ne peut ni le voir ni l'entendre
+• Gratuit chaque mois : 60 minutes de vidéo et 10 heures d'audio. La personne appelée ne paie jamais
+• Si vous le souhaitez, faites entrer les gens vous-même : qui ouvre votre lien attend votre accord
+• Les appels audio et vidéo avec les contacts Matrix sont intégrés
+
+PRIVÉE PAR CONCEPTION
+• Vos messages ne passent jamais par les serveurs de HowYouDoin : vos comptes se connectent directement depuis ce téléphone et personne d'autre ne voit vos discussions. Seuls les appels par lien utilisent notre serveur, et ils sont chiffrés de bout en bout
+• Ni analyse, ni pistage, ni publicité
+• Verrouillez l'appli par empreinte ou code PIN, et masquez le texte des messages dans les notifications
+• Les rapports de plantage restent sur votre téléphone, sauf si vous choisissez de les partager
+
+UNE MESSAGERIE COMPLÈTE
+• Texte, photos, vidéos, messages vocaux et fichiers
+• Réponses, réactions, modifications, suppressions, indicateur de saisie et accusés de lecture, là où le réseau les prend en charge
+• Hors ligne ? Vos discussions enregistrées restent lisibles, et l'appli vous prévient quand un message ne peut pas encore partir
+
+FACILE À PRENDRE EN MAIN
+• WhatsApp, Telegram et Signal s'associent comme leurs applis de bureau, par QR code ou code d'association
+• Messenger, Instagram, Slack, LinkedIn, Discord et X se connectent via leurs propres sites dans l'appli
+• Une courte visite vous présente la boîte de réception
+• Essayez tout d'abord en mode démo, sans connecter de compte
+• Si un réseau cesse de fonctionner, l'appli vous le dit et vous montre comment réparer
+
+À VOTRE GOÛT
+• Mode clair et sombre, et quatre thèmes de couleur
+• Disponible en 12 langues
+
+GRATUIT, AVEC PREMIUM EN OPTION
+Tout ce qui précède est gratuit et sans publicité. HowYouDoin Premium ajoute 50 heures de vidéo et 100 heures d'appels audio par mois, une image plus nette, des appels jusqu'à 4 heures et jusqu'à 3 comptes par réseau. Essai gratuit de 7 jours, puis paiement mensuel ; résiliable à tout moment dans Google Play.
+
+OPEN SOURCE
+Sous licence GNU AGPL v3 ; le code source est sur GitHub.
+
+BON À SAVOIR
+HowYouDoin est une appli non officielle. Elle n'est ni affiliée ni approuvée par Meta, Telegram, Signal, Slack, Discord, LinkedIn, Bluesky, X ou la Matrix.org Foundation. Certains de ces services n'autorisent pas les applis tierces et peuvent restreindre un compte qui en utilise une. Utilisez-la uniquement avec vos propres comptes. Toutes les marques appartiennent à leurs propriétaires.

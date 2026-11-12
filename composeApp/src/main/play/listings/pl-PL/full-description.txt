@@ -6,12 +6,13 @@ JEDNA SKRZYNKA NA WSZYSTKIE WIADOMOŚCI
 • Każdy czat z każdej sieci na jednej liście
 • Filtruj według sieci jednym dotknięciem albo pokaż tylko nieprzeczytane
 • Szukaj czatów i zaczynaj nowe rozmowy z każdym w połączonej sieci
-• Powiadomienia o nowych wiadomościach bez serwerów push: aplikacja utrzymuje własne połączenie
+• Powiadomienia o nowych wiadomościach bez serwerów push: aplikacja utrzymuje własne połączenie (możesz je wyłączyć w Ustawieniach, by oszczędzać baterię)
 
 DARMOWE, SZYFROWANE ROZMOWY WIDEO
 • Zadzwoń z wideo lub głosowo do każdego, z kim piszesz, w każdej sieci: HowYouDoin wyśle mu link, a on dołączy w przeglądarce, bez aplikacji i konta
 • Szyfrowanie end-to-end: rozmowa przechodzi przez serwer połączeń HowYouDoin, który nie może jej zobaczyć ani usłyszeć
 • Za darmo co miesiąc: 60 minut wideo i 10 godzin rozmów głosowych. Osoba, do której dzwonisz, nigdy nie płaci
+• Możesz sam wpuszczać rozmówców: osoba, która otworzy link, czeka, aż się zgodzisz
 • Połączenia głosowe i wideo z kontaktami w Matrix są wbudowane
 
 PRYWATNOŚĆ PRZEDE WSZYSTKIM
@@ -37,7 +38,7 @@ TWÓJ STYL
 • Dostępna w 12 językach
 
 ZA DARMO, Z OPCJONALNYM PREMIUM
-Wszystko powyżej jest za darmo i bez reklam. HowYouDoin Premium daje 50 godzin wideo i 100 godzin rozmów głosowych miesięcznie, ostrzejszy obraz, rozmowy do 4 godzin i do 3 kont w każdej sieci. Wypróbuj za darmo przez 7 dni, potem płacisz co miesiąc; anulujesz w każdej chwili w Google Play. Chcesz więcej wideo bez subskrypcji? Kup 5 godzin, które nigdy nie wygasają.
+Wszystko powyżej jest za darmo i bez reklam. HowYouDoin Premium daje 50 godzin wideo i 100 godzin rozmów głosowych miesięcznie, ostrzejszy obraz, rozmowy do 4 godzin i do 3 kont w każdej sieci. Wypróbuj za darmo przez 7 dni, potem płacisz co miesiąc; anulujesz w każdej chwili w Google Play.
 
 OTWARTE ŹRÓDŁO
 Licencja GNU AGPL v3, kod źródłowy na GitHubie.

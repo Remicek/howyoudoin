@@ -1,0 +1,47 @@
+Keine Lust mehr, zwischen WhatsApp, Messenger, Telegram und einer Handvoll anderer Chat-Apps hin und her zu springen? HowYouDoin ist ein All-in-one-Messenger, der jede Unterhaltung in einen gemeinsamen Posteingang bringt, damit du allen aus einer einzigen App lesen und antworten kannst. Und du kannst jeden, mit dem du schreibst, kostenlos per Video anrufen.
+
+Funktioniert mit WhatsApp, Messenger, Instagram, Telegram, Signal, Discord, Slack, LinkedIn, Bluesky, X und Matrix. Verbinde die Netzwerke, die du nutzt, und deine Chats erscheinen zusammen, die neuesten zuerst.
+
+EIN POSTEINGANG FÜR ALLE NACHRICHTEN
+• Jeder Chat aus jedem Netzwerk in einer Liste
+• Mit einem Tipp nach Netzwerk filtern oder nur ungelesene Chats zeigen
+• Chats durchsuchen und mit jedem in einem verbundenen Netzwerk einen neuen Chat beginnen
+• Benachrichtigungen ohne Push-Server: Die App hält ihre eigene Verbindung (in den Einstellungen abschaltbar, um Akku zu sparen)
+
+KOSTENLOSE, VERSCHLÜSSELTE VIDEOANRUFE
+• Ruf jeden, mit dem du schreibst, per Video oder Sprache an, in jedem Netzwerk: HowYouDoin schickt einen Link, und die andere Person tritt im Browser bei, ohne App oder Konto
+• Ende-zu-Ende-verschlüsselt: Der Anruf läuft über den Anrufserver von HowYouDoin, der ihn weder sehen noch hören kann
+• Jeden Monat kostenlos: 60 Minuten Video und 10 Stunden Sprache. Wer angerufen wird, zahlt nie
+• Auf Wunsch lässt du Leute selbst herein: Wer deinen Link öffnet, wartet, bis du zustimmst
+• Sprach- und Videoanrufe mit Matrix-Kontakten sind eingebaut
+
+PRIVAT VON GRUND AUF
+• Deine Nachrichten laufen nie über Server von HowYouDoin: Deine Konten verbinden sich direkt von diesem Handy, und niemand sonst sieht deine Chats. Nur Anrufe per Link nutzen unseren Server, und sie sind Ende-zu-Ende-verschlüsselt
+• Keine Analyse, kein Tracking, keine Werbung
+• Sperre die App mit Fingerabdruck oder PIN und blende Nachrichtentext in Benachrichtigungen aus
+• Absturzberichte bleiben auf deinem Handy, außer du teilst sie
+
+EINE VOLLWERTIGE CHAT-APP
+• Text, Fotos, Videos, Sprachnachrichten und Dateien
+• Antworten, Reaktionen, Bearbeiten, Löschen, Tipp-Anzeige und Lesebestätigungen, wo das Netzwerk sie unterstützt
+• Offline? Gespeicherte Chats bleiben lesbar, und die App sagt dir, wenn eine Nachricht noch nicht gesendet werden kann
+
+EINFACHER START
+• WhatsApp, Telegram und Signal werden wie ihre Desktop-Apps verknüpft, per QR-Code oder Kopplungscode
+• Messenger, Instagram, Slack, LinkedIn, Discord und X melden sich über ihre eigenen Webseiten in der App an
+• Eine kurze Tour zeigt dir den Posteingang
+• Probiere alles zuerst im Demo-Modus aus, ohne ein Konto zu verbinden
+• Wenn ein Netzwerk nicht mehr funktioniert, sagt dir die App Bescheid und zeigt, wie du es behebst
+
+DEIN STIL
+• Hell- und Dunkelmodus und vier Farbthemen
+• In 12 Sprachen verfügbar
+
+KOSTENLOS, MIT OPTIONALEM PREMIUM
+Alles oben ist kostenlos und ohne Werbung. HowYouDoin Premium bietet 50 Stunden Video und 100 Stunden Sprachanrufe im Monat, schärferes Bild, Anrufe bis 4 Stunden und bis zu 3 Konten pro Netzwerk. 7 Tage kostenlos testen, danach monatlich zahlen; jederzeit in Google Play kündbar.
+
+OPEN SOURCE
+Lizenziert unter der GNU AGPL v3; der Quellcode ist auf GitHub.
+
+GUT ZU WISSEN
+HowYouDoin ist eine inoffizielle App. Sie ist nicht mit Meta, Telegram, Signal, Slack, Discord, LinkedIn, Bluesky, X oder der Matrix.org Foundation verbunden oder von ihnen unterstützt. Manche dieser Dienste erlauben keine Apps von Drittanbietern und können ein Konto einschränken, das eine nutzt. Nutze sie nur mit deinen eigenen Konten. Alle Marken gehören ihren Inhabern.

@@ -1,0 +1,47 @@
+WhatsApp, Messenger, Telegram ve birkaç sohbet uygulaması arasında gidip gelmekten yoruldun mu? HowYouDoin, her konuşmayı tek bir gelen kutusunda toplayan hepsi bir arada bir mesajlaşma uygulaması; herkese tek uygulamadan okur ve yanıt verirsin. Üstelik yazıştığın herkesi ücretsiz görüntülü arayabilirsin.
+
+WhatsApp, Messenger, Instagram, Telegram, Signal, Discord, Slack, LinkedIn, Bluesky, X ve Matrix ile çalışır. Kullandığın ağları bağla, sohbetlerin en yenisi üstte olacak şekilde bir arada görünsün.
+
+TÜM MESAJLARIN İÇİN TEK KUTU
+• Her ağdaki her sohbet tek listede
+• Tek dokunuşla ağa göre filtrele veya yalnızca okunmamışları göster
+• Sohbetlerinde ara ve bağlı bir ağdaki herkesle yeni sohbet başlat
+• Push sunucusu olmadan bildirim: uygulama kendi bağlantısını tutar (pil tasarrufu için Ayarlar'dan kapatabilirsin)
+
+ÜCRETSİZ, ŞİFRELİ GÖRÜNTÜLÜ ARAMALAR
+• Yazıştığın herkesi, her ağda görüntülü veya sesli ara: HowYouDoin ona bir bağlantı gönderir, o da uygulama ya da hesap olmadan tarayıcıdan katılır
+• Uçtan uca şifreli: arama, HowYouDoin'in onu göremeyen ve duyamayan arama sunucusundan geçer
+• Her ay ücretsiz: 60 dakika görüntülü ve 10 saat sesli arama. Aradığın kişi asla ödemez
+• İstersen insanları kendin içeri al: bağlantını açan kişi sen onay verene kadar bekler
+• Matrix kişileriyle sesli ve görüntülü aramalar yerleşik
+
+BAŞTAN GİZLİLİK ODAKLI
+• Mesajların asla HowYouDoin sunucularından geçmez: hesapların doğrudan bu telefondan bağlanır ve sohbetlerini başka kimse görmez. Sunucumuzu yalnızca bağlantılı aramalar kullanır ve bunlar uçtan uca şifrelidir
+• Analiz yok, izleme yok, reklam yok
+• Uygulamayı parmak izi veya PIN ile kilitle, bildirimlerde mesaj metnini gizle
+• Çökme raporları sen paylaşmadıkça telefonunda kalır
+
+TAM BİR SOHBET UYGULAMASI
+• Metin, fotoğraf, video, sesli mesaj ve dosya
+• Yanıtlar, tepkiler, düzenleme, silme, yazıyor göstergesi ve okundu bilgisi, ağın desteklediği yerlerde
+• Çevrimdışı mısın? Kayıtlı sohbetlerin okunabilir kalır ve uygulama bir mesajın henüz gönderilemediğini söyler
+
+KOLAY BAŞLANGIÇ
+• WhatsApp, Telegram ve Signal, masaüstü uygulamaları gibi QR kodu veya eşleme koduyla bağlanır
+• Messenger, Instagram, Slack, LinkedIn, Discord ve X, uygulama içinde kendi web siteleriyle oturum açar
+• Kısa bir tur gelen kutusunu tanıtır
+• Hesap bağlamadan önce her şeyi demo modunda dene
+• Bir ağ çalışmayı bırakırsa uygulama söyler ve nasıl düzelteceğini gösterir
+
+SENİN TARZIN
+• Açık ve koyu mod ile dört renk teması
+• 12 dilde kullanılabilir
+
+ÜCRETSİZ, İSTEĞE BAĞLI PREMIUM
+Yukarıdakilerin hepsi ücretsiz ve reklamsız. HowYouDoin Premium ayda 50 saat görüntülü ve 100 saat sesli arama, daha net görüntü, 4 saate kadar aramalar ve her ağdan 3 hesaba kadar sunar. 7 gün ücretsiz dene, sonra aylık öde; Google Play'den istediğin zaman iptal et.
+
+AÇIK KAYNAK
+GNU AGPL v3 lisanslı; kaynak kodu GitHub'da.
+
+BİLMEKTE FAYDA VAR
+HowYouDoin resmi olmayan bir uygulamadır. Meta, Telegram, Signal, Slack, Discord, LinkedIn, Bluesky, X veya Matrix.org Foundation ile bağlantılı değildir ve onlar tarafından desteklenmez. Bu hizmetlerden bazıları üçüncü taraf uygulamalara izin vermez ve bunu kullanan bir hesabı kısıtlayabilir. Yalnızca kendi hesaplarınla kullan. Tüm ticari markalar sahiplerine aittir.
