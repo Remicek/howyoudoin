@@ -112,3 +112,9 @@ One-time setup (done 2026-11-06; project howyoudoin-513908, play-publisher@howyo
 - [x] 1.1.5 (versionCode 12) LIVE in production 2026-11-12 16:36; was sent for review the same day, full rollout, auto-publishes on approval: no animation when going back (predictivePop* transitions off), Settings → "Stay connected in the background" switch. Release build checked on the A53 (back button) and the A16 (switch stops/starts the connection service).
 
 - [x] 15% service fee: account group "Devvalor" (only this account) created 2026-11-12; the user accepted the terms the same day. Play Console shows "Opłata za obsługę w wysokości 15%" as active.
+- [x] Store listing 2026-11-12: texts in 12 languages (en-US, pl-PL, de-DE, es-ES, fr-FR, pt-BR, ru-RU, tr-TR, ar,
+      hi-IN, id, ja-JP); 7 phone screenshots per language, captured in demo mode with the app in that language
+      (scripts in ~/StudioProjects/GooglePlay/HowYouDoin/.scripts: frame_demo.py, frame_pl.py, frame_lang.py; the
+      video call screen uses two generated people from Matchamore). The Premium shot with the removed top-up is gone.
+- [ ] Promo video: new landscape versions (video/howyoudoin_promo_landscape_en.mp4, _pl.mp4; the portrait one got
+      its captions cropped in Play's 16:9 frame) need uploading to YouTube (unlisted), then set per language.
