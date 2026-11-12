@@ -215,7 +215,7 @@
     <string name="link_call_how_link">Tautan ke panggilan dikirim ke %1$s di chat ini.</string>
     <string name="link_call_how_browser">Mereka bergabung dengan membuka tautan di browser: tanpa aplikasi atau akun. Anda menunggu di layar panggilan sampai mereka bergabung.</string>
     <string name="link_call_how_ringing">Panggilan %1$s mereka tidak dijawab: terus berdering sampai mereka menutupnya.</string>
-    <string name="link_call_how_encrypted">Panggilan terenkripsi end-to-end. Panggilan melewati server panggilan HowYouDoin, yang tidak dapat melihat atau mendengarnya.</string>
+    <string name="link_call_how_encrypted">Panggilan terenkripsi end-to-end. Panggilan melewati server panggilan HowYouDoin, yang tidak dapat melihat atau mendengarnya. Siapa pun yang dapat membaca chat ini dapat membuka tautannya; di jaringan tanpa enkripsi end-to-end, itu termasuk jaringannya sendiri.</string>
     <string name="link_call_dont_show">Jangan tampilkan lagi</string>
     <string name="link_call_start">Mulai panggilan</string>
     <string name="link_call_cancel">Batal</string>

@@ -217,7 +217,7 @@
     <string name="link_call_how_link">Ein Link dazu wird in diesem Chat an %1$s gesendet.</string>
     <string name="link_call_how_browser">Die andere Person tritt bei, indem sie den Link im Browser öffnet: ohne App oder Konto. Du wartest im Anrufbildschirm, bis sie beitritt.</string>
     <string name="link_call_how_ringing">Der %1$s-Anruf wird nicht angenommen: Er klingelt weiter, bis aufgelegt wird.</string>
-    <string name="link_call_how_encrypted">Der Anruf ist Ende-zu-Ende-verschlüsselt. Er läuft über den Anrufserver von HowYouDoin, der ihn weder sehen noch hören kann.</string>
+    <string name="link_call_how_encrypted">Der Anruf ist Ende-zu-Ende-verschlüsselt. Er läuft über den Anrufserver von HowYouDoin, der ihn weder sehen noch hören kann. Wer diesen Chat lesen kann, kann den Link öffnen; in einem Netzwerk ohne Ende-zu-Ende-Verschlüsselung gilt das auch für das Netzwerk selbst.</string>
     <string name="link_call_dont_show">Nicht mehr anzeigen</string>
     <string name="link_call_start">Anruf starten</string>
     <string name="link_call_cancel">Abbrechen</string>

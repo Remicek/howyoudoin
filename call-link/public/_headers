@@ -1,0 +1,9 @@
+# Served with every page and script (Cloudflare static assets). The page has no inline scripts or styles and loads
+# nothing from elsewhere; media comes from the browser's own streams, signalling over the same origin's WebSocket.
+/*
+  Content-Security-Policy: default-src 'self'; connect-src 'self' wss:; media-src 'self' blob:; worker-src 'self'; img-src 'self' data:; frame-ancestors 'none'; base-uri 'none'; form-action 'none'
+  Permissions-Policy: camera=(self), microphone=(self), geolocation=(), payment=()
+  Referrer-Policy: no-referrer
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Cross-Origin-Opener-Policy: same-origin

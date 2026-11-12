@@ -81,10 +81,14 @@ class LinkCallActivity : ComponentActivity() {
             settings.allowFileAccess = false
             settings.allowContentAccess = false
             webViewClient = object : WebViewClient() {
-                // Anywhere else (a link on the page) opens in the browser, not in the call screen
+                // Anywhere else (a link on the page) opens in the browser, not in the call screen; only web
+                // addresses, so a page can't start other apps through their own schemes
                 override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
-                    if (request.url.toString().startsWith(origin)) return false
-                    runCatching { startActivity(Intent(Intent.ACTION_VIEW, request.url)) }
+                    val url = request.url
+                    if (url.toString().startsWith(origin)) return false
+                    if (url.scheme == "https" || url.scheme == "http") {
+                        runCatching { startActivity(Intent(Intent.ACTION_VIEW, url)) }
+                    }
                     return true
                 }
             }

@@ -1,10 +1,14 @@
 // The call page, for both sides: the person invited by link (in their browser) and the HowYouDoin user (in the app,
-// which opens it with ?host=1). The link's #fragment carries what no server may see: the encryption key (k) and, for
-// the app, the call's token (t) and whether to start with the camera on (v).
+// which opens it with ?host=1). The link's #fragment carries what no server may see: the encryption key (the whole
+// fragment of an invite; k for the app, with the call's token t and whether to start with the camera on, v). The
+// call's name on the server is derived from the key (link.ts).
 //
 // Media goes through Cloudflare Realtime SFU over two WebRTC connections, one sending and one receiving, every frame
 // encrypted by e2ee-worker.ts. The worker's CallRoom says who's in the call and makes the SFU requests (over
 // /api/calls/<room>/ws).
+
+import { decodeKey, fragmentParams, roomOf } from "./link.ts";
+import type { Sender, TransformOptions } from "./frame-crypto.ts";
 
 declare global {
   interface Window {
@@ -328,8 +332,7 @@ const ICONS = {
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 
-const fragment = new URLSearchParams(location.hash.slice(1));
-const room = location.pathname.match(/^\/call\/([A-Za-z0-9_-]{22})\/?$/)?.[1];
+const fragment = fragmentParams(location.hash);
 const isHost = new URLSearchParams(location.search).has("host");
 
 function show(section: "invite" | "call" | "message") {
@@ -399,21 +402,12 @@ const WARN_MS = 5 * 60 * 1000;
 const encryptionSupported = () =>
   "RTCRtpScriptTransform" in window || "createEncodedStreams" in RTCRtpSender.prototype;
 
-/** The base64url key from the link. */
-function decodeKey(key: string): Uint8Array<ArrayBuffer> | null {
-  try {
-    const bytes = Uint8Array.from(atob(key.replace(/-/g, "+").replace(/_/g, "/")), (c) => c.charCodeAt(0));
-    return bytes.length === 32 ? bytes : null;
-  } catch {
-    return null;
-  }
-}
-
 async function start() {
   translate();
   const key = decodeKey(fragment.get("k") ?? "");
-  if (!room || !key) return message(t("goneTitle"));
+  if (!key) return message(t("goneTitle"));
   if (!encryptionSupported()) return message(t("unsupportedTitle"), t("unsupportedText"));
+  const room = await roomOf(key);
 
   if (isHost) {
     const token = fragment.get("t");
@@ -493,6 +487,7 @@ class Signal {
 class Call {
   private signal?: Signal;
   private ice: RTCIceServer[] = [];
+  private role: Sender = "guest";
   private secret?: string;
   private ended = false;
   private reconnecting = false;
@@ -576,6 +571,7 @@ class Call {
       type: "hello",
       ...(this.secret ? { secret: this.secret } : this.credentials),
     });
+    this.role = welcome.role;
     this.secret = welcome.secret ?? this.secret;
     this.ice = welcome.iceServers;
     // Before sending: without video minutes the camera goes off first
@@ -628,8 +624,10 @@ class Call {
     return pc;
   }
 
+  /** Each direction has its own key: what this page sends is encrypted as its role, what it receives as the other's. */
   private protect(target: RTCRtpSender | RTCRtpReceiver, op: "encrypt" | "decrypt") {
-    const options = { op, key: this.key };
+    const sender: Sender = op === "encrypt" ? this.role : this.role === "host" ? "guest" : "host";
+    const options: TransformOptions = { op, key: this.key, sender };
     if (window.RTCRtpScriptTransform) {
       (target as any).transform = new window.RTCRtpScriptTransform(this.worker, options);
     } else {

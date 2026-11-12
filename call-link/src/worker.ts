@@ -3,20 +3,21 @@
 // person joins from their browser. Audio and video go through Cloudflare Realtime SFU, end-to-end encrypted by the
 // call page with a key that stays in the link's #fragment (browsers never send it to a server).
 //
-//   POST /api/calls             -> { room, joinUrl, hostUrl, … }   the app starts a call
+//   POST /api/calls             -> { joinUrl, hostUrl, … }   the app starts a call (naming it: web/link.ts)
 //   GET  /api/calls/<room>/ws   WebSocket to the call (CallRoom): who's in it, and setting up the media
 //   POST /api/usage             -> the minutes left this month (plans.ts)
 //
 // The app's requests carry its install ID and, with Premium, its Google Play subscription token. Only the person who
 // starts a call uses minutes (CallAccount); the person joining from the link never does.
 //
-// Everything else is the call page (public/), served for /call/<room>.
+// Everything else is the call page (public/), served for / (the link's fragment says which call).
 
 import { DurableObject } from "cloudflare:workers";
 import { randomId } from "./random.ts";
 import {
   admit,
   announce,
+  canPublish,
   canSubscribe,
   disconnect,
   hangUp,
@@ -33,6 +34,7 @@ import {
   publish,
   type Role,
   type Room,
+  takeSession,
   tick,
   isTrackName,
   MAX_CALL_MS,
@@ -58,7 +60,10 @@ export interface Env {
   /** Optional: a Realtime TURN key, for networks that block direct WebRTC. */
   TURN_KEY_ID?: string;
   TURN_KEY_TOKEN?: string;
+  /** Per install (and address): how often one app may start calls or ask for its minutes. */
   CREATE_LIMIT?: RateLimit;
+  /** Per address: a ceiling over everything behind it, for someone making up install IDs. */
+  IP_LIMIT?: RateLimit;
 }
 
 const ROOM_NAME = /^[A-Za-z0-9_-]{22}$/;
@@ -94,6 +99,8 @@ interface AppRequest {
   subscription?: string;
   /** Starting a video call (else audio). */
   video?: boolean;
+  /** The call's name, derived from its key (web/link.ts), when starting a call. */
+  room?: string;
 }
 
 const INSTALL_ID = /^[A-Za-z0-9_-]{16,64}$/;
@@ -110,12 +117,21 @@ async function readApp(request: Request): Promise<AppRequest & { install: string
   if (token !== undefined && (typeof token !== "string" || !PURCHASE_TOKEN.test(token))) {
     throw new BadRequest("Not a purchase token");
   }
+  if (body.room !== undefined && (typeof body.room !== "string" || !ROOM_NAME.test(body.room))) {
+    throw new BadRequest("Not a call name");
+  }
   return body as AppRequest & { install: string };
 }
 
-async function rateLimited(request: Request, env: Env, kind: string): Promise<boolean> {
+/**
+ * Too many requests of this kind: from this install at this address (so one app can't run up the bill), or from the
+ * address as a whole (so made-up install IDs don't get around that). Phones share addresses behind carrier NAT, which
+ * is why the per-address ceiling is the loose one.
+ */
+async function rateLimited(request: Request, env: Env, kind: string, install: string): Promise<boolean> {
   const ip = request.headers.get("CF-Connecting-IP") ?? "local";
-  return Boolean(env.CREATE_LIMIT && !(await env.CREATE_LIMIT.limit({ key: `${kind}:${ip}` })).success);
+  if (env.CREATE_LIMIT && !(await env.CREATE_LIMIT.limit({ key: `${kind}:${ip}:${install}` })).success) return true;
+  return Boolean(env.IP_LIMIT && !(await env.IP_LIMIT.limit({ key: `${kind}:${ip}` })).success);
 }
 
 /** Whose minutes a request uses, and on which plan: the subscription's while Premium is paid, else the install's. */
@@ -151,7 +167,6 @@ const minutesLeft = (env: Env, plan: Plan, owner: string): Promise<Allowance> =>
 
 async function createCall(request: Request, env: Env, origin: string): Promise<Response> {
   if (!env.SFU_APP_ID || !env.SFU_APP_SECRET) return error(503, "Calls through a link aren't set up on this server");
-  if (await rateLimited(request, env, "call")) return error(429, "Too many calls; try again in a minute");
   let app;
   try {
     app = await readApp(request);
@@ -159,6 +174,8 @@ async function createCall(request: Request, env: Env, origin: string): Promise<R
     if (e instanceof BadRequest) return error(400, e.message);
     throw e;
   }
+  if (await rateLimited(request, env, "call", app.install)) return error(429, "Too many calls; try again in a minute");
+  if (!app.room) return error(400, "This app is too old for calls through a link; update it");
   const { plan, owner } = await whoIs(app, env);
   const left = await minutesLeft(env, plan, owner);
   const videoAllowed = left.videoLeftMs > 0;
@@ -166,12 +183,14 @@ async function createCall(request: Request, env: Env, origin: string): Promise<R
     return Response.json({ error: "No call minutes left this month", code: "no_minutes", ...left }, { status: 402 });
   }
   const limits: CallLimits = { plan, owner, videoLeftMs: left.videoLeftMs, audioLeftMs: left.audioLeftMs };
-  const room = randomId();
   const hostToken = randomId();
-  await env.CALLS.get(env.CALLS.idFromName(room)).create(hostToken, limits);
-  const joinUrl = `${origin}/call/${room}`;
+  // The app names the call after its key (a hash of it, so the name says nothing about the key): a name in use is
+  // someone else's call, never taken over
+  if (!(await env.CALLS.get(env.CALLS.idFromName(app.room)).create(hostToken, limits))) {
+    return error(409, "This call already exists");
+  }
+  const joinUrl = `${origin}/`;
   return Response.json({
-    room,
     joinUrl,
     // The token travels in the fragment, so it isn't logged anywhere. The app adds the encryption key (k) to both
     // links itself, so this worker never sees it
@@ -182,9 +201,11 @@ async function createCall(request: Request, env: Env, origin: string): Promise<R
 }
 
 async function usage(request: Request, env: Env): Promise<Response> {
-  if (await rateLimited(request, env, "usage")) return error(429, "Too many requests; try again in a minute");
   try {
     const app = await readApp(request);
+    if (await rateLimited(request, env, "usage", app.install)) {
+      return error(429, "Too many requests; try again in a minute");
+    }
     const { plan, owner } = await whoIs(app, env);
     return Response.json(await minutesLeft(env, plan, owner));
   } catch (e) {
@@ -235,7 +256,13 @@ export class CallAccount extends DurableObject<Env> {
 interface Attachment {
   role?: Role;
   gen?: number;
+  /** Messages in the current minute, and when it started: a page that floods is cut off. */
+  count?: number;
+  since?: number;
 }
+
+/** Most messages one connection may send a minute: a reconnection takes about ten. */
+const MESSAGES_PER_MINUTE = 60;
 
 /** Messages from the call page; each with an id that its answer repeats. */
 type Request_ =
@@ -265,9 +292,12 @@ export class CallRoom extends DurableObject<Env> {
    */
   private room?: Room | null;
 
-  async create(hostToken: string, limits?: CallLimits): Promise<void> {
+  /** Makes the call; false when this name is already a call (ended ones are forgotten, so a name frees up). */
+  async create(hostToken: string, limits?: CallLimits): Promise<boolean> {
+    if (await this.load()) return false;
     this.room = newRoom(hostToken, Date.now(), limits);
     await this.save(this.room);
+    return true;
   }
 
   async fetch(request: Request): Promise<Response> {
@@ -278,6 +308,7 @@ export class CallRoom extends DurableObject<Env> {
   }
 
   async webSocketMessage(ws: WebSocket, data: string | ArrayBuffer): Promise<void> {
+    if (!this.withinRate(ws)) return ws.close(4008, "Too many messages");
     let message: Request_ & { id?: number };
     try {
       message = JSON.parse(typeof data === "string" ? data : new TextDecoder().decode(data));
@@ -292,6 +323,19 @@ export class CallRoom extends DurableObject<Env> {
       if (!(e instanceof Refusal)) console.error(message.type, e);
       send(ws, { id, error: e instanceof Refusal ? e.message : "failed" });
     }
+  }
+
+  /** Counts this connection's messages in the current minute. */
+  private withinRate(ws: WebSocket): boolean {
+    const attachment = ws.deserializeAttachment() as Attachment;
+    const now = Date.now();
+    if (attachment.since === undefined || now - attachment.since >= 60_000) {
+      attachment.since = now;
+      attachment.count = 0;
+    }
+    attachment.count = (attachment.count ?? 0) + 1;
+    ws.serializeAttachment(attachment);
+    return attachment.count <= MESSAGES_PER_MINUTE;
   }
 
   async webSocketClose(ws: WebSocket): Promise<void> {
@@ -331,7 +375,9 @@ export class CallRoom extends DurableObject<Env> {
         const names = message.tracks.map((t) => t.trackName);
         if (!names.every(isTrackName)) throw new Refusal("unknown track");
         if (!room.meter.videoAllowed && names.some((n) => n !== "audio")) throw new Refusal("no video minutes");
-        const session = me.pubSession ?? (await this.sfu.newSession());
+        // Everything is checked before a session is made, so a refused request costs nothing
+        if (!canPublish(room, role, names)) throw new Refusal("already published");
+        const session = me.pubSession ?? (await this.newSession(room, role));
         if (!publish(room, role, session, names)) throw new Refusal("already published");
         const response = await this.sfu.newTracks(session, {
           sessionDescription: message.offer,
@@ -350,7 +396,7 @@ export class CallRoom extends DurableObject<Env> {
         return {};
       case "subscribe": {
         if (!canSubscribe(room, role, message.session, message.tracks)) throw new Refusal("not available");
-        if (message.fresh || !me.subSession) me.subSession = await this.sfu.newSession();
+        if (message.fresh || !me.subSession) me.subSession = await this.newSession(room, role);
         const response = await this.sfu.newTracks(me.subSession, {
           tracks: message.tracks.map((name) => ({
             location: "remote",
@@ -385,6 +431,13 @@ export class CallRoom extends DurableObject<Env> {
     }
   }
 
+  /** An SFU session for this person, within their share of them. */
+  private async newSession(room: Room, role: Role): Promise<string> {
+    if (!takeSession(room, role)) throw new Refusal("too many sessions");
+    await this.save(room);
+    return this.sfu.newSession();
+  }
+
   private async hello(ws: WebSocket, room: Room, message: { token?: string; secret?: string }): Promise<object> {
     if ((ws.deserializeAttachment() as Attachment).role) throw new Refusal("already in the call");
     const admission = admit(room, { token: message.token, secret: message.secret }, () => randomId());
@@ -395,7 +448,8 @@ export class CallRoom extends DurableObject<Env> {
       const attachment = old.deserializeAttachment() as Attachment;
       if (old !== ws && attachment.role === role) old.close(4000, "replaced");
     }
-    ws.serializeAttachment({ role, gen } satisfies Attachment);
+    const counted = ws.deserializeAttachment() as Attachment;
+    ws.serializeAttachment({ role, gen, count: counted.count, since: counted.since } satisfies Attachment);
     const ttl = Math.ceil((room.createdAt + MAX_CALL_MS - Date.now()) / 1000);
     const servers = await iceServers(this.env.TURN_KEY_ID, this.env.TURN_KEY_TOKEN, ttl);
     // The others hear about it; this page learns it all from the welcome

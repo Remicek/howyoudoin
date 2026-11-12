@@ -90,6 +90,7 @@ import com.devvalor.howyoudoing.app.call.LinkCallActivity
 import com.devvalor.howyoudoing.chat.data.linkcall.HttpLinkCalls
 import com.devvalor.howyoudoing.chat.domain.LinkCallLauncher
 import com.devvalor.howyoudoing.chat.domain.LinkCalls
+import java.security.MessageDigest
 import java.security.SecureRandom
 import com.devvalor.howyoudoing.app.call.CallNotifier
 import com.devvalor.howyoudoing.app.notifications.ConnectionProblemNotifier
@@ -211,9 +212,14 @@ actual val platformAppModule: Module = module {
     single<Premium>(createdAtStart = true) { PlayPremium(androidApplication(), get()) }
     single {
         val random = SecureRandom()
-        HttpLinkCalls(get(), BuildConfig.CALL_LINK_URL, get(), get()) { size ->
-            ByteArray(size).also(random::nextBytes)
-        }
+        HttpLinkCalls(
+            httpClient = get(),
+            serverUrl = BuildConfig.CALL_LINK_URL,
+            installId = get(),
+            premium = get(),
+            randomBytes = { size -> ByteArray(size).also(random::nextBytes) },
+            sha256 = { bytes -> MessageDigest.getInstance("SHA-256").digest(bytes) },
+        )
     } binds arrayOf(LinkCalls::class, CallAllowance::class)
     single<LinkCallLauncher> { LinkCallLauncher { hostUrl -> LinkCallActivity.start(androidContext(), hostUrl) } }
     single<LoginBackup>(createdAtStart = true) {

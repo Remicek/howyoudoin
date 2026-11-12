@@ -220,7 +220,7 @@
     <string name="link_call_how_link">A link to it is sent to %1$s in this chat.</string>
     <string name="link_call_how_browser">They join by opening the link in their browser: no app or account needed. You wait on the call screen until they do.</string>
     <string name="link_call_how_ringing">Their %1$s call isn't answered: it keeps ringing until they hang up.</string>
-    <string name="link_call_how_encrypted">The call is end-to-end encrypted. It goes through HowYouDoin's call server, which can't see or hear it.</string>
+    <string name="link_call_how_encrypted">The call is end-to-end encrypted. It goes through HowYouDoin's call server, which can't see or hear it. Anyone who can read this chat can open the link; on a network without end-to-end encryption, that includes the network itself.</string>
     <string name="link_call_dont_show">Don't show this again</string>
     <string name="link_call_start">Start call</string>
     <string name="link_call_cancel">Cancel</string>

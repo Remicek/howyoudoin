@@ -221,7 +221,7 @@
     <string name="link_call_how_link">Ссылка на него отправляется собеседнику %1$s в этом чате.</string>
     <string name="link_call_how_browser">Собеседник подключается, открыв ссылку в браузере: без приложения и аккаунта. Вы ждёте на экране звонка, пока он не подключится.</string>
     <string name="link_call_how_ringing">Звонок в %1$s не будет принят: он звонит, пока собеседник не положит трубку.</string>
-    <string name="link_call_how_encrypted">Звонок защищён сквозным шифрованием. Он идёт через сервер звонков HowYouDoin, который не может его видеть или слышать.</string>
+    <string name="link_call_how_encrypted">Звонок защищён сквозным шифрованием. Он идёт через сервер звонков HowYouDoin, который не может его видеть или слышать. Любой, кто может читать этот чат, может открыть ссылку; в сети без сквозного шифрования это касается и самой сети.</string>
     <string name="link_call_dont_show">Больше не показывать</string>
     <string name="link_call_start">Позвонить</string>
     <string name="link_call_cancel">Отмена</string>

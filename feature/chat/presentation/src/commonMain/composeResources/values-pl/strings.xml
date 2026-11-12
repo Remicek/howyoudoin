@@ -221,7 +221,7 @@
     <string name="link_call_how_link">Link do niej zostanie wysłany do: %1$s w tym czacie.</string>
     <string name="link_call_how_browser">Rozmówca dołącza, otwierając link w przeglądarce: bez aplikacji i konta. Czekasz na ekranie rozmowy, aż dołączy.</string>
     <string name="link_call_how_ringing">Połączenie z %1$s nie zostanie odebrane: będzie dzwonić, dopóki rozmówca się nie rozłączy.</string>
-    <string name="link_call_how_encrypted">Rozmowa jest szyfrowana end-to-end. Przechodzi przez serwer rozmów HowYouDoin, który jej nie widzi ani nie słyszy.</string>
+    <string name="link_call_how_encrypted">Rozmowa jest szyfrowana end-to-end. Przechodzi przez serwer rozmów HowYouDoin, który jej nie widzi ani nie słyszy. Każdy, kto może czytać ten czat, może otworzyć link; w sieci bez szyfrowania end-to-end dotyczy to także samej sieci.</string>
     <string name="link_call_dont_show">Nie pokazuj więcej</string>
     <string name="link_call_start">Zadzwoń</string>
     <string name="link_call_cancel">Anuluj</string>

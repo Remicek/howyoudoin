@@ -14,22 +14,28 @@ here, sends its link in the chat, and the other person joins from their browser 
 
 ## How a call works
 
-1. The app sends `POST /api/calls`; the worker makes a call (a `CallRoom` Durable Object) and answers with the
-   invite link and the app's own link, which carries the call's secret token in its `#fragment`.
-2. The app adds a random encryption key to both links' fragments, sends the invite in the chat and opens its link.
+1. The app makes a random 128-bit key and names the call after it (the first 22 base64url characters of the key's
+   SHA-256, `web/link.ts` / `CallLinkNaming` in the app), and sends `POST /api/calls` with that name; the worker
+   makes the call (a `CallRoom` Durable Object) and answers with the app's own link, which carries the call's secret
+   token in its `#fragment`.
+2. The app sends the invite, `https://call.howyoudoin.app/#<key>`, in the chat and opens its own link with the key
+   added (`?host=1#t=<token>&k=<key>&v=1`). Each page derives the call's name from the key again.
 3. Each page opens a WebSocket to its call (`/api/calls/<room>/ws`): the host with the token, the invited person
    with nothing (they get a secret of their own, to come back after a dropped connection).
 4. Each page sends its microphone (and camera) to the SFU over one WebRTC connection and receives the other
    person's over another. `CallRoom` makes the SFU requests, so the SFU's secret stays on the server, and tells
    each page what the other publishes.
 5. Every audio and video frame is encrypted in the page (`web/e2ee-worker.ts`, `web/frame-crypto.ts`: AES-GCM
-   with the link's key), so the SFU forwards frames it can't read. Video is VP8 and at most 540p.
+   with a key per direction derived from the link's key, and a frame counter against replays), so the SFU forwards
+   frames it can't read. Video is VP8 and at most 540p.
 
 ## Privacy
 
 - The call is **end-to-end encrypted**: the app makes a random key and puts it only in the links' `#fragment`.
   Browsers never send a fragment to a server, so neither this worker nor Cloudflare's SFU can see or hear the
-  call.
+  call. The call's name is a hash of the key: knowing the name (as the server does) says nothing about the key.
+- The invite is as private as the chat it's sent in: anyone who can read that chat can open the link, and on a
+  network without end-to-end encryption that includes the network. The app says so before the first call.
 - A call has room for **two people**. It ends 15 minutes after it's created if nobody joins, when either person
   hangs up, when someone stays disconnected for 20 seconds, and after 4 hours at most. A link to an ended call
   says the call has ended.
@@ -42,13 +48,15 @@ here, sends its link in the chat, and the other person joins from their browser 
 
 | Request | Answer |
 |---|---|
-| `POST /api/calls` | `{ room, joinUrl, hostUrl, plan, videoAllowed }`: the app starts a call (402 when no minutes are left) |
+| `POST /api/calls` | `{ joinUrl, hostUrl, plan, videoAllowed }`: the app starts the call it named (402 when no minutes are left, 409 when the name is taken) |
 | `POST /api/usage` | the minutes left this month |
 
-The app's requests carry `{ install, subscription?, video? }`: a random install ID and, with Premium, its Google
-Play subscription token.
+The app's requests carry `{ install, subscription?, video?, room? }`: a random install ID, with Premium its Google
+Play subscription token, and when starting a call its name. Each install may start 6 calls a minute, and an
+address 120 (`CREATE_LIMIT`, `IP_LIMIT`); a connection may send 60 WebSocket messages a minute and open 12 SFU
+sessions in a call.
 | `GET /api/calls/<room>/ws` | WebSocket to the call (JSON messages, see `CallRoom` in `src/worker.ts`) |
-| `GET /call/<room>` | the call page |
+| `GET /` | the call page (the fragment says which call) |
 
 ## Set up
 
@@ -85,7 +93,7 @@ npm run types && npm run typecheck && npm test
 ```
 
 For a debug build on an emulator or phone: `callLink.url=http://localhost:8787` in `local.properties`, then
-`adb reverse tcp:8787 tcp:8787` (a phone's Chrome can join the same way: open `http://localhost:8787/call/…`).
+`adb reverse tcp:8787 tcp:8787` (a phone's Chrome can join the same way: open `http://localhost:8787/#…`).
 The media goes straight to Cloudflare. The app's call page can be inspected from `chrome://inspect` in debug
 builds.
 

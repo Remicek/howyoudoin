@@ -215,7 +215,7 @@
     <string name="link_call_how_link">通話へのリンクがこのチャットで %1$s に送信されます。</string>
     <string name="link_call_how_browser">相手はブラウザでリンクを開くだけで参加できます（アプリやアカウントは不要）。参加するまで通話画面で待ちます。</string>
     <string name="link_call_how_ringing">相手の %1$s 通話には応答されず、相手が切るまで鳴り続けます。</string>
-    <string name="link_call_how_encrypted">通話はエンドツーエンドで暗号化されます。HowYouDoin の通話サーバーを経由しますが、サーバーは内容を見聞きできません。</string>
+    <string name="link_call_how_encrypted">通話はエンドツーエンドで暗号化されます。HowYouDoin の通話サーバーを経由しますが、サーバーは内容を見聞きできません。 このチャットを読める人は誰でもリンクを開けます。エンドツーエンド暗号化のないネットワークでは、そのネットワーク自体も含まれます。</string>
     <string name="link_call_dont_show">今後表示しない</string>
     <string name="link_call_start">通話を開始</string>
     <string name="link_call_cancel">キャンセル</string>

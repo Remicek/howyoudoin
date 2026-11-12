@@ -1,6 +1,7 @@
 package com.devvalor.howyoudoing.app.account
 
 import android.annotation.SuppressLint
+import android.graphics.Bitmap
 import android.webkit.CookieManager
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
@@ -60,6 +61,11 @@ actual fun AccountActionWebView(
                 webViewClient = object : WebViewClient() {
                     override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean =
                         !isAllowed(request.url.toString(), allowedHosts)
+
+                    // Safety net for server-side redirects that don't surface through shouldOverrideUrlLoading
+                    override fun onPageStarted(view: WebView, url: String?, favicon: Bitmap?) {
+                        if (url != null && !isAllowed(url, allowedHosts)) view.stopLoading()
+                    }
                 }
                 loadUrl(action.url)
             }

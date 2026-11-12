@@ -2,6 +2,7 @@ package hydbridge
 
 import (
 	"encoding/binary"
+	"io"
 	"os"
 	"regexp"
 	"strconv"
@@ -96,9 +97,28 @@ func tkhdSize(b []byte) (int, int) {
 	return w, h
 }
 
+// maxMetaBytes bounds how much of a video is read for its metadata: the moov box of a phone's recording is at the
+// start, and a video at the download cap mustn't become a same-size allocation.
+const maxMetaBytes = 4 << 20
+
+// readVideoHead reads at most maxMetaBytes from the start of the file at path.
+func readVideoHead(path string) ([]byte, error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+	data := make([]byte, maxMetaBytes)
+	n, err := io.ReadFull(f, data)
+	if err != nil && err != io.ErrUnexpectedEOF && err != io.EOF {
+		return nil, err
+	}
+	return data[:n], nil
+}
+
 // withVideoMeta fills an attachment event's missing size and length from the video file at path.
 func withVideoMeta(event map[string]any, path string) {
-	data, err := os.ReadFile(path)
+	data, err := readVideoHead(path)
 	if err != nil {
 		return
 	}

@@ -22,6 +22,8 @@ export interface Member {
   pubSession?: string;
   /** Realtime SFU session that receives the other person's media. */
   subSession?: string;
+  /** How many SFU sessions this person has opened in this call (capped: each costs). */
+  sessions?: number;
   /** Published but not yet connected, so not yet offered to the other person. */
   pending: string[];
   /** What the other person can receive (see isTrackName). */
@@ -82,6 +84,8 @@ export const CHARGE_EVERY_MS = 60 * 1000;
 export const RECONNECT_MS = 20 * 1000;
 /** Most publications one connection may make (each time the camera is turned on is one). */
 export const MAX_TRACKS = 50;
+/** Most SFU sessions one person may open in a call: a few reconnections' worth. */
+export const MAX_SESSIONS = 12;
 
 /**
  * "audio", and "video1", "video2"…: a camera turned off stops sending, and the SFU drops a track that sends nothing
@@ -259,6 +263,7 @@ export function admit(room: Room, credentials: Credentials, newSecret: () => str
     ...emptyMember(before.gen + 1),
     connected: true,
     secret: role === "guest" ? (before.secret ?? newSecret()) : undefined,
+    sessions: before.sessions,
   };
   if (room.host.connected && room.guest.connected) room.phase = "active";
   return { role, gen: room[role].gen, secret: room[role].secret };
@@ -268,7 +273,7 @@ export function admit(room: Room, credentials: Credentials, newSecret: () => str
 export function disconnect(room: Room, role: Role, gen: number, now: number): boolean {
   const member = room[role];
   if (member.gen !== gen || !member.connected) return false;
-  room[role] = { ...emptyMember(gen), secret: member.secret, leftAt: now };
+  room[role] = { ...emptyMember(gen), secret: member.secret, leftAt: now, sessions: member.sessions };
   return true;
 }
 
@@ -321,18 +326,32 @@ export function nextDeadline(room: Room, now: number): number {
   return Math.min(...deadlines);
 }
 
-/** Records what someone has started publishing; it's offered to the other person once it's connected (announce). */
-export function publish(room: Room, role: Role, session: string, names: string[]): boolean {
+/** Whether these are new, valid track names this person may still publish (checked before any SFU session is made). */
+export function canPublish(room: Room, role: Role, names: string[]): boolean {
   const member = room[role];
-  const valid =
+  return (
     names.length > 0 &&
     names.every((n) => isTrackName(n) && !member.tracks.includes(n) && !member.pending.includes(n)) &&
     new Set(names).size === names.length &&
-    member.tracks.length + member.pending.length + names.length <= MAX_TRACKS &&
-    (member.pubSession === undefined || member.pubSession === session);
-  if (!valid) return false;
+    member.tracks.length + member.pending.length + names.length <= MAX_TRACKS
+  );
+}
+
+/** Records what someone has started publishing; it's offered to the other person once it's connected (announce). */
+export function publish(room: Room, role: Role, session: string, names: string[]): boolean {
+  const member = room[role];
+  if (!canPublish(room, role, names) || (member.pubSession !== undefined && member.pubSession !== session)) return false;
   member.pubSession = session;
   member.pending = [...new Set([...member.pending, ...names])];
+  return true;
+}
+
+/** Counts a new SFU session for this person; false once they've had their share. */
+export function takeSession(room: Room, role: Role): boolean {
+  const member = room[role];
+  const used = member.sessions ?? 0;
+  if (used >= MAX_SESSIONS) return false;
+  member.sessions = used + 1;
   return true;
 }
 

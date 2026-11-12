@@ -59,7 +59,9 @@ send its link in a chat; the other person joins it in their browser. Only when y
   call's random name.
 - The call is end-to-end encrypted with a key that only goes in the link you send, after the `#`, a part browsers
   never send to a server. Neither the call service nor Cloudflare can see or hear the call, and neither stores it.
-- The link is sent as an ordinary message in that chat, so the network carries it like any other message.
+- The link is sent as an ordinary message in that chat, so the network carries it like any other message. Anyone
+  who can read that chat can open the link: the call is as private as the chat you send it in, and on a network
+  without end-to-end encryption the network itself could read the link.
 - A call has room for two people. It closes 15 minutes after it's created if nobody joins, when either of you hangs
   up, and after at most 4 hours. Once it closes, the call service keeps nothing about the call itself, only the
   minutes it used (below).

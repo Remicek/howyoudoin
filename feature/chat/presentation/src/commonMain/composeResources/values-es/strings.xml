@@ -219,7 +219,7 @@
     <string name="link_call_how_link">Se envía un enlace a %1$s en este chat.</string>
     <string name="link_call_how_browser">Se une abriendo el enlace en su navegador: sin app ni cuenta. Esperas en la pantalla de llamada hasta que se una.</string>
     <string name="link_call_how_ringing">Su llamada de %1$s no se contesta: sigue sonando hasta que cuelgue.</string>
-    <string name="link_call_how_encrypted">La llamada está cifrada de extremo a extremo. Pasa por el servidor de llamadas de HowYouDoin, que no puede verla ni oírla.</string>
+    <string name="link_call_how_encrypted">La llamada está cifrada de extremo a extremo. Pasa por el servidor de llamadas de HowYouDoin, que no puede verla ni oírla. Cualquiera que pueda leer este chat puede abrir el enlace; en una red sin cifrado de extremo a extremo, eso incluye a la propia red.</string>
     <string name="link_call_dont_show">No volver a mostrar</string>
     <string name="link_call_start">Llamar</string>
     <string name="link_call_cancel">Cancelar</string>

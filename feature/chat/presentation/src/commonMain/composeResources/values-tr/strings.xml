@@ -217,7 +217,7 @@
     <string name="link_call_how_link">Aramanın bağlantısı bu sohbette %1$s kişisine gönderilir.</string>
     <string name="link_call_how_browser">Karşı taraf bağlantıyı tarayıcısında açarak katılır: uygulama veya hesap gerekmez. Katılana kadar arama ekranında beklersiniz.</string>
     <string name="link_call_how_ringing">%1$s araması yanıtlanmaz: karşı taraf kapatana kadar çalmaya devam eder.</string>
-    <string name="link_call_how_encrypted">Arama uçtan uca şifrelidir. HowYouDoin'in arama sunucusundan geçer; sunucu aramayı göremez ve duyamaz.</string>
+    <string name="link_call_how_encrypted">Arama uçtan uca şifrelidir. HowYouDoin'in arama sunucusundan geçer; sunucu aramayı göremez ve duyamaz. Bu sohbeti okuyabilen herkes bağlantıyı açabilir; uçtan uca şifreleme olmayan bir ağda buna ağın kendisi de dahildir.</string>
     <string name="link_call_dont_show">Bir daha gösterme</string>
     <string name="link_call_start">Aramayı başlat</string>
     <string name="link_call_cancel">İptal</string>

@@ -24,14 +24,17 @@ class HttpLinkCallsTest {
     private val install = InstallId { "0123456789abcdef0123456789abcdef" }
     private val json = headersOf(HttpHeaders.ContentType, "application/json")
 
+    /** Stands in for SHA-256 (the real derivation is checked against the page in CallLinkNamingTest). */
+    private val fakeSha256: (ByteArray) -> ByteArray = { key -> ByteArray(32) { i -> (key[i % key.size] + i).toByte() } }
+
     private fun calls(
         engine: MockEngine,
         url: String = "https://call.example",
         bytes: (Int) -> ByteArray = { ByteArray(it) },
-    ) = HttpLinkCalls(HttpClientFactory.create(engine), url, install, NoPremium, bytes)
+    ) = HttpLinkCalls(HttpClientFactory.create(engine), url, install, NoPremium, bytes, fakeSha256)
 
     private val created = """
-        {"room":"r","joinUrl":"https://call.example/call/r","hostUrl":"https://call.example/call/r?host=1#t=tok&u=wss"}
+        {"joinUrl":"https://call.example/","hostUrl":"https://call.example/?host=1#t=tok&u=wss"}
     """.trimIndent()
 
     @Test
@@ -48,11 +51,13 @@ class HttpLinkCallsTest {
         val call = (calls.start(video = true) as Result.Success).data
 
         assertEquals("${HttpMethod.Post.value} https://call.example/api/calls", requested)
-        // Whose minutes; never the key
-        assertEquals("""{"install":"0123456789abcdef0123456789abcdef","video":true}""", body)
-        val key = "AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE"
-        assertEquals("https://call.example/call/r#k=$key", call.inviteUrl)
-        assertEquals("https://call.example/call/r?host=1#t=tok&u=wss&k=$key&v=1", call.hostUrl)
+        // Whose minutes and the call's name (a hash of the key); never the key
+        val key = "AQEBAQEBAQEBAQEBAQEBAQ"
+        val room = CallLinkNaming.roomOf(ByteArray(16) { 1 }, fakeSha256)
+        assertEquals(22, room.length)
+        assertEquals("""{"install":"0123456789abcdef0123456789abcdef","video":true,"room":"$room"}""", body)
+        assertEquals("https://call.example/#$key", call.inviteUrl)
+        assertEquals("https://call.example/?host=1#t=tok&u=wss&k=$key&v=1", call.hostUrl)
     }
 
     @Test

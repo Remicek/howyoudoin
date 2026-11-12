@@ -7,6 +7,9 @@ name: Network clients library
 on:
   workflow_call:
 
+permissions:
+  contents: read
+
 jobs:
   hydbridge:
     runs-on: ubuntu-latest

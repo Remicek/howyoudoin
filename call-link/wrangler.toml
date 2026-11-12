@@ -38,8 +38,15 @@ new_sqlite_classes = ["CallAccount"]
 [vars]
 PLAY_PACKAGE = "com.devvalor.howyoudoing"
 
-# At most this many calls created per IP address a minute, so nobody can run up the bill
+# At most this many calls (or minutes checks) a minute from one install at one address, so nobody can run up the bill
 [[ratelimits]]
 name = "CREATE_LIMIT"
 namespace_id = "1001"
 simple = { limit = 6, period = 60 }
+
+# And a ceiling per address, over all installs behind it (made-up install IDs don't get around the one above). Loose,
+# because phones on mobile data share addresses by the thousand
+[[ratelimits]]
+name = "IP_LIMIT"
+namespace_id = "1002"
+simple = { limit = 120, period = 60 }
