@@ -116,5 +116,4 @@ One-time setup (done 2026-11-06; project howyoudoin-513908, play-publisher@howyo
       hi-IN, id, ja-JP); 7 phone screenshots per language, captured in demo mode with the app in that language
       (scripts in ~/StudioProjects/GooglePlay/HowYouDoin/.scripts: frame_demo.py, frame_pl.py, frame_lang.py; the
       video call screen uses two generated people from Matchamore). The Premium shot with the removed top-up is gone.
-- [ ] Promo video: new landscape versions (video/howyoudoin_promo_landscape_en.mp4, _pl.mp4; the portrait one got
-      its captions cropped in Play's 16:9 frame) need uploading to YouTube (unlisted), then set per language.
+- [x] Promo video 2026-11-12: landscape (16:9) video per language, unlisted on YouTube, set for all 12 listings
